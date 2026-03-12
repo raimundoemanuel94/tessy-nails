@@ -1,39 +1,44 @@
 import { z } from "zod";
 
-export type UserRole = 'admin' | 'professional';
+export const UserRoleEnum = z.enum(['admin', 'professional']);
 
-// User Schema & Type
 export const UserSchema = z.object({
   uid: z.string(),
-  name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
-  email: z.string().email("E-mail inválido"),
-  role: z.enum(['admin', 'professional']),
+  name: z.string(),
+  email: z.string().email(),
+  role: UserRoleEnum,
+  createdAt: z.date(),
   photoURL: z.string().optional(),
-  createdAt: z.any(), // Firebase Timestamp
+  isActive: z.boolean().default(true),
 });
 
 export type User = z.infer<typeof UserSchema>;
+export type UserRole = z.infer<typeof UserRoleEnum>;
 
 // Client Schema & Type
 export const ClientSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
-  phone: z.string().min(10, "Telefone inválido"),
-  email: z.string().email("E-mail inválido").optional().or(z.literal("")),
+  id: z.string(),
+  name: z.string(),
+  phone: z.string(),
+  email: z.string().email(),
   notes: z.string().optional(),
-  createdAt: z.any().optional(),
+  totalAppointments: z.number().default(0),
+  createdAt: z.date(),
+  lastVisit: z.date().optional(),
 });
 
 export type Client = z.infer<typeof ClientSchema>;
 
 // Service Schema & Type
 export const ServiceSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
-  durationMinutes: z.number().min(5, "Duração mínima de 5 minutos"),
-  price: z.number().min(0, "O preço não pode ser negativo"),
+  id: z.string(),
+  name: z.string(),
+  durationMinutes: z.number(),
+  price: z.number(),
   active: z.boolean().default(true),
-  createdAt: z.any().optional(),
+  createdAt: z.date(),
+  description: z.string().optional(),
+  category: z.string().optional(),
 });
 
 export type Service = z.infer<typeof ServiceSchema>;
@@ -44,19 +49,81 @@ export const PaymentStatusEnum = z.enum(['unpaid', 'deposit_paid', 'fully_paid']
 
 export const AppointmentSchema = z.object({
   id: z.string().optional(),
-  clientId: z.string().min(1, "Selecione uma cliente"),
-  serviceId: z.string().min(1, "Selecione um serviço"),
-  specialistId: z.string().min(1, "Selecione uma profissional"),
-  appointmentDate: z.any(), // Date or Firebase Timestamp
+  clientId: z.string(),
+  serviceId: z.string(),
+  specialistId: z.string(),
+  appointmentDate: z.date(),
   status: AppointmentStatusEnum.default('pending'),
   paymentStatus: PaymentStatusEnum.default('unpaid'),
   notes: z.string().optional(),
-  createdAt: z.any().optional(),
+  createdAt: z.date(),
 });
 
 export type Appointment = z.infer<typeof AppointmentSchema>;
 export type AppointmentStatus = z.infer<typeof AppointmentStatusEnum>;
 export type PaymentStatus = z.infer<typeof PaymentStatusEnum>;
+
+// Sale Schema & Type
+export const PaymentMethodEnum = z.enum(['cash', 'credit', 'debit', 'pix']);
+
+export const SaleSchema = z.object({
+  id: z.string(),
+  appointmentId: z.string(),
+  amount: z.number(),
+  paymentMethod: PaymentMethodEnum,
+  status: z.enum(['pending', 'completed', 'refunded']).default('pending'),
+  createdAt: z.date(),
+});
+
+export type Sale = z.infer<typeof SaleSchema>;
+export type PaymentMethod = z.infer<typeof PaymentMethodEnum>;
+
+// Report Schema & Type
+export const ReportSchema = z.object({
+  id: z.string(),
+  month: z.string(), // Format: "2024-03"
+  totalRevenue: z.number(),
+  totalAppointments: z.number(),
+  totalClients: z.number(),
+  createdAt: z.date(),
+});
+
+export type Report = z.infer<typeof ReportSchema>;
+
+// Salon Config Schema & Type
+export const SalonConfigSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  phone: z.string(),
+  email: z.string().email(),
+  address: z.object({
+    street: z.string(),
+    neighborhood: z.string(),
+    city: z.string(),
+    state: z.string(),
+    zipCode: z.string(),
+  }),
+  workingHours: z.object({
+    monday: z.object({ open: z.string(), close: z.string(), enabled: z.boolean() }),
+    tuesday: z.object({ open: z.string(), close: z.string(), enabled: z.boolean() }),
+    wednesday: z.object({ open: z.string(), close: z.string(), enabled: z.boolean() }),
+    thursday: z.object({ open: z.string(), close: z.string(), enabled: z.boolean() }),
+    friday: z.object({ open: z.string(), close: z.string(), enabled: z.boolean() }),
+    saturday: z.object({ open: z.string(), close: z.string(), enabled: z.boolean() }),
+    sunday: z.object({ open: z.string(), close: z.string(), enabled: z.boolean() }),
+  }),
+  settings: z.object({
+    appointmentInterval: z.number().default(30),
+    cleaningTime: z.number().default(15),
+    maxAdvanceBooking: z.number().default(90),
+    minCancelNotice: z.number().default(24),
+    currency: z.string().default("BRL"),
+    timezone: z.string().default("America/Sao_Paulo"),
+  }),
+  createdAt: z.date(),
+});
+
+export type SalonConfig = z.infer<typeof SalonConfigSchema>;
 
 // UI helper types
 export interface AppointmentWithDetails extends Appointment {

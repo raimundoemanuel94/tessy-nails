@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -10,20 +10,24 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { signIn } = useAuth();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      toast.success("Login realizado com sucesso!");
-      router.push("/dashboard");
+      const success = await signIn(email, password);
+      if (success) {
+        toast.success("Login realizado com sucesso!");
+        router.push("/dashboard");
+      }
     } catch (error: any) {
       toast.error("Erro ao fazer login: " + error.message);
     } finally {
@@ -35,9 +39,11 @@ export default function LoginPage() {
     setLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      toast.success("Login com Google realizado!");
-      router.push("/dashboard");
+      if (auth) {
+        await signInWithPopup(auth, provider);
+        toast.success("Login com Google realizado!");
+        router.push("/dashboard");
+      }
     } catch (error: any) {
       toast.error("Erro ao fazer login com Google: " + error.message);
     } finally {

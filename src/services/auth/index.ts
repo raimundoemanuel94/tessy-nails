@@ -7,7 +7,7 @@ import {
   User as FirebaseUser
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { User, UserSchema } from "@/types";
 
 export const authService = {
@@ -15,6 +15,7 @@ export const authService = {
    * Login com e-mail e senha
    */
   async loginWithEmail(email: string, pass: string) {
+    if (!auth) throw new Error('Firebase Auth not initialized');
     return signInWithEmailAndPassword(auth, email, pass);
   },
 
@@ -22,6 +23,7 @@ export const authService = {
    * Login com Google
    */
   async loginWithGoogle() {
+    if (!auth) throw new Error('Firebase Auth not initialized');
     const provider = new GoogleAuthProvider();
     return signInWithPopup(auth, provider);
   },
@@ -30,6 +32,7 @@ export const authService = {
    * Logout
    */
   async logout() {
+    if (!auth) throw new Error('Firebase Auth not initialized');
     return firebaseSignOut(auth);
   },
 
@@ -60,13 +63,14 @@ export const authService = {
         email: fUser.email || "",
         role,
         photoURL: fUser.photoURL || undefined,
-        createdAt: Timestamp.now(),
+        createdAt: new Date(),
+        isActive: true,
       };
       
       const validatedUser = UserSchema.parse(newUser);
       await setDoc(userRef, {
         ...validatedUser,
-        createdAt: Timestamp.now(),
+        createdAt: new Date(),
       });
       
       return {
