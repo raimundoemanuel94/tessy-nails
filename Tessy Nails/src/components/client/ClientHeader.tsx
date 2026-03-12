@@ -22,7 +22,7 @@ export function ClientHeader() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
-          <a href="#servicos" className="text-gray-700 hover:text-pink-600 transition-colors text-sm font-medium">
+          <a href="/servicos" className="text-gray-700 hover:text-pink-600 transition-colors text-sm font-medium">
             Serviços
           </a>
           <a href="#beneficios" className="text-gray-700 hover:text-pink-600 transition-colors text-sm font-medium">
@@ -36,7 +36,7 @@ export function ClientHeader() {
         {/* CTA Button */}
         <div className="hidden md:block">
           <a 
-            href="#agendar"
+            href="/agendar"
             className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium px-6 py-2 rounded-lg inline-flex items-center transition-colors"
           >
             Agendar Agora
@@ -58,7 +58,7 @@ export function ClientHeader() {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-pink-100 bg-white">
           <div className="container px-4 py-4 space-y-3">
-            <a href="#servicos" className="block text-gray-700 hover:text-pink-600 transition-colors text-sm font-medium">
+            <a href="/servicos" className="block text-gray-700 hover:text-pink-600 transition-colors text-sm font-medium">
               Serviços
             </a>
             <a href="#beneficios" className="block text-gray-700 hover:text-pink-600 transition-colors text-sm font-medium">

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, ArrowLeft, Edit } from "lucide-react";
 import { appointmentService } from "@/services/appointments";
 import { Appointment } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Interfaces locais
 interface Service {
@@ -41,6 +42,7 @@ interface AppointmentData {
 
 export default function ConfirmacaoPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [appointmentData, setAppointmentData] = useState<AppointmentData | null>(null);
   const [observation, setObservation] = useState("");
   const [loading, setLoading] = useState(true);
@@ -75,12 +77,17 @@ export default function ConfirmacaoPage() {
     setError(null);
 
     try {
+      // Combinar a data com o horário selecionado para gerar um datetime completo
+      const [hours, minutes] = appointmentData.time.time.split(":").map(Number);
+      const appointmentDateTime = new Date(appointmentData.date);
+      appointmentDateTime.setHours(hours, minutes, 0, 0);
+
       // Preparar dados para o Firestore
       const appointmentDataForFirestore = {
-        clientId: "client_placeholder", // Fallback - pode ser substituído por dados do usuário autenticado
+        clientId: user?.uid ?? "client_placeholder",
         serviceId: appointmentData.service.id,
         specialistId: "specialist_placeholder", // Fallback - pode ser substituído por dados do profissional
-        appointmentDate: appointmentData.date,
+        appointmentDate: appointmentDateTime,
         status: "pending" as const,
         paymentStatus: "unpaid" as const,
         notes: observation || undefined,
@@ -109,7 +116,7 @@ export default function ConfirmacaoPage() {
       localStorage.removeItem('appointmentData');
 
       // Navegar para página de sucesso
-      router.push('/cliente/agendar/sucesso');
+      router.push('/agendar/sucesso');
       
     } catch (error) {
       console.error('Error confirming appointment:', error);
@@ -122,19 +129,19 @@ export default function ConfirmacaoPage() {
   };
 
   const handleBack = () => {
-    router.push('/cliente/agendar/horarios');
+    router.push('/agendar/horarios');
   };
 
   const handleEdit = () => {
-    router.push('/cliente/agendar/horarios');
+    router.push('/agendar/horarios');
   };
 
   const handleChangeDate = () => {
-    router.push('/cliente/agendar');
+    router.push('/agendar');
   };
 
   const handleBackToServices = () => {
-    router.push('/cliente/servicos');
+    router.push('/servicos');
   };
 
   // Estados de erro

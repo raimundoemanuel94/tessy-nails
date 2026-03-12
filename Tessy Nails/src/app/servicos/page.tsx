@@ -1,91 +1,137 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { ServicesHeader } from "@/components/client/ServicesHeader";
+import { ServiceSearch } from "@/components/client/ServiceSearch";
+import { ServiceList } from "@/components/client/ServiceList";
+import { EmptyState } from "@/components/client/EmptyState";
+import { salonService } from "@/services";
+import { Service as FirestoreService } from "@/types";
 
-import { useState } from "react";
-import { AdminLayout } from "@/components/layout/AdminLayout";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { Plus, Scissors, Clock, DollarSign, Edit2, Trash2, MoreVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { 
-  Card, 
-  CardContent, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
+interface Service {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  duration: string;
+  isActive: boolean;
+  image?: string;
+  rating?: number;
+}
 
-const mockServices = [
-  { id: "1", name: "Manicure Simples", duration: "45 min", price: "R$ 45,00", active: true },
-  { id: "2", name: "Pedicure Completa", duration: "60 min", price: "R$ 60,00", active: true },
-  { id: "3", name: "Alongamento em Gel", duration: "120 min", price: "R$ 180,00", active: true },
-  { id: "4", name: "Esmaltação em Gel", duration: "60 min", price: "R$ 80,00", active: true },
-  { id: "5", name: "Banho de Gel", duration: "90 min", price: "R$ 120,00", active: false },
-];
+function formatPrice(price: number): string {
+  return price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes}min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h ${m}min` : `${h}h`;
+}
+
+function mapToLocalService(s: FirestoreService): Service {
+  return {
+    id: s.id || '',
+    name: s.name,
+    description: s.description ?? "",
+    price: formatPrice(s.price),
+    duration: formatDuration(s.durationMinutes),
+    isActive: s.active,
+  };
+}
 
 export default function ServicosPage() {
-  return (
-    <AdminLayout>
-      <PageHeader 
-        title="Catálogo de Serviços" 
-        description="Defina os serviços oferecidos e seus respectivos valores."
-      >
-        <Button className="gap-2">
-          <Plus size={18} /> Novo Serviço
-        </Button>
-      </PageHeader>
+  const router = useRouter();
+  const [services, setServices] = useState<Service[]>([]);
+  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showOnlyActive, setShowOnlyActive] = useState(false);
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockServices.map((service) => (
-          <Card key={service.id} className={`transition-all ${!service.active && "opacity-60 bg-slate-50"}`}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg font-bold">{service.name}</CardTitle>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical size={18} />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem className="cursor-pointer gap-2">
-                    <Edit2 size={16} /> Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer gap-2 text-destructive">
-                    <Trash2 size={16} /> Excluir
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock size={16} />
-                  {service.duration}
-                </div>
-                <div className="flex items-center gap-1 font-bold text-lg text-primary">
-                  <DollarSign size={18} />
-                  {service.price}
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t pt-4">
-              <Badge variant={service.active ? "default" : "outline"}>
-                {service.active ? "Ativo" : "Inativo"}
-              </Badge>
-              <Button variant="outline" size="sm">Ver detalhes</Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-    </AdminLayout>
+  useEffect(() => {
+    salonService.getAll()
+      .then((data) => {
+        const mapped = data.map(mapToLocalService);
+        setServices(mapped);
+        setFilteredServices(mapped);
+      })
+      .catch(() => setError("Não foi possível carregar os serviços. Tente novamente."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    let filtered = services;
+
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(service =>
+        service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (showOnlyActive) {
+      filtered = filtered.filter(service => service.isActive);
+    }
+
+    setFilteredServices(filtered);
+  }, [services, searchQuery, showOnlyActive]);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleFilterActive = (activeOnly: boolean) => {
+    setShowOnlyActive(activeOnly);
+  };
+
+  const handleSelectService = (service: Service) => {
+    localStorage.setItem("selectedService", JSON.stringify(service));
+    router.push("/agendar");
+  };
+
+  const handleBack = () => {
+    router.push("/");
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <ServicesHeader
+        title="Escolha um serviço"
+        onBack={handleBack}
+      />
+
+      <main className="container px-4 py-8">
+        <ServiceSearch
+          onSearch={handleSearch}
+          onFilterActive={handleFilterActive}
+        />
+
+        {error ? (
+          <div className="mt-8 rounded-lg bg-red-50 border border-red-200 p-4 text-center text-red-700 text-sm">
+            {error}
+          </div>
+        ) : loading ? (
+          <ServiceList services={[]} loading={true} />
+        ) : filteredServices.length > 0 ? (
+          <ServiceList
+            services={filteredServices}
+            onSelect={handleSelectService}
+          />
+        ) : (
+          <EmptyState
+            title="Nenhum serviço encontrado"
+            message={
+              searchQuery.trim()
+                ? `Não encontramos resultados para "${searchQuery}". Tente buscar com outros termos.`
+                : "Nenhum serviço disponível no momento."
+            }
+            showContact={!searchQuery.trim()}
+          />
+        )}
+      </main>
+    </div>
   );
 }

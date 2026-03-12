@@ -2,16 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { HorariosHeader } from "@/components/client/HorariosHeader";
 import { AppointmentSummary } from "@/components/client/AppointmentSummary";
 import { TimeSlotGrid, TimeSlot } from "@/components/client/TimeSlotGrid";
 import { NoTimeSlotsState } from "@/components/client/NoTimeSlotsState";
 import { Button } from "@/components/ui/button";
-import { Clock, ArrowLeft } from "lucide-react";
+import { appointmentService } from "@/services";
 
-// Interfaces locais
+// Horário de funcionamento: 08:00–18:00, intervalos de 30min
+const WORK_START = 8;
+const WORK_END = 18;
+const INTERVAL = 30;
+
 interface Service {
   id: string;
   name: string;
@@ -28,29 +32,17 @@ interface AppointmentData {
   month: Date;
 }
 
-// Mock data para horários disponíveis
-const generateMockTimeSlots = (): TimeSlot[] => {
-  return [
-    { id: "1", time: "08:00", available: true },
-    { id: "2", time: "08:30", available: false }, // Indisponível
-    { id: "3", time: "09:00", available: true },
-    { id: "4", time: "09:30", available: true },
-    { id: "5", time: "10:00", available: true, label: "Popular" },
-    { id: "6", time: "10:30", available: false }, // Indisponível
-    { id: "7", time: "11:00", available: true },
-    { id: "8", time: "13:00", available: true },
-    { id: "9", time: "13:30", available: true },
-    { id: "10", time: "14:00", available: true, label: "Popular" },
-    { id: "11", time: "14:30", available: false }, // Indisponível
-    { id: "12", time: "15:00", available: true },
-    { id: "13", time: "15:30", available: true },
-    { id: "14", time: "16:00", available: true },
-    { id: "15", time: "16:30", available: true },
-    { id: "16", time: "17:00", available: true },
-    { id: "17", time: "17:30", available: false }, // Indisponível
-    { id: "18", time: "18:00", available: false }, // Indisponível
-  ];
-};
+function generateSlots(occupiedTimes: Set<string>): TimeSlot[] {
+  const slots: TimeSlot[] = [];
+  let id = 1;
+  for (let hour = WORK_START; hour < WORK_END; hour++) {
+    for (let min = 0; min < 60; min += INTERVAL) {
+      const time = `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+      slots.push({ id: String(id++), time, available: !occupiedTimes.has(time) });
+    }
+  }
+  return slots;
+}
 
 export default function HorariosPage() {
   const router = useRouter();
@@ -59,27 +51,45 @@ export default function HorariosPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Carregar dados do localStorage
   useEffect(() => {
-    const savedAppointmentData = localStorage.getItem('appointmentData');
-    if (savedAppointmentData) {
-      try {
-        const data: AppointmentData = JSON.parse(savedAppointmentData);
-        setSelectedService(data.service);
-        setSelectedDate(data.date);
-        
-        // Gerar horários mockados
-        const slots = generateMockTimeSlots();
-        setTimeSlots(slots);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error parsing appointment data:', error);
-        setLoading(false);
-      }
-    } else {
+    const savedAppointmentData = localStorage.getItem("appointmentData");
+    if (!savedAppointmentData) {
       setLoading(false);
+      return;
     }
+
+    let data: AppointmentData;
+    try {
+      data = JSON.parse(savedAppointmentData);
+    } catch {
+      setLoading(false);
+      return;
+    }
+
+    const parsedDate = new Date(data.date);
+    setSelectedService(data.service);
+    setSelectedDate(parsedDate);
+
+    appointmentService
+      .getByDateRange(startOfDay(parsedDate), endOfDay(parsedDate))
+      .then((appointments) => {
+        const occupiedTimes = new Set<string>(
+          appointments
+            .filter((a) => a.status !== "cancelled")
+            .map((a) => {
+              const d = new Date(a.appointmentDate);
+              return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+            })
+        );
+        setTimeSlots(generateSlots(occupiedTimes));
+      })
+      .catch(() => {
+        setError("Não foi possível verificar disponibilidade. Exibindo todos os horários.");
+        setTimeSlots(generateSlots(new Set()));
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const handleTimeSelect = (timeId: string) => {
@@ -88,33 +98,31 @@ export default function HorariosPage() {
 
   const handleContinue = () => {
     if (selectedTime && selectedService && selectedDate) {
-      // Salvar horário selecionado
+      const slot = timeSlots.find((s) => s.id === selectedTime);
+      if (!slot) return;
       const appointmentData = {
         service: selectedService,
         date: selectedDate,
-        time: selectedTime,
-        timeSlots: timeSlots
+        time: slot,
+        timeSlots,
       };
-      localStorage.setItem('appointmentData', JSON.stringify(appointmentData));
-      
-      // Navegar para página de confirmação
-      router.push('/cliente/agendar/confirmacao');
+      localStorage.setItem("appointmentData", JSON.stringify(appointmentData));
+      router.push("/agendar/confirmacao");
     }
   };
 
   const handleBack = () => {
-    router.push('/cliente/agendar');
+    router.push("/agendar");
   };
 
   const handleBackToServices = () => {
-    router.push('/cliente/servicos');
+    router.push("/servicos");
   };
 
   const handleChangeDate = () => {
-    router.push('/cliente/agendar');
+    router.push("/agendar");
   };
 
-  // Estados de erro
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -128,7 +136,7 @@ export default function HorariosPage() {
 
   if (!selectedService || !selectedDate) {
     return (
-      <NoTimeSlotsState 
+      <NoTimeSlotsState
         onBack={handleBackToServices}
         onChangeDate={handleChangeDate}
       />
@@ -137,7 +145,7 @@ export default function HorariosPage() {
 
   if (timeSlots.length === 0) {
     return (
-      <NoTimeSlotsState 
+      <NoTimeSlotsState
         onBack={handleBack}
         onChangeDate={handleChangeDate}
       />
@@ -146,21 +154,19 @@ export default function HorariosPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <HorariosHeader 
+      <HorariosHeader
         title="Escolha um horário"
         onBack={handleBack}
       />
 
       <main className="container px-4 py-8">
-        {/* Appointment Summary */}
         <div className="mb-8">
-          <AppointmentSummary 
+          <AppointmentSummary
             service={selectedService}
             selectedDate={selectedDate}
           />
         </div>
 
-        {/* Time Slots */}
         <div className="mb-8">
           <div className="mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -171,23 +177,28 @@ export default function HorariosPage() {
             </p>
           </div>
 
-          <TimeSlotGrid 
+          {error && (
+            <p className="mb-4 text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2">
+              {error}
+            </p>
+          )}
+
+          <TimeSlotGrid
             timeSlots={timeSlots}
             selectedTime={selectedTime || undefined}
             onTimeSelect={handleTimeSelect}
           />
         </div>
 
-        {/* Continue Button */}
         <div className="text-center">
-          <Button 
+          <Button
             onClick={handleContinue}
             disabled={!selectedTime}
             className="bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium px-8 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continuar
           </Button>
-          
+
           {!selectedTime && (
             <p className="mt-3 text-sm text-gray-500">
               Selecione um horário para continuar

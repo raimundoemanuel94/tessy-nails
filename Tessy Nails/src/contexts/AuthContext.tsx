@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               uid: fUser.uid,
               name: fUser.displayName || "Usuário",
               email: fUser.email || "",
-              role: "professional", // Default role
+              role: "client", // Default role for new users
               createdAt: new Date(),
               isActive: true,
               ...(fUser.photoURL && { photoURL: fUser.photoURL })
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 uid: fUser.uid,
                 name: fUser.displayName || "Usuário",
                 email: fUser.email || "",
-                role: "professional",
+                role: "client",
                 createdAt: new Date(),
                 isActive: true,
                 ...(fUser.photoURL && { photoURL: fUser.photoURL })
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             uid: fUser.uid,
             name: fUser.displayName || "Usuário",
             email: fUser.email || "",
-            role: "professional",
+            role: "client",
             createdAt: new Date(),
             isActive: true,
             ...(fUser.photoURL && { photoURL: fUser.photoURL })
@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         uid: result.user.uid,
         name: name,
         email: email,
-        role: "professional",
+        role: "client",
         createdAt: new Date(),
         isActive: true,
         photoURL: (result.user.photoURL || undefined)

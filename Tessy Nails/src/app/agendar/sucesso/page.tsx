@@ -65,16 +65,16 @@ export default function SucessoPage() {
 
   const handleMyAppointments = () => {
     // Preparar para futura implementação
-    router.push('/cliente/agendamentos');
+    router.push('/agendamentos');
   };
 
   const handleBackToHome = () => {
-    router.push('/cliente');
+    router.push('/');
   };
 
   const handleSearchAppointments = () => {
     // Preparar para futura implementação
-    router.push('/cliente/agendamentos');
+    router.push('/agendamentos');
   };
 
   // Estados de loading

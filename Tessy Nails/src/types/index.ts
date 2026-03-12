@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const UserRoleEnum = z.enum(['admin', 'professional']);
+export const UserRoleEnum = z.enum(['admin', 'professional', 'client']);
 
 export const UserSchema = z.object({
   uid: z.string(),
@@ -17,7 +17,7 @@ export type UserRole = z.infer<typeof UserRoleEnum>;
 
 // Client Schema & Type
 export const ClientSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   name: z.string(),
   phone: z.string(),
   email: z.string().email(),
@@ -31,7 +31,7 @@ export type Client = z.infer<typeof ClientSchema>;
 
 // Service Schema & Type
 export const ServiceSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   name: z.string(),
   durationMinutes: z.number(),
   price: z.number(),

@@ -75,16 +75,16 @@ export default function AgendarPage() {
       localStorage.setItem('appointmentData', JSON.stringify(appointmentData));
       
       // Navegar para página de horários
-      router.push('/cliente/agendar/horarios');
+      router.push('/agendar/horarios');
     }
   };
 
   const handleBack = () => {
-    router.push('/cliente/servicos');
+    router.push('/servicos');
   };
 
   const handleBackToServices = () => {
-    router.push('/cliente/servicos');
+    router.push('/servicos');
   };
 
   // Se não houver serviço selecionado, mostrar estado de erro

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
+
+  // Role-based redirect effect
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin' || user.role === 'professional') {
+        router.push("/admin/dashboard");
+      } else if (user.role === 'client') {
+        router.push("/");
+      }
+    }
+  }, [user, router]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +39,7 @@ export default function LoginPage() {
       console.log('Login result:', success);
       if (success) {
         toast.success("Login realizado com sucesso!");
-        console.log('Redirecting to dashboard...');
-        router.push("/dashboard");
+        // Redirect will be handled by useEffect based on user role
       } else {
         toast.error("Login falhou. Verifique suas credenciais.");
       }
@@ -48,7 +58,7 @@ export default function LoginPage() {
       if (auth) {
         await signInWithPopup(auth, provider);
         toast.success("Login com Google realizado!");
-        router.push("/dashboard");
+        // Redirect will be handled by useEffect based on user role
       }
     } catch (error: any) {
       toast.error("Erro ao fazer login com Google: " + error.message);

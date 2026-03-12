@@ -19,12 +19,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Calendar, label: "Agenda", href: "/agenda" },
-  { icon: Clock, label: "Agendamentos", href: "/agendamentos" },
-  { icon: Users, label: "Clientes", href: "/clientes" },
-  { icon: Scissors, label: "Serviços", href: "/servicos" },
-  { icon: Settings, label: "Configurações", href: "/configuracoes" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
+  { icon: Calendar, label: "Agenda", href: "/admin/agenda" },
+  { icon: Clock, label: "Agendamentos", href: "/admin/agendamentos" },
+  { icon: Users, label: "Clientes", href: "/admin/clientes" },
+  { icon: Scissors, label: "Serviços", href: "/admin/servicos" },
+  { icon: Settings, label: "Configurações", href: "/admin/configuracoes" },
 ];
 
 export function Sidebar() {
