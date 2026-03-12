@@ -23,12 +23,18 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
+      console.log('Attempting login with:', { email, password });
       const success = await signIn(email, password);
+      console.log('Login result:', success);
       if (success) {
         toast.success("Login realizado com sucesso!");
+        console.log('Redirecting to dashboard...');
         router.push("/dashboard");
+      } else {
+        toast.error("Login falhou. Verifique suas credenciais.");
       }
     } catch (error: any) {
+      console.error('Login error:', error);
       toast.error("Erro ao fazer login: " + error.message);
     } finally {
       setLoading(false);
