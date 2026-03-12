@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(userData);
           } else {
             console.log('Creating new user document...');
-            // Criar documento do usuário automaticamente
+            // Criar documento do usuário automaticamente com fallback
             const newUser: User = {
               uid: fUser.uid,
               name: fUser.displayName || "Usuário",
@@ -60,12 +60,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               isActive: true,
               photoURL: (fUser.photoURL || undefined)
             };
-            await setDoc(doc(db, "users", fUser.uid), newUser);
-            console.log('New user created:', newUser);
-            setUser(newUser);
+            
+            try {
+              await setDoc(doc(db, "users", fUser.uid), newUser);
+              console.log('New user created:', newUser);
+              setUser(newUser);
+            } catch (createError) {
+              console.error('Error creating user document:', createError);
+              // Fallback: usar dados do Firebase Auth sem criar documento
+              const fallbackUser: User = {
+                uid: fUser.uid,
+                name: fUser.displayName || "Usuário",
+                email: fUser.email || "",
+                role: "professional",
+                createdAt: new Date(),
+                isActive: true,
+                photoURL: fUser.photoURL || undefined
+              };
+              setUser(fallbackUser);
+            }
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
+          // Fallback: não quebrar o app se Firestore falhar
+          const fallbackUser: User = {
+            uid: fUser.uid,
+            name: fUser.displayName || "Usuário",
+            email: fUser.email || "",
+            role: "professional",
+            createdAt: new Date(),
+            isActive: true,
+            photoURL: fUser.photoURL || undefined
+          };
+          setUser(fallbackUser);
         }
       } else {
         console.log('User logged out');
