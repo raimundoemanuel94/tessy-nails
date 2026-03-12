@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+
 const withPWA = require("next-pwa")({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
@@ -7,7 +8,11 @@ const withPWA = require("next-pwa")({
 });
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  webpack: (config, { isServer }) => {
+    // Adicione configurações personalizadas do webpack aqui, se necessário
+    return config;
+  },
+  turbopack: {},
 };
 
 export default withPWA(nextConfig);
