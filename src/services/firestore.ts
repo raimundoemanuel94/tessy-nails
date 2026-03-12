@@ -123,7 +123,7 @@ export const salonService = {
 
 export const appointmentServiceLegacy = {
   getAll: async () => {
-    const q = query(collection(db, "appointments"), orderBy("appointmentDate", "desc"));
+    const q = query(collection(db, "appointments"));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(mapDoc) as Appointment[];
   },
@@ -131,8 +131,7 @@ export const appointmentServiceLegacy = {
     const q = query(
       collection(db, "appointments"),
       where("appointmentDate", ">=", Timestamp.fromDate(start)),
-      where("appointmentDate", "<=", Timestamp.fromDate(end)),
-      orderBy("appointmentDate", "asc")
+      where("appointmentDate", "<=", Timestamp.fromDate(end))
     );
     const snapshot = await getDocs(q);
     return snapshot.docs.map(mapDoc) as Appointment[];

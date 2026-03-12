@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               role: "professional", // Default role
               createdAt: new Date(),
               isActive: true,
-              photoURL: (fUser.photoURL || undefined)
+              ...(fUser.photoURL && { photoURL: fUser.photoURL })
             };
             
             try {
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 role: "professional",
                 createdAt: new Date(),
                 isActive: true,
-                photoURL: fUser.photoURL || undefined
+                ...(fUser.photoURL && { photoURL: fUser.photoURL })
               };
               setUser(fallbackUser);
             }
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             role: "professional",
             createdAt: new Date(),
             isActive: true,
-            photoURL: fUser.photoURL || undefined
+            ...(fUser.photoURL && { photoURL: fUser.photoURL })
           };
           setUser(fallbackUser);
         }
