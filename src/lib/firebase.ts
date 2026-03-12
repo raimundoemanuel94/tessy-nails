@@ -30,7 +30,7 @@ export const isFirebaseConfigured = () => {
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 // Auth (client-side only)
-export const auth = typeof window !== 'undefined' ? getAuth(app) : null;
+export const auth = typeof window !== 'undefined' && isFirebaseConfigured() ? getAuth(app) : null;
 
 // Firestore (server e client)
 export const db = getFirestore(app);
