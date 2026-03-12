@@ -1,0 +1,50 @@
+"use client";
+
+import { ArrowLeft, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface PerfilHeaderProps {
+  title?: string;
+  subtitle?: string;
+  onBack?: () => void;
+}
+
+export function PerfilHeader({ 
+  title = "Meu perfil", 
+  subtitle,
+  onBack 
+}: PerfilHeaderProps) {
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-pink-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+        {/* Back Button */}
+        {onBack && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="text-pink-600 hover:bg-pink-50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        )}
+
+        {/* Title */}
+        <div className="flex-1 text-center">
+          <h1 className="text-xl font-bold text-gray-900 md:text-2xl flex items-center">
+            <User className="mr-2 h-5 w-5 text-pink-600" />
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="text-sm text-gray-600 mt-1">
+              {subtitle}
+            </p>
+          )}
+        </div>
+
+        {/* Spacer */}
+        <div className="w-20 md:w-24" />
+      </div>
+    </header>
+  );
+}
