@@ -44,10 +44,10 @@ export const PaymentStatusEnum = z.enum(['unpaid', 'deposit_paid', 'fully_paid']
 
 export const AppointmentSchema = z.object({
   id: z.string().optional(),
-  clientId: z.string({ required_error: "Selecione uma cliente" }),
-  serviceId: z.string({ required_error: "Selecione um serviço" }),
-  specialistId: z.string({ required_error: "Selecione uma profissional" }),
-  appointmentDate: z.any({ required_error: "Selecione uma data e hora" }), // Date or Firebase Timestamp
+  clientId: z.string().min(1, "Selecione uma cliente"),
+  serviceId: z.string().min(1, "Selecione um serviço"),
+  specialistId: z.string().min(1, "Selecione uma profissional"),
+  appointmentDate: z.any(), // Date or Firebase Timestamp
   status: AppointmentStatusEnum.default('pending'),
   paymentStatus: PaymentStatusEnum.default('unpaid'),
   notes: z.string().optional(),

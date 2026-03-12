@@ -29,17 +29,19 @@ export function Header() {
         </Button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={user?.photoURL} alt={user?.name} />
-                <AvatarFallback className="bg-primary/10 text-primary">
-                  {user?.name?.substring(0, 2).toUpperCase() || "UN"}
-                </AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={user?.photoURL} alt={user?.name} />
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    {user?.name?.substring(0, 2).toUpperCase() || "UN"}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            }
+          />
+          <DropdownMenuContent className="w-56" align="end">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{user?.name}</p>

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -113,11 +115,13 @@ export default function AgendamentosPage() {
                 <TableCell className="text-right font-medium">{app.price}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal size={18} />
-                      </Button>
-                    </DropdownMenuTrigger>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal size={18} />
+                        </Button>
+                      }
+                    />
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem className="cursor-pointer">Confirmar</DropdownMenuItem>
                       <DropdownMenuItem className="cursor-pointer">Remarcar</DropdownMenuItem>

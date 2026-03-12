@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -101,11 +103,13 @@ export default function ClientesPage() {
                 <TableCell>{client.lastVisit}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal size={18} />
-                      </Button>
-                    </DropdownMenuTrigger>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal size={18} />
+                        </Button>
+                      }
+                    />
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem className="cursor-pointer">Ver Detalhes</DropdownMenuItem>
                       <DropdownMenuItem className="cursor-pointer">Editar</DropdownMenuItem>

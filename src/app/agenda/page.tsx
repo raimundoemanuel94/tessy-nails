@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, useCallback } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -90,11 +92,13 @@ export default function AgendaPage() {
         description="Gerencie seus horários e agendamentos de forma eficiente."
       >
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2 shadow-sm">
-              <Plus size={18} /> Novo Agendamento
-            </Button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <Button className="gap-2 shadow-sm">
+                <Plus size={18} /> Novo Agendamento
+              </Button>
+            }
+          />
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Novo Agendamento</DialogTitle>

@@ -46,11 +46,11 @@ const timeSlots = [
 
 // Schema específico para o formulário que inclui o campo de horário
 const formSchema = z.object({
-  clientId: z.string({ required_error: "Selecione uma cliente" }),
-  serviceId: z.string({ required_error: "Selecione um serviço" }),
-  specialistId: z.string({ required_error: "Selecione uma profissional" }),
-  appointmentDate: z.date({ required_error: "Selecione uma data" }),
-  time: z.string({ required_error: "Selecione um horário" }),
+  clientId: z.string().min(1, "Selecione uma cliente"),
+  serviceId: z.string().min(1, "Selecione um serviço"),
+  specialistId: z.string().min(1, "Selecione uma profissional"),
+  appointmentDate: z.date(),
+  time: z.string().min(1, "Selecione um horário"),
   status: AppointmentStatusEnum,
   paymentStatus: PaymentStatusEnum,
   notes: z.string().optional(),
@@ -189,8 +189,8 @@ export function AppointmentForm({ onSuccess, initialDate }: AppointmentFormProps
               <FormItem className="flex flex-col">
                 <FormLabel>Data</FormLabel>
                 <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
+                  <PopoverTrigger
+                    render={
                       <Button
                         variant={"outline"}
                         className={cn(
@@ -205,8 +205,8 @@ export function AppointmentForm({ onSuccess, initialDate }: AppointmentFormProps
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
-                    </FormControl>
-                  </PopoverTrigger>
+                    }
+                  />
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
