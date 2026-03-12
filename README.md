@@ -54,22 +54,31 @@ src/
 
 5. **Acesse:** `http://localhost:3000`
 
-## 📦 Próximos Passos
+## � Deploy no Vercel
 
-1. **Configurar Firebase:**
-   - Criar um projeto no [Console do Firebase](https://console.firebase.google.com/).
-   - Ativar Authentication (Email/Password e Google).
-   - Criar banco de dados Firestore.
-   - Criar coleções: `users`, `clients`, `services`, `appointments`.
+**O projeto está configurado e pronto para deploy automático!**
 
-2. **Deploy na Vercel:**
-   - Conectar o repositório na Vercel.
-   - Configurar as variáveis de ambiente no painel da Vercel.
+### Passos para Deploy:
 
-3. **Funcionalidades Futuras:**
-   - Notificações Push via Cloud Messaging.
-   - Integração com gateways de pagamento.
-   - Área do Cliente para auto-agendamento.
+1. **Acesse o Vercel**: [vercel.com](https://vercel.com)
+2. **Importe o repositório**: `https://github.com/raimundoemanuel94/tessy-nails.git`
+3. **Configure as variáveis de ambiente**:
+   ```
+   NEXT_PUBLIC_FIREBASE_API_KEY=sua_chave_api
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=seu_dominio.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=seu_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=seu_bucket.appspot.com
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=seu_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=seu_app_id
+   NEXT_PUBLIC_APP_URL=https://seu-dominio.vercel.app
+   ```
+4. **Deploy**: Clique em "Deploy"
+
+### Status do Projeto:
+- ✅ Build funcionando
+- ✅ TypeScript compilando
+- ✅ PWA configurada
+- ✅ Pronto para produção
 
 ---
 Desenvolvido com ❤️ para Tessy Nails.
