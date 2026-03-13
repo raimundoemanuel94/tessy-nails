@@ -75,5 +75,13 @@ export const salonService = {
   async deactivate(id: string): Promise<void> {
     const docRef = doc(db, COLLECTION_NAME, id);
     await updateDoc(docRef, { active: false });
+  },
+
+  /**
+   * Remove um serviço (hard delete)
+   */
+  async delete(id: string): Promise<void> {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    await deleteDoc(docRef);
   }
 };
