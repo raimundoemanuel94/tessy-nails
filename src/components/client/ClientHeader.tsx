@@ -70,7 +70,7 @@ export function ClientHeader() {
             <Button 
               className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium"
             >
-              <a href="#agendar">Agendar Agora</a>
+              <a href="/agendar">Agendar Agora</a>
             </Button>
           </div>
         </div>

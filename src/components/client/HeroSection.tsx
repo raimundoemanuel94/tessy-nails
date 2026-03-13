@@ -45,7 +45,7 @@ export function HeroSection() {
             </a>
 
             <a 
-              href="#meus-agendamentos"
+              href="/agendamentos"
               className="border border-pink-200 text-pink-700 hover:bg-pink-50 px-8 py-3 text-lg font-medium rounded-lg inline-flex items-center transition-colors"
             >
               <Calendar className="mr-2 h-5 w-5" />
