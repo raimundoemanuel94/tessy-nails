@@ -188,7 +188,7 @@ export default function AgendamentosPage() {
               },
               status: apt.status,
               observation: apt.notes,
-              createdAt: apt.createdAt
+              createdAt: apt.createdAt || new Date() // ✅ Fallback para undefined
             };
           })
         );

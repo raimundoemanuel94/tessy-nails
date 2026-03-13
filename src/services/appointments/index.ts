@@ -95,11 +95,12 @@ export const appointmentService = {
   /**
    * Cria um novo agendamento com validação
    */
-  async create(data: Omit<Appointment, "id" | "createdAt">): Promise<string> {
+  async create(data: Omit<Appointment, "id" | "createdAt" | "updatedAt">): Promise<string> {
     // A data pode vir como Date do formulário
     const validatedData = AppointmentSchema.parse({
       ...data,
-      appointmentDate: data.appointmentDate instanceof Date ? data.appointmentDate : new Date(data.appointmentDate)
+      createdAt: new Date(), // ✅ Gerado automaticamente
+      updatedAt: new Date()  // ✅ Gerado automaticamente
     });
 
     const docRef = await addDoc(collection(db, COLLECTION_NAME), {

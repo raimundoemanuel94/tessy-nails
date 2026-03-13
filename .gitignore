@@ -45,3 +45,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Firebase Admin Key
+tessy-nails-firebase-adminsdk-fbsvc-8ebe8667af.json
+tessy-nails-firebase-key.json
