@@ -2,116 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { format, isPast, isToday, addDays } from "date-fns";
+import { format, isPast, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AgendamentosHeader } from "@/components/client/AgendamentosHeader";
-import { AppointmentTabs } from "@/components/client/AppointmentTabs";
-import { AppointmentCard, Appointment } from "@/components/client/AppointmentCard";
-import { EmptyAppointmentsState } from "@/components/client/EmptyAppointmentsState";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { appointmentService } from "@/services/appointments";
-import { salonService } from "@/services/salon";
-
-// Mock data para agendamentos
-const generateMockAppointments = (): Appointment[] => {
-  const now = new Date();
-  
-  return [
-    // Próximos agendamentos
-    {
-      id: "1",
-      service: {
-        id: "1",
-        name: "Manicure Completa",
-        description: "Inclui esmaltação tradicional",
-        price: "R$ 80,00",
-        duration: "1h 30min"
-      },
-      date: addDays(now, 2),
-      time: { id: "1", time: "09:00" },
-      status: "confirmed",
-      observation: "Prefiro cores claras",
-      createdAt: now
-    },
-    {
-      id: "2",
-      service: {
-        id: "2",
-        name: "Pedicure Spa",
-        description: "Tratamento completo para os pés",
-        price: "R$ 120,00",
-        duration: "2h"
-      },
-      date: addDays(now, 7),
-      time: { id: "2", time: "14:00" },
-      status: "pending",
-      createdAt: now
-    },
-    {
-      id: "3",
-      service: {
-        id: "3",
-        name: "Alongamento de Unhas",
-        description: "Alongamento em gel",
-        price: "R$ 150,00",
-        duration: "3h"
-      },
-      date: addDays(now, 14),
-      time: { id: "3", time: "10:30" },
-      status: "confirmed",
-      createdAt: now
-    },
-    // Histórico
-    {
-      id: "4",
-      service: {
-        id: "4",
-        name: "Manicure Francesinha",
-        description: "Esmaltação em estilo francês",
-        price: "R$ 90,00",
-        duration: "2h"
-      },
-      date: addDays(now, -7),
-      time: { id: "4", time: "15:00" },
-      status: "completed",
-      createdAt: addDays(now, -14)
-    },
-    {
-      id: "5",
-      service: {
-        id: "5",
-        name: "Spa das Mãos",
-        description: "Hidratação e esfoliação",
-        price: "R$ 60,00",
-        duration: "1h"
-      },
-      date: addDays(now, -14),
-      time: { id: "5", time: "11:00" },
-      status: "completed",
-      createdAt: addDays(now, -21)
-    },
-    {
-      id: "6",
-      service: {
-        id: "6",
-        name: "Manicure Completa",
-        description: "Inclui esmaltação tradicional",
-        price: "R$ 80,00",
-        duration: "1h 30min"
-      },
-      date: addDays(now, -21),
-      time: { id: "6", time: "13:30" },
-      status: "cancelled",
-      createdAt: addDays(now, -28)
-    }
-  ];
-};
+import { Clock, Calendar, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { EmptyAppointmentsState } from "@/components/client/EmptyAppointmentsState";
+import { AgendamentosHeader } from "@/components/client/AgendamentosHeader";
+import { AppointmentTabs } from "@/components/client/AppointmentTabs";
+import { AppointmentCard } from "@/components/client/AppointmentCard";
+import { Button } from "@/components/ui/button";
 
 export default function AgendamentosPage() {
   const router = useRouter();
   const { user, client, loading: authLoading } = useAuth();
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"upcoming" | "history" | "all">("upcoming");
@@ -144,6 +49,7 @@ export default function AgendamentosPage() {
         if (!appointmentsWithServiceDetails || appointmentsWithServiceDetails.length === 0) {
           console.log('No appointments found for user:', user.uid);
           setAppointments([]);
+          setLoading(false);
           return;
         }
 
@@ -158,7 +64,7 @@ export default function AgendamentosPage() {
         }));
 
         setAppointments(formattedAppointments);
-        console.log('Appointments loaded:', formattedAppointments);
+        console.log('Appointments loaded from Firestore:', formattedAppointments);
       } catch (error: any) {
         console.error('Error loading appointments:', error);
         
@@ -205,18 +111,18 @@ export default function AgendamentosPage() {
     }
   };
 
-  const handleViewDetails = (appointment: Appointment) => {
+  const handleViewDetails = (appointment: any) => {
     // Preparar para futura implementação
     console.log('View details:', appointment);
   };
 
-  const handleReschedule = (appointment: Appointment) => {
+  const handleReschedule = (appointment: any) => {
     // Preparar para futura implementação
     console.log('Reschedule:', appointment);
     router.push('/cliente/agendar');
   };
 
-  const handleCancel = (appointment: Appointment) => {
+  const handleCancel = (appointment: any) => {
     // Preparar para futura implementação
     console.log('Cancel:', appointment);
   };
