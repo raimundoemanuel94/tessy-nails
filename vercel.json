@@ -19,5 +19,6 @@
     "src/app/**/*.tsx": {
       "maxDuration": 30
     }
-  }
+  },
+  "comment": "Force redeploy - structure fixed"
 }
