@@ -145,8 +145,8 @@ export default function ClientesPage() {
                       {client.email}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={client.active ? "default" : "secondary"}>
-                        {client.active ? "Ativo" : "Inativo"}
+                      <Badge variant={client.active !== false ? "default" : "secondary"}>
+                        {client.active !== false ? "Ativo" : "Inativo"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">

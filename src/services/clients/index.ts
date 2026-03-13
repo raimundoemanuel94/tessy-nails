@@ -26,6 +26,7 @@ export const clientService = {
     return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
+      active: doc.data().active !== false, // Default to true if not set
       createdAt: doc.data().createdAt?.toDate(),
     })) as Client[];
   },
@@ -39,6 +40,7 @@ export const clientService = {
     return {
       id: d.id,
       ...d.data(),
+      active: d.data().active !== false, // Default to true if not set
       createdAt: d.data().createdAt?.toDate(),
     } as Client;
   },

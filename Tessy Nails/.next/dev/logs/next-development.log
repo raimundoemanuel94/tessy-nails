@@ -55,3 +55,5 @@ Debug info:
 [00:22:05.518] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
 [00:22:05.530] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
 [00:22:05.535] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:44:08.511] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:44:08.515] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
