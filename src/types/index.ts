@@ -23,6 +23,7 @@ export const ClientSchema = z.object({
   email: z.string().email(),
   notes: z.string().optional(),
   totalAppointments: z.number().default(0),
+  active: z.boolean().default(true),
   createdAt: z.date(),
   lastVisit: z.date().optional(),
 });
