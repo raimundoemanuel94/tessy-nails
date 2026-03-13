@@ -1,0 +1,57 @@
+[00:22:05.375] Server  ERROR   ⨯ PageNotFoundError: Cannot find module for page: route not found /_not-found/page
+[00:22:05.403] Server  ERROR   ⨯ PageNotFoundError: Cannot find module for page: route not found /_not-found/page
+[00:22:05.413] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.415] Server  ERROR   ⨯ "unhandledRejection:" Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.418] Server  ERROR   ⨯ "unhandledRejection: " Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.428] Server  ERROR   TurbopackInternalError: Failed to write page endpoint /_app
+
+Caused by:
+- Failed to restore task data (corrupted database or bug): Meta for PagesProject::project (TaskId 253920))
+
+Debug info:
+- Execution of get_written_endpoint_with_issues_operation failed
+- Execution of endpoint_write_to_disk failed
+- Execution of <PageEndpoint as Endpoint>::output failed
+- Failed to write page endpoint /_app
+- Execution of PageEndpoint::output failed
+- Execution of *ChunkGroupResult::all_assets failed
+- Execution of PageEndpoint::client_chunk_group failed
+- Failed to restore task data (corrupted database or bug): Meta for PagesProject::project (TaskId 253920))
+  
+  Caused by:
+      0: Looking up data for TaskId 253920 from database failed
+      1: Unable to open static sorted file referenced from 00000202.meta
+      2: Unable to open static sorted file 00000196.sst
+      3: O sistema não pode encontrar o caminho especificado. (os error 3)
+[00:22:05.430] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.433] Server  ERROR   TurbopackInternalError: Failed to write page endpoint /_app
+
+Caused by:
+- Failed to restore task data (corrupted database or bug): Meta for PagesProject::project (TaskId 253920))
+
+Debug info:
+- Execution of get_written_endpoint_with_issues_operation failed
+- Execution of endpoint_write_to_disk failed
+- Execution of <PageEndpoint as Endpoint>::output failed
+- Failed to write page endpoint /_app
+- Execution of PageEndpoint::output failed
+- Execution of *ChunkGroupResult::all_assets failed
+- Execution of PageEndpoint::client_chunk_group failed
+- Failed to restore task data (corrupted database or bug): Meta for PagesProject::project (TaskId 253920))
+  
+  Caused by:
+      0: Looking up data for TaskId 253920 from database failed
+      1: Unable to open static sorted file referenced from 00000202.meta
+      2: Unable to open static sorted file 00000196.sst
+      3: O sistema não pode encontrar o caminho especificado. (os error 3)
+[00:22:05.436] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.462] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.465] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.473] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.478] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.494] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.495] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.509] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.518] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.530] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'
+[00:22:05.535] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\laragon\www\Tessy Nails\Tessy Nails\src\app'

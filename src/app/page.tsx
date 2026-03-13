@@ -1,31 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import { Loader2 } from "lucide-react";
+import { ClientHeader } from "@/components/client/ClientHeader";
+import { HeroSection } from "@/components/client/HeroSection";
+import { ServicesSection } from "@/components/client/ServicesSection";
+import { BenefitsSection } from "@/components/client/BenefitsSection";
+import { ClientFooter } from "@/components/client/ClientFooter";
 
-export default function RootPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading) {
-      if (user) {
-        router.push("/dashboard");
-      } else {
-        router.push("/login");
-      }
-    }
-  }, [user, loading, router]);
-
+export default function ClientePage() {
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <h1 className="text-3xl font-bold text-primary animate-pulse">Tessy Nails</h1>
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">Carregando sua plataforma...</p>
-      </div>
+    <div className="min-h-screen bg-white">
+      <ClientHeader />
+      
+      <main>
+        <HeroSection />
+        <ServicesSection />
+        <BenefitsSection />
+      </main>
+      
+      <ClientFooter />
     </div>
   );
 }

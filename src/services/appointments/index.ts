@@ -80,6 +80,24 @@ export const appointmentService = {
   },
 
   /**
+   * Busca agendamentos de um cliente específico
+   */
+  async getByClientId(clientId: string): Promise<Appointment[]> {
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where("clientId", "==", clientId),
+      orderBy("appointmentDate", "desc")
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      appointmentDate: doc.data().appointmentDate?.toDate(),
+      createdAt: doc.data().createdAt?.toDate(),
+    })) as Appointment[];
+  },
+
+  /**
    * Atualiza dados de um agendamento
    */
   async update(id: string, data: Partial<Appointment>): Promise<void> {
