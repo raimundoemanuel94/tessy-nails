@@ -1,0 +1,3 @@
+# Force Vercel Redeploy
+# This file forces Vercel to trigger a new build
+# Deploy timestamp: 2025-03-12 20:15:00
