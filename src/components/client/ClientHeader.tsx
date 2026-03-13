@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, X, User, Calendar } from "lucide-react";
+import { Menu, X, User, Calendar, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +14,10 @@ export function ClientHeader() {
   // ✅ Comportamento baseado na autenticação
   const handleLoginClick = () => {
     router.push('/login');
+  };
+
+  const handleRegisterClick = () => {
+    router.push('/login?mode=register');
   };
 
   const handleAccountClick = () => {
@@ -73,8 +77,27 @@ export function ClientHeader() {
 
         {/* ✅ CTA Buttons - Desktop */}
         <div className="hidden md:flex items-center gap-3">
-          {/* ✅ Botão Entrar/Minha Conta */}
-          {user ? (
+          {/* ✅ Botões para usuário não autenticado */}
+          {!user ? (
+            <>
+              <Button 
+                variant="outline" 
+                onClick={handleLoginClick}
+                className="border-pink-200 text-pink-600 hover:bg-pink-50"
+              >
+                Entrar
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleRegisterClick}
+                className="border-pink-200 text-pink-600 hover:bg-pink-50 flex items-center gap-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                Criar Conta
+              </Button>
+            </>
+          ) : (
+            /* ✅ Botão para usuário autenticado */
             <Button 
               variant="outline" 
               onClick={handleAccountClick}
@@ -82,14 +105,6 @@ export function ClientHeader() {
             >
               <User className="h-4 w-4" />
               {user.name?.split(' ')[0] || 'Minha Conta'}
-            </Button>
-          ) : (
-            <Button 
-              variant="outline" 
-              onClick={handleLoginClick}
-              className="border-pink-200 text-pink-600 hover:bg-pink-50"
-            >
-              Entrar
             </Button>
           )}
           
@@ -136,7 +151,7 @@ export function ClientHeader() {
               Meus Agendamentos
             </button>
             
-            {/* ✅ Botão Entrar/Minha Conta - Mobile */}
+            {/* ✅ Botão Entrar/Criar Conta - Mobile */}
             {user ? (
               <Button 
                 variant="outline" 
@@ -147,13 +162,23 @@ export function ClientHeader() {
                 {user.name?.split(' ')[0] || 'Minha Conta'}
               </Button>
             ) : (
-              <Button 
-                variant="outline" 
-                onClick={handleLoginClick}
-                className="w-full border-pink-200 text-pink-600 hover:bg-pink-50"
-              >
-                Entrar
-              </Button>
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={handleLoginClick}
+                  className="w-full border-pink-200 text-pink-600 hover:bg-pink-50"
+                >
+                  Entrar
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handleRegisterClick}
+                  className="w-full border-pink-200 text-pink-600 hover:bg-pink-50 flex items-center gap-2"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Criar Conta
+                </Button>
+              </>
             )}
             
             {/* ✅ Botão Agendar Agora - Mobile */}

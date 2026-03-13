@@ -86,44 +86,50 @@ export default function PerfilPage() {
           setClientData(transformedClientData);
           setPersonalInfo(transformedPersonalInfo);
         } else {
-          // ✅ Buscar dados do cliente pelo UID com tratamento de erro
+          // ✅ Fallback: Criar documento automaticamente se não existir
+          console.log('Cliente não encontrado no Firestore, criando fallback...');
+          
           try {
-            const clientData = await clientService.getById(user.uid);
-            if (clientData) {
-              const transformedClientData: ClientData = {
-                id: clientData.id,
-                name: clientData.name,
-                email: clientData.email,
-                phone: clientData.phone || "Não informado",
-                status: "active",
-                createdAt: clientData.createdAt
-              };
-
-              const transformedPersonalInfo: PersonalInfo = {
-                fullName: clientData.name,
-                email: clientData.email,
-                phone: clientData.phone || "Não informado",
-                address: "Não informado",
-                birthDate: new Date(),
-                observations: clientData.notes || undefined
-              };
-
-              setClientData(transformedClientData);
-              setPersonalInfo(transformedPersonalInfo);
-            } else {
-              setError('Dados do cliente não encontrados. Parece que seu cadastro está incompleto. Contate o administrador.');
-            }
-          } catch (fetchError: any) {
-            console.error('Error fetching client data:', fetchError);
+            // ✅ Criar documento clients/{uid} automaticamente
+            const newClientData = {
+              id: user.uid,
+              name: user.name || "Cliente",
+              email: user.email || "",
+              phone: undefined,
+              totalAppointments: 0,
+              createdAt: new Date(),
+              isActive: true,
+              notes: undefined
+            };
             
-            // ✅ Tratamento específico de erros
-            if (fetchError.code === 'permission-denied') {
-              setError('Sem permissão para acessar seus dados. Contate o administrador.');
-            } else if (fetchError.code === 'not-found') {
-              setError('Seu cadastro não foi encontrado. Faça login novamente ou contate o administrador.');
-            } else {
-              setError('Não foi possível carregar seus dados. Verifique sua conexão e tente novamente.');
-            }
+            await clientService.create(newClientData);
+            console.log('Cliente criado automaticamente:', newClientData);
+            
+            // ✅ Usar dados recém-criados
+            const transformedClientData: ClientData = {
+              id: newClientData.id,
+              name: newClientData.name,
+              email: newClientData.email,
+              phone: newClientData.phone || "Não informado",
+              status: "active",
+              createdAt: newClientData.createdAt
+            };
+
+            const transformedPersonalInfo: PersonalInfo = {
+              fullName: newClientData.name,
+              email: newClientData.email,
+              phone: newClientData.phone || "Não informado",
+              address: "Não informado",
+              birthDate: new Date(),
+              observations: newClientData.notes || undefined
+            };
+
+            setClientData(transformedClientData);
+            setPersonalInfo(transformedPersonalInfo);
+            
+          } catch (createError: any) {
+            console.error('Error creating client fallback:', createError);
+            setError('Não foi possível criar seu perfil. Contate o administrador.');
           }
         }
       } catch (error: any) {

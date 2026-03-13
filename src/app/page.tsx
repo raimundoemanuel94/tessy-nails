@@ -20,7 +20,7 @@ export default function RootPage() {
           router.push("/cliente");
         }
       } else {
-        // ✅ Deslogado vai para landing page (cliente)
+        // ✅ Deslogado vai para landing page pública
         router.push("/cliente");
       }
     }
@@ -31,7 +31,7 @@ export default function RootPage() {
       <div className="flex flex-col items-center gap-4 text-center">
         <h1 className="text-3xl font-bold text-primary animate-pulse">Tessy Nails</h1>
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">Carregando sua plataforma...</p>
+        <p className="text-sm text-muted-foreground">Carregando...</p>
       </div>
     </div>
   );

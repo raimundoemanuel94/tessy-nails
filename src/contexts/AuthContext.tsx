@@ -194,6 +194,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ]);
       
       console.log('User and Client documents created successfully');
+      
+      // ✅ Atualizar estado local para evitar nova busca
+      setClient(newClient);
+      
       return true;
     } catch (error: any) {
       console.error("Sign up error:", error);
