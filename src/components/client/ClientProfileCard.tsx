@@ -137,7 +137,7 @@ export function ClientProfileCard({
       {/* Additional Info */}
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-500">
-          Membro desde {client.createdAt.toLocaleDateString('pt-BR', { 
+          Membro desde {new Date(client.createdAt).toLocaleDateString('pt-BR', { 
             month: 'long', 
             year: 'numeric' 
           })}

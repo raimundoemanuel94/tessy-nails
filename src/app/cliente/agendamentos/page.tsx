@@ -11,6 +11,7 @@ import { EmptyAppointmentsState } from "@/components/client/EmptyAppointmentsSta
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { appointmentService } from "@/services/appointments";
+import { salonService } from "@/services/salon";
 
 // Mock data para agendamentos
 const generateMockAppointments = (): Appointment[] => {
@@ -161,15 +162,15 @@ export default function AgendamentosPage() {
             };
 
             try {
-              // TODO: Implementar busca real do serviço quando disponível
-              // const service = await salonService.getById(apt.serviceId);
-              // if (service) {
-              //   serviceDetails = {
-              //     name: service.name,
-              //     price: `R$ ${service.price.toFixed(2)}`,
-              //     duration: `${service.durationMinutes}min`
-              //   };
-              // }
+              // ✅ Buscar real do serviço
+              const service = await salonService.getById(apt.serviceId);
+              if (service) {
+                serviceDetails = {
+                  name: service.name,
+                  price: `R$ ${service.price.toFixed(2)}`,
+                  duration: `${service.durationMinutes}min`
+                };
+              }
             } catch (serviceError) {
               console.warn('Could not fetch service details:', serviceError);
             }
@@ -183,7 +184,7 @@ export default function AgendamentosPage() {
               date: apt.appointmentDate,
               time: { 
                 id: apt.id || '', 
-                time: format(apt.appointmentDate, 'HH:mm', { locale: ptBR })
+                time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
               },
               status: apt.status,
               observation: apt.notes,

@@ -91,7 +91,7 @@ export function PersonalInfoSection({
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-700">Data de nascimento</p>
               <p className="text-gray-900">
-                {info.birthDate.toLocaleDateString('pt-BR', {
+                {new Date(info.birthDate).toLocaleDateString('pt-BR', {
                   day: '2-digit',
                   month: '2-digit',
                   year: 'numeric'

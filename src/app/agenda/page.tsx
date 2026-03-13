@@ -220,7 +220,7 @@ export default function AgendaPage() {
                     >
                       <div className="flex flex-col items-center justify-center min-w-[70px] py-1 bg-slate-50 rounded-lg border group-hover:border-primary/30 group-hover:bg-primary/5 transition-colors">
                         <span className="text-sm font-bold text-primary">
-                          {format(app.appointmentDate, "HH:mm")}
+                          {format(new Date(app.appointmentDate), "HH:mm")}
                         </span>
                         <span className="text-[10px] text-muted-foreground uppercase font-medium">
                           {app.service?.durationMinutes} min

@@ -145,7 +145,7 @@ export default function DashboardPage() {
               id: apt.id,
               client: clientName,
               service: serviceName,
-              time: format(apt.appointmentDate, 'HH:mm', { locale: ptBR }),
+              time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR }),
               status: apt.status,
               price: servicePrice
             };
