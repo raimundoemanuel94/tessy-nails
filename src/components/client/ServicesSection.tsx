@@ -1,7 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Clock, Star } from "lucide-react";
+import { Clock, DollarSign, ArrowRight, Star } from "lucide-react";
+import Link from "next/link";
 
 // Mock data para serviços
 const featuredServices = [
@@ -103,12 +104,12 @@ export function ServicesSection() {
                 </div>
 
                 {/* CTA Button */}
-                <a 
+                <Link 
                   href={`/cliente/servicos/${service.id}`}
                   className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium w-full inline-flex items-center justify-center px-4 py-2 rounded-lg transition-colors"
                 >
                   Selecionar
-                </a>
+                </Link>
               </div>
             </div>
           ))}
@@ -116,12 +117,12 @@ export function ServicesSection() {
 
         {/* View All Services */}
         <div className="mt-12 text-center">
-          <a 
+          <Link 
             href="/cliente/servicos"
             className="border border-pink-200 text-pink-700 hover:bg-pink-50 px-8 py-3 text-lg font-medium rounded-lg inline-flex items-center justify-center transition-colors"
           >
             Ver todos os serviços
-          </a>
+          </Link>
         </div>
       </div>
     </section>
