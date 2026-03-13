@@ -137,64 +137,28 @@ export default function AgendamentosPage() {
           return;
         }
 
-        // Buscar agendamentos do usuário
-        const allAppointments = await appointmentService.getAll();
+        // ✅ Buscar agendamentos diretamente do usuário no Firestore com detalhes dos serviços
+        const appointmentsWithServiceDetails = await appointmentService.getByClientIdWithServices(user.uid);
         
-        // ✅ Filtrar agendamentos do usuário atual
-        const userAppointments = allAppointments.filter(apt => 
-          apt.clientId === user.uid
-        );
-
         // ✅ Validar se há agendamentos
-        if (!userAppointments || userAppointments.length === 0) {
+        if (!appointmentsWithServiceDetails || appointmentsWithServiceDetails.length === 0) {
           console.log('No appointments found for user:', user.uid);
           setAppointments([]);
           return;
         }
 
-        // ✅ Buscar dados dos serviços para mostrar informações reais
-        const appointmentsWithServiceDetails = await Promise.all(
-          userAppointments.map(async (apt) => {
-            let serviceDetails = {
-              name: `Serviço ${apt.serviceId}`,
-              price: "R$ 0,00",
-              duration: "60min"
-            };
+        // ✅ Formatar dados para exibição
+        const formattedAppointments = appointmentsWithServiceDetails.map(apt => ({
+          ...apt,
+          service: {
+            ...apt.service,
+            price: `R$ ${apt.service.price.toFixed(2)}`,
+            duration: `${apt.service.durationMinutes}min`
+          }
+        }));
 
-            try {
-              // ✅ Buscar real do serviço
-              const service = await salonService.getById(apt.serviceId);
-              if (service) {
-                serviceDetails = {
-                  name: service.name,
-                  price: `R$ ${service.price.toFixed(2)}`,
-                  duration: `${service.durationMinutes}min`
-                };
-              }
-            } catch (serviceError) {
-              console.warn('Could not fetch service details:', serviceError);
-            }
-
-            return {
-              id: apt.id || '',
-              service: {
-                id: apt.serviceId,
-                ...serviceDetails
-              },
-              date: apt.appointmentDate,
-              time: { 
-                id: apt.id || '', 
-                time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
-              },
-              status: apt.status,
-              observation: apt.notes || undefined, // ✅ Converter null para undefined
-              createdAt: apt.createdAt || new Date() // ✅ Fallback para undefined
-            };
-          })
-        );
-
-        setAppointments(appointmentsWithServiceDetails);
-        console.log('Appointments loaded:', appointmentsWithServiceDetails);
+        setAppointments(formattedAppointments);
+        console.log('Appointments loaded:', formattedAppointments);
       } catch (error: any) {
         console.error('Error loading appointments:', error);
         

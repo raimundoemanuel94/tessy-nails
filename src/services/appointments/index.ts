@@ -15,6 +15,9 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Appointment, AppointmentSchema, AppointmentStatus, PaymentStatus } from "@/types";
+import { salonService } from "@/services/salon";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const COLLECTION_NAME = "appointments";
 
@@ -71,6 +74,60 @@ export const appointmentService = {
       createdAt: doc.data().createdAt?.toDate(),
       updatedAt: doc.data().updatedAt?.toDate(),
     })) as Appointment[];
+  },
+
+  /**
+   * Busca agendamentos de um cliente com detalhes dos serviços
+   */
+  async getByClientIdWithServices(clientId: string): Promise<any[]> {
+    const appointments = await this.getByClientId(clientId);
+    
+    // Buscar detalhes de todos os serviços
+    const appointmentsWithServices = await Promise.all(
+      appointments.map(async (apt) => {
+        try {
+          const service = await salonService.getById(apt.serviceId);
+          return {
+            id: apt.id || '',
+            service: service || {
+              id: apt.serviceId,
+              name: `Serviço ${apt.serviceId}`,
+              price: 0,
+              durationMinutes: 60
+            },
+            date: apt.appointmentDate,
+            time: { 
+              id: apt.id || '', 
+              time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
+            },
+            status: apt.status,
+            observation: apt.notes || undefined,
+            createdAt: apt.createdAt || new Date()
+          };
+        } catch (error) {
+          console.warn('Error fetching service:', error);
+          return {
+            id: apt.id || '',
+            service: {
+              id: apt.serviceId,
+              name: `Serviço ${apt.serviceId}`,
+              price: 0,
+              durationMinutes: 60
+            },
+            date: apt.appointmentDate,
+            time: { 
+              id: apt.id || '', 
+              time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
+            },
+            status: apt.status,
+            observation: apt.notes || undefined,
+            createdAt: apt.createdAt || new Date()
+          };
+        }
+      })
+    );
+    
+    return appointmentsWithServices;
   },
 
   /**
