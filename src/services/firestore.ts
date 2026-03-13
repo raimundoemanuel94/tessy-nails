@@ -105,9 +105,11 @@ export const reportService = new FirestoreService<Report>('reports');
 // Legacy services for compatibility
 export const salonService = {
   getAll: async () => {
-    const q = query(collection(db, "services"), where("active", "==", true));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(mapDoc) as Service[];
+    // ✅ Remover query que precisa de index - buscar todos e filtrar no client
+    const snapshot = await getDocs(collection(db, "services"));
+    const allServices = snapshot.docs.map(mapDoc) as Service[];
+    // ✅ Filtrar apenas serviços ativos no client side
+    return allServices.filter(service => service.isActive);
   },
   getById: async (id: string) => {
     const d = await getDoc(doc(db, "services", id));
@@ -123,9 +125,11 @@ export const salonService = {
 
 export const appointmentServiceLegacy = {
   getAll: async () => {
-    const q = query(collection(db, "appointments"));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(mapDoc) as Appointment[];
+    // ✅ Remover query que precisa de index - buscar todos e filtrar no client
+    const snapshot = await getDocs(collection(db, "appointments"));
+    const allAppointments = snapshot.docs.map(mapDoc) as Appointment[];
+    // ✅ Filtrar apenas ativos no client side
+    return allAppointments;
   },
   getByDateRange: async (start: Date, end: Date) => {
     const q = query(

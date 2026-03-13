@@ -101,11 +101,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 id: fUser.uid,
                 name: fUser.displayName || userDoc?.data()?.name || "Cliente",
                 email: fUser.email || "",
-                phone: undefined,
+                phone: "", // ✅ Mudar de undefined para string vazia
                 totalAppointments: 0,
                 createdAt: new Date(),
                 isActive: true,
-                notes: undefined
+                notes: "" // ✅ Mudar de undefined para string vazia
               };
               
               await setDoc(doc(db, "clients", fUser.uid), newClient);
@@ -191,7 +191,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: "client", // ✅ Mudar para client - usuários comuns são clientes
         createdAt: new Date(),
         isActive: true,
-        photoURL: (result.user.photoURL || undefined)
+        photoURL: (result.user.photoURL || "") // ✅ Mudar undefined para string vazia
       };
       
       // Criar documento na coleção clients (cliente) - para acesso à área cliente
@@ -199,11 +199,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: uid, // Same as Firebase Auth UID
         name: name.trim(),
         email: email,
-        phone: undefined, // Opcional - pode ser preenchido depois
+        phone: "", // ✅ Mudar de undefined para string vazia
         totalAppointments: 0,
         createdAt: new Date(),
         isActive: true,
-        notes: undefined // Opcional
+        notes: "" // ✅ Mudar de undefined para string vazia
       };
       
       // ✅ Salvar ambos os documentos com validação
