@@ -12,10 +12,11 @@ export default function RootPage() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        // ✅ Verificar se é admin/profissional ou cliente
+        // ✅ Verificar role para redirecionamento correto
         if (user.role === 'admin' || user.role === 'professional') {
           router.push("/dashboard");
         } else {
+          // ✅ Client vai para área cliente
           router.push("/cliente");
         }
       } else {

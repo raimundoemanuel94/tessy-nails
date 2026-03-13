@@ -169,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         uid: uid,
         name: name.trim(),
         email: email,
-        role: "professional", // TODO: Implementar seleção de tipo de usuário
+        role: "client", // ✅ Mudar para client - usuários comuns são clientes
         createdAt: new Date(),
         isActive: true,
         photoURL: (result.user.photoURL || undefined)

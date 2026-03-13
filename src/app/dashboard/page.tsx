@@ -2,6 +2,9 @@
 
 export const dynamic = 'force-dynamic';
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DashboardCard } from "@/components/shared/DashboardCard";
@@ -29,7 +32,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { appointmentService } from "@/services/appointments";
 import { clientService } from "@/services/clients";
 import { salonService } from "@/services/salon";
@@ -37,6 +40,49 @@ import { format, isToday, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function DashboardPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  // ✅ Proteger dashboard - apenas admin/profissional
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      
+      if (user.role !== 'admin' && user.role !== 'professional') {
+        router.push("/cliente");
+        return;
+      }
+    }
+  }, [user, loading, router]);
+
+  // ✅ Mostrar loading enquanto verifica permissão
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <h1 className="text-3xl font-bold text-primary animate-pulse">Tessy Nails</h1>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+          <p className="text-sm text-muted-foreground">Verificando permissões...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Bloquear acesso se não for admin/profissional
+  if (user.role !== 'admin' && user.role !== 'professional') {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <h1 className="text-3xl font-bold text-primary">Acesso Restrito</h1>
+          <p className="text-sm text-muted-foreground">Você não tem permissão para acessar esta área.</p>
+        </div>
+      </div>
+    );
+  }
+
   const [stats, setStats] = useState({
     totalClients: 0,
     todayAppointments: 0,
@@ -45,12 +91,12 @@ export default function DashboardPage() {
   });
   const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
   const [topServices, setTopServices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        setLoading(true);
+        setDataLoading(true);
         
         // Carregar dados reais
         const [appointments, clients, services] = await Promise.all([
@@ -66,7 +112,7 @@ export default function DashboardPage() {
           ? (completedApps.length / appointments.length) * 100 
           : 0;
 
-        // ✅ Calcular receita real
+        // Calcular receita real
         const monthlyRevenue = completedApps.reduce((total, apt) => {
           const service = services.find(s => s.id === apt.serviceId);
           return total + (service?.price || 0);
@@ -79,20 +125,20 @@ export default function DashboardPage() {
           completionRate: Math.round(completionRate)
         });
 
-        // ✅ Agendamentos recentes com dados reais
+        // Agendamentos recentes com dados reais
         const recent = appointments
           .filter(apt => !isPast(apt.appointmentDate) || isToday(apt.appointmentDate))
           .slice(0, 5)
           .map(apt => {
-            // ✅ Buscar nome real do cliente
+            // Buscar nome real do cliente
             const client = clients.find(c => c.id === apt.clientId);
             const clientName = client ? client.name : `Cliente ${apt.clientId.slice(0, 8)}`;
             
-            // ✅ Buscar nome real do serviço
+            // Buscar nome real do serviço
             const service = services.find(s => s.id === apt.serviceId);
             const serviceName = service ? service.name : `Serviço ${apt.serviceId}`;
             
-            // ✅ Buscar preço real do serviço
+            // Buscar preço real do serviço
             const servicePrice = service ? `R$ ${service.price.toFixed(2)}` : "R$ 0,00";
             
             return {
@@ -107,7 +153,7 @@ export default function DashboardPage() {
 
         setRecentAppointments(recent);
 
-        // ✅ Serviços mais procurados com dados reais
+        // Serviços mais procurados com dados reais
         const serviceStats = services.map(service => {
           const serviceAppointments = appointments.filter(apt => apt.serviceId === service.id);
           return {
@@ -123,14 +169,14 @@ export default function DashboardPage() {
       } catch (error) {
         console.error('Error loading dashboard data:', error);
       } finally {
-        setLoading(false);
+        setDataLoading(false);
       }
     };
 
     loadDashboardData();
   }, []);
 
-  if (loading) {
+  if (dataLoading) {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
