@@ -136,7 +136,10 @@ export default function ConfirmacaoPage() {
       // Salvar dados completos do agendamento no localStorage para página de sucesso
       const confirmedAppointment = {
         id: appointmentId,
-        ...appointmentDataForFirestore,
+        service: appointmentData.service, // ✅ Salvar objeto service completo
+        date: appointmentData.date,
+        time: appointmentData.time,
+        observation: observation || undefined,
         confirmedAt: new Date(),
         status: "pending"
       };

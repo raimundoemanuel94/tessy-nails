@@ -53,6 +53,14 @@ export default function SucessoPage() {
       try {
         const data: ConfirmedAppointment = JSON.parse(savedAppointment);
         
+        // ✅ Validar estrutura dos dados
+        if (!data.service || !data.service.name) {
+          console.error('Invalid appointment data: missing service information');
+          setAppointment(null);
+          setLoading(false);
+          return;
+        }
+        
         // Converter string de data para Date
         if (typeof data.date === 'string') {
           data.date = new Date(data.date);
@@ -62,6 +70,7 @@ export default function SucessoPage() {
         setLoading(false);
       } catch (error) {
         console.error('Error parsing confirmed appointment:', error);
+        setAppointment(null);
         setLoading(false);
       }
     } else {
