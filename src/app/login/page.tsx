@@ -19,15 +19,14 @@ function LoginPageContent() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   
   // ✅ Determinar modo (login ou cadastro)
   const mode = searchParams.get('mode') || 'login';
   const isRegisterMode = mode === 'register';
 
   useEffect(() => {
-    // ✅ Se já estiver logado, redirecionar
-    const { user } = useAuth();
+    // ✅ useAuth() movido para fora do useEffect
     if (user) {
       if (user.role === 'admin' || user.role === 'professional') {
         router.push('/dashboard');
@@ -35,7 +34,7 @@ function LoginPageContent() {
         router.push('/cliente');
       }
     }
-  }, [router]);
+  }, [user, router]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();

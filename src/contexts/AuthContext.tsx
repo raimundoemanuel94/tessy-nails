@@ -94,8 +94,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log('Client data found:', clientData);
             setClient(clientData);
           } else {
-            console.log('No client document found for this user');
-            setClient(null);
+            console.log('No client document found for this user - creating fallback...');
+            // ✅ Criar cliente automaticamente se não existir
+            try {
+              const newClient: Client = {
+                id: fUser.uid,
+                name: fUser.displayName || userDoc?.data()?.name || "Cliente",
+                email: fUser.email || "",
+                phone: undefined,
+                totalAppointments: 0,
+                createdAt: new Date(),
+                isActive: true,
+                notes: undefined
+              };
+              
+              await setDoc(doc(db, "clients", fUser.uid), newClient);
+              console.log('Client document created automatically:', newClient);
+              setClient(newClient);
+            } catch (createError) {
+              console.error('Error creating client document:', createError);
+              setClient(null);
+            }
           }
         } catch (error) {
           console.error("Error fetching user/client data:", error);
