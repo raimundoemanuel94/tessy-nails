@@ -59,7 +59,7 @@ export const AppointmentSchema = z.object({
   appointmentDate: z.date(),
   status: AppointmentStatusEnum.default('pending'),
   paymentStatus: PaymentStatusEnum.default('unpaid'),
-  notes: z.string().optional(),
+  notes: z.string().nullable().optional(), // ✅ Aceita null ou undefined
   createdAt: z.date().optional(), // ✅ Opcional - gerado pelo serviço
   updatedAt: z.date().optional(),
 });

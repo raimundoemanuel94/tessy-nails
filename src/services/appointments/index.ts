@@ -103,9 +103,15 @@ export const appointmentService = {
       updatedAt: new Date()  // ✅ Gerado automaticamente
     });
 
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+    // ✅ Remover campos undefined antes de enviar para Firestore
+    const cleanData = {
       ...validatedData,
-      appointmentDate: Timestamp.fromDate(validatedData.appointmentDate),
+      notes: validatedData.notes || null, // ✅ Converter undefined para null
+    };
+
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+      ...cleanData,
+      appointmentDate: Timestamp.fromDate(cleanData.appointmentDate),
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     });

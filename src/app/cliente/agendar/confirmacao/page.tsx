@@ -113,7 +113,7 @@ export default function ConfirmacaoPage() {
         appointmentDate: appointmentData.date,
         status: "pending" as const,
         paymentStatus: "unpaid" as const,
-        notes: observation || undefined,
+        notes: observation || null, // ✅ Converter undefined para null
       };
 
       console.log('Enviando dados para Firestore:', appointmentDataForFirestore);

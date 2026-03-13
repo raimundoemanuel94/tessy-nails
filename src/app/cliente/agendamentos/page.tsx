@@ -187,7 +187,7 @@ export default function AgendamentosPage() {
                 time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
               },
               status: apt.status,
-              observation: apt.notes,
+              observation: apt.notes || undefined, // ✅ Converter null para undefined
               createdAt: apt.createdAt || new Date() // ✅ Fallback para undefined
             };
           })
