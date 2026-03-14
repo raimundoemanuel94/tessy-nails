@@ -230,7 +230,7 @@ export default function DashboardPage() {
           
           {/* Ações rápidas */}
           <Button 
-            onClick={() => router.push('/admin/agenda')}
+            onClick={() => router.push('/agenda')}
             className="bg-pink-600 hover:bg-pink-700"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -238,7 +238,7 @@ export default function DashboardPage() {
           </Button>
           <Button 
             variant="outline"
-            onClick={() => router.push('/admin/clientes')}
+            onClick={() => router.push('/clientes')}
           >
             <UserPlus className="h-4 w-4 mr-2" />
             Novo Cliente
