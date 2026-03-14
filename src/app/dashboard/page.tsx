@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DashboardCard } from "@/components/shared/DashboardCard";
@@ -196,53 +197,69 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-full lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Próximos Agendamentos</CardTitle>
-            <CardDescription>
-              {recentAppointments.length} agendamentos próximos.
-            </CardDescription>
+      <div className="grid gap-6 lg:grid-cols-7">
+        <Card className="col-span-full lg:col-span-4 border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none overflow-hidden rounded-3xl">
+          <CardHeader className="p-6 border-b border-slate-100 dark:border-white/5">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Próximos Agendamentos</CardTitle>
+                <CardDescription className="text-sm font-semibold text-slate-400 dark:text-slate-500">
+                  Resumo das próximas sessões agendadas.
+                </CardDescription>
+              </div>
+              <Badge className="bg-pink-100/50 text-pink-700 dark:bg-pink-500/10 dark:text-pink-400 border-none px-3 py-1 font-bold">
+                {recentAppointments.length} Total
+              </Badge>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Serviço</TableHead>
-                  <TableHead>Horário</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
+              <TableHeader className="bg-slate-50/50 dark:bg-white/5">
+                <TableRow className="hover:bg-transparent border-slate-100 dark:border-white/5">
+                  <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Cliente</TableHead>
+                  <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Serviço</TableHead>
+                  <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Horário</TableHead>
+                  <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Status</TableHead>
+                  <TableHead className="px-6 py-4 text-right text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Valor</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {recentAppointments.length > 0 ? (
                   recentAppointments.map((appointment) => (
-                    <TableRow key={appointment.id}>
-                      <TableCell className="font-medium">{appointment.client}</TableCell>
-                      <TableCell>{appointment.service}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Clock size={14} className="text-muted-foreground" />
-                          {appointment.time}
+                    <TableRow key={appointment.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 border-slate-100 dark:border-white/5 transition-all">
+                      <TableCell className="px-6 py-4 font-bold text-slate-700 dark:text-slate-300">{appointment.client}</TableCell>
+                      <TableCell className="px-6 py-4 font-semibold text-slate-500 dark:text-slate-400">{appointment.service}</TableCell>
+                      <TableCell className="px-6 py-4">
+                        <div className="flex items-center gap-2 px-2 py-1 bg-slate-100 dark:bg-white/5 rounded-lg w-fit">
+                          <Clock size={12} className="text-pink-600" />
+                          <span className="text-xs font-black text-slate-900 dark:text-white uppercase">{appointment.time}</span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant={
-                          appointment.status === "confirmed" ? "default" : 
-                          appointment.status === "pending" ? "outline" : "secondary"
-                        }>
+                      <TableCell className="px-6 py-4">
+                        <Badge variant="outline" className={cn(
+                          "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase transition-all tracking-tighter",
+                          appointment.status === "confirmed" && "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400",
+                          appointment.status === "pending" && "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400",
+                          appointment.status === "completed" && "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400"
+                        )}>
                           {appointment.status === "confirmed" ? "Confirmado" : 
                            appointment.status === "pending" ? "Pendente" : "Concluído"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">{appointment.price}</TableCell>
+                      <TableCell className="px-6 py-4 text-right">
+                        <span className="text-sm font-black text-slate-900 dark:text-white">{appointment.price}</span>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
-                      Nenhum agendamento próximo encontrado.
+                    <TableCell colSpan={5} className="text-center py-10">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center">
+                          <Calendar size={20} className="text-slate-400" />
+                        </div>
+                        <p className="text-sm font-bold text-slate-400 dark:text-slate-500">Nenhum agendamento para hoje.</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}
@@ -251,39 +268,50 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-full lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Serviços mais procurados</CardTitle>
-            <CardDescription>
-              Performance por categoria este mês.
+        <Card className="col-span-full lg:col-span-3 border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-6 rounded-3xl overflow-hidden relative">
+          {/* Decorative element */}
+          <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-pink-500/5 rounded-full blur-3xl" />
+          
+          <CardHeader className="p-0 mb-8">
+            <CardTitle className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Performance Mensal</CardTitle>
+            <CardDescription className="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
+              Top 4 Serviços
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-0">
+            <div className="space-y-8">
               {topServices.length > 0 ? (
-                topServices.map((service) => (
-                  <div key={service.name} className="space-y-2">
+                topServices.map((service, idx) => (
+                  <div key={service.name} className="space-y-3">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">{service.name}</span>
-                      <span className="text-muted-foreground">{service.count} agendamentos</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-md bg-pink-100 dark:bg-pink-950/30 flex items-center justify-center text-[10px] font-black text-pink-600">
+                          0{idx + 1}
+                        </div>
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{service.name}</span>
+                      </div>
+                      <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter">{service.count} agendamentos</span>
                     </div>
-                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div className="relative h-2.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-primary rounded-full" 
+                        className="absolute h-full bg-linear-to-r from-pink-500 to-rose-600 rounded-full shadow-lg shadow-pink-500/20 transition-all duration-1000 ease-out" 
                         style={{ width: `${service.percent}%` }}
                       />
                     </div>
+                    <p className="text-right text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-widest">{service.percent}% DO TOTAL</p>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  Nenhum serviço encontrado.
+                <div className="flex flex-col items-center justify-center py-10 gap-3 grayscale opacity-30">
+                  <TrendingUp size={48} />
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Aguardando dados...</p>
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
       </div>
+
     </AdminLayout>
   );
 }
