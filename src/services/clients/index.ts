@@ -50,9 +50,10 @@ export const clientService = {
 
   /**
    * Cria um novo cliente
+   * Schema de entrada não exige id e createdAt; id vem do doc ref e createdAt é gerado aqui.
    */
   async create(data: Omit<Client, "id" | "createdAt">): Promise<string> {
-    const validatedData = ClientSchema.parse(data);
+    const validatedData = ClientSchema.omit({ id: true, createdAt: true, updatedAt: true }).parse(data);
 
     const docRef = await addDoc(collection(db, COLLECTION_NAME), {
       ...validatedData,

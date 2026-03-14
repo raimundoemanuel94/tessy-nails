@@ -13,8 +13,13 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !user && pathname !== "/login") {
+    if (loading) return;
+    if (!user && pathname !== "/login") {
       router.push("/login");
+      return;
+    }
+    if (user && pathname !== "/login" && user.role !== "admin" && user.role !== "professional") {
+      router.push("/cliente");
     }
   }, [user, loading, router, pathname]);
 
@@ -27,12 +32,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   }
 
   if (!user && pathname !== "/login") {
-    return null; // or a login message
+    return null;
   }
 
   // If we're on the login page, just show the content
   if (pathname === "/login") {
     return <>{children}</>;
+  }
+
+  // Client role must not see admin layout (redirect handled in useEffect)
+  if (user && user.role !== "admin" && user.role !== "professional") {
+    return null;
   }
 
   return (

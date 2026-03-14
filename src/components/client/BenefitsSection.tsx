@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { CheckCircle, Clock, Shield, Heart } from "lucide-react";
 
 const benefits = [
@@ -76,12 +77,12 @@ export function BenefitsSection() {
               Junte-se a centenas de clientes satisfeitos e descubra o poder de um atendimento de qualidade.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <a 
-                href="#agendar"
+              <Link 
+                href="/cliente/agendar"
                 className="bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-8 py-3 font-medium rounded-lg inline-flex items-center justify-center transition-colors"
               >
                 Agendar agora
-              </a>
+              </Link>
               <a 
                 href="#servicos"
                 className="border border-pink-200 text-pink-700 hover:bg-pink-50 px-8 py-3 font-medium rounded-lg inline-flex items-center justify-center transition-colors"

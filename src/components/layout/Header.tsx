@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
@@ -14,6 +15,7 @@ import { Bell, User, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function Header() {
+  const router = useRouter();
   const { user, signOut } = useAuth();
 
   return (
@@ -49,10 +51,10 @@ export function Header() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer gap-2">
+            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => router.push("/configuracoes")}>
               <User size={16} /> Perfil
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer gap-2">
+            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => router.push("/configuracoes")}>
               <Settings size={16} /> Configurações
             </DropdownMenuItem>
             <DropdownMenuSeparator />

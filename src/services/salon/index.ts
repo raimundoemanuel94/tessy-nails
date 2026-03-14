@@ -67,9 +67,10 @@ export const salonService = {
 
   /**
    * Cria um novo serviço
+   * Schema de entrada não exige id e createdAt; id vem do doc ref e createdAt é gerado aqui.
    */
   async create(data: Omit<Service, "id" | "createdAt">): Promise<string> {
-    const validatedData = ServiceSchema.parse(data);
+    const validatedData = ServiceSchema.omit({ id: true, createdAt: true, updatedAt: true }).parse(data);
 
     const docRef = await addDoc(collection(db, COLLECTION_NAME), {
       ...validatedData,

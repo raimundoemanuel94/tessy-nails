@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Calendar, Sparkles } from "lucide-react";
 
@@ -36,21 +37,21 @@ export function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <a 
-              href="#agendar"
+            <Link 
+              href="/cliente/agendar"
               className="bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-8 py-3 text-lg font-medium shadow-lg inline-flex items-center rounded-lg transition-colors"
             >
               Agendar agora
               <ArrowRight className="ml-2 h-5 w-5" />
-            </a>
+            </Link>
 
-            <a 
-              href="#meus-agendamentos"
+            <Link 
+              href="/cliente/agendamentos"
               className="border border-pink-200 text-pink-700 hover:bg-pink-50 px-8 py-3 text-lg font-medium rounded-lg inline-flex items-center transition-colors"
             >
               <Calendar className="mr-2 h-5 w-5" />
               Meus agendamentos
-            </a>
+            </Link>
           </div>
 
           {/* Trust Indicators */}
