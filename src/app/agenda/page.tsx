@@ -39,6 +39,8 @@ import { appointmentService, clientService, salonService } from "@/services";
 import { Appointment, Client, Service, AppointmentWithDetails } from "@/types";
 import { AppointmentForm } from "@/features/appointments/components/AppointmentForm";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+
 import { toast } from "sonner";
 
 export default function AgendaPage() {
@@ -82,8 +84,17 @@ export default function AgendaPage() {
     if (newDate) setDate(newDate);
   };
 
-  const nextDay = () => setDate(d => new Date(d.setDate(d.getDate() + 1)));
-  const prevDay = () => setDate(d => new Date(d.setDate(d.getDate() - 1)));
+  const nextDay = () => setDate(d => {
+    const next = new Date(d);
+    next.setDate(next.getDate() + 1);
+    return next;
+  });
+  
+  const prevDay = () => setDate(d => {
+    const prev = new Date(d);
+    prev.setDate(prev.getDate() - 1);
+    return prev;
+  });
 
   return (
     <AdminLayout>
@@ -94,8 +105,8 @@ export default function AgendaPage() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger
             render={
-              <Button size="lg" className="gap-2 shadow-md hover:shadow-lg transition-shadow font-medium">
-                <Plus size={20} /> Novo Agendamento
+              <Button className="gap-2 bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+                <Plus size={18} /> Novo Agendamento
               </Button>
             }
           />
@@ -114,55 +125,53 @@ export default function AgendaPage() {
         </Dialog>
       </PageHeader>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Lado Esquerdo: Calendário e Resumo */}
         <div className="lg:col-span-4 space-y-6">
-          <Card className="shadow-md border border-border/80 bg-card rounded-xl overflow-hidden">
-            <CardHeader className="pb-4 pt-5 px-5">
-              <CardTitle className="text-base font-semibold flex items-center gap-2.5 text-foreground">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <CalendarIcon size={18} />
-                </div>
+          <Card className="shadow-sm border-slate-200/60 overflow-hidden">
+            <CardHeader className="pb-3 bg-slate-50/50 border-b">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2 text-slate-700">
+                <CalendarIcon size={16} className="text-pink-500" />
                 Calendário
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-5 pb-5">
+            <CardContent className="pt-4">
               <Calendar
                 mode="single"
                 selected={date}
                 onSelect={handleDateChange}
-                className="rounded-lg border border-border/60 mx-auto p-0 bg-muted/30"
+                className="rounded-md border-none mx-auto p-0"
                 locale={ptBR}
               />
             </CardContent>
           </Card>
 
-          <Card className="shadow-md border border-border/80 bg-gradient-to-b from-primary/10 to-primary/5 rounded-xl overflow-hidden">
-            <CardHeader className="pb-4 pt-5 px-5">
-              <CardTitle className="text-base font-semibold text-foreground">Resumo do Dia</CardTitle>
+          <Card className="shadow-sm border-pink-100 bg-pink-50/30 overflow-hidden">
+            <CardHeader className="pb-3 border-b border-pink-100/50">
+              <CardTitle className="text-sm font-semibold text-pink-900">Resumo do Dia</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-5 px-5 pb-5">
-              <div className="flex items-center justify-between rounded-lg bg-background/60 px-4 py-3 border border-border/40">
-                <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
-                  <Clock3 size={18} className="text-primary/80" /> Total de horas
+            <CardContent className="space-y-4 pt-4">
+              <div className="flex items-center justify-between text-sm p-2 rounded-lg bg-white/50 border border-white">
+                <span className="text-slate-600 flex items-center gap-2">
+                  <Clock3 size={14} className="text-slate-400" /> Total de horas
                 </span>
-                <span className="font-bold text-foreground tabular-nums">
+                <span className="font-bold text-slate-900">
                   {appointments.reduce((acc, curr) => acc + (curr.service?.durationMinutes || 0), 0) / 60}h
                 </span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-background/60 px-4 py-3 border border-border/40">
-                <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
-                  <CheckCircle2 size={18} className="text-emerald-500" /> Concluídos
+              <div className="flex items-center justify-between text-sm p-2 rounded-lg bg-emerald-50/50 border border-emerald-100/50">
+                <span className="text-emerald-700 flex items-center gap-2">
+                  <CheckCircle2 size={14} /> Concluídos
                 </span>
-                <span className="font-bold text-emerald-600 tabular-nums">
+                <span className="font-bold text-emerald-600">
                   {appointments.filter(a => a.status === "completed").length}
                 </span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-background/60 px-4 py-3 border border-border/40">
-                <span className="text-muted-foreground flex items-center gap-2.5 text-sm">
-                  <AlertCircle size={18} className="text-amber-500" /> Pendentes
+              <div className="flex items-center justify-between text-sm p-2 rounded-lg bg-amber-50/50 border border-amber-100/50">
+                <span className="text-amber-700 flex items-center gap-2">
+                  <AlertCircle size={14} /> Pendentes
                 </span>
-                <span className="font-bold text-amber-600 tabular-nums">
+                <span className="font-bold text-amber-600">
                   {appointments.filter(a => a.status === "pending" || a.status === "confirmed").length}
                 </span>
               </div>
@@ -171,94 +180,116 @@ export default function AgendaPage() {
         </div>
 
         {/* Lado Direito: Lista de Agendamentos */}
-        <Card className="lg:col-span-8 shadow-md border border-border/80 min-h-[600px] rounded-xl overflow-hidden flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 bg-muted/20 px-6 py-5">
+        <Card className="lg:col-span-8 shadow-sm border-slate-200/60 min-h-[600px] flex flex-col">
+          <CardHeader className="flex flex-row items-center justify-between border-b pb-4 bg-slate-50/30">
             <div>
-              <CardTitle className="text-xl font-semibold capitalize text-foreground">
+              <CardTitle className="text-xl font-bold text-slate-900 capitalize">
                 {format(date, "EEEE, d 'de' MMMM", { locale: ptBR })}
               </CardTitle>
-              <CardDescription className="mt-1 text-sm">
+              <CardDescription className="text-slate-500">
                 {appointments.length === 0 
-                  ? "Nenhum agendamento para hoje." 
-                  : `${appointments.length} agendamentos programados.`}
+                  ? "Nenhum compromisso agendado para esta data." 
+                  : `${appointments.length} ${appointments.length === 1 ? 'compromisso encontrado' : 'compromissos agendados'}.`}
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="icon" onClick={prevDay}><ChevronLeft size={18} /></Button>
-              <Button variant="outline" size="icon" onClick={nextDay}><ChevronRight size={18} /></Button>
+              <Button variant="outline" size="icon" onClick={prevDay} className="h-9 w-9 border-slate-200 text-slate-600 hover:text-pink-600 hover:border-pink-200 transition-colors">
+                <ChevronLeft size={18} />
+              </Button>
+              <Button variant="outline" size="icon" onClick={nextDay} className="h-9 w-9 border-slate-200 text-slate-600 hover:text-pink-600 hover:border-pink-200 transition-colors">
+                <ChevronRight size={18} />
+              </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-0 flex-1 flex flex-col">
+          <CardContent className="p-0 flex-1">
             {loading ? (
               <div className="p-6 space-y-4">
-                {[1, 2, 3].map(i => (
+                {[1, 2, 3, 4].map(i => (
                   <div key={i} className="flex gap-4 items-center">
-                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <Skeleton className="h-12 w-12 rounded-xl" />
                     <div className="space-y-2 flex-1">
-                      <Skeleton className="h-4 w-[250px]" />
-                      <Skeleton className="h-4 w-[200px]" />
+                      <Skeleton className="h-5 w-[180px]" />
+                      <Skeleton className="h-4 w-[120px]" />
                     </div>
+                    <Skeleton className="h-8 w-24 rounded-full" />
                   </div>
                 ))}
               </div>
             ) : appointments.length === 0 ? (
-              <div className="flex flex-col items-center justify-center flex-1 min-h-[380px] px-6 py-12 bg-muted/30 rounded-b-xl">
-                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary/70 mb-4">
-                  <CalendarIcon size={44} strokeWidth={1.5} />
+              <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center px-6">
+                <div className="relative mb-6">
+                  <div className="absolute inset-0 bg-pink-100 rounded-full blur-2xl opacity-40 animate-pulse"></div>
+                  <div className="relative bg-white p-6 rounded-full shadow-sm border border-pink-50">
+                    <CalendarIcon size={48} className="text-pink-400" />
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-1">Nenhum agendamento neste dia</h3>
-                <p className="text-sm text-muted-foreground text-center max-w-sm mb-6">
-                  Selecione outra data ou crie um novo agendamento para começar.
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Dia livre por enquanto!</h3>
+                <p className="text-slate-500 max-w-xs mb-8">
+                  Não há agendamentos para hoje. Que tal aproveitar para organizar seu espaço?
                 </p>
-                <Button onClick={() => setIsDialogOpen(true)} size="lg" className="gap-2 shadow-md font-medium">
-                  <Plus size={20} /> Criar primeiro agendamento
+                <Button 
+                  onClick={() => setIsDialogOpen(true)}
+                  variant="outline"
+                  className="gap-2 border-pink-200 text-pink-600 hover:bg-pink-50 transition-all font-medium"
+                >
+                  <Plus size={18} /> Criar primeiro agendamento
                 </Button>
               </div>
             ) : (
-              <div className="divide-y divide-border/50">
+              <div className="divide-y divide-slate-100">
                 {appointments
                   .sort((a, b) => a.appointmentDate.getTime() - b.appointmentDate.getTime())
                   .map((app) => (
                     <div 
                       key={app.id} 
-                      className="group flex items-start gap-5 px-6 py-5 hover:bg-muted/30 transition-colors cursor-pointer"
+                      className="group flex items-center gap-4 p-5 hover:bg-slate-50/80 transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-pink-500"
                     >
-                      <div className="flex flex-col items-center justify-center min-w-[72px] py-2.5 bg-muted/50 rounded-xl border border-border/50 group-hover:border-primary/40 group-hover:bg-primary/5 transition-colors">
-                        <span className="text-sm font-bold text-primary tabular-nums">
+                      <div className="flex flex-col items-center justify-center min-w-[70px] py-2 bg-slate-50 rounded-xl border border-slate-100 group-hover:border-pink-100 group-hover:bg-pink-50/50 transition-all">
+                        <span className="text-sm font-bold text-slate-900 group-hover:text-pink-600 transition-colors">
                           {format(new Date(app.appointmentDate), "HH:mm")}
                         </span>
-                        <span className="text-[10px] text-muted-foreground uppercase font-medium tracking-wide mt-0.5">
+                        <span className="text-[10px] text-slate-400 uppercase font-semibold">
                           {app.service?.durationMinutes} min
                         </span>
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2 mb-1.5">
-                          <h4 className="font-semibold text-foreground truncate">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <h4 className="font-bold text-slate-900 truncate group-hover:text-pink-600 transition-colors pr-2">
                             {app.client?.name || "Cliente não encontrada"}
                           </h4>
                           <Badge variant={
                             app.status === "completed" ? "secondary" : 
                             app.status === "confirmed" ? "default" : 
                             app.status === "cancelled" ? "destructive" : "outline"
-                          } className="ml-2 capitalize shrink-0">
+                          } className={cn(
+                            "capitalize font-semibold text-[11px] h-6 px-2.5",
+                            app.status === "confirmed" && "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100",
+                            app.status === "pending" && "bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-100",
+                            app.status === "completed" && "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100",
+                            app.status === "cancelled" && "bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-100"
+                          )}>
                             {app.status === "confirmed" ? "Confirmado" : 
                              app.status === "pending" ? "Pendente" : 
                              app.status === "completed" ? "Concluído" : "Cancelado"}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2 flex-wrap">
-                          <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-md text-xs font-medium">
+                        
+                        <div className="flex items-center gap-3">
+                          <span className="inline-flex items-center text-xs font-medium text-pink-600 bg-pink-50 px-2 py-0.5 rounded-md border border-pink-100/50">
                             {app.service?.name}
                           </span>
-                          <span className="text-border">•</span>
-                          <span className="font-medium text-foreground">R$ {app.service?.price}</span>
-                        </p>
-                        {app.notes && (
-                          <p className="text-xs text-muted-foreground italic line-clamp-1">
-                            "{app.notes}"
-                          </p>
-                        )}
+                          <span className="text-slate-300 text-xs">•</span>
+                          <span className="text-xs font-bold text-slate-700">R$ {app.service?.price}</span>
+                          {app.notes && (
+                            <>
+                              <span className="text-slate-300 text-xs">•</span>
+                              <p className="text-xs text-slate-400 italic truncate max-w-[200px]">
+                                "{app.notes}"
+                              </p>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
