@@ -38,8 +38,10 @@ import {
 import { AppointmentForm } from "@/features/appointments/components/AppointmentForm";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn, ensureDate } from "@/lib/utils";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { CalendarX2 } from "lucide-react";
 
 const timeSlots = [
   "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -100,8 +102,8 @@ export default function AgendamentosPage() {
         id: app.id!,
         client: client ? client.name : `Cliente ${app.clientId.slice(0, 8)}`,
         service: service ? service.name : `Serviço ${app.serviceId.slice(0, 8)}`,
-        date: format(app.appointmentDate, "dd/MM/yyyy"),
-        time: format(app.appointmentDate, "HH:mm"),
+        date: format(ensureDate(app.appointmentDate), "dd/MM/yyyy"),
+        time: format(ensureDate(app.appointmentDate), "HH:mm"),
         status: app.status,
         price: service ? `R$ ${service.price.toFixed(2)}` : "R$ 0,00"
       };
@@ -320,11 +322,13 @@ export default function AgendamentosPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-20">
-                    <div className="flex flex-col items-center gap-3 opacity-30 grayscale">
-                      <Search size={48} className="text-slate-400" />
-                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">Nenhum agendamento encontrado.</p>
-                    </div>
+                  <TableCell colSpan={6} className="py-20">
+                    <EmptyState 
+                      icon={CalendarX2}
+                      title="Nenhum registro"
+                      description="Não encontramos agendamentos com os filtros aplicados."
+                      className="py-10"
+                    />
                   </TableCell>
                 </TableRow>
               )}
