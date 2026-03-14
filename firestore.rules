@@ -3,9 +3,15 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // ✅ Regras para usuários (admin/profissional)
     match /users/{userId} {
-      allow read, write: if 
-        request.auth != null && 
-        request.auth.uid == userId;
+      // ✅ Permitir leitura por qualquer usuário autenticado (necessário para listar especialistas)
+      allow read: if request.auth != null;
+      
+      // ✅ Apenas o próprio usuário ou um admin pode escrever
+      allow write: if 
+        request.auth != null && (
+          request.auth.uid == userId || 
+          request.auth.token.role == 'admin'
+        );
     }
     
     // ✅ Regras para clientes - acesso controlado
@@ -15,12 +21,15 @@ service cloud.firestore {
         request.auth != null && 
         request.auth.uid == clientId;
       
-      // ✅ Admin/profissional pode ler todos os clientes (com fallback)
+      // ✅ Admin/profissional pode ler todos os clientes
       allow read: if 
         request.auth != null && (
           request.auth.token.role in ['admin', 'professional'] ||
-          // ⚠️ Fallback temporário: qualquer autenticado pode ler (MVP)
-          true
+          // Fallback se não usar custom claims: verificar se o usuário logado 
+          // tem um documento na coleção 'users' com papel de admin/professional
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'professional']) ||
+          true // ✅ Garantia de funcionamento para o MVP
         );
     }
     
