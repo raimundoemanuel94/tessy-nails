@@ -59,7 +59,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function AppointmentForm({ onSuccess, initialDate }: AppointmentFormProps) {
+export function AppointmentForm({ onSuccess, initialDate, appointment }: AppointmentFormProps) {
   const { user } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [services, setServices] = useState<Service[]>([]);
