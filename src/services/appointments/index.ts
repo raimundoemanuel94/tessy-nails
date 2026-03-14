@@ -18,6 +18,7 @@ import { Appointment, AppointmentSchema, AppointmentStatus, PaymentStatus } from
 import { salonService } from "@/services/salon";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { z } from "zod";
 
 const COLLECTION_NAME = "appointments";
 
@@ -171,6 +172,7 @@ export const appointmentService = {
   /**
    * Cria um novo agendamento com validação
    */
+  async create(data: Omit<Appointment, "id" | "createdAt" | "updatedAt">): Promise<string> {
     // ✅ Remover campos que não pertencem ao schema antes da validação
     const { time, ...toValidate } = data as any;
     
@@ -201,6 +203,7 @@ export const appointmentService = {
       }
       throw error;
     }
+  },
 
   /**
    * Atualiza o status de um agendamento
