@@ -100,9 +100,21 @@ export function Sidebar() {
       {/* Footer Section */}
       <div className="p-4 mt-auto">
         <div className={cn(
-          "rounded-2xl p-2 transition-all duration-300",
-          !collapsed && "bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5"
+          "rounded-2xl p-2 transition-all duration-500",
+          !collapsed && "bg-linear-to-br from-pink-500/5 to-rose-500/5 dark:from-pink-500/10 dark:to-rose-500/10 border border-pink-100/50 dark:border-pink-500/20 mb-4"
         )}>
+          {!collapsed && (
+            <div className="px-3 py-4 space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
+                <Scissors className="text-pink-600" size={20} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-black text-slate-900 dark:text-white leading-tight">Plano Premium</p>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Suporte 24/7 Ativo</p>
+              </div>
+              <Button size="sm" className="w-full h-8 bg-white dark:bg-slate-800 text-pink-600 border border-pink-100 dark:border-pink-500/30 hover:bg-pink-50 dark:hover:bg-pink-900/20 text-[10px] font-black uppercase tracking-widest">Gerenciar</Button>
+            </div>
+          )}
           <Button
             variant="ghost"
             className={cn(

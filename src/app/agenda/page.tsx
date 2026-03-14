@@ -14,8 +14,10 @@ import {
   Search,
   CheckCircle2,
   Clock3,
-  AlertCircle
+  AlertCircle,
+  CalendarDays
 } from "lucide-react";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { 
@@ -216,25 +218,13 @@ export default function AgendaPage() {
                 ))}
               </div>
             ) : appointments.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center px-6">
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-pink-100 rounded-full blur-2xl opacity-40 animate-pulse"></div>
-                  <div className="relative bg-white p-6 rounded-full shadow-sm border border-pink-50">
-                    <CalendarIcon size={48} className="text-pink-400" />
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Dia livre por enquanto!</h3>
-                <p className="text-slate-500 max-w-xs mb-8">
-                  Não há agendamentos para hoje. Que tal aproveitar para organizar seu espaço?
-                </p>
-                <Button 
-                  onClick={() => setIsDialogOpen(true)}
-                  variant="outline"
-                  className="gap-2 border-pink-200 text-pink-600 hover:bg-pink-50 transition-all font-medium"
-                >
-                  <Plus size={18} /> Criar primeiro agendamento
-                </Button>
-              </div>
+              <EmptyState 
+                icon={CalendarDays}
+                title="Dia livre por enquanto!"
+                description="Não há agendamentos para esta data. Que tal aproveitar para organizar seu espaço?"
+                actionLabel="Novo Agendamento"
+                onAction={() => setIsDialogOpen(true)}
+              />
             ) : (
               <div className="divide-y divide-slate-100">
                 {appointments

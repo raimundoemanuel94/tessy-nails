@@ -34,9 +34,13 @@ export function Header() {
 
       <div className="flex items-center gap-4 lg:gap-6">
         {/* Search Bar Placeholder (Visual only) */}
-        <div className="hidden sm:flex items-center bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-1.5 w-64 group focus-within:w-80 transition-all duration-500">
-          <Search size={16} className="text-slate-400" />
-          <span className="ml-2 text-xs text-slate-400 font-medium">Pesquisar... (⌘K)</span>
+        <div className="hidden sm:flex items-center bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 w-64 group focus-within:w-80 transition-all duration-500 cursor-text">
+          <Search size={16} className="text-slate-400 group-hover:text-pink-500 transition-colors" />
+          <span className="ml-3 text-xs text-slate-400 font-bold tracking-tight">Pesquisar...</span>
+          <div className="ml-auto flex gap-1">
+            <kbd className="h-5 min-w-5 px-1.5 flex items-center justify-center rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-[10px] font-black text-slate-400 dark:text-slate-500 shadow-xs">⌘</kbd>
+            <kbd className="h-5 min-w-5 px-1.5 flex items-center justify-center rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-[10px] font-black text-slate-400 dark:text-slate-500 shadow-xs">K</kbd>
+          </div>
         </div>
 
         <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-950/20 transition-all shadow-sm">
@@ -48,9 +52,9 @@ export function Header() {
           <DropdownMenuTrigger
             render={
               <Button variant="ghost" className="relative h-11 px-2 gap-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all">
-                <Avatar className="h-9 w-9 border-2 border-white dark:border-white/10 shadow-sm transition-transform group-hover:scale-105">
-                  <AvatarImage src={user?.photoURL} alt={user?.name} className="object-cover" />
-                  <AvatarFallback className="bg-linear-to-br from-pink-100 to-rose-100 text-pink-700 font-bold dark:from-pink-900 dark:to-rose-900 dark:text-pink-100">
+                <Avatar className="h-9 w-9 border-2 border-white dark:border-white/20 shadow-lg shadow-pink-500/10 transition-transform group-hover:scale-110">
+                  <AvatarImage src={user?.photoURL} alt={String(user?.name || "")} className="object-cover" />
+                  <AvatarFallback className="bg-linear-to-br from-pink-100 to-rose-100 text-pink-700 font-black dark:from-pink-900 dark:to-rose-900 dark:text-pink-100">
                     {user?.name ? user.name.substring(0, 2).toUpperCase() : "TN"}
                   </AvatarFallback>
                 </Avatar>

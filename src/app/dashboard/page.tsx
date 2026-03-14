@@ -11,13 +11,15 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { DashboardCard } from "@/components/shared/DashboardCard";
 import { ensureDate } from "@/lib/utils";
 import { 
-  Users, 
-  Calendar, 
-  TrendingUp, 
   DollarSign, 
   Clock, 
-  CheckCircle2 
+  CheckCircle2,
+  CalendarX2,
+  Users,
+  Calendar,
+  TrendingUp
 } from "lucide-react";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { 
   Card, 
   CardContent, 
@@ -254,13 +256,13 @@ export default function DashboardPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-10">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center">
-                          <Calendar size={20} className="text-slate-400" />
-                        </div>
-                        <p className="text-sm font-bold text-slate-400 dark:text-slate-500">Nenhum agendamento para hoje.</p>
-                      </div>
+                    <TableCell colSpan={5} className="py-20">
+                      <EmptyState 
+                        icon={CalendarX2}
+                        title="Nenhum agendamento hoje"
+                        description="Você não tem compromissos agendados para este período. Que tal revisar seus serviços?"
+                        className="py-10"
+                      />
                     </TableCell>
                   </TableRow>
                 )}

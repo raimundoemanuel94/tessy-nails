@@ -84,7 +84,7 @@ export function ClientProfileCard({
       <div className="flex flex-col items-center space-y-4 sm:flex-row sm:items-start sm:space-y-0 sm:space-x-6">
         {/* Avatar */}
         <div className="relative">
-          <div className="h-24 w-24 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center shadow-lg">
+          <div className="h-24 w-24 rounded-full bg-linear-to-br from-pink-400 to-pink-600 flex items-center justify-center shadow-lg">
             {client.avatar ? (
               <img 
                 src={client.avatar} 
@@ -133,7 +133,7 @@ export function ClientProfileCard({
       </div>
 
       {/* Visual Separator */}
-      <div className="mt-6 h-px bg-gradient-to-r from-transparent via-pink-200 to-transparent" />
+      <div className="mt-6 h-px bg-linear-to-r from-transparent via-pink-200 to-transparent" />
 
       {/* Additional Info */}
       <div className="mt-6 text-center">

@@ -17,20 +17,23 @@ interface DashboardCardProps {
 export function DashboardCard({ title, value, description, icon: Icon, trend, className }: DashboardCardProps) {
   return (
     <Card className={cn(
-      "group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-pink-500/10 hover:-translate-y-1 border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md", 
+      "group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-pink-500/10 hover:-translate-y-2 border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-3xl", 
       className
     )}>
-      {/* Decorative background element */}
-      <div className="absolute top-0 right-0 -mr-4 -mt-4 w-20 h-20 bg-pink-500/5 rounded-full blur-2xl group-hover:bg-pink-500/10 transition-all duration-500" />
+      {/* Premium Shine Effect */}
+      <div className="absolute inset-0 bg-linear-to-br from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
       
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{title}</CardTitle>
-        <div className="rounded-xl bg-linear-to-br from-pink-500/10 to-rose-500/10 p-2.5 transition-transform group-hover:scale-110 duration-500">
+      {/* Decorative background element */}
+      <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-pink-500/5 rounded-full blur-3xl group-hover:bg-pink-500/15 transition-all duration-700" />
+      
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 relative z-10">
+        <CardTitle className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{title}</CardTitle>
+        <div className="rounded-2xl bg-white dark:bg-slate-800 p-3 shadow-sm border border-slate-100 dark:border-white/5 transition-all group-hover:scale-110 group-hover:rotate-6 duration-500">
           <Icon className="h-5 w-5 text-pink-600" strokeWidth={2.5} />
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{value}</div>
+      <CardContent className="relative z-10">
+        <div className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">{value}</div>
         {(description || trend) && (
           <div className="flex items-center gap-1.5 mt-2">
             {trend && (
