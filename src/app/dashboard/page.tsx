@@ -42,6 +42,7 @@ import { clientService } from "@/services/clients";
 import { salonService } from "@/services/salon";
 import { format, isToday, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { RevenueChart, ServicesDonut } from "@/components/shared/DashboardCharts";
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -272,46 +273,29 @@ export default function DashboardPage() {
         </Card>
 
         <Card className="col-span-full lg:col-span-3 border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-6 rounded-3xl overflow-hidden relative">
-          {/* Decorative element */}
           <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-pink-500/5 rounded-full blur-3xl" />
-          
-          <CardHeader className="p-0 mb-8">
-            <CardTitle className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Performance Mensal</CardTitle>
-            <CardDescription className="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
-              Top 4 Serviços
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="space-y-8">
-              {topServices.length > 0 ? (
-                topServices.map((service, idx) => (
-                  <div key={service.name} className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-md bg-pink-100 dark:bg-pink-950/30 flex items-center justify-center text-[10px] font-black text-pink-600">
-                          0{idx + 1}
-                        </div>
-                        <span className="font-bold text-slate-700 dark:text-slate-300">{String(service.name || "")}</span>
-                      </div>
-                      <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter">{service.count} agendamentos</span>
-                    </div>
-                    <div className="relative h-2.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                      <div 
-                        className="absolute h-full bg-linear-to-r from-pink-500 to-rose-600 rounded-full shadow-lg shadow-pink-500/20 transition-all duration-1000 ease-out" 
-                        style={{ width: `${service.percent}%` }}
-                      />
-                    </div>
-                    <p className="text-right text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-widest">{service.percent}% DO TOTAL</p>
-                  </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center py-10 gap-3 grayscale opacity-30">
-                  <TrendingUp size={48} />
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Aguardando dados...</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
+          <ServicesDonut 
+            data={topServices.length > 0 ? topServices.map(s => ({ name: s.name, value: s.percent })) : [
+              { name: "Manicure", value: 45 },
+              { name: "Pedicure", value: 30 },
+              { name: "Gel", value: 25 },
+            ]} 
+          />
+        </Card>
+      </div>
+
+      <div className="mt-6 grid gap-6 grid-cols-1">
+        <Card className="border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-8 rounded-3xl overflow-hidden relative">
+          <RevenueChart 
+            data={[
+              { date: "Out", Revenue: 2100 },
+              { date: "Nov", Revenue: 2800 },
+              { date: "Dez", Revenue: 3500 },
+              { date: "Jan", Revenue: 2900 },
+              { date: "Fev", Revenue: 3800 },
+              { date: "Mar", Revenue: stats.monthlyRevenue || 4200 },
+            ]} 
+          />
         </Card>
       </div>
 

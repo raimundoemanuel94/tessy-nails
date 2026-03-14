@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -60,9 +61,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         
         <main className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 relative z-10">
           <div className="mx-auto max-w-7xl">
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
-              {children}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
       </div>
