@@ -76,19 +76,49 @@ export default function AgendamentosPage() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [apps, clientsData, servicesData, specialistsData] = await Promise.all([
-        appointmentService.getAll(),
-        clientService.getAll(),
-        salonService.getAll(),
-        appointmentService.getSpecialists ? appointmentService.getSpecialists() : Promise.resolve([])
-      ]);
+      
+      // Carregar dados individualmente para identificar qual falha nas permissões
+      let apps: Appointment[] = [];
+      let clientsData: Client[] = [];
+      let servicesData: Service[] = [];
+      let specialistsData: any[] = [];
+
+      try {
+        apps = await appointmentService.getAll();
+      } catch (e) {
+        console.error("❌ Erro ao buscar APPOINTMENTS:", e);
+      }
+
+      try {
+        clientsData = await clientService.getAll();
+      } catch (e) {
+        console.error("❌ Erro ao buscar CLIENTS:", e);
+      }
+
+      try {
+        servicesData = await salonService.getAll();
+      } catch (e) {
+        console.error("❌ Erro ao buscar SERVICES:", e);
+      }
+
+      try {
+        specialistsData = await (appointmentService.getSpecialists ? appointmentService.getSpecialists() : Promise.resolve([]));
+      } catch (e) {
+        console.error("❌ Erro ao buscar SPECIALISTS (users):", e);
+      }
+
       setRawAppointments(apps);
       setClients(clientsData);
       setServices(servicesData);
       setSpecialists(specialistsData);
+
+      if (apps.length === 0 && (clientsData.length > 0 || servicesData.length > 0)) {
+        console.warn("⚠️ Nenhum agendamento retornado ou erro de permissão silencioso.");
+      }
+
     } catch (error) {
-      console.error("Error loading appointments:", error);
-      toast.error("Erro ao carregar agendamentos");
+      console.error("Error loading dashboard data:", error);
+      toast.error("Erro ao carregar alguns dados. Verifique o console.");
     } finally {
       setLoading(false);
     }
