@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/client/EmptyState";
 import { salonService } from "@/services/salon";
 import { Service as ServiceType } from "@/types";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
+import { BottomNav } from "@/components/client/BottomNav";
 
 // Interface Service local para evitar erro de importação
 interface Service {
@@ -219,7 +220,7 @@ export default function ServicosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <ServicesHeader 
         title="Escolha um serviço"
         onBack={handleBack}
@@ -265,6 +266,7 @@ export default function ServicosPage() {
           />
         )}
       </main>
+      <BottomNav />
     </div>
   );
 }

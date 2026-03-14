@@ -10,6 +10,7 @@ import { NoProfileDataState } from "@/components/client/NoProfileDataState";
 import { useAuth } from "@/contexts/AuthContext";
 import { clientService } from "@/services/clients";
 import { Client } from "@/types";
+import { BottomNav } from "@/components/client/BottomNav";
 
 // Mock data para perfil da cliente
 const generateMockClientData = (): ClientData => {
@@ -247,7 +248,7 @@ export default function PerfilPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <PerfilHeader 
         title="Meu perfil"
         subtitle="Gerencie seus dados e preferências"
@@ -281,6 +282,7 @@ export default function PerfilPage() {
           />
         </div>
       </main>
+      <BottomNav />
     </div>
   );
 }

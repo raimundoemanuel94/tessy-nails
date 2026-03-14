@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,13 @@ import {
   CalendarX2,
   Users,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  Plus,
+  UserPlus,
+  Eye,
+  CalendarDays,
+  BarChart3,
+  Star
 } from "lucide-react";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { 
@@ -36,11 +42,11 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { appointmentService } from "@/services/appointments";
 import { clientService } from "@/services/clients";
 import { salonService } from "@/services/salon";
-import { format, isToday, isPast } from "date-fns";
+import { format, isToday, isPast, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { RevenueChart, ServicesDonut } from "@/components/shared/DashboardCharts";
 
@@ -51,12 +57,15 @@ export default function DashboardPage() {
   const [stats, setStats] = useState({
     totalClients: 0,
     todayAppointments: 0,
+    pendingAppointments: 0,
+    confirmedAppointments: 0,
     monthlyRevenue: 0,
     completionRate: 0
   });
   const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
   const [topServices, setTopServices] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('today');
 
   // Proteger dashboard - apenas admin/profissional
   useEffect(() => {
@@ -86,8 +95,34 @@ export default function DashboardPage() {
           salonService.getAll()
         ]);
 
+        // Filtrar por período selecionado
+        const now = new Date();
+        let filteredAppointments = appointments;
+        
+        if (selectedPeriod === 'today') {
+          filteredAppointments = appointments.filter(apt => 
+            isToday(ensureDate(apt.appointmentDate))
+          );
+        } else if (selectedPeriod === 'week') {
+          const weekStart = startOfDay(new Date(now.setDate(now.getDate() - now.getDay())));
+          const weekEnd = endOfDay(new Date(now.setDate(now.getDate() + (6 - now.getDay()))));
+          filteredAppointments = appointments.filter(apt => {
+            const aptDate = ensureDate(apt.appointmentDate);
+            return aptDate >= weekStart && aptDate <= weekEnd;
+          });
+        } else if (selectedPeriod === 'month') {
+          const monthStart = startOfDay(new Date(now.getFullYear(), now.getMonth(), 1));
+          const monthEnd = endOfDay(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+          filteredAppointments = appointments.filter(apt => {
+            const aptDate = ensureDate(apt.appointmentDate);
+            return aptDate >= monthStart && aptDate <= monthEnd;
+          });
+        }
+
         // Calcular estatísticas
         const todayApps = appointments.filter(apt => isToday(ensureDate(apt.appointmentDate)));
+        const pendingApps = filteredAppointments.filter(apt => apt.status === 'pending');
+        const confirmedApps = filteredAppointments.filter(apt => apt.status === 'confirmed');
         const completedApps = appointments.filter(apt => apt.status === 'completed');
         const completionRate = appointments.length > 0 
           ? (completedApps.length / appointments.length) * 100 
@@ -102,14 +137,16 @@ export default function DashboardPage() {
         setStats({
           totalClients: clients.length,
           todayAppointments: todayApps.length,
+          pendingAppointments: pendingApps.length,
+          confirmedAppointments: confirmedApps.length,
           monthlyRevenue,
           completionRate: Math.round(completionRate)
         });
 
         // Agendamentos recentes com dados reais
-        const recent = appointments
+        const recent = filteredAppointments
           .filter(apt => !isPast(ensureDate(apt.appointmentDate)) || isToday(ensureDate(apt.appointmentDate)))
-          .slice(0, 5)
+          .slice(0, 8)
           .map(apt => {
             // Buscar nome real do cliente
             const client = clients.find(c => c.id === apt.clientId);
@@ -125,14 +162,15 @@ export default function DashboardPage() {
             return {
               id: apt.id,
               client: clientName,
+              clientData: client,
               service: serviceName,
+              serviceData: service,
               time: format(ensureDate(apt.appointmentDate), 'HH:mm', { locale: ptBR }),
+              date: format(ensureDate(apt.appointmentDate), 'dd/MM', { locale: ptBR }),
               status: apt.status,
               price: servicePrice
             };
           });
-
-        setRecentAppointments(recent);
 
         // Serviços mais procurados com dados reais
         const serviceStats = services.map(service => {
@@ -155,7 +193,7 @@ export default function DashboardPage() {
     };
 
     loadDashboardData();
-  }, [user, loading]);
+  }, [user, loading, selectedPeriod]);
 
   if (dataLoading) {
     return (
@@ -169,56 +207,114 @@ export default function DashboardPage() {
 
   return (
     <AdminLayout>
+      {/* Header do workspace com contexto e ações */}
       <PageHeader 
-        title="Visão geral do salão" 
-        description="Acompanhe rapidamente o movimento do dia, os próximos agendamentos e os principais indicadores do seu salão."
-      />
+        title="Central de Operações" 
+        description="Visão geral do salão com métricas em tempo real e ações rápidas."
+      >
+        <div className="flex items-center gap-3">
+          {/* Filtro de período */}
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+            {(['today', 'week', 'month'] as const).map((period) => (
+              <Button
+                key={period}
+                variant={selectedPeriod === period ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedPeriod(period)}
+                className="h-8 px-3 text-xs font-medium"
+              >
+                {period === 'today' ? 'Hoje' : period === 'week' ? 'Semana' : 'Mês'}
+              </Button>
+            ))}
+          </div>
+          
+          {/* Ações rápidas */}
+          <Button 
+            onClick={() => router.push('/admin/agenda')}
+            className="bg-pink-600 hover:bg-pink-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Agendamento
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => router.push('/admin/clientes')}
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Novo Cliente
+          </Button>
+        </div>
+      </PageHeader>
 
-      {/* Linha de métricas principais */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-10">
+      {/* Zona 1 - Cards de resumo com contexto */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <DashboardCard 
           title="Total de Clientes" 
           value={stats.totalClients.toString()} 
-          description="clientes cadastrados" 
-          icon={Users} 
+          description="clientes ativos" 
+          icon={Users}
+          trend={{
+            value: 12,
+            isUp: true
+          }}
         />
         <DashboardCard 
           title="Agendamentos Hoje" 
           value={stats.todayAppointments.toString()} 
           description="hoje" 
-          icon={Calendar} 
+          icon={Calendar}
+          trend={{
+            value: 8,
+            isUp: true
+          }}
+        />
+        <DashboardCard 
+          title="Pendentes" 
+          value={stats.pendingAppointments.toString()} 
+          description="aguardando confirmação" 
+          icon={Clock}
+          trend={{
+            value: 5,
+            isUp: false
+          }}
         />
         <DashboardCard 
           title="Receita Mensal" 
           value={`R$ ${stats.monthlyRevenue.toFixed(2)}`} 
           description="este mês" 
-          icon={DollarSign} 
-        />
-        <DashboardCard 
-          title="Taxa de Conclusão" 
-          value={`${stats.completionRate}%`} 
-          description="concluídos" 
-          icon={CheckCircle2} 
+          icon={DollarSign}
+          trend={{
+            value: 15,
+            isUp: true
+          }}
         />
       </div>
 
-      {/* Grid principal: operação (esquerda) + insights (direita) */}
+      {/* Zona 2 - Grid principal: Operação (esquerda) + Insights (direita) */}
       <div className="grid gap-6 lg:grid-cols-7">
-        {/* Operação do dia */}
+        {/* Coluna esquerda - Operação do dia */}
         <Card className="col-span-full lg:col-span-4 border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none overflow-hidden rounded-3xl">
           <CardHeader className="px-6 py-5 border-b border-slate-100 dark:border-white/5">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight">
-                  Próximos agendamentos
+                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5 text-pink-600" />
+                  Agenda do Dia
                 </CardTitle>
                 <CardDescription className="mt-1 text-xs text-slate-400 dark:text-slate-500">
-                  Próximos horários da sua agenda atualizados em tempo real.
+                  {selectedPeriod === 'today' ? 'Compromissos de hoje' : 
+                   selectedPeriod === 'week' ? 'Compromissos da semana' : 
+                   'Compromissos do mês'}
                 </CardDescription>
               </div>
-              <Badge className="bg-pink-50 text-pink-700 dark:bg-pink-500/10 dark:text-pink-300 border border-pink-100/70 dark:border-pink-500/25 px-2.5 py-1 text-[11px] font-semibold rounded-full">
-                {recentAppointments.length} no período
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 border border-blue-100/70 dark:border-blue-500/25 px-2.5 py-1 text-[11px] font-semibold rounded-full">
+                  {stats.confirmedAppointments} confirmados
+                </Badge>
+                <Badge className="bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300 border border-amber-100/70 dark:border-amber-500/25 px-2.5 py-1 text-[11px] font-semibold rounded-full">
+                  {stats.pendingAppointments} pendentes
+                </Badge>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -238,7 +334,7 @@ export default function DashboardPage() {
                     Status
                   </TableHead>
                   <TableHead className="px-6 py-3 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Valor
+                    Ações
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -252,16 +348,24 @@ export default function DashboardPage() {
                       <TableCell className="px-6 py-4 align-middle">
                         <div className="flex flex-col gap-0.5">
                           <span className="text-sm font-semibold text-slate-900 dark:text-slate-50 truncate">
-                            {String(appointment.client || "")}
+                            {appointment.client}
                           </span>
                           <span className="text-xs text-slate-500 dark:text-slate-400">
-                            {String(appointment.service || "")}
+                            {appointment.date}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell className="px-6 py-4 align-middle">
                         <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
-                          <Clock size={12} className="text-pink-600" />
+                          <Star className="h-3 w-3 text-pink-600" />
+                          <span className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight">
+                            {appointment.service}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-6 py-4 align-middle">
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
+                          <Clock className="h-3 w-3 text-pink-600" />
                           <span className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight tabular-nums">
                             {appointment.time}
                           </span>
@@ -288,9 +392,16 @@ export default function DashboardPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="px-6 py-4 text-right align-middle">
-                        <span className="text-sm font-semibold text-slate-900 dark:text-white tabular-nums">
-                          {appointment.price}
-                        </span>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-slate-400 hover:text-pink-600"
+                            onClick={() => router.push(`/admin/agenda?view=${appointment.id}`)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -299,8 +410,8 @@ export default function DashboardPage() {
                     <TableCell colSpan={5} className="py-20">
                       <EmptyState
                         icon={CalendarX2}
-                        title="Nenhum agendamento hoje"
-                        description="Você não tem compromissos agendados para este período. Que tal revisar seus serviços?"
+                        title={`Nenhum agendamento ${selectedPeriod === 'today' ? 'hoje' : selectedPeriod === 'week' ? 'esta semana' : 'este mês'}`}
+                        description="Você não tem compromissos agendados para este período."
                         className="py-10"
                       />
                     </TableCell>
@@ -311,32 +422,85 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Insights rápidos */}
+        {/* Coluna direita - Insights rápidos */}
         <div className="col-span-full lg:col-span-3 space-y-6">
+          {/* Card de Serviços mais vendidos */}
           <Card className="border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-6 rounded-3xl overflow-hidden relative">
             <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-pink-500/5 rounded-full blur-3xl" />
-            <ServicesDonut 
-              data={topServices.length > 0 ? topServices.map(s => ({ name: s.name, value: s.percent })) : [
-                { name: "Manicure", value: 45 },
-                { name: "Pedicure", value: 30 },
-                { name: "Gel", value: 25 },
-              ]} 
-            />
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-pink-600" />
+                Serviços Mais Vendidos
+              </CardTitle>
+              <CardDescription className="text-xs text-slate-400 dark:text-slate-500">
+                Mais procurados no período
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ServicesDonut 
+                data={topServices.length > 0 ? topServices.map(s => ({ name: s.name, value: s.percent })) : [
+                  { name: "Manicure", value: 45 },
+                  { name: "Pedicure", value: 30 },
+                  { name: "Gel", value: 25 },
+                ]} 
+              />
+            </CardContent>
           </Card>
 
+          {/* Card de Receita */}
           <Card className="border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-6 rounded-3xl overflow-hidden relative">
-            <RevenueChart 
-              data={[
-                { date: "Out", Revenue: 2100 },
-                { date: "Nov", Revenue: 2800 },
-                { date: "Dez", Revenue: 3500 },
-                { date: "Jan", Revenue: 2900 },
-                { date: "Fev", Revenue: 3800 },
-                { date: "Mar", Revenue: stats.monthlyRevenue || 4200 },
-              ]} 
-            />
+            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-pink-500/5 rounded-full blur-3xl" />
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-pink-600" />
+                Tendência de Receita
+              </CardTitle>
+              <CardDescription className="text-xs text-slate-400 dark:text-slate-500">
+                Últimos 6 meses
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <RevenueChart 
+                data={[
+                  { date: "Out", Revenue: 2100 },
+                  { date: "Nov", Revenue: 2800 },
+                  { date: "Dez", Revenue: 3500 },
+                  { date: "Jan", Revenue: 2900 },
+                  { date: "Fev", Revenue: 3800 },
+                  { date: "Mar", Revenue: stats.monthlyRevenue || 4200 },
+                ]} 
+              />
+            </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Links rápidos para telas detalhadas */}
+      <div className="mt-8 flex items-center justify-center gap-4">
+        <Button 
+          variant="outline"
+          onClick={() => router.push('/admin/agenda')}
+          className="flex items-center gap-2"
+        >
+          <Calendar className="h-4 w-4" />
+          Ver Agenda Completa
+        </Button>
+        <Button 
+          variant="outline"
+          onClick={() => router.push('/admin/agendamentos')}
+          className="flex items-center gap-2"
+        >
+          <Eye className="h-4 w-4" />
+          Todos os Agendamentos
+        </Button>
+        <Button 
+          variant="outline"
+          onClick={() => router.push('/admin/clientes')}
+          className="flex items-center gap-2"
+        >
+          <Users className="h-4 w-4" />
+          Gerenciar Clientes
+        </Button>
       </div>
 
     </AdminLayout>

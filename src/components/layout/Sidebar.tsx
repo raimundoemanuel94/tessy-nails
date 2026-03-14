@@ -12,7 +12,8 @@ import {
   Settings, 
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,6 +23,7 @@ const operationItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Calendar, label: "Agenda", href: "/agenda" },
   { icon: Clock, label: "Agendamentos", href: "/agendamentos" },
+  { icon: BarChart3, label: "Relatórios", href: "/relatorios" },
 ];
 
 const cadastrosItems = [

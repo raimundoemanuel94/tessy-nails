@@ -12,6 +12,7 @@ import { AgendamentosHeader } from "@/components/client/AgendamentosHeader";
 import { AppointmentTabs } from "@/components/client/AppointmentTabs";
 import { AppointmentCard } from "@/components/client/AppointmentCard";
 import { Button } from "@/components/ui/button";
+import { BottomNav } from "@/components/client/BottomNav";
 
 export default function AgendamentosPage() {
   const router = useRouter();
@@ -158,7 +159,7 @@ export default function AgendamentosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <AgendamentosHeader 
         title="Meus agendamentos"
         subtitle="Gerencie seus horários e tratamentos"
@@ -209,6 +210,7 @@ export default function AgendamentosPage() {
           </div>
         )}
       </main>
+      <BottomNav />
     </div>
   );
 }
