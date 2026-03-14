@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 
 export function Header() {
   const router = useRouter();
+  const { user, signOut } = useAuth();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
