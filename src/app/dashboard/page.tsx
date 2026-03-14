@@ -43,46 +43,6 @@ export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  // ✅ Proteger dashboard - apenas admin/profissional
-  useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-      
-      if (user.role !== 'admin' && user.role !== 'professional') {
-        router.push("/cliente");
-        return;
-      }
-    }
-  }, [user, loading, router]);
-
-  // ✅ Mostrar loading enquanto verifica permissão
-  if (loading || !user) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <h1 className="text-3xl font-bold text-primary animate-pulse">Tessy Nails</h1>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-          <p className="text-sm text-muted-foreground">Verificando permissões...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // ✅ Bloquear acesso se não for admin/profissional
-  if (user.role !== 'admin' && user.role !== 'professional') {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <h1 className="text-3xl font-bold text-primary">Acesso Restrito</h1>
-          <p className="text-sm text-muted-foreground">Você não tem permissão para acessar esta área.</p>
-        </div>
-      </div>
-    );
-  }
-
   const [stats, setStats] = useState({
     totalClients: 0,
     todayAppointments: 0,
@@ -93,7 +53,23 @@ export default function DashboardPage() {
   const [topServices, setTopServices] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
+  // Proteger dashboard - apenas admin/profissional
   useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      if (user.role !== 'admin' && user.role !== 'professional') {
+        router.push("/cliente");
+        return;
+      }
+    }
+  }, [user, loading, router]);
+
+  // Carregar dados só quando usuário autorizado
+  useEffect(() => {
+    if (loading || !user || (user.role !== 'admin' && user.role !== 'professional')) return;
     const loadDashboardData = async () => {
       try {
         setDataLoading(true);
@@ -174,7 +150,7 @@ export default function DashboardPage() {
     };
 
     loadDashboardData();
-  }, []);
+  }, [user, loading]);
 
   if (dataLoading) {
     return (
