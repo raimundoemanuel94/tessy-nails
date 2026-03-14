@@ -6,7 +6,9 @@ import {
   User as FirebaseUser,
   signOut as firebaseSignOut,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider
 } from "firebase/auth";
 import { auth, db, isFirebaseConfigured } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -20,6 +22,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<boolean>;
   signUp: (email: string, password: string, name: string) => Promise<boolean>;
+  signInWithGoogle: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,12 +61,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(userData);
           } else {
             console.log('Creating new user document...');
-            // Criar documento do usuário automaticamente com fallback
+            // Criar documento do usuário automaticamente com fallback como CLIENTE
             const newUser: User = {
               uid: fUser.uid,
               name: fUser.displayName || "Usuário",
               email: fUser.email || "",
-              role: "professional", // Default role
+              role: "client", // Role padrão seguro agora é CLIENT
               createdAt: new Date(),
               isActive: true,
               ...(fUser.photoURL && { photoURL: fUser.photoURL })
@@ -80,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 uid: fUser.uid,
                 name: fUser.displayName || "Usuário",
                 email: fUser.email || "",
-                role: "professional",
+                role: "client",
                 createdAt: new Date(),
                 isActive: true,
                 ...(fUser.photoURL && { photoURL: fUser.photoURL })
@@ -123,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             uid: fUser.uid,
             name: fUser.displayName || "Usuário",
             email: fUser.email || "",
-            role: "professional",
+            role: "client",
             createdAt: new Date(),
             isActive: true,
             ...(fUser.photoURL && { photoURL: fUser.photoURL })
@@ -218,24 +221,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setClient(newClient);
       
       return true;
-    } catch (error: any) {
-      console.error("Sign up error:", error);
-      
-      // ✅ Tratamento específico de erros
-      if (error.code === 'auth/email-already-in-use') {
-        console.error('Email already in use');
-      } else if (error.code === 'auth/weak-password') {
-        console.error('Password too weak');
-      } else if (error.code === 'auth/invalid-email') {
-        console.error('Invalid email');
-      }
-      
+      return false;
+    }
+  };
+
+  const signInWithGoogle = async (): Promise<boolean> => {
+    if (!auth) return false;
+    
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      return true;
+    } catch (error) {
+      console.error("Google sign in error:", error);
       return false;
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, firebaseUser, client, loading, signOut, signIn, signUp }}>
+    <AuthContext.Provider value={{ user, firebaseUser, client, loading, signOut, signIn, signUp, signInWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );

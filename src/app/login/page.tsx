@@ -20,7 +20,7 @@ function LoginPageContent() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, signInWithGoogle, user } = useAuth();
   
   // ✅ Determinar modo (login ou cadastro)
   const mode = searchParams.get('mode') || 'login';
@@ -81,16 +81,16 @@ function LoginPageContent() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    const provider = new GoogleAuthProvider();
     try {
-      if (auth) {
-        await signInWithPopup(auth, provider);
+      const success = await signInWithGoogle();
+      if (success) {
         toast.success("Login com Google realizado!");
-        // ✅ Deixar AuthContext decidir o redirecionamento
-        // router.push("/dashboard"); // ❌ Removido
+      } else {
+        toast.error("Erro ao fazer login com Google.");
       }
     } catch (error: any) {
-      toast.error("Erro ao fazer login com Google: " + error.message);
+      console.error("Google Login Error:", error);
+      toast.error("Erro inesperado no login com Google.");
     } finally {
       setLoading(false);
     }
