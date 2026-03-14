@@ -270,7 +270,7 @@ export default function ClientesPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               className="text-red-600 focus:text-red-600" 
-                              onClick={() => handleDeactivate(client.id)}
+                              onClick={() => client.id && handleDeactivate(client.id)}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Desativar

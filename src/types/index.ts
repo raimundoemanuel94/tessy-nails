@@ -18,7 +18,7 @@ export type UserRole = z.infer<typeof UserRoleEnum>;
 
 // Client Schema & Type
 export const ClientSchema = z.object({
-  id: z.string().optional(), // Firestore auto-generated ID or Auth UID
+  id: z.string(), // Firestore auto-generated ID or Auth UID
   email: z.string().email(),
   name: z.string().min(2),
   phone: z.string().optional(),
