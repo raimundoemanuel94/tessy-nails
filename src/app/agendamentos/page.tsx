@@ -2,7 +2,11 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { appointmentService, clientService, salonService } from "@/services";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Search, Plus, Calendar, Clock, MoreHorizontal, User, Scissors } from "lucide-react";
@@ -24,17 +28,47 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 
-const mockAppointments = [
-  { id: "1", client: "Maria Silva", service: "Manicure", date: "12/03/2026", time: "14:00", status: "confirmed", price: "R$ 45,00" },
-  { id: "2", client: "Ana Oliveira", service: "Alongamento em Gel", date: "12/03/2026", time: "15:30", status: "pending", price: "R$ 180,00" },
-  { id: "3", client: "Carla Santos", service: "Pedicure", date: "11/03/2026", time: "10:00", status: "completed", price: "R$ 60,00" },
-  { id: "4", client: "Bruna Lima", service: "Esmaltação em Gel", date: "11/03/2026", time: "11:30", status: "cancelled", price: "R$ 80,00" },
-];
-
-export default function AgendamentosPage() {
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredAppointments = mockAppointments.filter(app => 
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [apps, clients, services] = await Promise.all([
+          appointmentService.getAll(),
+          clientService.getAll(),
+          salonService.getAll()
+        ]);
+
+        const enriched = apps.map(app => {
+          const client = clients.find(c => c.id === app.clientId);
+          const service = services.find(s => s.id === app.serviceId);
+          
+          return {
+            id: app.id,
+            client: client ? client.name : `Cliente ${app.clientId.slice(0, 8)}`,
+            service: service ? service.name : `Serviço ${app.serviceId.slice(0, 8)}`,
+            date: format(app.appointmentDate, "dd/MM/yyyy"),
+            time: format(app.appointmentDate, "HH:mm"),
+            status: app.status,
+            price: service ? `R$ ${service.price.toFixed(2)}` : "R$ 0,00"
+          };
+        });
+
+        setAppointments(enriched);
+      } catch (error) {
+        console.error("Error loading appointments:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const filteredAppointments = appointments.filter(app => 
     app.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
     app.service.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -63,77 +97,92 @@ export default function AgendamentosPage() {
       </div>
 
       <div className="rounded-md border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Data/Hora</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Serviço</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Valor</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredAppointments.map((app) => (
-              <TableRow key={app.id}>
-                <TableCell>
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <Calendar size={14} className="text-muted-foreground" />
-                      {app.date}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Clock size={12} />
-                      {app.time}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <User size={16} className="text-muted-foreground" />
-                    {app.client}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Scissors size={16} className="text-muted-foreground" />
-                    {app.service}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={
-                    app.status === "confirmed" ? "default" : 
-                    app.status === "pending" ? "outline" : 
-                    app.status === "completed" ? "secondary" : "destructive"
-                  }>
-                    {app.status === "confirmed" ? "Confirmado" : 
-                     app.status === "pending" ? "Pendente" : 
-                     app.status === "completed" ? "Concluído" : "Cancelado"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right font-medium">{app.price}</TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal size={18} />
-                        </Button>
-                      }
-                    />
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem className="cursor-pointer">Confirmar</DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer">Remarcar</DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer text-destructive">Cancelar</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+        {loading ? (
+          <div className="flex items-center justify-center p-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Data/Hora</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Serviço</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredAppointments.length > 0 ? (
+                filteredAppointments.map((app) => (
+                  <TableRow key={app.id}>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Calendar size={14} className="text-muted-foreground" />
+                          {app.date}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Clock size={12} />
+                          {app.time}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <User size={16} className="text-muted-foreground" />
+                        {app.client}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Scissors size={16} className="text-muted-foreground" />
+                        {app.service}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={
+                        app.status === "confirmed" ? "default" : 
+                        app.status === "pending" ? "outline" : 
+                        app.status === "completed" ? "secondary" : "destructive"
+                      }>
+                        {app.status === "confirmed" ? "Confirmado" : 
+                         app.status === "pending" ? "Pendente" : 
+                         app.status === "completed" ? "Concluído" : "Cancelado"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">{app.price}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal size={18} />
+                            </Button>
+                          }
+                        />
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem className="cursor-pointer">Confirmar</DropdownMenuItem>
+                          <DropdownMenuItem className="cursor-pointer">Remarcar</DropdownMenuItem>
+                          <DropdownMenuItem className="cursor-pointer text-destructive">Cancelar</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    Nenhum agendamento encontrado.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </div>
+
     </AdminLayout>
   );
 }
