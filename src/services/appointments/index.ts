@@ -86,26 +86,50 @@ export const appointmentService = {
     const appointmentsWithServices = await Promise.all(
       appointments.map(async (apt) => {
         try {
+          console.log(`🔍 Buscando serviço: ${apt.serviceId}`);
           const service = await salonService.getById(apt.serviceId);
-          return {
-            id: apt.id || '',
-            service: service || {
-              id: apt.serviceId,
-              name: `Serviço ${apt.serviceId}`,
-              price: 0,
-              durationMinutes: 60
-            },
-            date: apt.appointmentDate,
-            time: { 
-              id: apt.id || '', 
-              time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
-            },
-            status: apt.status,
-            observation: apt.notes || undefined,
-            createdAt: apt.createdAt || new Date()
-          };
+          
+          if (service) {
+            console.log(`✅ Serviço encontrado: ${service.name}`);
+            return {
+              id: apt.id || '',
+              service: {
+                id: apt.serviceId,
+                name: service.name,
+                price: service.price,
+                durationMinutes: service.durationMinutes
+              },
+              date: apt.appointmentDate,
+              time: { 
+                id: apt.id || '', 
+                time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
+              },
+              status: apt.status,
+              observation: apt.notes || undefined,
+              createdAt: apt.createdAt || new Date()
+            };
+          } else {
+            console.log(`❌ Serviço NÃO encontrado: ${apt.serviceId}`);
+            return {
+              id: apt.id || '',
+              service: {
+                id: apt.serviceId,
+                name: `Serviço ${apt.serviceId}`,
+                price: 0,
+                durationMinutes: 60
+              },
+              date: apt.appointmentDate,
+              time: { 
+                id: apt.id || '', 
+                time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
+              },
+              status: apt.status,
+              observation: apt.notes || undefined,
+              createdAt: apt.createdAt || new Date()
+            };
+          }
         } catch (error) {
-          console.warn('Error fetching service:', error);
+          console.error(`❌ ERRO ao buscar serviço ${apt.serviceId}:`, error);
           return {
             id: apt.id || '',
             service: {
