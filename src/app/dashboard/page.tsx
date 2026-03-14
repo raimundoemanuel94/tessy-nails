@@ -397,7 +397,7 @@ export default function DashboardPage() {
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0 text-slate-400 hover:text-pink-600"
-                            onClick={() => router.push(`/admin/agenda?view=${appointment.id}`)}
+                            onClick={() => router.push(`/agenda?view=${appointment.id}`)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -479,7 +479,7 @@ export default function DashboardPage() {
       <div className="mt-8 flex items-center justify-center gap-4">
         <Button 
           variant="outline"
-          onClick={() => router.push('/admin/agenda')}
+          onClick={() => router.push('/agenda')}
           className="flex items-center gap-2"
         >
           <Calendar className="h-4 w-4" />
@@ -487,7 +487,7 @@ export default function DashboardPage() {
         </Button>
         <Button 
           variant="outline"
-          onClick={() => router.push('/admin/agendamentos')}
+          onClick={() => router.push('/agendamentos')}
           className="flex items-center gap-2"
         >
           <Eye className="h-4 w-4" />
@@ -495,7 +495,7 @@ export default function DashboardPage() {
         </Button>
         <Button 
           variant="outline"
-          onClick={() => router.push('/admin/clientes')}
+          onClick={() => router.push('/clientes')}
           className="flex items-center gap-2"
         >
           <Users className="h-4 w-4" />
