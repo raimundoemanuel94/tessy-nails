@@ -227,8 +227,8 @@ export default function DashboardPage() {
                 {recentAppointments.length > 0 ? (
                   recentAppointments.map((appointment) => (
                     <TableRow key={appointment.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 border-slate-100 dark:border-white/5 transition-all">
-                      <TableCell className="px-6 py-4 font-bold text-slate-700 dark:text-slate-300">{appointment.client}</TableCell>
-                      <TableCell className="px-6 py-4 font-semibold text-slate-500 dark:text-slate-400">{appointment.service}</TableCell>
+                      <TableCell className="px-6 py-4 font-bold text-slate-700 dark:text-slate-300">{String(appointment.client || "")}</TableCell>
+                      <TableCell className="px-6 py-4 font-semibold text-slate-500 dark:text-slate-400">{String(appointment.service || "")}</TableCell>
                       <TableCell className="px-6 py-4">
                         <div className="flex items-center gap-2 px-2 py-1 bg-slate-100 dark:bg-white/5 rounded-lg w-fit">
                           <Clock size={12} className="text-pink-600" />
@@ -288,7 +288,7 @@ export default function DashboardPage() {
                         <div className="w-6 h-6 rounded-md bg-pink-100 dark:bg-pink-950/30 flex items-center justify-center text-[10px] font-black text-pink-600">
                           0{idx + 1}
                         </div>
-                        <span className="font-bold text-slate-700 dark:text-slate-300">{service.name}</span>
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{String(service.name || "")}</span>
                       </div>
                       <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter">{service.count} agendamentos</span>
                     </div>

@@ -201,6 +201,8 @@ export default function AgendamentosPage() {
         <div className="relative flex-1 max-w-md group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-pink-500 transition-colors" size={20} />
           <Input 
+            id="search-appointments"
+            name="search-appointments"
             placeholder="Pesquisar por cliente, serviço ou data..." 
             className="pl-12 h-12 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all font-medium"
             value={searchTerm}
@@ -249,9 +251,9 @@ export default function AgendamentosPage() {
                     <TableCell className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-[10px] font-black text-slate-600 dark:text-slate-400">
-                          {app.client.substring(0, 2).toUpperCase()}
+                          {String(app.client || "").substring(0, 2).toUpperCase() || "CN"}
                         </div>
-                        <span className="font-bold text-slate-700 dark:text-slate-300">{app.client}</span>
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{String(app.client || "")}</span>
                       </div>
                     </TableCell>
                     <TableCell className="px-6 py-4">

@@ -50,11 +50,11 @@ export function Header() {
                 <Avatar className="h-9 w-9 border-2 border-white dark:border-white/10 shadow-sm transition-transform group-hover:scale-105">
                   <AvatarImage src={user?.photoURL} alt={user?.name} className="object-cover" />
                   <AvatarFallback className="bg-linear-to-br from-pink-100 to-rose-100 text-pink-700 font-bold dark:from-pink-900 dark:to-rose-900 dark:text-pink-100">
-                    {user?.name?.substring(0, 2).toUpperCase() || "TN"}
+                    {user?.name ? user.name.substring(0, 2).toUpperCase() : "TN"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden lg:flex flex-col items-start leading-tight">
-                  <span className="text-sm font-bold text-slate-900 dark:text-white">{user?.name}</span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-white">{String(user?.name || "")}</span>
                   <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter">Administrador</span>
                 </div>
               </Button>
@@ -63,8 +63,8 @@ export function Header() {
           <DropdownMenuContent className="w-64 mt-2 p-2 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl" align="end">
             <DropdownMenuLabel className="p-3">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">{user?.name}</p>
-                <p className="text-xs font-medium leading-none text-slate-400 dark:text-slate-500">{user?.email}</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">{String(user?.name || "")}</p>
+                <p className="text-xs font-medium leading-none text-slate-400 dark:text-slate-500">{String(user?.email || "")}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/5" />
