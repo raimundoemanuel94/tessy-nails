@@ -104,15 +104,17 @@ export default function AgendamentosPage() {
       const service = services.find(s => s.id === app.serviceId);
       const specialist = specialists.find(s => s.uid === app.specialistId);
       
+      const appDate = ensureDate(app.appointmentDate);
+      
       return {
         id: app.id!,
-        client: client ? client.name : `Cliente ${app.clientId.slice(0, 8)}`,
-        service: service ? service.name : `Serviço ${app.serviceId.slice(0, 8)}`,
+        client: client ? client.name : `Cliente ${app.clientId?.slice(0, 8) || 'Desconhecido'}`,
+        service: service ? service.name : `Serviço ${app.serviceId?.slice(0, 8) || 'Desconhecido'}`,
         specialist: specialist ? specialist.name : "Qualquer profissional",
-        date: format(ensureDate(app.appointmentDate), "dd/MM/yyyy"),
-        time: format(ensureDate(app.appointmentDate), "HH:mm"),
+        date: appDate ? format(appDate, "dd/MM/yyyy") : "--/--/----",
+        time: appDate ? format(appDate, "HH:mm") : "--:--",
         status: app.status,
-        price: service ? `R$ ${service.price.toFixed(2)}` : "R$ 0,00"
+        price: service ? `R$ ${Number(service.price).toFixed(2)}` : "R$ 0,00"
       };
     });
   }, [rawAppointments, clients, services, specialists]);
