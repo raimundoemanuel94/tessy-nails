@@ -28,7 +28,9 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 
+export default function AgendamentosPage() {
   const [appointments, setAppointments] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
