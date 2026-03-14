@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Bell, User, Settings, LogOut, Scissors } from "lucide-react";
+import { Bell, User, Settings, LogOut, Scissors, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function Header() {
@@ -34,7 +34,7 @@ export function Header() {
       <div className="flex items-center gap-4 lg:gap-6">
         {/* Search Bar Placeholder (Visual only) */}
         <div className="hidden sm:flex items-center bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-1.5 w-64 group focus-within:w-80 transition-all duration-500">
-          <Bell size={16} className="text-slate-400" />
+          <Search size={16} className="text-slate-400" />
           <span className="ml-2 text-xs text-slate-400 font-medium">Pesquisar... (⌘K)</span>
         </div>
 
