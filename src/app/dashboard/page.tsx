@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DashboardCard } from "@/components/shared/DashboardCard";
+import { ensureDate } from "@/lib/utils";
 import { 
   Users, 
   Calendar, 
@@ -83,7 +84,7 @@ export default function DashboardPage() {
         ]);
 
         // Calcular estatísticas
-        const todayApps = appointments.filter(apt => isToday(apt.appointmentDate));
+        const todayApps = appointments.filter(apt => isToday(ensureDate(apt.appointmentDate)));
         const completedApps = appointments.filter(apt => apt.status === 'completed');
         const completionRate = appointments.length > 0 
           ? (completedApps.length / appointments.length) * 100 
@@ -104,7 +105,7 @@ export default function DashboardPage() {
 
         // Agendamentos recentes com dados reais
         const recent = appointments
-          .filter(apt => !isPast(apt.appointmentDate) || isToday(apt.appointmentDate))
+          .filter(apt => !isPast(ensureDate(apt.appointmentDate)) || isToday(ensureDate(apt.appointmentDate)))
           .slice(0, 5)
           .map(apt => {
             // Buscar nome real do cliente
@@ -122,7 +123,7 @@ export default function DashboardPage() {
               id: apt.id,
               client: clientName,
               service: serviceName,
-              time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR }),
+              time: format(ensureDate(apt.appointmentDate), 'HH:mm', { locale: ptBR }),
               status: apt.status,
               price: servicePrice
             };

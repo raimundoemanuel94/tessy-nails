@@ -2,6 +2,7 @@
 
 import { User, Mail, Phone, Shield, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ensureDate } from "@/lib/utils";
 
 export interface ClientData {
   id: string;
@@ -137,7 +138,7 @@ export function ClientProfileCard({
       {/* Additional Info */}
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-500">
-          Membro desde {new Date(client.createdAt).toLocaleDateString('pt-BR', { 
+          Membro desde {ensureDate(client.createdAt).toLocaleDateString('pt-BR', { 
             month: 'long', 
             year: 'numeric' 
           })}

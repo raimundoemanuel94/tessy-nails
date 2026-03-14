@@ -39,7 +39,7 @@ import { appointmentService, clientService, salonService } from "@/services";
 import { Appointment, Client, Service, AppointmentWithDetails } from "@/types";
 import { AppointmentForm } from "@/features/appointments/components/AppointmentForm";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { cn, ensureDate } from "@/lib/utils";
 
 import { toast } from "sonner";
 
@@ -184,7 +184,7 @@ export default function AgendaPage() {
           <CardHeader className="flex flex-row items-center justify-between border-b pb-4 bg-slate-50/30">
             <div>
               <CardTitle className="text-xl font-bold text-slate-900 capitalize">
-                {format(date, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                {format(ensureDate(date), "EEEE, d 'de' MMMM", { locale: ptBR })}
               </CardTitle>
               <CardDescription className="text-slate-500">
                 {appointments.length === 0 
@@ -246,7 +246,7 @@ export default function AgendaPage() {
                     >
                       <div className="flex flex-col items-center justify-center min-w-[70px] py-2 bg-slate-50 rounded-xl border border-slate-100 group-hover:border-pink-100 group-hover:bg-pink-50/50 transition-all">
                         <span className="text-sm font-bold text-slate-900 group-hover:text-pink-600 transition-colors">
-                          {format(new Date(app.appointmentDate), "HH:mm")}
+                          {format(ensureDate(app.appointmentDate), "HH:mm")}
                         </span>
                         <span className="text-[10px] text-slate-400 uppercase font-semibold">
                           {app.service?.durationMinutes} min

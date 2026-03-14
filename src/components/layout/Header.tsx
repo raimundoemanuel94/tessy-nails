@@ -9,7 +9,8 @@ import {
   DropdownMenuItem, 
   DropdownMenuLabel, 
   DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuGroup 
 } from "@/components/ui/dropdown-menu";
 import { Bell, User, Settings, LogOut, Scissors, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -61,23 +62,29 @@ export function Header() {
             }
           />
           <DropdownMenuContent className="w-64 mt-2 p-2 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl" align="end">
-            <DropdownMenuLabel className="p-3">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">{String(user?.name || "")}</p>
-                <p className="text-xs font-medium leading-none text-slate-400 dark:text-slate-500">{String(user?.email || "")}</p>
-              </div>
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="p-3">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">{String(user?.name || "")}</p>
+                  <p className="text-xs font-medium leading-none text-slate-400 dark:text-slate-500">{String(user?.email || "")}</p>
+                </div>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/5" />
-            <DropdownMenuItem className="p-3 cursor-pointer rounded-xl gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-pink-600 dark:hover:text-pink-400 transition-all" onClick={() => router.push("/configuracoes")}>
-              <User size={18} /> Ver Perfil
-            </DropdownMenuItem>
-            <DropdownMenuItem className="p-3 cursor-pointer rounded-xl gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-pink-600 dark:hover:text-pink-400 transition-all" onClick={() => router.push("/configuracoes")}>
-              <Settings size={18} /> Preferências
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuItem className="p-3 cursor-pointer rounded-xl gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-pink-600 dark:hover:text-pink-400 transition-all" onClick={() => router.push("/configuracoes")}>
+                <User size={18} /> Ver Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem className="p-3 cursor-pointer rounded-xl gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-pink-600 dark:hover:text-pink-400 transition-all" onClick={() => router.push("/configuracoes")}>
+                <Settings size={18} /> Preferências
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/5" />
-            <DropdownMenuItem className="p-3 cursor-pointer rounded-xl gap-3 text-sm font-extrabold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all" onClick={() => signOut()}>
-              <LogOut size={18} /> Encerrar Sessão
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuItem className="p-3 cursor-pointer rounded-xl gap-3 text-sm font-extrabold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all" onClick={() => signOut()}>
+                <LogOut size={18} /> Encerrar Sessão
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
