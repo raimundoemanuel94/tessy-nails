@@ -221,6 +221,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setClient(newClient);
       
       return true;
+    } catch (error: any) {
+      console.error("Sign up error:", error);
       return false;
     }
   };
