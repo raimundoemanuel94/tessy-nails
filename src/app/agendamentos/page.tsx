@@ -10,7 +10,7 @@ import { Appointment, Client, Service } from "@/types";
 
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Search, Plus, CalendarIcon, Clock, MoreHorizontal, User, Scissors, Loader2 } from "lucide-react";
+import { Search, Plus, CalendarIcon, Clock, MoreHorizontal, User, Scissors, Loader2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -57,12 +57,14 @@ type EnrichedAppointment = {
   time: string;
   status: string;
   price: string;
+  specialist: string;
 };
 
 export default function AgendamentosPage() {
   const [rawAppointments, setRawAppointments] = useState<Appointment[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [specialists, setSpecialists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
@@ -74,14 +76,16 @@ export default function AgendamentosPage() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [apps, clientsData, servicesData] = await Promise.all([
+      const [apps, clientsData, servicesData, specialistsData] = await Promise.all([
         appointmentService.getAll(),
         clientService.getAll(),
-        salonService.getAll()
+        salonService.getAll(),
+        appointmentService.getSpecialists ? appointmentService.getSpecialists() : Promise.resolve([])
       ]);
       setRawAppointments(apps);
       setClients(clientsData);
       setServices(servicesData);
+      setSpecialists(specialistsData);
     } catch (error) {
       console.error("Error loading appointments:", error);
       toast.error("Erro ao carregar agendamentos");
@@ -98,17 +102,20 @@ export default function AgendamentosPage() {
     return rawAppointments.map(app => {
       const client = clients.find(c => c.id === app.clientId);
       const service = services.find(s => s.id === app.serviceId);
+      const specialist = specialists.find(s => s.uid === app.specialistId);
+      
       return {
         id: app.id!,
         client: client ? client.name : `Cliente ${app.clientId.slice(0, 8)}`,
         service: service ? service.name : `Serviço ${app.serviceId.slice(0, 8)}`,
+        specialist: specialist ? specialist.name : "Qualquer profissional",
         date: format(ensureDate(app.appointmentDate), "dd/MM/yyyy"),
         time: format(ensureDate(app.appointmentDate), "HH:mm"),
         status: app.status,
         price: service ? `R$ ${service.price.toFixed(2)}` : "R$ 0,00"
       };
     });
-  }, [rawAppointments, clients, services]);
+  }, [rawAppointments, clients, services, specialists]);
 
   const filteredAppointments = useMemo(() => {
     return enrichedAppointments.filter(app =>
@@ -131,6 +138,7 @@ export default function AgendamentosPage() {
   };
 
   const handleCancelar = async (id: string) => {
+    if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
     setActionLoading(id);
     try {
       await appointmentService.cancel(id);
@@ -138,6 +146,20 @@ export default function AgendamentosPage() {
       await loadData();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao cancelar.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleExcluir = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir permanentemente este agendamento? Esta ação não pode ser desfeita.")) return;
+    setActionLoading(id);
+    try {
+      await appointmentService.delete(id);
+      toast.success("Agendamento excluído com sucesso.");
+      await loadData();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erro ao excluir agendamento.");
     } finally {
       setActionLoading(null);
     }
@@ -228,7 +250,7 @@ export default function AgendamentosPage() {
               <TableRow className="hover:bg-transparent border-slate-100 dark:border-white/5">
                 <TableHead className="px-6 py-5 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Data & Horário</TableHead>
                 <TableHead className="px-6 py-5 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Cliente</TableHead>
-                <TableHead className="px-6 py-5 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Serviço</TableHead>
+                <TableHead className="px-6 py-5 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Serviço / Profissional</TableHead>
                 <TableHead className="px-6 py-5 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Status</TableHead>
                 <TableHead className="px-6 py-5 text-right text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Valor</TableHead>
                 <TableHead className="px-6 py-5 text-right text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Gestão</TableHead>
@@ -259,9 +281,15 @@ export default function AgendamentosPage() {
                       </div>
                     </TableCell>
                     <TableCell className="px-6 py-4">
-                      <div className="flex items-center gap-2 px-3 py-1 bg-pink-50 dark:bg-pink-950/20 border border-pink-100/50 dark:border-pink-900/50 rounded-xl w-fit">
-                        <Scissors size={14} className="text-pink-600" />
-                        <span className="text-xs font-bold text-pink-700 dark:text-pink-400">{app.service}</span>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-pink-50 dark:bg-pink-950/20 border border-pink-100/50 dark:border-pink-900/50 rounded-xl w-fit">
+                          <Scissors size={14} className="text-pink-600" />
+                          <span className="text-xs font-bold text-pink-700 dark:text-pink-400">{app.service}</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 rounded-xl w-fit">
+                          <User size={12} className="text-slate-400" />
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{app.specialist}</span>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="px-6 py-4">
@@ -306,14 +334,20 @@ export default function AgendamentosPage() {
                             disabled={app.status === "completed" || app.status === "cancelled"}
                             onClick={() => openRemarcar(app)}
                           >
-                            Remarcar
+                            Remarcar / Editar
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="p-3 cursor-pointer rounded-xl font-black text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all"
-                            disabled={app.status === "cancelled"}
                             onClick={() => handleCancelar(app.id)}
+                            disabled={app.status === "cancelled"}
                           >
                             Cancelar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="p-3 cursor-pointer rounded-xl font-black text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
+                            onClick={() => handleExcluir(app.id)}
+                          >
+                            Excluir Registro
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

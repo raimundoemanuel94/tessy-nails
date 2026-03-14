@@ -50,6 +50,7 @@ export default function AgendaPage() {
   const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
 
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
@@ -119,9 +120,11 @@ export default function AgendaPage() {
             <AppointmentForm 
               onSuccess={() => {
                 setIsDialogOpen(false);
+                setEditingAppointment(null);
                 fetchAppointments();
               }} 
               initialDate={date}
+              appointment={editingAppointment}
             />
           </DialogContent>
         </Dialog>
@@ -233,6 +236,10 @@ export default function AgendaPage() {
                     <div 
                       key={app.id} 
                       className="group flex items-center gap-4 p-5 hover:bg-slate-50/80 transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-pink-500"
+                      onClick={() => {
+                        setEditingAppointment(app);
+                        setIsDialogOpen(true);
+                      }}
                     >
                       <div className="flex flex-col items-center justify-center min-w-[70px] py-2 bg-slate-50 rounded-xl border border-slate-100 group-hover:border-pink-100 group-hover:bg-pink-50/50 transition-all">
                         <span className="text-sm font-bold text-slate-900 group-hover:text-pink-600 transition-colors">

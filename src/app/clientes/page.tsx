@@ -8,9 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Phone, Mail, Calendar } from "lucide-react";
-import { useState, useEffect } from "react";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Search, Plus, Phone, Mail, Calendar, MoreHorizontal, Edit, Trash2, Loader2, UserPlus } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { clientService } from "@/services/clients";
 import { Client } from "@/types";
 import { format } from "date-fns";
@@ -22,43 +29,64 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ClientForm } from "@/components/shared/ClientForm";
+import { toast } from "sonner";
+import { ensureDate } from "@/lib/utils";
 
 export default function ClientesPage() {
   const [clients, setClients] = useState<Client[]>([]);
-  const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadClients = async () => {
-      try {
-        setLoading(true);
-        const clientsData = await clientService.getAll();
-        setClients(clientsData);
-        setFilteredClients(clientsData);
-      } catch (error) {
-        console.error('Error loading clients:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadClients();
+  const loadClients = useCallback(async () => {
+    try {
+      setLoading(true);
+      const clientsData = await clientService.getAll();
+      setClients(clientsData || []);
+    } catch (error) {
+      console.error('Error loading clients:', error);
+      toast.error("Erro ao carregar clientes");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    let filtered = clients;
+    loadClients();
+  }, [loadClients]);
+
+  const filteredClientsList = useMemo(() => {
+    if (!searchQuery.trim()) return clients;
     
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(client =>
-        client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (client.phone && client.phone.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-    
-    setFilteredClients(filtered);
+    return clients.filter(client =>
+      client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (client.phone && client.phone.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
   }, [clients, searchQuery]);
+
+  const handleEdit = (client: Client) => {
+    setEditingClient(client);
+    setIsDialogOpen(true);
+  };
+
+  const handleDeactivate = async (id: string) => {
+    if (!confirm("Tem certeza que deseja desativar este cliente?")) return;
+    setActionLoading(id);
+    try {
+      await clientService.deactivate(id);
+      toast.success("Cliente desativado com sucesso.");
+      await loadClients();
+    } catch (error) {
+      toast.error("Erro ao desativar cliente.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -75,24 +103,50 @@ export default function ClientesPage() {
       <PageHeader 
         title="Clientes" 
         description="Gerencie sua base de clientes" 
-      />
+      >
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setEditingClient(null);
+        }}>
+          <DialogTrigger
+            render={
+              <Button className="gap-2">
+                <Plus size={18} /> Novo Cliente
+              </Button>
+            }
+          />
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingClient ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
+            </DialogHeader>
+            <ClientForm 
+              client={editingClient} 
+              onSuccess={() => {
+                setIsDialogOpen(false);
+                setEditingClient(null);
+                loadClients();
+              }}
+              onCancel={() => {
+                setIsDialogOpen(false);
+                setEditingClient(null);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      </PageHeader>
 
       <div className="space-y-6">
         {/* Search and Actions */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <Input
-              placeholder="Buscar clientes..."
+              placeholder="Buscar clientes por nome, email ou telefone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-12 h-12 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all font-medium"
             />
           </div>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Cliente
-          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -122,7 +176,7 @@ export default function ClientesPage() {
             <CardContent>
               <div className="text-2xl font-bold">
                 {clients.filter(c => {
-                  const createdAt = new Date(c.createdAt);
+                  const createdAt = ensureDate(c.createdAt);
                   const now = new Date();
                   return createdAt.getMonth() === now.getMonth() && 
                          createdAt.getFullYear() === now.getFullYear();
@@ -139,7 +193,7 @@ export default function ClientesPage() {
             <CardTitle>Lista de Clientes</CardTitle>
           </CardHeader>
           <CardContent>
-            {filteredClients.length > 0 ? (
+            {filteredClientsList.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -152,13 +206,13 @@ export default function ClientesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredClients.map((client) => (
+                  {filteredClientsList.map((client) => (
                     <TableRow key={client.id}>
                       <TableCell>
                         <div>
                           <div className="font-medium">{client.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            Desde {format(client.createdAt, "MMM yyyy", { locale: ptBR })}
+                            Desde {format(ensureDate(client.createdAt), "MMM yyyy", { locale: ptBR })}
                           </div>
                         </div>
                       </TableCell>
@@ -185,7 +239,7 @@ export default function ClientesPage() {
                       <TableCell>
                         {client.lastVisit ? (
                           <span className="text-sm">
-                            {format(client.lastVisit, "dd/MM/yyyy", { locale: ptBR })}
+                            {format(ensureDate(client.lastVisit), "dd/MM/yyyy", { locale: ptBR })}
                           </span>
                         ) : (
                           <span className="text-sm text-muted-foreground">Nunca</span>
@@ -197,9 +251,32 @@ export default function ClientesPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="outline" size="sm">
-                          Ver
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button variant="ghost" size="icon" disabled={actionLoading === client.id}>
+                                {actionLoading === client.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <MoreHorizontal className="h-4 w-4" />
+                                )}
+                              </Button>
+                            }
+                          />
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(client)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-red-600 focus:text-red-600" 
+                              onClick={() => handleDeactivate(client.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Desativar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}

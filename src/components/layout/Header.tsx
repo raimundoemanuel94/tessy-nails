@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   DropdownMenu, 
@@ -12,17 +13,115 @@ import {
   DropdownMenuTrigger,
   DropdownMenuGroup 
 } from "@/components/ui/dropdown-menu";
-import { Bell, User, Settings, LogOut, Scissors, Search } from "lucide-react";
+import { 
+  Bell, 
+  User, 
+  Settings, 
+  LogOut, 
+  Scissors, 
+  Search, 
+  Menu, 
+  LayoutDashboard, 
+  Calendar, 
+  Clock, 
+  BarChart3, 
+  Users 
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger 
+} from "@/components/ui/sheet";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export function Header() {
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const navItems = [
+    { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+    { icon: Calendar, label: "Agenda", href: "/agenda" },
+    { icon: Clock, label: "Agendamentos", href: "/agendamentos" },
+    { icon: BarChart3, label: "Relatórios", href: "/relatorios" },
+    { icon: Users, label: "Clientes", href: "/clientes" },
+    { icon: Scissors, label: "Serviços", href: "/servicos" },
+    { icon: Settings, label: "Configurações", href: "/configuracoes" },
+  ];
 
   return (
     <header className="h-20 flex items-center justify-between px-6 sticky top-0 z-30 transition-all duration-300 border-b border-white/10 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl">
       <div className="flex items-center gap-4">
-        <div className="md:hidden flex items-center gap-2">
+        <div className="md:hidden">
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger
+              render={
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu size={24} />
+                </Button>
+              }
+            />
+            <SheetContent side="left" className="w-72 p-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/5">
+              <SheetHeader className="p-6 h-20 border-b border-slate-100 dark:border-white/5 flex flex-row items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-linear-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/20">
+                  <Scissors className="text-white" size={18} strokeWidth={2.5} />
+                </div>
+                <SheetTitle className="text-lg font-black tracking-tight text-slate-900 dark:text-white uppercase m-0">
+                  Tessy<span className="text-pink-600">Nails</span>
+                </SheetTitle>
+              </SheetHeader>
+              
+              <nav className="p-3 space-y-1.5 mt-4">
+                {navItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
+                        isActive
+                          ? "bg-slate-100 dark:bg-slate-800 text-pink-600 shadow-xs border border-slate-200/50 dark:border-white/5"
+                          : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5"
+                      )}
+                    >
+                      <item.icon
+                        size={20}
+                        strokeWidth={isActive ? 2.5 : 2}
+                        className={cn(
+                          "transition-all duration-300",
+                          isActive ? "text-pink-600 scale-110" : "group-hover:text-slate-900 dark:group-hover:text-white group-hover:scale-110"
+                        )}
+                      />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-100 dark:border-white/5">
+                <Button
+                  variant="ghost"
+                  className="w-full flex items-center gap-3 justify-start rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all duration-300 font-semibold"
+                  onClick={() => {
+                    setIsOpen(false);
+                    signOut();
+                  }}
+                >
+                  <LogOut size={20} className="shrink-0" />
+                  <span>Encerrar Sessão</span>
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-linear-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-md shadow-pink-500/10">
             <Scissors className="text-white" size={16} />
           </div>

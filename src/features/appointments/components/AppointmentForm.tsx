@@ -36,6 +36,7 @@ import { useAuth } from "@/contexts/AuthContext";
 interface AppointmentFormProps {
   onSuccess: () => void;
   initialDate?: Date;
+  appointment?: Appointment | null;
 }
 
 const timeSlots = [
@@ -68,12 +69,14 @@ export function AppointmentForm({ onSuccess, initialDate }: AppointmentFormProps
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      status: "pending",
-      paymentStatus: "unpaid",
-      appointmentDate: initialDate || new Date(),
-      specialistId: user?.uid || "",
-      time: "09:00",
-      notes: "",
+      clientId: appointment?.clientId || "",
+      serviceId: appointment?.serviceId || "",
+      specialistId: appointment?.specialistId || user?.uid || "",
+      status: appointment?.status || "pending",
+      paymentStatus: appointment?.paymentStatus || "unpaid",
+      appointmentDate: appointment ? new Date(appointment.appointmentDate) : (initialDate || new Date()),
+      time: appointment ? format(new Date(appointment.appointmentDate), "HH:mm") : "09:00",
+      notes: appointment?.notes || "",
     },
   });
 
@@ -103,12 +106,19 @@ export function AppointmentForm({ onSuccess, initialDate }: AppointmentFormProps
       const [hours, minutes] = data.time.split(":").map(Number);
       appointmentDate.setHours(hours, minutes, 0, 0);
 
-      await appointmentService.create({
-        ...data,
-        appointmentDate,
-      });
-      
-      toast.success("Agendamento criado com sucesso!");
+      if (appointment?.id) {
+        await appointmentService.update(appointment.id, {
+          ...data,
+          appointmentDate,
+        });
+        toast.success("Agendamento atualizado com sucesso!");
+      } else {
+        await appointmentService.create({
+          ...data,
+          appointmentDate,
+        });
+        toast.success("Agendamento criado com sucesso!");
+      }
       onSuccess();
     } catch (error: any) {
       toast.error("Erro ao criar agendamento: " + error.message);
@@ -274,7 +284,7 @@ export function AppointmentForm({ onSuccess, initialDate }: AppointmentFormProps
         <div className="flex justify-end gap-3 pt-4">
           <Button type="submit" disabled={loading} className="w-full md:w-auto">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Confirmar Agendamento
+            {appointment ? "Salvar Alterações" : "Confirmar Agendamento"}
           </Button>
         </div>
       </form>

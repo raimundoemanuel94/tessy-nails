@@ -24,13 +24,16 @@ export const clientService = {
   async getAll(): Promise<Client[]> {
     const q = query(collection(db, COLLECTION_NAME), orderBy("name"));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-      lastVisit: doc.data().lastVisit?.toDate(),
-    })) as Client[];
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt ? new Date(data.createdAt) : new Date()),
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt ? new Date(data.updatedAt) : undefined),
+        lastVisit: data.lastVisit?.toDate ? data.lastVisit.toDate() : (data.lastVisit ? new Date(data.lastVisit) : undefined),
+      };
+    }) as Client[];
   },
 
   /**
@@ -39,12 +42,13 @@ export const clientService = {
   async getById(id: string): Promise<Client | null> {
     const d = await getDoc(doc(db, COLLECTION_NAME, id));
     if (!d.exists()) return null;
+    const data = d.data();
     return {
       id: d.id,
-      ...d.data(),
-      createdAt: d.data().createdAt?.toDate(),
-      updatedAt: d.data().updatedAt?.toDate(),
-      lastVisit: d.data().lastVisit?.toDate(),
+      ...data,
+      createdAt: data?.createdAt?.toDate ? data.createdAt.toDate() : (data?.createdAt ? new Date(data.createdAt) : new Date()),
+      updatedAt: data?.updatedAt?.toDate ? data.updatedAt.toDate() : (data?.updatedAt ? new Date(data.updatedAt) : undefined),
+      lastVisit: data?.lastVisit?.toDate ? data.lastVisit.toDate() : (data?.lastVisit ? new Date(data.lastVisit) : undefined),
     } as Client;
   },
 

@@ -267,5 +267,28 @@ export const appointmentService = {
     }
 
     await updateDoc(docRef, updateData);
+  },
+
+  /**
+   * Exclui permanentemente um agendamento
+   */
+  async delete(id: string): Promise<void> {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    await deleteDoc(docRef);
+  },
+
+  /**
+   * Busca todos os especialistas (admins e profissionais)
+   */
+  async getSpecialists(): Promise<any[]> {
+    const q = query(
+      collection(db, "users"),
+      where("role", "in", ["admin", "professional"])
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      uid: doc.id,
+      ...doc.data()
+    }));
   }
 };
