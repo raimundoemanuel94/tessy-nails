@@ -21,7 +21,7 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
         {children}
       </div>
       {/* Subtle accent underline */}
-      <div className="absolute bottom-0 left-0 w-24 h-1 bg-linear-to-r from-pink-500 to-rose-600 rounded-t-full" />
+      <div className="absolute bottom-0 left-0 w-24 h-1 bg-linear-to-r from-violet-500 to-purple-600 rounded-t-full" />
     </div>
 
   );

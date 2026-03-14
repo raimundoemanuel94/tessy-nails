@@ -17,19 +17,19 @@ interface DashboardCardProps {
 export function DashboardCard({ title, value, description, icon: Icon, trend, className }: DashboardCardProps) {
   return (
     <Card className={cn(
-      "group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-pink-500/10 hover:-translate-y-2 border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-3xl", 
+      "group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-violet-500/10 hover:-translate-y-2 border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-3xl", 
       className
     )}>
       {/* Premium Shine Effect */}
       <div className="absolute inset-0 bg-linear-to-br from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
       
       {/* Decorative background element */}
-      <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-pink-500/5 rounded-full blur-3xl group-hover:bg-pink-500/15 transition-all duration-700" />
+      <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl group-hover:bg-violet-500/15 transition-all duration-700" />
       
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 relative z-10">
         <CardTitle className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{title}</CardTitle>
         <div className="rounded-2xl bg-white dark:bg-slate-800 p-3 shadow-sm border border-slate-100 dark:border-white/5 transition-all group-hover:scale-110 group-hover:rotate-6 duration-500">
-          <Icon className="h-5 w-5 text-pink-600" strokeWidth={2.5} />
+          <Icon className="h-5 w-5 text-violet-600" strokeWidth={2.5} />
         </div>
       </CardHeader>
       <CardContent className="relative z-10">

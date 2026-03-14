@@ -231,7 +231,7 @@ export default function DashboardPage() {
           {/* Ações rápidas */}
           <Button 
             onClick={() => router.push('/agenda')}
-            className="bg-pink-600 hover:bg-pink-700"
+            className="bg-violet-600 hover:bg-violet-700"
           >
             <Plus className="h-4 w-4 mr-2" />
             Novo Agendamento
@@ -298,7 +298,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                  <CalendarDays className="h-5 w-5 text-pink-600" />
+                  <CalendarDays className="h-5 w-5 text-violet-600" />
                   Agenda do Dia
                 </CardTitle>
                 <CardDescription className="mt-1 text-xs text-slate-400 dark:text-slate-500">
@@ -357,7 +357,7 @@ export default function DashboardPage() {
                       </TableCell>
                       <TableCell className="px-6 py-4 align-middle">
                         <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
-                          <Star className="h-3 w-3 text-pink-600" />
+                          <Star className="h-3 w-3 text-violet-600" />
                           <span className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight">
                             {appointment.service}
                           </span>
@@ -365,7 +365,7 @@ export default function DashboardPage() {
                       </TableCell>
                       <TableCell className="px-6 py-4 align-middle">
                         <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
-                          <Clock className="h-3 w-3 text-pink-600" />
+                          <Clock className="h-3 w-3 text-violet-600" />
                           <span className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight tabular-nums">
                             {appointment.time}
                           </span>
@@ -396,7 +396,7 @@ export default function DashboardPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-slate-400 hover:text-pink-600"
+                            className="h-8 w-8 p-0 text-slate-400 hover:text-violet-600"
                             onClick={() => router.push(`/agenda?view=${appointment.id}`)}
                           >
                             <Eye className="h-4 w-4" />
@@ -426,10 +426,10 @@ export default function DashboardPage() {
         <div className="col-span-full lg:col-span-3 space-y-6">
           {/* Card de Serviços mais vendidos */}
           <Card className="border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-6 rounded-3xl overflow-hidden relative">
-            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-pink-500/5 rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl" />
             <CardHeader className="pb-4">
               <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-pink-600" />
+                <BarChart3 className="h-5 w-5 text-violet-600" />
                 Serviços Mais Vendidos
               </CardTitle>
               <CardDescription className="text-xs text-slate-400 dark:text-slate-500">
@@ -449,10 +449,10 @@ export default function DashboardPage() {
 
           {/* Card de Receita */}
           <Card className="border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-6 rounded-3xl overflow-hidden relative">
-            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-pink-500/5 rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl" />
             <CardHeader className="pb-4">
               <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-pink-600" />
+                <TrendingUp className="h-5 w-5 text-violet-600" />
                 Tendência de Receita
               </CardTitle>
               <CardDescription className="text-xs text-slate-400 dark:text-slate-500">
