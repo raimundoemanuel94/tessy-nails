@@ -199,7 +199,7 @@ export const appointmentService = {
     } catch (error: any) {
       console.error("❌ Erro de validação/criação no AppointmentService:", error);
       if (error instanceof z.ZodError) {
-        console.error("Validação falhou:", error.errors);
+        console.error("Validação falhou:", error.issues);
       }
       throw error;
     }

@@ -246,8 +246,8 @@ export default function ClientesPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="default">
-                          Ativo
+                        <Badge variant={client.isActive !== false ? "default" : "secondary"}>
+                          {client.isActive !== false ? "Ativo" : "Inativo"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
