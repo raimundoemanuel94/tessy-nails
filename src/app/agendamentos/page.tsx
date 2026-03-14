@@ -10,7 +10,7 @@ import { Appointment, Client, Service } from "@/types";
 
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Search, Plus, Calendar, Clock, MoreHorizontal, User, Scissors, CalendarIcon, Loader2 } from "lucide-react";
+import { Search, Plus, CalendarIcon, Clock, MoreHorizontal, User, Scissors, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -233,7 +233,7 @@ export default function AgendamentosPage() {
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2 text-sm font-medium">
-                          <Calendar size={14} className="text-muted-foreground" />
+                          <CalendarIcon size={14} className="text-muted-foreground" />
                           {app.date}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
