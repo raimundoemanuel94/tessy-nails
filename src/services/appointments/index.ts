@@ -37,9 +37,17 @@ export const appointmentService = {
    * Lista todos os agendamentos ordenados por data (mais recente primeiro)
    */
   async getAll(): Promise<Appointment[]> {
-    const q = query(collection(db, COLLECTION_NAME), orderBy("appointmentDate", "desc"));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(mapAppointmentData) as Appointment[];
+    try {
+      const q = query(collection(db, COLLECTION_NAME), orderBy("appointmentDate", "desc"));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(mapAppointmentData) as Appointment[];
+    } catch (error: any) {
+      console.error("🔥 Error in appointmentService.getAll:", error);
+      if (error.code === 'permission-denied') {
+        console.warn("⚠️ Firestore Permission Denied. Check rules for collection 'appointments'.");
+      }
+      throw error;
+    }
   },
 
   /**
