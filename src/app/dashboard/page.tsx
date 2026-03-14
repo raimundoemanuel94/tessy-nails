@@ -170,11 +170,12 @@ export default function DashboardPage() {
   return (
     <AdminLayout>
       <PageHeader 
-        title="Dashboard" 
-        description="Bem-vinda de volta, Tessy! Veja o resumo de hoje." 
+        title="Visão geral do salão" 
+        description="Acompanhe rapidamente o movimento do dia, os próximos agendamentos e os principais indicadores do seu salão."
       />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      {/* Linha de métricas principais */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-10">
         <DashboardCard 
           title="Total de Clientes" 
           value={stats.totalClients.toString()} 
@@ -201,64 +202,102 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Grid principal: operação (esquerda) + insights (direita) */}
       <div className="grid gap-6 lg:grid-cols-7">
+        {/* Operação do dia */}
         <Card className="col-span-full lg:col-span-4 border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none overflow-hidden rounded-3xl">
-          <CardHeader className="p-6 border-b border-slate-100 dark:border-white/5">
+          <CardHeader className="px-6 py-5 border-b border-slate-100 dark:border-white/5">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Próximos Agendamentos</CardTitle>
-                <CardDescription className="text-sm font-semibold text-slate-400 dark:text-slate-500">
-                  Resumo das próximas sessões agendadas.
+                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight">
+                  Próximos agendamentos
+                </CardTitle>
+                <CardDescription className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+                  Próximos horários da sua agenda atualizados em tempo real.
                 </CardDescription>
               </div>
-              <Badge className="bg-pink-100/50 text-pink-700 dark:bg-pink-500/10 dark:text-pink-400 border-none px-3 py-1 font-bold">
-                {recentAppointments.length} Total
+              <Badge className="bg-pink-50 text-pink-700 dark:bg-pink-500/10 dark:text-pink-300 border border-pink-100/70 dark:border-pink-500/25 px-2.5 py-1 text-[11px] font-semibold rounded-full">
+                {recentAppointments.length} no período
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
-              <TableHeader className="bg-slate-50/50 dark:bg-white/5">
+              <TableHeader className="bg-slate-50/60 dark:bg-white/5">
                 <TableRow className="hover:bg-transparent border-slate-100 dark:border-white/5">
-                  <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Cliente</TableHead>
-                  <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Serviço</TableHead>
-                  <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Horário</TableHead>
-                  <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Status</TableHead>
-                  <TableHead className="px-6 py-4 text-right text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Valor</TableHead>
+                  <TableHead className="px-6 py-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    Cliente
+                  </TableHead>
+                  <TableHead className="px-6 py-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    Serviço
+                  </TableHead>
+                  <TableHead className="px-6 py-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    Horário
+                  </TableHead>
+                  <TableHead className="px-6 py-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    Status
+                  </TableHead>
+                  <TableHead className="px-6 py-3 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    Valor
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {recentAppointments.length > 0 ? (
                   recentAppointments.map((appointment) => (
-                    <TableRow key={appointment.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 border-slate-100 dark:border-white/5 transition-all">
-                      <TableCell className="px-6 py-4 font-bold text-slate-700 dark:text-slate-300">{String(appointment.client || "")}</TableCell>
-                      <TableCell className="px-6 py-4 font-semibold text-slate-500 dark:text-slate-400">{String(appointment.service || "")}</TableCell>
-                      <TableCell className="px-6 py-4">
-                        <div className="flex items-center gap-2 px-2 py-1 bg-slate-100 dark:bg-white/5 rounded-lg w-fit">
-                          <Clock size={12} className="text-pink-600" />
-                          <span className="text-xs font-black text-slate-900 dark:text-white uppercase">{appointment.time}</span>
+                    <TableRow
+                      key={appointment.id}
+                      className="group border-slate-100 dark:border-white/5 transition-colors hover:bg-slate-50/80 dark:hover:bg-white/5"
+                    >
+                      <TableCell className="px-6 py-4 align-middle">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-semibold text-slate-900 dark:text-slate-50 truncate">
+                            {String(appointment.client || "")}
+                          </span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
+                            {String(appointment.service || "")}
+                          </span>
                         </div>
                       </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <Badge variant="outline" className={cn(
-                          "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase transition-all tracking-tighter",
-                          appointment.status === "confirmed" && "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400",
-                          appointment.status === "pending" && "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400",
-                          appointment.status === "completed" && "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400"
-                        )}>
-                          {appointment.status === "confirmed" ? "Confirmado" : 
-                           appointment.status === "pending" ? "Pendente" : "Concluído"}
+                      <TableCell className="px-6 py-4 align-middle">
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
+                          <Clock size={12} className="text-pink-600" />
+                          <span className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight tabular-nums">
+                            {appointment.time}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-6 py-4 align-middle">
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "px-2.5 py-0.5 rounded-full text-[11px] font-semibold capitalize tracking-tight border-transparent",
+                            appointment.status === "confirmed" &&
+                              "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
+                            appointment.status === "pending" &&
+                              "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
+                            appointment.status === "completed" &&
+                              "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                          )}
+                        >
+                          {appointment.status === "confirmed"
+                            ? "Confirmado"
+                            : appointment.status === "pending"
+                            ? "Pendente"
+                            : "Concluído"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="px-6 py-4 text-right">
-                        <span className="text-sm font-black text-slate-900 dark:text-white">{appointment.price}</span>
+                      <TableCell className="px-6 py-4 text-right align-middle">
+                        <span className="text-sm font-semibold text-slate-900 dark:text-white tabular-nums">
+                          {appointment.price}
+                        </span>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="py-20">
-                      <EmptyState 
+                      <EmptyState
                         icon={CalendarX2}
                         title="Nenhum agendamento hoje"
                         description="Você não tem compromissos agendados para este período. Que tal revisar seus serviços?"
@@ -272,31 +311,32 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-full lg:col-span-3 border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-6 rounded-3xl overflow-hidden relative">
-          <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-pink-500/5 rounded-full blur-3xl" />
-          <ServicesDonut 
-            data={topServices.length > 0 ? topServices.map(s => ({ name: s.name, value: s.percent })) : [
-              { name: "Manicure", value: 45 },
-              { name: "Pedicure", value: 30 },
-              { name: "Gel", value: 25 },
-            ]} 
-          />
-        </Card>
-      </div>
+        {/* Insights rápidos */}
+        <div className="col-span-full lg:col-span-3 space-y-6">
+          <Card className="border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-6 rounded-3xl overflow-hidden relative">
+            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-pink-500/5 rounded-full blur-3xl" />
+            <ServicesDonut 
+              data={topServices.length > 0 ? topServices.map(s => ({ name: s.name, value: s.percent })) : [
+                { name: "Manicure", value: 45 },
+                { name: "Pedicure", value: 30 },
+                { name: "Gel", value: 25 },
+              ]} 
+            />
+          </Card>
 
-      <div className="mt-6 grid gap-6 grid-cols-1">
-        <Card className="border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-8 rounded-3xl overflow-hidden relative">
-          <RevenueChart 
-            data={[
-              { date: "Out", Revenue: 2100 },
-              { date: "Nov", Revenue: 2800 },
-              { date: "Dez", Revenue: 3500 },
-              { date: "Jan", Revenue: 2900 },
-              { date: "Fev", Revenue: 3800 },
-              { date: "Mar", Revenue: stats.monthlyRevenue || 4200 },
-            ]} 
-          />
-        </Card>
+          <Card className="border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-6 rounded-3xl overflow-hidden relative">
+            <RevenueChart 
+              data={[
+                { date: "Out", Revenue: 2100 },
+                { date: "Nov", Revenue: 2800 },
+                { date: "Dez", Revenue: 3500 },
+                { date: "Jan", Revenue: 2900 },
+                { date: "Fev", Revenue: 3800 },
+                { date: "Mar", Revenue: stats.monthlyRevenue || 4200 },
+              ]} 
+            />
+          </Card>
+        </div>
       </div>
 
     </AdminLayout>

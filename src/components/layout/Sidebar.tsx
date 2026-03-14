@@ -18,12 +18,18 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
-const menuItems = [
+const operationItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Calendar, label: "Agenda", href: "/agenda" },
   { icon: Clock, label: "Agendamentos", href: "/agendamentos" },
+];
+
+const cadastrosItems = [
   { icon: Users, label: "Clientes", href: "/clientes" },
   { icon: Scissors, label: "Serviços", href: "/servicos" },
+];
+
+const systemItems = [
   { icon: Settings, label: "Configurações", href: "/configuracoes" },
 ];
 
@@ -63,38 +69,129 @@ export function Sidebar() {
       </div>
 
       {/* Navigation Section */}
-      <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto custom-scrollbar">
-        {!collapsed && <p className="px-4 py-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Plataforma</p>}
-        {menuItems.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
-                isActive 
-                  ? "bg-white dark:bg-slate-800 text-pink-600 shadow-sm border border-slate-200/50 dark:border-white/5" 
-                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5",
-                collapsed && "justify-center px-0"
-              )}
-            >
-              <item.icon 
-                size={20} 
-                strokeWidth={isActive ? 2.5 : 2}
+      <nav className="flex-1 px-3 space-y-4 overflow-y-auto custom-scrollbar">
+        {/* Operação */}
+        {!collapsed && (
+          <p className="px-4 pt-2 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+            Operação
+          </p>
+        )}
+        <div className="space-y-1.5">
+          {operationItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
                 className={cn(
-                  "transition-all duration-300",
-                  isActive ? "text-pink-600 scale-110" : "group-hover:text-slate-900 dark:group-hover:text-white group-hover:scale-110"
-                )} 
-              />
-              {!collapsed && <span>{item.label}</span>}
-              
-              {isActive && !collapsed && (
-                <div className="absolute left-0 w-1 h-6 bg-pink-600 rounded-r-full" />
-              )}
-            </Link>
-          );
-        })}
+                  "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
+                  isActive
+                    ? "bg-white dark:bg-slate-800 text-pink-600 shadow-sm border border-slate-200/50 dark:border-white/5"
+                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5",
+                  collapsed && "justify-center px-0"
+                )}
+              >
+                <item.icon
+                  size={20}
+                  strokeWidth={isActive ? 2.5 : 2}
+                  className={cn(
+                    "transition-all duration-300",
+                    isActive
+                      ? "text-pink-600 scale-110"
+                      : "group-hover:text-slate-900 dark:group-hover:text-white group-hover:scale-110"
+                  )}
+                />
+                {!collapsed && <span>{item.label}</span>}
+
+                {isActive && !collapsed && (
+                  <div className="absolute left-0 w-1 h-6 bg-pink-600 rounded-r-full" />
+                )}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Cadastros */}
+        {!collapsed && (
+          <p className="px-4 pt-4 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+            Cadastros
+          </p>
+        )}
+        <div className="space-y-1.5">
+          {cadastrosItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
+                  isActive
+                    ? "bg-white dark:bg-slate-800 text-pink-600 shadow-sm border border-slate-200/50 dark:border-white/5"
+                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5",
+                  collapsed && "justify-center px-0"
+                )}
+              >
+                <item.icon
+                  size={20}
+                  strokeWidth={isActive ? 2.5 : 2}
+                  className={cn(
+                    "transition-all duration-300",
+                    isActive
+                      ? "text-pink-600 scale-110"
+                      : "group-hover:text-slate-900 dark:group-hover:text-white group-hover:scale-110"
+                  )}
+                />
+                {!collapsed && <span>{item.label}</span>}
+
+                {isActive && !collapsed && (
+                  <div className="absolute left-0 w-1 h-6 bg-pink-600 rounded-r-full" />
+                )}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Sistema */}
+        {!collapsed && (
+          <p className="px-4 pt-4 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+            Sistema
+          </p>
+        )}
+        <div className="space-y-1.5">
+          {systemItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
+                  isActive
+                    ? "bg-white dark:bg-slate-800 text-pink-600 shadow-sm border border-slate-200/50 dark:border-white/5"
+                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5",
+                  collapsed && "justify-center px-0"
+                )}
+              >
+                <item.icon
+                  size={20}
+                  strokeWidth={isActive ? 2.5 : 2}
+                  className={cn(
+                    "transition-all duration-300",
+                    isActive
+                      ? "text-pink-600 scale-110"
+                      : "group-hover:text-slate-900 dark:group-hover:text-white group-hover:scale-110"
+                  )}
+                />
+                {!collapsed && <span>{item.label}</span>}
+
+                {isActive && !collapsed && (
+                  <div className="absolute left-0 w-1 h-6 bg-pink-600 rounded-r-full" />
+                )}
+              </Link>
+            );
+          })}
+        </div>
       </nav>
 
       {/* Footer Section */}
