@@ -106,15 +106,18 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
       const [hours, minutes] = data.time.split(":").map(Number);
       appointmentDate.setHours(hours, minutes, 0, 0);
 
+      // Remove o campo 'time' que é apenas para a UI e não existe no AppointmentSchema
+      const { time, ...appointmentData } = data;
+
       if (appointment?.id) {
         await appointmentService.update(appointment.id, {
-          ...data,
+          ...appointmentData,
           appointmentDate,
         });
         toast.success("Agendamento atualizado com sucesso!");
       } else {
         await appointmentService.create({
-          ...data,
+          ...appointmentData,
           appointmentDate,
         });
         toast.success("Agendamento criado com sucesso!");
