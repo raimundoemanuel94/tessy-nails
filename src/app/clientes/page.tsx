@@ -144,7 +144,7 @@ export default function ClientesPage() {
               placeholder="Buscar clientes por nome, email ou telefone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-12 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all font-medium"
+              className="pl-12 h-12 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all font-medium"
             />
           </div>
         </div>

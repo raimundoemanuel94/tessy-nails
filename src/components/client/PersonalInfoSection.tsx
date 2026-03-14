@@ -24,7 +24,7 @@ export function PersonalInfoSection({
   showEditButton = true 
 }: PersonalInfoSectionProps) {
   return (
-    <div className="rounded-2xl border border-pink-100 bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-violet-100 bg-white p-6 shadow-sm">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <h3 className="text-lg font-bold text-gray-900">
@@ -36,7 +36,7 @@ export function PersonalInfoSection({
             variant="outline"
             size="sm"
             onClick={onEdit}
-            className="border-pink-200 text-pink-700 hover:bg-pink-50"
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
             <Edit className="mr-1 h-4 w-4" />
             Editar
@@ -48,7 +48,7 @@ export function PersonalInfoSection({
       <div className="space-y-4">
         {/* Full Name */}
         <div className="flex items-start space-x-3">
-          <User className="mt-1 h-4 w-4 text-pink-600 flex-shrink-0" />
+          <User className="mt-1 h-4 w-4 text-violet-600 flex-shrink-0" />
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-700">Nome completo</p>
             <p className="text-gray-900">{info.fullName}</p>
@@ -57,7 +57,7 @@ export function PersonalInfoSection({
 
         {/* Email */}
         <div className="flex items-start space-x-3">
-          <Mail className="mt-1 h-4 w-4 text-pink-600 flex-shrink-0" />
+          <Mail className="mt-1 h-4 w-4 text-violet-600 flex-shrink-0" />
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-700">E-mail</p>
             <p className="text-gray-900">{info.email}</p>
@@ -66,7 +66,7 @@ export function PersonalInfoSection({
 
         {/* Phone */}
         <div className="flex items-start space-x-3">
-          <Phone className="mt-1 h-4 w-4 text-pink-600 flex-shrink-0" />
+          <Phone className="mt-1 h-4 w-4 text-violet-600 flex-shrink-0" />
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-700">Telefone</p>
             <p className="text-gray-900">{info.phone}</p>
@@ -76,7 +76,7 @@ export function PersonalInfoSection({
         {/* Address */}
         {info.address && (
           <div className="flex items-start space-x-3">
-            <MapPin className="mt-1 h-4 w-4 text-pink-600 flex-shrink-0" />
+            <MapPin className="mt-1 h-4 w-4 text-violet-600 flex-shrink-0" />
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-700">Endereço</p>
               <p className="text-gray-900">{info.address}</p>
@@ -87,7 +87,7 @@ export function PersonalInfoSection({
         {/* Birth Date */}
         {info.birthDate && (
           <div className="flex items-start space-x-3">
-            <Calendar className="mt-1 h-4 w-4 text-pink-600 flex-shrink-0" />
+            <Calendar className="mt-1 h-4 w-4 text-violet-600 flex-shrink-0" />
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-700">Data de nascimento</p>
               <p className="text-gray-900">
@@ -113,7 +113,7 @@ export function PersonalInfoSection({
       </div>
 
       {/* Visual Separator */}
-      <div className="mt-6 h-px bg-gradient-to-r from-transparent via-pink-200 to-transparent" />
+      <div className="mt-6 h-px bg-gradient-to-r from-transparent via-violet-200 to-transparent" />
 
       {/* Privacy Note */}
       <div className="mt-6 text-center">

@@ -10,7 +10,7 @@ export function ClientFooter() {
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="mb-4 flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-linear-to-br from-pink-400 to-pink-600 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full bg-linear-to-br from-violet-400 to-violet-600 flex items-center justify-center">
                 <span className="text-white font-bold text-sm">T</span>
               </div>
               <span className="text-xl font-bold">Tessy Nails</span>
@@ -24,14 +24,14 @@ export function ClientFooter() {
             <div className="flex space-x-4">
               <a 
                 href="#" 
-                className="text-gray-400 hover:text-pink-400 transition-colors"
+                className="text-gray-400 hover:text-violet-400 transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram className="h-5 w-5" />
               </a>
               <a 
                 href="#" 
-                className="text-gray-400 hover:text-pink-400 transition-colors"
+                className="text-gray-400 hover:text-violet-400 transition-colors"
                 aria-label="WhatsApp"
               >
                 <Phone className="h-5 w-5" />

@@ -18,7 +18,7 @@ interface ServiceSummaryProps {
 
 export function ServiceSummary({ service }: ServiceSummaryProps) {
   return (
-    <div className="rounded-2xl border border-pink-100 bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-violet-100 bg-white p-6 shadow-sm">
       {/* Service Header */}
       <div className="mb-4 flex items-start justify-between">
         <div>
@@ -34,7 +34,7 @@ export function ServiceSummary({ service }: ServiceSummaryProps) {
         </div>
         
         {/* Price Badge */}
-        <div className="rounded-full bg-pink-100 px-3 py-1 text-sm font-semibold text-pink-700">
+        <div className="rounded-full bg-violet-100 px-3 py-1 text-sm font-semibold text-violet-700">
           {service.price}
         </div>
       </div>
@@ -49,20 +49,20 @@ export function ServiceSummary({ service }: ServiceSummaryProps) {
       {/* Service Details */}
       <div className="space-y-3 text-sm text-gray-700">
         <div className="flex items-center">
-          <Clock className="mr-2 h-4 w-4 text-pink-600" />
+          <Clock className="mr-2 h-4 w-4 text-violet-600" />
           <span className="font-medium">Duração:</span>
           <span>{service.duration}</span>
         </div>
         
         <div className="flex items-center">
-          <DollarSign className="mr-2 h-4 w-4 text-pink-600" />
+          <DollarSign className="mr-2 h-4 w-4 text-violet-600" />
           <span className="font-medium">Valor:</span>
           <span>{service.price}</span>
         </div>
       </div>
 
       {/* Visual Separator */}
-      <div className="mt-6 h-px bg-gradient-to-r from-transparent via-pink-200 to-transparent" />
+      <div className="mt-6 h-px bg-gradient-to-r from-transparent via-violet-200 to-transparent" />
       
       {/* Additional Info */}
       <div className="mt-6 text-center">

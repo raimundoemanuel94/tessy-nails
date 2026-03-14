@@ -19,7 +19,7 @@ export function AppointmentTabs({ activeTab, onTabChange, counts }: AppointmentT
 
   return (
     <div className="mb-6">
-      <div className="border-b border-pink-100">
+      <div className="border-b border-violet-100">
         <nav className="flex space-x-8" aria-label="Tabs">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -32,7 +32,7 @@ export function AppointmentTabs({ activeTab, onTabChange, counts }: AppointmentT
                 className={`
                   relative py-4 px-1 text-sm font-medium border-b-2 transition-colors
                   ${isActive
-                    ? 'border-pink-500 text-pink-600'
+                    ? 'border-violet-500 text-violet-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }
                 `}
@@ -41,7 +41,7 @@ export function AppointmentTabs({ activeTab, onTabChange, counts }: AppointmentT
                   <span className="text-lg">{tab.icon}</span>
                   <span>{tab.label}</span>
                   {count > 0 && (
-                    <span className="bg-pink-100 text-pink-600 rounded-full px-2 py-1 text-xs font-semibold">
+                    <span className="bg-violet-100 text-violet-600 rounded-full px-2 py-1 text-xs font-semibold">
                       {count}
                     </span>
                   )}

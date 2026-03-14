@@ -12,8 +12,8 @@ export function NoServiceState({ onBack }: NoServiceStateProps) {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md text-center">
         {/* Icon */}
-        <div className="mb-6 h-20 w-20 rounded-full bg-pink-100 flex items-center justify-center mx-auto">
-          <AlertCircle className="h-8 w-8 text-pink-600" />
+        <div className="mb-6 h-20 w-20 rounded-full bg-violet-100 flex items-center justify-center mx-auto">
+          <AlertCircle className="h-8 w-8 text-violet-600" />
         </div>
 
         {/* Content */}
@@ -33,7 +33,7 @@ export function NoServiceState({ onBack }: NoServiceStateProps) {
           {/* Action Button */}
           <Button 
             onClick={onBack}
-            className="w-full bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium"
+            className="w-full bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar para serviços

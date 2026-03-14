@@ -39,7 +39,7 @@ export default function RootPage() {
       <div className="max-w-md w-full space-y-8">
         <div className="space-y-2">
           <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-            Tessy <span className="text-pink-600">Nails</span>
+            Tessy <span className="text-violet-600">Nails</span>
           </h1>
           <p className="text-lg text-slate-600">
             Sua beleza, nossa arte. Agende seu horário com as melhores profissionais.
@@ -49,7 +49,7 @@ export default function RootPage() {
         <div className="grid gap-4">
           <Button 
             size="lg" 
-            className="w-full bg-pink-600 hover:bg-pink-700 text-white h-14 text-lg font-semibold rounded-2xl shadow-lg shadow-pink-200"
+            className="w-full bg-violet-600 hover:bg-violet-700 text-white h-14 text-lg font-semibold rounded-2xl shadow-lg shadow-violet-200"
             onClick={() => router.push("/login")}
           >
             Agendar Agora

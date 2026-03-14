@@ -108,7 +108,7 @@ export default function AgendaPage() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger
             render={
-              <Button className="gap-2 bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+              <Button className="gap-2 bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
                 <Plus size={18} /> Novo Agendamento
               </Button>
             }
@@ -136,7 +136,7 @@ export default function AgendaPage() {
           <Card className="shadow-sm border-slate-200/60 overflow-hidden">
             <CardHeader className="pb-3 bg-slate-50/50 border-b">
               <CardTitle className="text-sm font-semibold flex items-center gap-2 text-slate-700">
-                <CalendarIcon size={16} className="text-pink-500" />
+                <CalendarIcon size={16} className="text-violet-500" />
                 Calendário
               </CardTitle>
             </CardHeader>
@@ -151,9 +151,9 @@ export default function AgendaPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm border-pink-100 bg-pink-50/30 overflow-hidden">
-            <CardHeader className="pb-3 border-b border-pink-100/50">
-              <CardTitle className="text-sm font-semibold text-pink-900">Resumo do Dia</CardTitle>
+          <Card className="shadow-sm border-violet-100 bg-violet-50/30 overflow-hidden">
+            <CardHeader className="pb-3 border-b border-violet-100/50">
+              <CardTitle className="text-sm font-semibold text-violet-900">Resumo do Dia</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
               <div className="flex items-center justify-between text-sm p-2 rounded-lg bg-white/50 border border-white">
@@ -198,10 +198,10 @@ export default function AgendaPage() {
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="icon" onClick={prevDay} className="h-9 w-9 border-slate-200 text-slate-600 hover:text-pink-600 hover:border-pink-200 transition-colors">
+              <Button variant="outline" size="icon" onClick={prevDay} className="h-9 w-9 border-slate-200 text-slate-600 hover:text-violet-600 hover:border-violet-200 transition-colors">
                 <ChevronLeft size={18} />
               </Button>
-              <Button variant="outline" size="icon" onClick={nextDay} className="h-9 w-9 border-slate-200 text-slate-600 hover:text-pink-600 hover:border-pink-200 transition-colors">
+              <Button variant="outline" size="icon" onClick={nextDay} className="h-9 w-9 border-slate-200 text-slate-600 hover:text-violet-600 hover:border-violet-200 transition-colors">
                 <ChevronRight size={18} />
               </Button>
             </div>
@@ -235,14 +235,14 @@ export default function AgendaPage() {
                   .map((app) => (
                     <div 
                       key={app.id} 
-                      className="group flex items-center gap-4 p-5 hover:bg-slate-50/80 transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-pink-500"
+                      className="group flex items-center gap-4 p-5 hover:bg-slate-50/80 transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-violet-500"
                       onClick={() => {
                         setEditingAppointment(app);
                         setIsDialogOpen(true);
                       }}
                     >
-                      <div className="flex flex-col items-center justify-center min-w-[70px] py-2 bg-slate-50 rounded-xl border border-slate-100 group-hover:border-pink-100 group-hover:bg-pink-50/50 transition-all">
-                        <span className="text-sm font-bold text-slate-900 group-hover:text-pink-600 transition-colors">
+                      <div className="flex flex-col items-center justify-center min-w-[70px] py-2 bg-slate-50 rounded-xl border border-slate-100 group-hover:border-violet-100 group-hover:bg-violet-50/50 transition-all">
+                        <span className="text-sm font-bold text-slate-900 group-hover:text-violet-600 transition-colors">
                           {format(ensureDate(app.appointmentDate), "HH:mm")}
                         </span>
                         <span className="text-[10px] text-slate-400 uppercase font-semibold">
@@ -252,7 +252,7 @@ export default function AgendaPage() {
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1.5">
-                          <h4 className="font-bold text-slate-900 truncate group-hover:text-pink-600 transition-colors pr-2">
+                          <h4 className="font-bold text-slate-900 truncate group-hover:text-violet-600 transition-colors pr-2">
                             {app.client?.name || "Cliente não encontrada"}
                           </h4>
                           <Badge variant={
@@ -264,7 +264,7 @@ export default function AgendaPage() {
                             app.status === "confirmed" && "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100",
                             app.status === "pending" && "bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-100",
                             app.status === "completed" && "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100",
-                            app.status === "cancelled" && "bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-100"
+                            app.status === "cancelled" && "bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-100"
                           )}>
                             {app.status === "confirmed" ? "Confirmado" : 
                              app.status === "pending" ? "Pendente" : 
@@ -273,7 +273,7 @@ export default function AgendaPage() {
                         </div>
                         
                         <div className="flex items-center gap-3">
-                          <span className="inline-flex items-center text-xs font-medium text-pink-600 bg-pink-50 px-2 py-0.5 rounded-md border border-pink-100/50">
+                          <span className="inline-flex items-center text-xs font-medium text-violet-600 bg-violet-50 px-2 py-0.5 rounded-md border border-violet-100/50">
                             {app.service?.name}
                           </span>
                           <span className="text-slate-300 text-xs">•</span>

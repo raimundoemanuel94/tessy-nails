@@ -61,7 +61,7 @@ export function ClientProfileCard({
   const statusConfig = getStatusConfig(client.status);
 
   return (
-    <div className="rounded-2xl border border-pink-100 bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-violet-100 bg-white p-6 shadow-sm">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <h3 className="text-lg font-bold text-gray-900">
@@ -73,7 +73,7 @@ export function ClientProfileCard({
             variant="outline"
             size="sm"
             onClick={onEditProfile}
-            className="border-pink-200 text-pink-700 hover:bg-pink-50"
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
             Editar perfil
           </Button>
@@ -84,7 +84,7 @@ export function ClientProfileCard({
       <div className="flex flex-col items-center space-y-4 sm:flex-row sm:items-start sm:space-y-0 sm:space-x-6">
         {/* Avatar */}
         <div className="relative">
-          <div className="h-24 w-24 rounded-full bg-linear-to-br from-pink-400 to-pink-600 flex items-center justify-center shadow-lg">
+          <div className="h-24 w-24 rounded-full bg-linear-to-br from-violet-400 to-violet-600 flex items-center justify-center shadow-lg">
             {client.avatar ? (
               <img 
                 src={client.avatar} 
@@ -97,7 +97,7 @@ export function ClientProfileCard({
           </div>
           
           {/* Avatar Upload Button */}
-          <button className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-pink-500 text-white flex items-center justify-center border-2 border-white shadow-md hover:bg-pink-600 transition-colors">
+          <button className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-violet-500 text-white flex items-center justify-center border-2 border-white shadow-md hover:bg-violet-600 transition-colors">
             <Camera className="h-4 w-4" />
           </button>
         </div>
@@ -120,12 +120,12 @@ export function ClientProfileCard({
           {/* Contact Info */}
           <div className="space-y-2 text-sm text-gray-600">
             <div className="flex items-center justify-center sm:justify-start">
-              <Mail className="mr-2 h-4 w-4 text-pink-600" />
+              <Mail className="mr-2 h-4 w-4 text-violet-600" />
               <span>{client.email}</span>
             </div>
             
             <div className="flex items-center justify-center sm:justify-start">
-              <Phone className="mr-2 h-4 w-4 text-pink-600" />
+              <Phone className="mr-2 h-4 w-4 text-violet-600" />
               <span>{client.phone}</span>
             </div>
           </div>
@@ -133,7 +133,7 @@ export function ClientProfileCard({
       </div>
 
       {/* Visual Separator */}
-      <div className="mt-6 h-px bg-linear-to-r from-transparent via-pink-200 to-transparent" />
+      <div className="mt-6 h-px bg-linear-to-r from-transparent via-violet-200 to-transparent" />
 
       {/* Additional Info */}
       <div className="mt-6 text-center">

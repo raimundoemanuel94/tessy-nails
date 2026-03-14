@@ -27,7 +27,7 @@ export function MonthNavigation({ currentMonth, onMonthChange }: MonthNavigation
     <div className="flex items-center justify-between mb-6">
       <button
         onClick={previousMonth}
-        className="flex items-center text-pink-600 hover:text-pink-700 font-medium transition-colors"
+        className="flex items-center text-violet-600 hover:text-violet-700 font-medium transition-colors"
       >
         <ChevronLeft className="h-4 w-4 mr-1" />
         {format(addMonths(currentMonth, -1), "MMMM", { locale: ptBR })}
@@ -44,7 +44,7 @@ export function MonthNavigation({ currentMonth, onMonthChange }: MonthNavigation
 
       <button
         onClick={nextMonth}
-        className="flex items-center text-pink-600 hover:text-pink-700 font-medium transition-colors"
+        className="flex items-center text-violet-600 hover:text-violet-700 font-medium transition-colors"
       >
         {format(addMonths(currentMonth, 1), "MMMM", { locale: ptBR })}
         <ChevronRight className="h-4 w-4 ml-1" />
@@ -52,7 +52,7 @@ export function MonthNavigation({ currentMonth, onMonthChange }: MonthNavigation
 
       <button
         onClick={goToToday}
-        className="px-4 py-2 text-sm text-pink-600 hover:text-pink-700 hover:bg-pink-50 rounded-lg border border-pink-200 transition-colors"
+        className="px-4 py-2 text-sm text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded-lg border border-violet-200 transition-colors"
       >
         Hoje
       </button>

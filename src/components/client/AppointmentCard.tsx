@@ -144,7 +144,7 @@ export function AppointmentCard({
       {/* Price */}
       {appointment.service.price && (
         <div className="mb-4 flex items-center justify-between">
-          <span className="text-lg font-semibold text-pink-600">
+          <span className="text-lg font-semibold text-violet-600">
             {appointment.service.price}
           </span>
         </div>
@@ -156,7 +156,7 @@ export function AppointmentCard({
           variant="ghost"
           size="sm"
           onClick={() => onViewDetails?.(appointment)}
-          className="text-pink-600 hover:bg-pink-50"
+          className="text-violet-600 hover:bg-violet-50"
         >
           <Eye className="mr-1 h-4 w-4" />
           Ver detalhes
@@ -168,7 +168,7 @@ export function AppointmentCard({
               variant="outline"
               size="sm"
               onClick={() => onReschedule?.(appointment)}
-              className="border-pink-200 text-pink-700 hover:bg-pink-50"
+              className="border-violet-200 text-violet-700 hover:bg-violet-50"
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Remarcar

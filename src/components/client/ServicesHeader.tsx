@@ -13,7 +13,7 @@ export function ServicesHeader({ title = "Escolha um serviço", onBack }: Servic
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-pink-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 z-50 w-full border-b border-violet-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Back Button */}
         {onBack && (
@@ -21,7 +21,7 @@ export function ServicesHeader({ title = "Escolha um serviço", onBack }: Servic
             variant="ghost"
             size="sm"
             onClick={onBack}
-            className="text-pink-600 hover:bg-pink-50"
+            className="text-violet-600 hover:bg-violet-50"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -48,7 +48,7 @@ export function ServicesHeader({ title = "Escolha um serviço", onBack }: Servic
         <div className="hidden md:block">
           <a 
             href="/cliente"
-            className="bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium px-6 py-2 rounded-lg inline-flex items-center transition-colors"
+            className="bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium px-6 py-2 rounded-lg inline-flex items-center transition-colors"
           >
             Voltar
           </a>
@@ -57,11 +57,11 @@ export function ServicesHeader({ title = "Escolha um serviço", onBack }: Servic
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-pink-100 bg-white">
+        <div className="md:hidden border-t border-violet-100 bg-white">
           <div className="container px-4 py-4">
             <a 
               href="/cliente"
-              className="w-full bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium px-6 py-2 rounded-lg inline-flex items-center justify-center transition-colors"
+              className="w-full bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium px-6 py-2 rounded-lg inline-flex items-center justify-center transition-colors"
             >
               Voltar
             </a>

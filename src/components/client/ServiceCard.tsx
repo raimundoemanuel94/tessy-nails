@@ -27,9 +27,9 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
   };
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+    <div className="group relative overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
       {/* Service Image */}
-      <div className="relative h-48 bg-gradient-to-br from-pink-100 to-rose-100">
+      <div className="relative h-48 bg-gradient-to-br from-violet-100 to-purple-100">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="h-16 w-16 rounded-full bg-white/80 flex items-center justify-center">
             <span className="text-2xl">💅</span>
@@ -45,7 +45,7 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
 
         {/* Rating Badge */}
         {service.rating && service.rating >= 4.9 && (
-          <div className="absolute top-3 right-3 flex items-center rounded-full bg-pink-500 px-2 py-1 text-xs font-medium text-white">
+          <div className="absolute top-3 right-3 flex items-center rounded-full bg-violet-500 px-2 py-1 text-xs font-medium text-white">
             <Star className="mr-1 h-3 w-3 fill-current" />
             {service.rating}
           </div>
@@ -54,7 +54,7 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
 
       {/* Service Content */}
       <div className="p-5">
-        <h3 className="mb-2 text-lg font-semibold text-gray-900 group-hover:text-pink-600 transition-colors">
+        <h3 className="mb-2 text-lg font-semibold text-gray-900 group-hover:text-violet-600 transition-colors">
           {service.name}
         </h3>
         
@@ -68,14 +68,14 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
             <Clock className="mr-1 h-4 w-4" />
             {service.duration}
           </div>
-          <div className="font-semibold text-pink-600">
+          <div className="font-semibold text-violet-600">
             {service.price}
           </div>
         </div>
 
         {/* CTA Button */}
         <Button 
-          className="w-full bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleSelect}
           disabled={!service.isActive}
         >

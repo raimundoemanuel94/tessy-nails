@@ -34,8 +34,8 @@ export function ProfileShortcuts({
       title: 'Meus agendamentos',
       description: 'Ver todos os seus horários agendados',
       icon: Calendar,
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-50',
+      color: 'text-violet-600',
+      bgColor: 'bg-violet-50',
       action: onMyAppointments
     },
     {
@@ -82,7 +82,7 @@ export function ProfileShortcuts({
               onClick={shortcut.action}
               className={`
                 group rounded-xl border border-gray-200 bg-white p-4 text-left transition-all
-                hover:shadow-md hover:border-pink-200 hover:scale-[1.02]
+                hover:shadow-md hover:border-violet-200 hover:scale-[1.02]
               `}
             >
               <div className="flex items-center space-x-3">
@@ -94,7 +94,7 @@ export function ProfileShortcuts({
                 </div>
                 
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 group-hover:text-pink-600">
+                  <h4 className="font-semibold text-gray-900 group-hover:text-violet-600">
                     {shortcut.title}
                   </h4>
                   <p className="text-sm text-gray-600 group-hover:text-gray-700">
@@ -117,7 +117,7 @@ export function ProfileShortcuts({
           <Button
             variant="outline"
             onClick={onBackToHome}
-            className="w-full justify-start border-pink-200 text-pink-700 hover:bg-pink-50"
+            className="w-full justify-start border-violet-200 text-violet-700 hover:bg-violet-50"
           >
             <Home className="mr-2 h-4 w-4" />
             Voltar para o início

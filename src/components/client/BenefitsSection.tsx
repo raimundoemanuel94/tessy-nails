@@ -28,12 +28,12 @@ const benefits = [
 
 export function BenefitsSection() {
   return (
-    <section id="beneficios" className="py-16 bg-gradient-to-br from-pink-50 to-rose-50">
+    <section id="beneficios" className="py-16 bg-gradient-to-br from-violet-50 to-purple-50">
       <div className="container px-4">
         {/* Section Header */}
         <div className="mb-12 text-center">
           <h2 className="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Por que escolher <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">Tessy Nails</span>
+            Por que escolher <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Tessy Nails</span>
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-gray-600">
             Uma experiência completa pensada para sua comodidade e satisfação
@@ -50,12 +50,12 @@ export function BenefitsSection() {
                 className="group rounded-2xl bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
               >
                 {/* Icon */}
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-pink-100 text-pink-600 transition-colors group-hover:bg-pink-200">
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-violet-100 text-violet-600 transition-colors group-hover:bg-violet-200">
                   <Icon className="h-6 w-6" />
                 </div>
 
                 {/* Content */}
-                <h3 className="mb-3 text-lg font-semibold text-gray-900 group-hover:text-pink-600 transition-colors">
+                <h3 className="mb-3 text-lg font-semibold text-gray-900 group-hover:text-violet-600 transition-colors">
                   {benefit.title}
                 </h3>
                 
@@ -79,13 +79,13 @@ export function BenefitsSection() {
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Link 
                 href="/cliente/agendar"
-                className="bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-8 py-3 font-medium rounded-lg inline-flex items-center justify-center transition-colors"
+                className="bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white px-8 py-3 font-medium rounded-lg inline-flex items-center justify-center transition-colors"
               >
                 Agendar agora
               </Link>
               <a 
                 href="#servicos"
-                className="border border-pink-200 text-pink-700 hover:bg-pink-50 px-8 py-3 font-medium rounded-lg inline-flex items-center justify-center transition-colors"
+                className="border border-violet-200 text-violet-700 hover:bg-violet-50 px-8 py-3 font-medium rounded-lg inline-flex items-center justify-center transition-colors"
               >
                 Conhecer mais
               </a>

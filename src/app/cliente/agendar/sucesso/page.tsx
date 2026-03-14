@@ -97,7 +97,7 @@ export default function SucessoPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-pink-500 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
           <p className="mt-4 text-gray-600">Carregando...</p>
         </div>
       </div>
@@ -115,7 +115,7 @@ export default function SucessoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50">
       <SuccessHeader />
 
       <main className="container px-4 py-8">

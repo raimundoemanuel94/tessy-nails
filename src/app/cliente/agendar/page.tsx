@@ -215,7 +215,7 @@ export default function AgendarPage() {
                     p-2 rounded-lg text-sm transition-colors
                     ${!isSameMonth(day, currentMonth) ? 'text-gray-400' : ''}
                     ${isToday(day) ? 'bg-blue-100 text-blue-600' : ''}
-                    ${selectedDate && isSameDay(day, selectedDate) ? 'bg-pink-500 text-white' : ''}
+                    ${selectedDate && isSameDay(day, selectedDate) ? 'bg-violet-500 text-white' : ''}
                     ${!isToday(day) && (!selectedDate || !isSameDay(day, selectedDate)) ? 'hover:bg-gray-100' : ''}
                   `}
                 >
@@ -228,9 +228,9 @@ export default function AgendarPage() {
 
         {/* Selected Date Summary */}
         {selectedDate && (
-          <div className="mb-8 rounded-xl bg-pink-50 p-4">
+          <div className="mb-8 rounded-xl bg-violet-50 p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center text-pink-700">
+              <div className="flex items-center text-violet-700">
                 <CalendarIcon className="mr-2 h-5 w-5" />
                 <span className="font-medium">
                   Data selecionada: {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}

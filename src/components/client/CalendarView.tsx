@@ -60,14 +60,14 @@ export function CalendarView({
   const firstDayOfMonth = getDay(monthStart);
 
   return (
-    <div className="bg-white rounded-2xl border border-pink-100 p-4">
+    <div className="bg-white rounded-2xl border border-violet-100 p-4">
       {/* Calendar Header */}
       <div className="mb-6 flex items-center justify-between">
         <Button
           variant="outline"
           size="sm"
           onClick={previousMonth}
-          className="text-pink-600 hover:bg-pink-50"
+          className="text-violet-600 hover:bg-violet-50"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -82,7 +82,7 @@ export function CalendarView({
           variant="outline"
           size="sm"
           onClick={nextMonth}
-          className="text-pink-600 hover:bg-pink-50"
+          className="text-violet-600 hover:bg-violet-50"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -121,9 +121,9 @@ export function CalendarView({
                 ${isPast 
                   ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed' 
                   : selected
-                  ? 'border-pink-500 bg-pink-500 text-white font-semibold'
+                  ? 'border-violet-500 bg-violet-500 text-white font-semibold'
                   : isCurrentMonth
-                  ? 'border-pink-200 bg-white text-gray-900 hover:bg-pink-50 hover:border-pink-300'
+                  ? 'border-violet-200 bg-white text-gray-900 hover:bg-violet-50 hover:border-violet-300'
                   : 'border-transparent bg-transparent text-gray-400'
                 }
               `}
@@ -134,7 +134,7 @@ export function CalendarView({
 
               {/* Selected indicator */}
               {selected && (
-                <div className="absolute bottom-1 left-1/2 right-1/2 h-1 bg-pink-500 rounded-full" />
+                <div className="absolute bottom-1 left-1/2 right-1/2 h-1 bg-violet-500 rounded-full" />
               )}
             </button>
           );
@@ -149,7 +149,7 @@ export function CalendarView({
       {/* Calendar Legend */}
       <div className="mt-4 flex items-center justify-center space-x-6 text-sm text-gray-600">
         <div className="flex items-center">
-          <div className="h-3 w-3 rounded-full bg-pink-500 mr-2" />
+          <div className="h-3 w-3 rounded-full bg-violet-500 mr-2" />
           <span>Selecionado</span>
         </div>
         <div className="flex items-center">

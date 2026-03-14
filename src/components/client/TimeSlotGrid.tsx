@@ -39,9 +39,9 @@ export function TimeSlotGrid({ timeSlots, selectedTime, onTimeSelect }: TimeSlot
               className={`
                 relative h-16 p-4 text-sm font-medium transition-all
                 ${isSelected
-                  ? 'bg-pink-500 text-white border-pink-500 shadow-lg transform scale-105'
+                  ? 'bg-violet-500 text-white border-violet-500 shadow-lg transform scale-105'
                   : isAvailable
-                  ? 'bg-white text-gray-900 border-pink-200 hover:bg-pink-50 hover:border-pink-300 hover:shadow-md'
+                  ? 'bg-white text-gray-900 border-violet-200 hover:bg-violet-50 hover:border-violet-300 hover:shadow-md'
                   : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                 }
               `}
@@ -60,7 +60,7 @@ export function TimeSlotGrid({ timeSlots, selectedTime, onTimeSelect }: TimeSlot
 
               {/* Slot Label */}
               {slot.label && (
-                <div className="absolute -top-2 -right-2 rounded-full bg-pink-500 px-2 py-1 text-xs text-white">
+                <div className="absolute -top-2 -right-2 rounded-full bg-violet-500 px-2 py-1 text-xs text-white">
                   {slot.label}
                 </div>
               )}
@@ -72,7 +72,7 @@ export function TimeSlotGrid({ timeSlots, selectedTime, onTimeSelect }: TimeSlot
       {/* Legend */}
       <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
         <div className="flex items-center">
-          <div className="h-3 w-3 rounded-full bg-pink-500 mr-2" />
+          <div className="h-3 w-3 rounded-full bg-violet-500 mr-2" />
           <span>Selecionado</span>
         </div>
         <div className="flex items-center">

@@ -18,7 +18,7 @@ export function SuccessActions({
       <div className="text-center">
         <Button 
           onClick={onMyAppointments}
-          className="bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium px-8 py-3 text-lg shadow-lg"
+          className="bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium px-8 py-3 text-lg shadow-lg"
         >
           <List className="mr-2 h-5 w-5" />
           Ver meus agendamentos
@@ -30,7 +30,7 @@ export function SuccessActions({
         <Button 
           variant="outline"
           onClick={onBackToHome}
-          className="border-pink-200 text-pink-700 hover:bg-pink-50 px-6 py-3"
+          className="border-violet-200 text-violet-700 hover:bg-violet-50 px-6 py-3"
         >
           <Home className="mr-2 h-4 w-4" />
           Voltar para o início

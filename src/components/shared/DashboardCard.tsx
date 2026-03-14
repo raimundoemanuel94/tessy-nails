@@ -39,7 +39,7 @@ export function DashboardCard({ title, value, description, icon: Icon, trend, cl
             {trend && (
               <span className={cn(
                 "inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-tighter",
-                trend.isUp ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400" : "bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400"
+                trend.isUp ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400" : "bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400"
               )}>
                 {trend.isUp ? "↑" : "↓"} {trend.value}%
               </span>

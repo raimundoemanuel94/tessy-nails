@@ -17,7 +17,7 @@ export function SuccessBlock({
     <div className="text-center space-y-6">
       {/* Success Icon with Animation */}
       <div className="relative inline-block">
-        <div className="h-24 w-24 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-lg">
+        <div className="h-24 w-24 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-lg">
           <CheckCircle className="h-12 w-12 text-white" />
         </div>
         
@@ -37,7 +37,7 @@ export function SuccessBlock({
         </h1>
         
         {subtitle && (
-          <p className="text-lg text-pink-600 font-medium">
+          <p className="text-lg text-violet-600 font-medium">
             {subtitle}
           </p>
         )}
@@ -45,7 +45,7 @@ export function SuccessBlock({
 
       {/* Security Message */}
       {message && (
-        <div className="rounded-2xl bg-pink-50 p-6 max-w-md mx-auto">
+        <div className="rounded-2xl bg-violet-50 p-6 max-w-md mx-auto">
           <p className="text-gray-700 leading-relaxed">
             {message}
           </p>
@@ -54,9 +54,9 @@ export function SuccessBlock({
 
       {/* Visual Separator */}
       <div className="flex items-center justify-center space-x-2">
-        <div className="h-px w-16 bg-gradient-to-r from-transparent via-pink-200 to-transparent" />
-        <div className="h-2 w-2 rounded-full bg-pink-500" />
-        <div className="h-px w-16 bg-gradient-to-r from-transparent via-pink-200 to-transparent" />
+        <div className="h-px w-16 bg-gradient-to-r from-transparent via-violet-200 to-transparent" />
+        <div className="h-2 w-2 rounded-full bg-violet-500" />
+        <div className="h-px w-16 bg-gradient-to-r from-transparent via-violet-200 to-transparent" />
       </div>
     </div>
   );

@@ -148,7 +148,7 @@ export default function ConfiguracoesPage() {
               <div className="space-y-2">
                 <Label>Cor de Destaque</Label>
                 <div className="flex gap-2 pt-2">
-                  {["bg-pink-500", "bg-purple-500", "bg-indigo-500", "bg-rose-500"].map((color) => (
+                  {["bg-violet-500", "bg-purple-500", "bg-indigo-500", "bg-purple-500"].map((color) => (
                     <div 
                       key={color} 
                       className={`h-8 w-8 rounded-full cursor-pointer border-2 border-transparent hover:border-slate-400 ${color}`}

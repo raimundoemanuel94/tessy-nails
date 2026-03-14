@@ -141,7 +141,7 @@ export default function AgendamentosPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-pink-500 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
           <p className="mt-4 text-gray-600">Carregando agendamentos...</p>
         </div>
       </div>
@@ -189,7 +189,7 @@ export default function AgendamentosPage() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <div className="mb-4 h-16 w-16 rounded-full bg-pink-100 flex items-center justify-center mx-auto">
+            <div className="mb-4 h-16 w-16 rounded-full bg-violet-100 flex items-center justify-center mx-auto">
               <span className="text-2xl">📅</span>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -203,7 +203,7 @@ export default function AgendamentosPage() {
             </p>
             <Button 
               onClick={handleScheduleNew}
-              className="bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium"
+              className="bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium"
             >
               Agendar agora
             </Button>

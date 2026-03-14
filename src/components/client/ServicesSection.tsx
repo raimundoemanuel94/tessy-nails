@@ -51,7 +51,7 @@ export function ServicesSection() {
         {/* Section Header */}
         <div className="mb-12 text-center">
           <h2 className="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Nossos <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">Serviços</span>
+            Nossos <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Serviços</span>
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-gray-600">
             Tratamentos especializados para deixar suas unhas ainda mais bonitas e saudáveis
@@ -63,10 +63,10 @@ export function ServicesSection() {
           {featuredServices.map((service) => (
             <div
               key={service.id}
-              className="group relative overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+              className="group relative overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
             >
               {/* Service Image */}
-              <div className="relative h-48 bg-gradient-to-br from-pink-100 to-rose-100">
+              <div className="relative h-48 bg-gradient-to-br from-violet-100 to-purple-100">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="h-16 w-16 rounded-full bg-white/80 flex items-center justify-center">
                     <span className="text-2xl">💅</span>
@@ -75,7 +75,7 @@ export function ServicesSection() {
                 
                 {/* Badge */}
                 {service.rating >= 4.9 && (
-                  <div className="absolute top-3 right-3 flex items-center rounded-full bg-pink-500 px-2 py-1 text-xs font-medium text-white">
+                  <div className="absolute top-3 right-3 flex items-center rounded-full bg-violet-500 px-2 py-1 text-xs font-medium text-white">
                     <Star className="mr-1 h-3 w-3 fill-current" />
                     {service.rating}
                   </div>
@@ -84,7 +84,7 @@ export function ServicesSection() {
 
               {/* Service Content */}
               <div className="p-5">
-                <h3 className="mb-2 text-lg font-semibold text-gray-900 group-hover:text-pink-600 transition-colors">
+                <h3 className="mb-2 text-lg font-semibold text-gray-900 group-hover:text-violet-600 transition-colors">
                   {service.name}
                 </h3>
                 
@@ -98,7 +98,7 @@ export function ServicesSection() {
                     <Clock className="mr-1 h-4 w-4" />
                     {service.duration}
                   </div>
-                  <div className="font-semibold text-pink-600">
+                  <div className="font-semibold text-violet-600">
                     {service.price}
                   </div>
                 </div>
@@ -106,7 +106,7 @@ export function ServicesSection() {
                 {/* CTA Button */}
                 <Link 
                   href={`/cliente/servicos/${service.id}`}
-                  className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium w-full inline-flex items-center justify-center px-4 py-2 rounded-lg transition-colors"
+                  className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium w-full inline-flex items-center justify-center px-4 py-2 rounded-lg transition-colors"
                 >
                   Selecionar
                 </Link>
@@ -119,7 +119,7 @@ export function ServicesSection() {
         <div className="mt-12 text-center">
           <Link 
             href="/cliente/servicos"
-            className="border border-pink-200 text-pink-700 hover:bg-pink-50 px-8 py-3 text-lg font-medium rounded-lg inline-flex items-center justify-center transition-colors"
+            className="border border-violet-200 text-violet-700 hover:bg-violet-50 px-8 py-3 text-lg font-medium rounded-lg inline-flex items-center justify-center transition-colors"
           >
             Ver todos os serviços
           </Link>

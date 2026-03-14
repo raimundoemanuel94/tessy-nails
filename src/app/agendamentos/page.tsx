@@ -255,12 +255,12 @@ export default function AgendamentosPage() {
 
       <div className="flex items-center gap-4 mb-8">
         <div className="relative flex-1 max-w-md group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-pink-500 transition-colors" size={20} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-500 transition-colors" size={20} />
           <Input 
             id="search-appointments"
             name="search-appointments"
             placeholder="Pesquisar por cliente, serviço ou data..." 
-            className="pl-12 h-12 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all font-medium"
+            className="pl-12 h-12 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all font-medium"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -271,8 +271,8 @@ export default function AgendamentosPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center p-24 gap-4">
             <div className="relative">
-              <div className="absolute inset-0 bg-pink-500/20 rounded-full blur-xl animate-pulse" />
-              <Loader2 className="h-10 w-10 animate-spin text-pink-600 relative z-10" />
+              <div className="absolute inset-0 bg-violet-500/20 rounded-full blur-xl animate-pulse" />
+              <Loader2 className="h-10 w-10 animate-spin text-violet-600 relative z-10" />
             </div>
             <p className="text-sm font-black text-slate-400 dark:text-slate-500 tracking-widest uppercase">Sincronizando agendamentos...</p>
           </div>
@@ -295,7 +295,7 @@ export default function AgendamentosPage() {
                     <TableCell className="px-6 py-4">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white uppercase tracking-tighter">
-                          <CalendarIcon size={14} className="text-pink-600" />
+                          <CalendarIcon size={14} className="text-violet-600" />
                           {app.date}
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
@@ -314,9 +314,9 @@ export default function AgendamentosPage() {
                     </TableCell>
                     <TableCell className="px-6 py-4">
                       <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2 px-3 py-1 bg-pink-50 dark:bg-pink-950/20 border border-pink-100/50 dark:border-pink-900/50 rounded-xl w-fit">
-                          <Scissors size={14} className="text-pink-600" />
-                          <span className="text-xs font-bold text-pink-700 dark:text-pink-400">{app.service}</span>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-violet-50 dark:bg-violet-950/20 border border-violet-100/50 dark:border-violet-900/50 rounded-xl w-fit">
+                          <Scissors size={14} className="text-violet-600" />
+                          <span className="text-xs font-bold text-violet-700 dark:text-violet-400">{app.service}</span>
                         </div>
                         <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 rounded-xl w-fit">
                           <User size={12} className="text-slate-400" />
@@ -330,7 +330,7 @@ export default function AgendamentosPage() {
                         app.status === "confirmed" && "bg-blue-100/50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-900/30",
                         app.status === "pending" && "bg-amber-100/50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-900/30",
                         app.status === "completed" && "bg-emerald-100/50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-900/30",
-                        app.status === "cancelled" && "bg-rose-100/50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-900/30"
+                        app.status === "cancelled" && "bg-purple-100/50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-900/30"
                       )}>
                         {app.status === "confirmed" ? "Confirmado" : 
                          app.status === "pending" ? "Pendente" : 
@@ -346,30 +346,30 @@ export default function AgendamentosPage() {
                           render={
                             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-white/5 border border-transparent hover:border-slate-200 dark:hover:border-white/10 transition-all shadow-sm group-hover:bg-white dark:group-hover:bg-white/5" disabled={actionLoading === app.id}>
                               {actionLoading === app.id ? (
-                                <Loader2 size={18} className="animate-spin text-pink-600" />
+                                <Loader2 size={18} className="animate-spin text-violet-600" />
                               ) : (
-                                <MoreHorizontal size={18} className="text-slate-400 group-hover:text-pink-600 transition-colors" />
+                                <MoreHorizontal size={18} className="text-slate-400 group-hover:text-violet-600 transition-colors" />
                               )}
                             </Button>
                           }
                         />
                         <DropdownMenuContent align="end" className="w-48 p-2 rounded-2xl border-slate-200/60 dark:border-white/5 shadow-2xl">
                           <DropdownMenuItem
-                            className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:text-pink-600 transition-all"
+                            className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:text-violet-600 transition-all"
                             disabled={app.status === "confirmed" || app.status === "completed" || app.status === "cancelled"}
                             onClick={() => handleConfirmar(app.id)}
                           >
                             Confirmar
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:text-pink-600 transition-all"
+                            className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:text-violet-600 transition-all"
                             disabled={app.status === "completed" || app.status === "cancelled"}
                             onClick={() => openRemarcar(app)}
                           >
                             Remarcar / Editar
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            className="p-3 cursor-pointer rounded-xl font-black text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all"
+                            className="p-3 cursor-pointer rounded-xl font-black text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
                             onClick={() => handleCancelar(app.id)}
                             disabled={app.status === "cancelled"}
                           >

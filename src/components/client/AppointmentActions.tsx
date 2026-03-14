@@ -30,7 +30,7 @@ export function AppointmentActions({
           variant="ghost"
           size="sm"
           onClick={() => onViewDetails?.(appointment)}
-          className="text-pink-600 hover:bg-pink-50"
+          className="text-violet-600 hover:bg-violet-50"
         >
           <Eye className="mr-1 h-4 w-4" />
           Ver detalhes
@@ -41,7 +41,7 @@ export function AppointmentActions({
             variant="outline"
             size="sm"
             onClick={() => onReschedule?.(appointment)}
-            className="border-pink-200 text-pink-700 hover:bg-pink-50"
+            className="border-violet-200 text-violet-700 hover:bg-violet-50"
           >
             <RotateCcw className="mr-1 h-4 w-4" />
             Remarcar
@@ -87,7 +87,7 @@ export function AppointmentActions({
           {canReschedule && (
             <button
               onClick={() => onReschedule?.(appointment)}
-              className="w-full px-4 py-2 text-left text-sm text-pink-700 hover:bg-pink-50 flex items-center"
+              className="w-full px-4 py-2 text-left text-sm text-violet-700 hover:bg-violet-50 flex items-center"
             >
               <RotateCcw className="mr-2 h-4 w-4" />
               Remarcar

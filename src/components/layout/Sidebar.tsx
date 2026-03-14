@@ -202,7 +202,7 @@ export function Sidebar() {
         <Button
           variant="ghost"
           className={cn(
-            "w-full flex items-center gap-3 justify-start rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all duration-300 font-semibold",
+            "w-full flex items-center gap-3 justify-start rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all duration-300 font-semibold",
             collapsed && "justify-center p-0 h-10 w-10 mx-auto"
           )}
           onClick={() => signOut()}

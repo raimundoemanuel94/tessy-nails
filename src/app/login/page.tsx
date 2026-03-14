@@ -99,11 +99,11 @@ function LoginPageContent() {
   return (
     <div className="min-h-screen w-full flex overflow-hidden bg-white dark:bg-slate-950 font-sans">
       {/* Left Pane: Lifestyle & Branding (Visible only on Desktop) */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-pink-50 dark:bg-slate-900 overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-violet-50 dark:bg-slate-900 overflow-hidden">
         {/* Background Decorative Elements */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-pink-200/40 dark:bg-pink-900/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-rose-200/40 dark:bg-rose-900/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-violet-200/40 dark:bg-violet-900/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-purple-200/40 dark:bg-purple-900/20 rounded-full blur-3xl animate-pulse" />
           {/* Mockup for the generated image or a beautiful placeholder */}
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1632345033839-247e997fc0aa?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay opacity-30 grayscale hover:grayscale-0 transition-all duration-1000" />
         </div>
@@ -116,9 +116,9 @@ function LoginPageContent() {
             className="flex items-center gap-3"
           >
             <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 shadow-xl flex items-center justify-center">
-              <Scissors className="text-pink-600" size={24} />
+              <Scissors className="text-violet-600" size={24} />
             </div>
-            <span className="text-2xl font-black text-slate-900 dark:text-white tracking-widest uppercase italic">TESSY<span className="text-pink-600">NAILS</span></span>
+            <span className="text-2xl font-black text-slate-900 dark:text-white tracking-widest uppercase italic">TESSY<span className="text-violet-600">NAILS</span></span>
           </motion.div>
 
           <div className="max-w-md">
@@ -128,7 +128,7 @@ function LoginPageContent() {
               transition={{ delay: 0.2, duration: 0.8 }}
               className="text-6xl font-black text-slate-900 dark:text-white leading-[1.1] tracking-tighter mb-6"
             >
-              Elevando sua <span className="text-pink-600 italic">beleza</span>, um detalhe por vez.
+              Elevando sua <span className="text-violet-600 italic">beleza</span>, um detalhe por vez.
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -148,13 +148,13 @@ function LoginPageContent() {
           >
             <div className="flex -space-x-3">
               {[1,2,3,4].map(i => (
-                <div key={i} className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-800 bg-slate-200 overflow-hidden ring-4 ring-pink-500/10">
+                <div key={i} className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-800 bg-slate-200 overflow-hidden ring-4 ring-violet-500/10">
                   <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="user" />
                 </div>
               ))}
             </div>
             <p className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Star className="text-pink-500 fill-pink-500" size={16} /> 
+              <Star className="text-violet-500 fill-violet-500" size={16} /> 
               +500 Clientes Satisfeitas
             </p>
           </motion.div>
@@ -164,8 +164,8 @@ function LoginPageContent() {
       {/* Right Pane: Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 relative bg-slate-50/50 dark:bg-slate-950/50">
         <div className="absolute inset-0 lg:hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
         </div>
 
         <motion.div
@@ -175,13 +175,13 @@ function LoginPageContent() {
           className="w-full max-w-md z-10"
         >
           <div className="text-center mb-8 lg:hidden">
-             <Scissors className="mx-auto text-pink-600 mb-2" size={32} />
+             <Scissors className="mx-auto text-violet-600 mb-2" size={32} />
              <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-widest uppercase italic">TESSYNAILS</h2>
           </div>
 
           <Card className="border-slate-200/60 dark:border-white/5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl shadow-2xl shadow-slate-200/50 dark:shadow-none rounded-[2.5rem] overflow-hidden">
             <CardHeader className="space-y-2 text-center pt-10 pb-6 px-8 relative overflow-hidden">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-linear-to-r from-transparent via-pink-500 to-transparent opacity-20" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-linear-to-r from-transparent via-violet-500 to-transparent opacity-20" />
               <CardTitle className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                 {isRegisterMode ? "Bem-vinda!" : "Boas-vindas"}
               </CardTitle>
@@ -210,7 +210,7 @@ function LoginPageContent() {
                           onChange={(e) => setName(e.target.value)}
                           required 
                           autoComplete="name"
-                          className="h-14 rounded-2xl bg-white/50 dark:bg-slate-800/50 border-slate-200/60 dark:border-white/5 px-4 font-semibold text-slate-900 dark:text-white transition-all focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500"
+                          className="h-14 rounded-2xl bg-white/50 dark:bg-slate-800/50 border-slate-200/60 dark:border-white/5 px-4 font-semibold text-slate-900 dark:text-white transition-all focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500"
                         />
                       </div>
                     </motion.div>
@@ -228,7 +228,7 @@ function LoginPageContent() {
                       onChange={(e) => setEmail(e.target.value)}
                       required 
                       autoComplete="username"
-                      className="h-14 rounded-2xl bg-white/50 dark:bg-slate-800/50 border-slate-200/60 dark:border-white/5 px-4 font-semibold text-slate-900 dark:text-white transition-all focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500"
+                      className="h-14 rounded-2xl bg-white/50 dark:bg-slate-800/50 border-slate-200/60 dark:border-white/5 px-4 font-semibold text-slate-900 dark:text-white transition-all focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500"
                     />
                   </div>
                 </div>
@@ -245,14 +245,14 @@ function LoginPageContent() {
                       required 
                       autoComplete="current-password"
                       minLength={6}
-                      className="h-14 rounded-2xl bg-white/50 dark:bg-slate-800/50 border-slate-200/60 dark:border-white/5 px-4 font-semibold text-slate-900 dark:text-white transition-all focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500"
+                      className="h-14 rounded-2xl bg-white/50 dark:bg-slate-800/50 border-slate-200/60 dark:border-white/5 px-4 font-semibold text-slate-900 dark:text-white transition-all focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500"
                     />
                   </div>
                 </div>
               </CardContent>
               
               <CardFooter className="flex flex-col space-y-6 px-8 pb-10">
-                <Button type="submit" className="w-full h-14 rounded-2xl bg-linear-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white font-black uppercase tracking-widest shadow-xl shadow-pink-500/20 transition-all hover:-translate-y-1 active:scale-95 group" disabled={loading}>
+                <Button type="submit" className="w-full h-14 rounded-2xl bg-linear-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-black uppercase tracking-widest shadow-xl shadow-violet-500/20 transition-all hover:-translate-y-1 active:scale-95 group" disabled={loading}>
                   {loading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
@@ -267,14 +267,14 @@ function LoginPageContent() {
                   <button
                     type="button"
                     onClick={() => router.push(isRegisterMode ? '/login' : '/login?mode=register')}
-                    className="text-xs font-black text-slate-400 dark:text-slate-500 hover:text-pink-600 transition-colors uppercase tracking-[0.2em]"
+                    className="text-xs font-black text-slate-400 dark:text-slate-500 hover:text-violet-600 transition-colors uppercase tracking-[0.2em]"
                   >
                     {isRegisterMode 
                       ? "Já possui acesso? Clique aqui" 
                       : "Novo por aqui? Criar conta agora"
                     }
                   </button>
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-pink-500 group-hover:w-1/2 transition-all duration-300" />
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-violet-500 group-hover:w-1/2 transition-all duration-300" />
                 </div>
                 
                 <div className="relative flex items-center gap-4 py-2">
@@ -319,12 +319,12 @@ export default function LoginPage() {
           <motion.div 
             animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
             transition={{ repeat: Infinity, duration: 2 }}
-            className="w-20 h-20 rounded-3xl bg-pink-50 dark:bg-slate-900 shadow-2xl flex items-center justify-center border border-pink-100 dark:border-pink-900/30"
+            className="w-20 h-20 rounded-3xl bg-violet-50 dark:bg-slate-900 shadow-2xl flex items-center justify-center border border-violet-100 dark:border-violet-900/30"
           >
-            <Scissors className="text-pink-600" size={40} />
+            <Scissors className="text-violet-600" size={40} />
           </motion.div>
           <div className="space-y-2">
-            <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-[0.3em] uppercase italic">TESSY<span className="text-pink-600">NAILS</span></h1>
+            <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-[0.3em] uppercase italic">TESSY<span className="text-violet-600">NAILS</span></h1>
             <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest animate-pulse">Iniciando experiência de luxo...</p>
           </div>
         </div>

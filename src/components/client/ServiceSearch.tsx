@@ -42,7 +42,7 @@ export function ServiceSearch({
           value={searchQuery}
           onChange={handleSearchChange}
           placeholder={placeholder}
-          className="w-full rounded-lg border border-pink-200 bg-white py-3 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-200 transition-colors"
+          className="w-full rounded-lg border border-violet-200 bg-white py-3 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200 transition-colors"
         />
       </div>
 
@@ -54,8 +54,8 @@ export function ServiceSearch({
           onClick={toggleActiveFilter}
           className={`${
             showOnlyActive 
-              ? "bg-pink-500 text-white hover:bg-pink-600" 
-              : "border-pink-200 text-pink-700 hover:bg-pink-50"
+              ? "bg-violet-500 text-white hover:bg-violet-600" 
+              : "border-violet-200 text-violet-700 hover:bg-violet-50"
           }`}
         >
           <Filter className="mr-2 h-4 w-4" />
@@ -65,7 +65,7 @@ export function ServiceSearch({
 
       {/* Active Filter Info */}
       {showOnlyActive && (
-        <div className="rounded-lg bg-pink-50 p-3 text-sm text-pink-700">
+        <div className="rounded-lg bg-violet-50 p-3 text-sm text-violet-700">
           Mostrando apenas serviços disponíveis para agendamento
         </div>
       )}

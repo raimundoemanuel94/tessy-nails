@@ -17,7 +17,7 @@ export function EmptyState({
     <div className="py-16 text-center">
       <div className="mx-auto max-w-md">
         {/* Icon */}
-        <div className="mb-6 h-24 w-24 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center mx-auto">
+        <div className="mb-6 h-24 w-24 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center mx-auto">
           <span className="text-4xl">💅</span>
         </div>
 
@@ -33,8 +33,8 @@ export function EmptyState({
         {/* Contact Options */}
         {showContact && (
           <div className="space-y-4">
-            <div className="rounded-lg bg-pink-50 p-4">
-              <p className="mb-3 font-medium text-pink-900">
+            <div className="rounded-lg bg-violet-50 p-4">
+              <p className="mb-3 font-medium text-violet-900">
                 Precisa de ajuda? Entre em contato:
               </p>
               

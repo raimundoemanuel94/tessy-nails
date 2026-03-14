@@ -180,7 +180,7 @@ export default function ConfirmacaoPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-pink-500 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
           <p className="mt-4 text-gray-600">Carregando...</p>
         </div>
       </div>

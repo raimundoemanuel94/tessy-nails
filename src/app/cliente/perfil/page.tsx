@@ -199,7 +199,7 @@ export default function PerfilPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-pink-500 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
           <p className="mt-4 text-gray-600">Carregando perfil...</p>
         </div>
       </div>
@@ -221,7 +221,7 @@ export default function PerfilPage() {
           <div className="space-x-4">
             <button 
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+              className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600"
             >
               Tentar Novamente
             </button>

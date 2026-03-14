@@ -183,7 +183,7 @@ export default function ServicosPage() {
     <AdminLayout>
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500" />
         </div>
       ) : error ? (
         <div className="text-center py-12">

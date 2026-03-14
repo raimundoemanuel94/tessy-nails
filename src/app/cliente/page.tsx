@@ -69,7 +69,7 @@ export default function ClientePage() {
   if (loading || dataLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-pink-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
       </div>
     );
   }
@@ -86,7 +86,7 @@ export default function ClientePage() {
             <h1 className="text-2xl font-bold text-slate-900">{firstName}! ✨</h1>
           </div>
           <div 
-            className="h-12 w-12 rounded-2xl bg-pink-100 flex items-center justify-center text-pink-600 cursor-pointer"
+            className="h-12 w-12 rounded-2xl bg-violet-100 flex items-center justify-center text-violet-600 cursor-pointer"
             onClick={() => router.push("/cliente/perfil")}
           >
             <UserIcon size={24} />
@@ -98,7 +98,7 @@ export default function ClientePage() {
         {/* Bloco principal: Agendar Agora */}
         <section>
           <Button 
-            className="w-full h-20 bg-pink-600 hover:bg-pink-700 text-white rounded-3xl flex items-center justify-between px-6 shadow-xl shadow-pink-200 group transition-all"
+            className="w-full h-20 bg-violet-600 hover:bg-violet-700 text-white rounded-3xl flex items-center justify-between px-6 shadow-xl shadow-violet-200 group transition-all"
             onClick={() => router.push("/cliente/servicos")}
           >
             <div className="flex items-center gap-4">
@@ -107,10 +107,10 @@ export default function ClientePage() {
               </div>
               <div className="text-left">
                 <span className="block text-lg font-bold">Agendar agora</span>
-                <span className="text-pink-100 text-xs">Escolha seu serviço favorito</span>
+                <span className="text-violet-100 text-xs">Escolha seu serviço favorito</span>
               </div>
             </div>
-            <ChevronRight size={20} className="text-pink-200" />
+            <ChevronRight size={20} className="text-violet-200" />
           </Button>
         </section>
 
@@ -120,14 +120,14 @@ export default function ClientePage() {
             <h2 className="text-lg font-bold text-slate-900">Seu próximo horário</h2>
             <button 
               onClick={() => router.push("/cliente/agendamentos")}
-              className="text-pink-600 text-sm font-semibold"
+              className="text-violet-600 text-sm font-semibold"
             >
               Ver todos
             </button>
           </div>
 
           {nextAppointment ? (
-            <Card className="border-none shadow-md bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl overflow-hidden relative">
+            <Card className="border-none shadow-md bg-linear-to-br from-slate-900 to-slate-800 text-white rounded-3xl overflow-hidden relative">
               <div className="absolute top-0 right-0 p-4 opacity-10">
                 <CalendarDays size={80} />
               </div>
@@ -135,7 +135,7 @@ export default function ClientePage() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <Badge className="bg-pink-500 hover:bg-pink-500 text-white border-none mb-2">
+                      <Badge className="bg-violet-500 hover:bg-violet-500 text-white border-none mb-2">
                         Confirmado
                       </Badge>
                       <h3 className="text-xl font-bold">{nextAppointment.service.name}</h3>
@@ -144,13 +144,13 @@ export default function ClientePage() {
                   
                   <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
-                      <Calendar size={18} className="text-pink-400" />
+                      <Calendar size={18} className="text-violet-400" />
                       <span className="text-sm font-medium">
                         {format(nextAppointment.date, "dd 'de' MMM", { locale: ptBR })}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Clock size={18} className="text-pink-400" />
+                      <Clock size={18} className="text-violet-400" />
                       <span className="text-sm font-medium">{nextAppointment.time.time}</span>
                     </div>
                   </div>
@@ -168,20 +168,20 @@ export default function ClientePage() {
         <section className="grid grid-cols-2 gap-4">
           <Button 
             variant="outline" 
-            className="h-24 rounded-3xl bg-white border-slate-100 flex-col gap-2 hover:bg-slate-50 hover:border-pink-200 transition-all font-semibold"
+            className="h-24 rounded-3xl bg-white border-slate-100 flex-col gap-2 hover:bg-slate-50 hover:border-violet-200 transition-all font-semibold"
             onClick={() => router.push("/cliente/agendamentos")}
           >
-            <div className="text-pink-600">
+            <div className="text-violet-600">
               <Clock size={24} />
             </div>
             Minha Agenda
           </Button>
           <Button 
             variant="outline" 
-            className="h-24 rounded-3xl bg-white border-slate-100 flex-col gap-2 hover:bg-slate-50 hover:border-pink-200 transition-all font-semibold"
+            className="h-24 rounded-3xl bg-white border-slate-100 flex-col gap-2 hover:bg-slate-50 hover:border-violet-200 transition-all font-semibold"
             onClick={() => router.push("/cliente/servicos")}
           >
-            <div className="text-pink-600">
+            <div className="text-violet-600">
               <Star size={24} />
             </div>
             Serviços
@@ -194,7 +194,7 @@ export default function ClientePage() {
             <h2 className="text-lg font-bold text-slate-900">Serviços populares</h2>
             <button 
               onClick={() => router.push("/cliente/servicos")}
-              className="text-pink-600 text-sm font-semibold"
+              className="text-violet-600 text-sm font-semibold"
             >
               Ver mais
             </button>
@@ -204,11 +204,11 @@ export default function ClientePage() {
             {services.map((service) => (
               <div 
                 key={service.id}
-                className="bg-white p-4 rounded-3xl border border-slate-100 flex items-center justify-between hover:border-pink-100 transition-colors cursor-pointer group"
+                className="bg-white p-4 rounded-3xl border border-slate-100 flex items-center justify-between hover:border-violet-100 transition-colors cursor-pointer group"
                 onClick={() => router.push(`/cliente/servicos?id=${service.id}`)}
               >
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-2xl bg-pink-50 flex items-center justify-center text-pink-600 font-bold group-hover:bg-pink-600 group-hover:text-white transition-colors">
+                  <div className="h-12 w-12 rounded-2xl bg-violet-50 flex items-center justify-center text-violet-600 font-bold group-hover:bg-violet-600 group-hover:text-white transition-colors">
                     {service.name.charAt(0)}
                   </div>
                   <div>
@@ -216,7 +216,7 @@ export default function ClientePage() {
                     <p className="text-xs text-slate-400">R$ {service.price.toFixed(2)} • {service.durationMinutes} min</p>
                   </div>
                 </div>
-                <div className="h-10 w-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-pink-600 group-hover:border-pink-200 transition-all">
+                <div className="h-10 w-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-violet-600 group-hover:border-violet-200 transition-all">
                   <Plus size={20} />
                 </div>
               </div>

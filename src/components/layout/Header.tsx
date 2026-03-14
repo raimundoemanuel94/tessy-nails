@@ -109,7 +109,7 @@ export function Header() {
               <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-100 dark:border-white/5">
                 <Button
                   variant="ghost"
-                  className="w-full flex items-center gap-3 justify-start rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all duration-300 font-semibold"
+                  className="w-full flex items-center gap-3 justify-start rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all duration-300 font-semibold"
                   onClick={() => {
                     setIsOpen(false);
                     signOut();
@@ -186,7 +186,7 @@ export function Header() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/5" />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="p-3 cursor-pointer rounded-xl gap-3 text-sm font-extrabold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all" onClick={() => signOut()}>
+              <DropdownMenuItem className="p-3 cursor-pointer rounded-xl gap-3 text-sm font-extrabold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all" onClick={() => signOut()}>
                 <LogOut size={18} /> Encerrar Sessão
               </DropdownMenuItem>
             </DropdownMenuGroup>

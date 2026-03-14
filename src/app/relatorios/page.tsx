@@ -50,7 +50,7 @@ export default function RelatoriosPage() {
         <Card className="rounded-3xl border-slate-200/60 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-500">Total de Clientes</CardTitle>
-            <Users className="h-4 w-4 text-pink-500" />
+            <Users className="h-4 w-4 text-violet-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.clients}</div>
@@ -61,7 +61,7 @@ export default function RelatoriosPage() {
         <Card className="rounded-3xl border-slate-200/60 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-500">Serviços Ativos</CardTitle>
-            <Scissors className="h-4 w-4 text-pink-500" />
+            <Scissors className="h-4 w-4 text-violet-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.services}</div>
@@ -72,11 +72,11 @@ export default function RelatoriosPage() {
         <Card className="rounded-3xl border-slate-200/60 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-500">Receita Estimada</CardTitle>
-            <DollarSign className="h-4 w-4 text-pink-500" />
+            <DollarSign className="h-4 w-4 text-violet-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">R$ {stats.revenue.toFixed(2)}</div>
-            <p className="text-xs text-pink-600 mt-1">Meta mensal: 85%</p>
+            <p className="text-xs text-violet-600 mt-1">Meta mensal: 85%</p>
           </CardContent>
         </Card>
       </div>
@@ -85,7 +85,7 @@ export default function RelatoriosPage() {
         <Card className="rounded-3xl border-slate-200/60 shadow-sm p-6">
           <CardHeader className="px-0">
             <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-pink-600" />
+              <TrendingUp className="h-5 w-5 text-violet-600" />
               Crescimento Mensal
             </CardTitle>
           </CardHeader>
@@ -106,7 +106,7 @@ export default function RelatoriosPage() {
         <Card className="rounded-3xl border-slate-200/60 shadow-sm p-6">
           <CardHeader className="px-0">
             <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-pink-600" />
+              <BarChart3 className="h-5 w-5 text-violet-600" />
               Distribuição de Serviços
             </CardTitle>
           </CardHeader>
