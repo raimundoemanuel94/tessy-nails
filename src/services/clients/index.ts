@@ -57,14 +57,23 @@ export const clientService = {
    * Schema de entrada não exige id e createdAt; id vem do doc ref e createdAt é gerado aqui.
    */
   async create(data: Omit<Client, "id" | "createdAt">): Promise<string> {
-    const validatedData = ClientSchema.omit({ id: true, createdAt: true, updatedAt: true }).parse(data);
+    try {
+      const { id, ...toValidate } = data as any;
+      const validatedData = ClientSchema.omit({ id: true, createdAt: true, updatedAt: true }).parse(toValidate);
 
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      ...validatedData,
-      createdAt: Timestamp.now(),
-    });
+      const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+        ...validatedData,
+        createdAt: Timestamp.now(),
+      });
 
-    return docRef.id;
+      return docRef.id;
+    } catch (error: any) {
+      console.error("❌ Erro ao criar cliente no clientService:", error);
+      if (error.code === 'permission-denied') {
+        throw new Error("Permissão negada no Firebase para criar clientes.");
+      }
+      throw error;
+    }
   },
 
   /**

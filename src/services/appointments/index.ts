@@ -129,26 +129,26 @@ export const appointmentService = {
               createdAt: apt.createdAt || new Date()
             };
           }
-        } catch (error) {
-          console.error(`❌ ERRO ao buscar serviço ${apt.serviceId}:`, error);
-          return {
-            id: apt.id || '',
-            service: {
-              id: apt.serviceId,
-              name: `Serviço ${apt.serviceId}`,
-              price: 0,
-              durationMinutes: 60
-            },
-            date: apt.appointmentDate,
-            time: { 
-              id: apt.id || '', 
-              time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
-            },
-            status: apt.status,
-            observation: apt.notes || undefined,
-            createdAt: apt.createdAt || new Date()
-          };
-        }
+    } catch (error: any) {
+      console.error(`❌ ERRO PROFUNDO ao buscar serviço ${apt.serviceId}:`, error);
+      return {
+        id: apt.id || '',
+        service: {
+          id: apt.serviceId,
+          name: `Serviço ${apt.serviceId}`,
+          price: 0,
+          durationMinutes: 60
+        },
+        date: apt.appointmentDate,
+        time: { 
+          id: apt.id || '', 
+          time: apt.appointmentDate ? format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR }) : "00:00"
+        },
+        status: apt.status,
+        observation: apt.notes || undefined,
+        createdAt: apt.createdAt || new Date()
+      };
+    }
       })
     );
     
@@ -171,29 +171,36 @@ export const appointmentService = {
   /**
    * Cria um novo agendamento com validação
    */
-  async create(data: Omit<Appointment, "id" | "createdAt" | "updatedAt">): Promise<string> {
-    // A data pode vir como Date do formulário
-    const validatedData = AppointmentSchema.parse({
-      ...data,
-      createdAt: new Date(), // ✅ Gerado automaticamente
-      updatedAt: new Date()  // ✅ Gerado automaticamente
-    });
+    // ✅ Remover campos que não pertencem ao schema antes da validação
+    const { time, ...toValidate } = data as any;
+    
+    try {
+      const validatedData = AppointmentSchema.parse({
+        ...toValidate,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
 
-    // ✅ Remover campos undefined antes de enviar para Firestore
-    const cleanData = {
-      ...validatedData,
-      notes: validatedData.notes || null, // ✅ Converter undefined para null
-    };
+      const cleanData = {
+        ...validatedData,
+        notes: validatedData.notes || null,
+      };
 
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      ...cleanData,
-      appointmentDate: Timestamp.fromDate(cleanData.appointmentDate),
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    });
+      const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+        ...cleanData,
+        appointmentDate: Timestamp.fromDate(cleanData.appointmentDate),
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      });
 
-    return docRef.id;
-  },
+      return docRef.id;
+    } catch (error: any) {
+      console.error("❌ Erro de validação/criação no AppointmentService:", error);
+      if (error instanceof z.ZodError) {
+        console.error("Validação falhou:", error.errors);
+      }
+      throw error;
+    }
 
   /**
    * Atualiza o status de um agendamento
