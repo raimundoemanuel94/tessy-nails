@@ -67,7 +67,7 @@ export default function PerfilPage() {
         if (client) {
           // ✅ Usar dados do client do AuthContext
           const transformedClientData: ClientData = {
-            id: client.id,
+            id: client.id || user.uid,
             name: client.name,
             email: client.email,
             phone: client.phone || "Não informado",
