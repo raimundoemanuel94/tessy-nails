@@ -21,6 +21,17 @@ import { ptBR } from "date-fns/locale";
 
 const COLLECTION_NAME = "appointments";
 
+const mapAppointmentData = (doc: any) => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    ...data,
+    appointmentDate: data.appointmentDate?.toDate ? data.appointmentDate.toDate() : (data.appointmentDate ? new Date(data.appointmentDate) : new Date()),
+    createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt ? new Date(data.createdAt) : new Date()),
+    updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt ? new Date(data.updatedAt) : undefined),
+  };
+};
+
 export const appointmentService = {
   /**
    * Lista todos os agendamentos ordenados por data (mais recente primeiro)
@@ -28,13 +39,7 @@ export const appointmentService = {
   async getAll(): Promise<Appointment[]> {
     const q = query(collection(db, COLLECTION_NAME), orderBy("appointmentDate", "desc"));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      appointmentDate: doc.data().appointmentDate?.toDate(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-    })) as Appointment[];
+    return snapshot.docs.map(mapAppointmentData) as Appointment[];
   },
 
   /**
@@ -48,13 +53,7 @@ export const appointmentService = {
       orderBy("appointmentDate", "asc")
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      appointmentDate: doc.data().appointmentDate?.toDate(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-    })) as Appointment[];
+    return snapshot.docs.map(mapAppointmentData) as Appointment[];
   },
 
   /**
@@ -67,13 +66,7 @@ export const appointmentService = {
       orderBy("appointmentDate", "desc")
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      appointmentDate: doc.data().appointmentDate?.toDate(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-    })) as Appointment[];
+    return snapshot.docs.map(mapAppointmentData) as Appointment[];
   },
 
   /**
@@ -164,13 +157,7 @@ export const appointmentService = {
       orderBy("appointmentDate", "desc")
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      appointmentDate: doc.data().appointmentDate?.toDate(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-    })) as Appointment[];
+    return snapshot.docs.map(mapAppointmentData) as Appointment[];
   },
 
   /**
