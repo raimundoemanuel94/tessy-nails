@@ -1,6 +1,20 @@
 "use client";
 
-import { Card, AreaChart, BarChart, Title, Text, DonutChart, Flex, BadgeDelta, ProgressBar } from "@tremor/react";
+import React from 'react';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar
+} from 'recharts';
 
 interface RevenueData {
   date: string;
@@ -12,56 +26,120 @@ interface ServiceData {
   value: number;
 }
 
+const COLORS = ['#ec4899', '#f43f5e', '#d946ef', '#a855f7'];
+
 export function RevenueChart({ data }: { data: RevenueData[] }) {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="h-[350px] w-full">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <Title className="text-slate-900 dark:text-white font-black tracking-tight">Evolução de Receita</Title>
-          <Text className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[10px]">Últimos 6 meses</Text>
+          <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Evolução Financeira</h3>
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Histórico de faturamento bruto</p>
         </div>
-        <BadgeDelta deltaType="moderateIncrease" className="font-black text-[10px] uppercase">
-          +12.5%
-        </BadgeDelta>
+        <div className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100 dark:border-emerald-500/20">
+          +12.5% Crescimento
+        </div>
       </div>
-      <AreaChart
-        className="h-72 mt-4"
-        data={data}
-        index="date"
-        categories={["Revenue"]}
-        colors={["pink"]}
-        valueFormatter={(number: number) => `R$ ${Intl.NumberFormat("pt-BR").format(number).toString()}`}
-        showLegend={false}
-        showGridLines={false}
-        showAnimation={true}
-      />
+      <ResponsiveContainer width="100%" height="80%">
+        <AreaChart data={data}>
+          <defs>
+            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+          <XAxis 
+            dataKey="date" 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+            dy={10}
+          />
+          <YAxis 
+            hide 
+          />
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+              borderRadius: '16px', 
+              border: '1px solid #f1f5f9',
+              boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+              padding: '12px'
+            }}
+            itemStyle={{ color: '#ec4899', fontWeight: 900, fontSize: '12px' }}
+            labelStyle={{ color: '#64748b', fontWeight: 700, fontSize: '10px', marginBottom: '4px', textTransform: 'uppercase' }}
+          />
+          <Area 
+            type="monotone" 
+            dataKey="Revenue" 
+            stroke="#ec4899" 
+            strokeWidth={4}
+            fillOpacity={1} 
+            fill="url(#colorRevenue)" 
+            animationDuration={1500}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 }
 
 export function ServicesDonut({ data }: { data: ServiceData[] }) {
   return (
-    <div className="space-y-4">
-      <Title className="text-slate-900 dark:text-white font-black tracking-tight">Distribuição de Serviços</Title>
-      <DonutChart
-        className="h-40 mt-6"
-        data={data}
-        category="value"
-        index="name"
-        colors={["pink", "rose", "fuchsia", "purple"]}
-        variant="pie"
-        showAnimation={true}
-      />
-      <div className="space-y-3 mt-6">
-        {data.map((item, idx) => (
-          <div key={item.name} className="space-y-1">
-            <Flex>
-              <Text className="text-xs font-bold text-slate-700 dark:text-slate-300">{item.name}</Text>
-              <Text className="text-xs font-black text-slate-900 dark:text-white">{item.value}%</Text>
-            </Flex>
-            <ProgressBar value={item.value} color={idx === 0 ? "pink" : "rose"} className="mt-2" />
+    <div className="w-full">
+      <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-6">Popularidade</h3>
+      <div className="flex flex-col items-center">
+        <div className="h-48 w-full relative">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={80}
+                paddingAngle={8}
+                dataKey="value"
+                animationDuration={1000}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="transparent" />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total</span>
+            <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">100%</span>
           </div>
-        ))}
+        </div>
+        
+        <div className="w-full mt-6 space-y-4">
+          {data.map((item, idx) => (
+            <div key={item.name} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{item.name}</span>
+                </div>
+                <span className="text-xs font-black text-slate-900 dark:text-white">{item.value}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                <div 
+                  className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(236,72,153,0.3)]"
+                  style={{ 
+                    width: `${item.value}%`, 
+                    backgroundColor: COLORS[idx % COLORS.length] 
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
