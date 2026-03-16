@@ -72,6 +72,7 @@ export default function DashboardPage() {
   const [revenueData, setRevenueData] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('today');
+  const [activeTab, setActiveTab] = useState<'overview' | 'financial' | 'performance'>('overview');
 
   // Proteger dashboard - apenas admin/profissional
   useEffect(() => {
@@ -326,7 +327,41 @@ export default function DashboardPage() {
           </div>
         </PageHeader>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Premium Tabs Navigation */}
+        <div className="border-b border-border/40 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-t-2xl">
+          <div className="flex items-center gap-1 overflow-x-auto px-2">
+            {[
+              { id: 'overview', label: 'Visão Geral', icon: Calendar },
+              { id: 'financial', label: 'Financeiro', icon: DollarSign },
+              { id: 'performance', label: 'Performance', icon: TrendingUp }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={cn(
+                    "flex items-center gap-2 px-6 py-4 font-black text-sm uppercase tracking-wider transition-all duration-300 border-b-2 relative whitespace-nowrap",
+                    activeTab === tab.id
+                      ? "border-primary text-primary bg-primary/5"
+                      : "border-transparent text-muted-foreground/60 hover:text-foreground hover:bg-muted/30"
+                  )}
+                >
+                  <Icon size={16} />
+                  {tab.label}
+                  {activeTab === tab.id && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-lg shadow-primary/50" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
+          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <DashboardCard 
             title="Total de Clientes" 
             value={stats.totalClients} 
@@ -598,6 +633,150 @@ export default function DashboardPage() {
             </Card>
           </div>
         </div>
+          </div>
+        )}
+
+        {/* Financial Tab */}
+        {activeTab === 'financial' && (
+          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card className="border border-border/40 shadow-xl bg-white/20 dark:bg-slate-900/20 backdrop-blur-xl rounded-3xl overflow-hidden p-6">
+                <CardHeader className="p-0 mb-6">
+                  <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
+                    <DollarSign size={18} className="text-primary" />
+                    Evolução Financeira
+                  </CardTitle>
+                </CardHeader>
+                <div className="h-[300px]">
+                  <RevenueChart data={revenueData} />
+                </div>
+              </Card>
+
+              <Card className="border border-border/20 shadow-2xl bg-slate-900 dark:bg-black text-white rounded-3xl overflow-hidden group">
+                <CardContent className="p-8 relative">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-primary/20 rounded-full blur-[80px] -mr-10 -mt-10" />
+                  <DollarSign className="absolute -right-6 -bottom-6 w-36 h-36 opacity-5 rotate-12 group-hover:scale-110 transition-transform duration-1000" />
+                  
+                  <div className="relative z-10 space-y-8">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">Objetivo Mensal</p>
+                      <h3 className="text-4xl font-black tracking-tighter">R$ 15.000</h3>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-end">
+                        <div className="space-y-0.5">
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Status atual</span>
+                          <div className="text-xl font-black tracking-tight">
+                            {Math.round((stats.monthlyRevenue / 15000) * 100)}% <span className="text-[10px] text-primary ml-1">↑</span>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-black text-white/40 mb-1">Faltam R$ {(15000 - stats.monthlyRevenue).toFixed(0)}</span>
+                      </div>
+                      
+                      <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5 backdrop-blur-md">
+                        <div 
+                          className="h-full bg-primary rounded-full transition-all duration-1000 relative" 
+                          style={{ width: `${Math.min((stats.monthlyRevenue / 15000) * 100, 100)}%` }}
+                        >
+                          <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button variant="outline" className="w-full bg-white/5 border-white/10 text-white hover:bg-white hover:text-black font-black uppercase tracking-widest text-[9px] h-12 rounded-xl transition-all duration-500">
+                      Ver Relatório Completo
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <DashboardCard 
+                title="Receita / Mês" 
+                value={`R$ ${stats.monthlyRevenue.toFixed(2)}`} 
+                description="faturamento consolidado" 
+                icon={DollarSign} 
+              />
+              <DashboardCard 
+                title="Pendentes" 
+                value={stats.pendingAppointments} 
+                description="agendamentos a confirmar" 
+                icon={Clock} 
+              />
+              <DashboardCard 
+                title="Confirmados" 
+                value={stats.confirmedAppointments} 
+                description="agendamentos confirmados" 
+                icon={CheckCircle2} 
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Performance Tab */}
+        {activeTab === 'performance' && (
+          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card className="border border-border/40 shadow-xl bg-white/20 dark:bg-slate-900/20 backdrop-blur-xl rounded-3xl overflow-hidden">
+                <CardHeader className="pb-6 border-b border-border/20">
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <TrendingUp size={16} className="text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground">Performance</CardTitle>
+                      <CardDescription className="text-xs font-bold text-muted-foreground">Serviços mais procurados</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-8">
+                  <div className="space-y-8">
+                    {topServices.length > 0 ? (
+                      topServices.map((service) => (
+                        <div key={service.name} className="space-y-3">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-black tracking-tight text-foreground/80">{service.name}</span>
+                            <div className="flex items-center gap-1.5 font-black uppercase text-[10px]">
+                              <span className="text-primary">{service.count}</span>
+                              <span className="text-muted-foreground/40 tracking-widest">Exec</span>
+                            </div>
+                          </div>
+                          <div className="h-2 w-full bg-muted/40 rounded-full overflow-hidden p-px">
+                            <div 
+                              className="h-full bg-linear-to-r from-primary to-pink-400 rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(236,72,153,0.3)]" 
+                              style={{ width: `${service.percent}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-10">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Aguardando dados...</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-6">
+                <DashboardCard 
+                  title="Produtividade" 
+                  value={`${stats.completionRate}%`} 
+                  description="taxa de finalização" 
+                  icon={CheckCircle2} 
+                />
+                <DashboardCard 
+                  title="Total de Clientes" 
+                  value={stats.totalClients} 
+                  description="clientes ativos" 
+                  icon={Users} 
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );
