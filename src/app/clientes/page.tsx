@@ -23,6 +23,12 @@ import { Client } from "@/types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
@@ -41,6 +47,7 @@ export default function ClientesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState("active");
 
   const loadClients = useCallback(async () => {
     try {
@@ -60,14 +67,23 @@ export default function ClientesPage() {
   }, [loadClients]);
 
   const filteredClientsList = useMemo(() => {
-    if (!searchQuery.trim()) return clients;
+    let list = clients;
     
-    return clients.filter(client =>
+    // Filtro de status
+    if (statusFilter === "active") {
+      list = list.filter(c => c.isActive !== false);
+    } else if (statusFilter === "inactive") {
+      list = list.filter(c => c.isActive === false);
+    }
+
+    if (!searchQuery.trim()) return list;
+    
+    return list.filter(client =>
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (client.phone && client.phone.toLowerCase().includes(searchQuery.toLowerCase()))
     );
-  }, [clients, searchQuery]);
+  }, [clients, searchQuery, statusFilter]);
 
   const handleEdit = (client: Client) => {
     setEditingClient(client);
@@ -83,6 +99,21 @@ export default function ClientesPage() {
       await loadClients();
     } catch (error) {
       toast.error("Erro ao desativar cliente.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleHardDelete = async (id: string) => {
+    if (!confirm("⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL. Tem certeza que deseja excluir PERMANENTEMENTE este cliente do sistema?")) return;
+    setActionLoading(id);
+    try {
+      await clientService.hardDelete(id);
+      toast.success("Cliente removido permanentemente.");
+      await loadClients();
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao excluir cliente permanentemente.");
     } finally {
       setActionLoading(null);
     }
@@ -136,12 +167,34 @@ export default function ClientesPage() {
       </PageHeader>
 
       <div className="space-y-6">
-        {/* Search and Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        {/* Search and Tabs */}
+        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+          <Tabs 
+            defaultValue="active" 
+            value={statusFilter} 
+            onValueChange={setStatusFilter}
+            className="w-full md:w-auto"
+          >
+            <TabsList className="grid w-full grid-cols-2 lg:w-[400px] h-12 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-white/5 p-1 rounded-2xl">
+              <TabsTrigger 
+                value="active" 
+                className="rounded-xl data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-bold"
+              >
+                Ativos ({clients.filter(c => c.isActive !== false).length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="inactive" 
+                className="rounded-xl data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-bold"
+              >
+                Inativos ({clients.filter(c => c.isActive === false).length})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <Input
-              placeholder="Buscar clientes por nome, email ou telefone..."
+              placeholder="Buscar por nome, email ou telefone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 h-12 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all font-medium"
@@ -165,8 +218,8 @@ export default function ClientesPage() {
               <CardTitle className="text-base font-medium">Clientes Ativos</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{clients.length}</div>
-              <p className="text-xs text-muted-foreground">Todos ativos</p>
+              <div className="text-2xl font-bold">{clients.filter(c => c.isActive !== false).length}</div>
+              <p className="text-xs text-muted-foreground">Em dia</p>
             </CardContent>
           </Card>
           <Card>
@@ -268,12 +321,32 @@ export default function ClientesPage() {
                               <Edit className="h-4 w-4 mr-2" />
                               Editar
                             </DropdownMenuItem>
+                            {client.isActive !== false ? (
+                              <DropdownMenuItem 
+                                className="text-amber-600 focus:text-amber-600" 
+                                onClick={() => client.id && handleDeactivate(client.id)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Desativar
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem 
+                                className="text-green-600 focus:text-green-600" 
+                                onClick={() => client.id && clientService.update(client.id, { isActive: true }).then(() => {
+                                  toast.success("Cliente reativado.");
+                                  loadClients();
+                                })}
+                              >
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Reativar
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem 
-                              className="text-red-600 focus:text-red-600" 
-                              onClick={() => client.id && handleDeactivate(client.id)}
+                              className="text-red-600 focus:text-red-600 font-bold" 
+                              onClick={() => client.id && handleHardDelete(client.id)}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              Desativar
+                              Excluir Permanentemente
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

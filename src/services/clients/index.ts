@@ -108,5 +108,13 @@ export const clientService = {
       isActive: false,
       updatedAt: Timestamp.now(),
     });
+  },
+
+  /**
+   * Exclui permanentemente um cliente do Firestore
+   */
+  async hardDelete(id: string): Promise<void> {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    await deleteDoc(docRef);
   }
 };
