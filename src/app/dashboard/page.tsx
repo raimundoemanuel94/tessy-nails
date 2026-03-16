@@ -208,7 +208,9 @@ export default function DashboardPage() {
               date: format(aptDate, 'dd/MM', { locale: ptBR }),
               fullDate: format(aptDate, "dd 'de' MMMM", { locale: ptBR }),
               status: apt.status,
-              price: servicePrice
+              price: servicePrice,
+              isToday: isToday(aptDate),
+              appointmentDate: aptDate
             };
           });
         
@@ -421,7 +423,9 @@ export default function DashboardPage() {
                           <div className="bg-primary p-8 flex flex-col items-center justify-center text-primary-foreground sm:min-w-[180px] relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-12 -mt-12" />
                              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-black/5 rounded-full blur-3xl" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 mb-1">Agora às</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 mb-1">
+                              {recentAppointments[0].isToday ? 'Agora às' : recentAppointments[0].date}
+                            </span>
                             <span className="text-5xl font-black tracking-tighter drop-shadow-sm">{recentAppointments[0].time}</span>
                           </div>
                           <div className="p-8 flex-1 flex flex-col justify-center relative">
