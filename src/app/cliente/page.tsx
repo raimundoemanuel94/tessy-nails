@@ -86,81 +86,91 @@ export default function ClientePage() {
   const nextStatus = nextAppointment ? (statusConfig[nextAppointment.status] || statusConfig.pending) : null;
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-linear-to-b from-violet-50 via-white to-fuchsia-50/30 pb-24">
+    <div className="relative min-h-screen overflow-x-hidden bg-linear-to-br from-violet-100 via-fuchsia-50 to-white pb-24">
+      {/* Decorative background elements */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-300/20 blur-3xl" />
+        <div className="absolute top-60 -left-40 h-80 w-80 rounded-full bg-fuchsia-300/20 blur-3xl" />
+      </div>
+
       {/* SECTION 1 — Greeting */}
-      <header className="bg-white border-b border-violet-100/50 px-5 py-6">
-        <div className="flex items-center justify-between">
+      <header className="relative bg-linear-to-br from-violet-600 via-fuchsia-600 to-violet-700 px-5 pt-8 pb-20">
+        <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              Bem-vindo de volta, {firstName}
+            <p className="text-violet-100 text-sm font-medium mb-1">Olá 👋</p>
+            <h1 className="text-3xl font-black text-white">
+              {firstName}
             </h1>
-            <p className="mt-0.5 text-sm text-slate-500">Seu painel de agendamentos</p>
           </div>
           <button
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-100 text-violet-600 transition hover:bg-violet-200"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm text-white transition hover:bg-white/30 ring-2 ring-white/30"
             onClick={() => router.push("/cliente/perfil")}
             aria-label="Ir para perfil"
           >
             <UserIcon size={20} />
           </button>
         </div>
-      </header>
-
-      <main className="space-y-6 px-5 py-6">
-        {/* SECTION 2 — Main Booking Button */}
-        <section>
+        
+        {/* Main CTA Card - Floating */}
+        <div className="relative -mb-8">
           <Button
-            className="h-16 w-full rounded-2xl bg-linear-to-r from-fuchsia-600 via-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-300/40 transition-all hover:shadow-xl hover:shadow-violet-400/50 active:scale-[0.98]"
+            className="h-20 w-full rounded-3xl bg-white text-violet-700 shadow-2xl shadow-violet-900/30 transition-all hover:shadow-2xl hover:shadow-violet-900/40 active:scale-[0.98] border-0"
             onClick={() => router.push("/cliente/agendar")}
           >
-            <span className="flex items-center gap-2.5 text-base font-bold">
-              <Plus size={20} strokeWidth={2.5} />
-              + Agendar novo horário
+            <span className="flex items-center gap-3 text-lg font-black">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-fuchsia-500 to-violet-600">
+                <Plus size={24} strokeWidth={3} className="text-white" />
+              </div>
+              Agendar novo horário
             </span>
           </Button>
-        </section>
+        </div>
+      </header>
+
+      <main className="relative space-y-5 px-5 pt-12">
 
         {/* SECTION 3 — Next Appointment Card */}
         <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-900">Próximo agendamento</h2>
-            <button
-              onClick={() => router.push("/cliente/agendamentos")}
-              className="text-sm font-semibold text-violet-600 hover:text-violet-700"
-            >
-              Ver todos
-            </button>
-          </div>
+          <h2 className="text-base font-bold text-slate-800 px-1">Próximo agendamento</h2>
 
           {nextAppointment ? (
-            <Card className="overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-md">
-              <CardContent className="space-y-4 p-5">
-                <div className="flex items-start justify-between gap-3">
+            <Card className="overflow-hidden rounded-3xl border-0 bg-linear-to-br from-violet-500 to-fuchsia-600 shadow-xl shadow-violet-500/30">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between gap-3 mb-4">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Serviço</p>
-                    <h3 className="mt-1 text-xl font-bold text-slate-900">{nextAppointment.service.name}</h3>
+                    <p className="text-xs font-bold uppercase tracking-wider text-violet-100 mb-1">Serviço</p>
+                    <h3 className="text-2xl font-black text-white">{nextAppointment.service.name}</h3>
                   </div>
-                  <Badge variant="outline" className={nextStatus?.className}>
+                  <Badge variant="outline" className="bg-white/20 backdrop-blur-sm border-white/30 text-white font-bold">
                     {nextStatus?.label}
                   </Badge>
                 </div>
 
-                <div className="flex items-center gap-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <Calendar size={16} className="text-violet-600" />
-                    <span className="font-medium">
-                      {format(nextAppointment.date, "dd MMM", { locale: ptBR })} — {nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}
-                    </span>
+                <div className="flex items-center gap-4 rounded-2xl bg-white/10 backdrop-blur-sm p-4 mb-4">
+                  <div className="flex items-center gap-2 text-white">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
+                      <Calendar size={16} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-violet-100">Data</p>
+                      <p className="text-sm font-bold">
+                        {format(nextAppointment.date, "dd MMM", { locale: ptBR })} • {nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock size={16} className="text-violet-600" />
-                    <span className="font-medium">{nextAppointment.service.durationMinutes} min</span>
+                  <div className="flex items-center gap-2 text-white">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
+                      <Clock size={16} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-violet-100">Duração</p>
+                      <p className="text-sm font-bold">{nextAppointment.service.durationMinutes} min</p>
+                    </div>
                   </div>
                 </div>
 
                 <Button
-                  variant="outline"
-                  className="h-11 w-full rounded-xl border-violet-200 font-semibold text-violet-700 hover:bg-violet-50"
+                  className="h-12 w-full rounded-2xl bg-white text-violet-700 font-bold hover:bg-violet-50 border-0 shadow-lg"
                   onClick={() => router.push("/cliente/agendamentos")}
                 >
                   Ver detalhes
@@ -168,20 +178,20 @@ export default function ClientePage() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="rounded-2xl border border-dashed border-violet-200 bg-white">
-              <CardContent className="space-y-4 p-8 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
-                  <Calendar size={28} />
+            <Card className="rounded-3xl border-0 bg-white shadow-lg shadow-slate-200/50">
+              <CardContent className="space-y-5 p-8 text-center">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-linear-to-br from-violet-100 to-fuchsia-100 text-violet-600">
+                  <Calendar size={32} strokeWidth={2} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">Você ainda não possui agendamentos futuros.</p>
-                  <p className="mt-1 text-xs text-slate-500">Reserve seu horário agora mesmo</p>
+                  <p className="text-base font-bold text-slate-800">Nenhum agendamento futuro</p>
+                  <p className="mt-1.5 text-sm text-slate-500">Reserve seu horário e aproveite nossos serviços</p>
                 </div>
                 <Button
-                  className="h-12 w-full rounded-xl bg-linear-to-r from-fuchsia-600 to-violet-600 font-semibold text-white hover:brightness-110"
+                  className="h-14 w-full rounded-2xl bg-linear-to-r from-fuchsia-600 to-violet-600 font-bold text-white shadow-lg shadow-violet-400/30 hover:shadow-xl hover:shadow-violet-400/40 border-0"
                   onClick={() => router.push("/cliente/agendar")}
                 >
-                  Agendar horário
+                  Agendar agora
                 </Button>
               </CardContent>
             </Card>
@@ -190,69 +200,77 @@ export default function ClientePage() {
 
         {/* SECTION 4 — Quick Actions */}
         <section className="space-y-3">
-          <h2 className="text-lg font-bold text-slate-900">Acesso rápido</h2>
+          <h2 className="text-base font-bold text-slate-800 px-1">Acesso rápido</h2>
           <div className="grid grid-cols-3 gap-3">
             <button
               onClick={() => router.push("/cliente/agendamentos")}
-              className="flex flex-col items-center gap-2 rounded-2xl border border-violet-100 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-violet-200"
+              className="group flex flex-col items-center gap-3 rounded-3xl bg-white p-5 shadow-lg shadow-slate-200/50 transition-all hover:shadow-xl hover:shadow-violet-300/30 active:scale-95"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                <Calendar size={20} />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 to-violet-600 text-white shadow-md shadow-violet-400/30 group-hover:scale-110 transition-transform">
+                <Calendar size={24} strokeWidth={2.5} />
               </div>
-              <span className="text-xs font-semibold text-slate-700">Minha Agenda</span>
+              <span className="text-xs font-bold text-slate-700">Minha Agenda</span>
             </button>
             <button
               onClick={() => router.push("/cliente/servicos")}
-              className="flex flex-col items-center gap-2 rounded-2xl border border-violet-100 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-violet-200"
+              className="group flex flex-col items-center gap-3 rounded-3xl bg-white p-5 shadow-lg shadow-slate-200/50 transition-all hover:shadow-xl hover:shadow-fuchsia-300/30 active:scale-95"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                <Sparkles size={20} />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-fuchsia-500 to-fuchsia-600 text-white shadow-md shadow-fuchsia-400/30 group-hover:scale-110 transition-transform">
+                <Sparkles size={24} strokeWidth={2.5} />
               </div>
-              <span className="text-xs font-semibold text-slate-700">Serviços</span>
+              <span className="text-xs font-bold text-slate-700">Serviços</span>
             </button>
             <button
               onClick={() => router.push("/cliente/agendamentos")}
-              className="flex flex-col items-center gap-2 rounded-2xl border border-violet-100 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-violet-200"
+              className="group flex flex-col items-center gap-3 rounded-3xl bg-white p-5 shadow-lg shadow-slate-200/50 transition-all hover:shadow-xl hover:shadow-indigo-300/30 active:scale-95"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                <History size={20} />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-400/30 group-hover:scale-110 transition-transform">
+                <History size={24} strokeWidth={2.5} />
               </div>
-              <span className="text-xs font-semibold text-slate-700">Histórico</span>
+              <span className="text-xs font-bold text-slate-700">Histórico</span>
             </button>
           </div>
         </section>
 
         {/* SECTION 5 — Popular Services */}
         <section className="space-y-3 pb-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-900">Serviços populares</h2>
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-base font-bold text-slate-800">Serviços populares</h2>
             <button
               onClick={() => router.push("/cliente/servicos")}
-              className="text-sm font-semibold text-violet-600 hover:text-violet-700"
+              className="text-sm font-bold text-violet-600 hover:text-violet-700 flex items-center gap-1"
             >
-              Ver mais
+              Ver todos
+              <ChevronRight size={16} />
             </button>
           </div>
 
           <div className="grid gap-3">
-            {services.slice(0, 3).map((service) => (
-              <button
-                key={service.id}
-                className="group flex items-center justify-between rounded-2xl border border-violet-100 bg-white p-4 text-left shadow-sm transition-all hover:shadow-md hover:border-violet-200"
-                onClick={() => router.push(`/cliente/servicos?id=${service.id}`)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-fuchsia-500 to-violet-600 text-white shadow-sm">
-                    <Gem size={18} />
+            {services.slice(0, 3).map((service, index) => {
+              const gradients = [
+                "from-violet-500 to-purple-600",
+                "from-fuchsia-500 to-pink-600",
+                "from-indigo-500 to-blue-600"
+              ];
+              return (
+                <button
+                  key={service.id}
+                  className="group flex items-center justify-between rounded-3xl bg-white p-5 text-left shadow-lg shadow-slate-200/50 transition-all hover:shadow-xl hover:shadow-violet-300/30 active:scale-[0.98]"
+                  onClick={() => router.push(`/cliente/servicos?id=${service.id}`)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br ${gradients[index % 3]} text-white shadow-md group-hover:scale-110 transition-transform`}>
+                      <Sparkles size={24} strokeWidth={2.5} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-base mb-1">{service.name}</h4>
+                      <p className="text-lg font-black text-violet-600">R$ {service.price.toFixed(2)}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-slate-900">{service.name}</h4>
-                    <p className="text-sm font-medium text-violet-600">R$ {service.price.toFixed(2)}</p>
-                  </div>
-                </div>
-                <ChevronRight size={18} className="text-slate-300 transition group-hover:text-violet-600" />
-              </button>
-            ))}
+                  <ChevronRight size={20} className="text-slate-300 transition group-hover:text-violet-600 group-hover:translate-x-1" strokeWidth={2.5} />
+                </button>
+              );
+            })}
           </div>
         </section>
       </main>
