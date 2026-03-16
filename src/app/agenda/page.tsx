@@ -15,8 +15,18 @@ import {
   CheckCircle2,
   Clock3,
   AlertCircle,
-  CalendarDays
+  CalendarDays,
+  MoreVertical,
+  CalendarX2,
+  Trash2,
+  Loader2
 } from "lucide-react";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -51,6 +61,7 @@ export default function AgendaPage() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
@@ -61,7 +72,7 @@ export default function AgendaPage() {
       const [apps, clients, services] = await Promise.all([
         appointmentService.getByDateRange(start, end),
         clientService.getAll(),
-        salonService.getAll()
+        salonService.getAllWithInactive() // Buscar todos para garantir que agendamentos antigos mostrem o nome
       ]);
 
       const enrichedApps = apps.map(app => ({
@@ -98,6 +109,59 @@ export default function AgendaPage() {
     prev.setDate(prev.getDate() - 1);
     return prev;
   });
+
+  const handleConfirmar = async (id: string) => {
+    setActionLoading(id);
+    try {
+      await appointmentService.confirm(id);
+      toast.success("Agendamento confirmado.");
+      await fetchAppointments();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erro ao confirmar.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleConcluir = async (id: string) => {
+    setActionLoading(id);
+    try {
+      await appointmentService.complete(id);
+      toast.success("Atendimento concluído com sucesso!");
+      await fetchAppointments();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erro ao concluir atendimento.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleFalta = async (id: string) => {
+    setActionLoading(id);
+    try {
+      await appointmentService.noShow(id);
+      toast.success("Falta registrada.");
+      await fetchAppointments();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erro ao registrar falta.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleCancelar = async (id: string) => {
+    if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
+    setActionLoading(id);
+    try {
+      await appointmentService.cancel(id);
+      toast.success("Agendamento cancelado.");
+      await fetchAppointments();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erro ao cancelar.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   return (
     <AdminLayout>
@@ -236,12 +300,14 @@ export default function AgendaPage() {
                     <div 
                       key={app.id} 
                       className="group flex items-center gap-4 p-5 hover:bg-slate-50/80 transition-all cursor-pointer border-l-4 border-l-transparent hover:border-l-violet-500"
-                      onClick={() => {
-                        setEditingAppointment(app);
-                        setIsDialogOpen(true);
-                      }}
                     >
-                      <div className="flex flex-col items-center justify-center min-w-[70px] py-2 bg-slate-50 rounded-xl border border-slate-100 group-hover:border-violet-100 group-hover:bg-violet-50/50 transition-all">
+                      <div 
+                        className="flex flex-col items-center justify-center min-w-[70px] py-2 bg-slate-50 rounded-xl border border-slate-100 group-hover:border-violet-100 group-hover:bg-violet-50/50 transition-all"
+                        onClick={() => {
+                          setEditingAppointment(app);
+                          setIsDialogOpen(true);
+                        }}
+                      >
                         <span className="text-sm font-bold text-slate-900 group-hover:text-violet-600 transition-colors">
                           {format(ensureDate(app.appointmentDate), "HH:mm")}
                         </span>
@@ -250,7 +316,13 @@ export default function AgendaPage() {
                         </span>
                       </div>
                       
-                      <div className="flex-1 min-w-0">
+                      <div 
+                        className="flex-1 min-w-0"
+                        onClick={() => {
+                          setEditingAppointment(app);
+                          setIsDialogOpen(true);
+                        }}
+                      >
                         <div className="flex items-center justify-between mb-1.5">
                           <h4 className="font-bold text-slate-900 truncate group-hover:text-violet-600 transition-colors pr-2">
                             {app.client?.name || "Cliente não encontrada"}
@@ -264,11 +336,13 @@ export default function AgendaPage() {
                             app.status === "confirmed" && "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100",
                             app.status === "pending" && "bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-100",
                             app.status === "completed" && "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100",
-                            app.status === "cancelled" && "bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-100"
+                            app.status === "cancelled" && "bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-100",
+                            app.status === "no_show" && "bg-red-50 text-red-700 hover:bg-red-100 border-red-100"
                           )}>
                             {app.status === "confirmed" ? "Confirmado" : 
                              app.status === "pending" ? "Pendente" : 
-                             app.status === "completed" ? "Concluído" : "Cancelado"}
+                             app.status === "completed" ? "Concluído" : 
+                             app.status === "no_show" ? "Não Compareceu" : "Cancelado"}
                           </Badge>
                         </div>
                         
@@ -287,6 +361,66 @@ export default function AgendaPage() {
                             </>
                           )}
                         </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white border border-transparent hover:border-slate-200 transition-all shadow-sm group-hover:bg-white" disabled={actionLoading === app.id}>
+                                {actionLoading === app.id ? (
+                                  <Loader2 size={18} className="animate-spin text-violet-600" />
+                                ) : (
+                                  <MoreVertical size={18} className="text-slate-400 group-hover:text-violet-600 transition-colors" />
+                                )}
+                              </Button>
+                            }
+                          />
+                          <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-slate-200 shadow-2xl">
+                            <DropdownMenuItem
+                              className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 hover:text-violet-600 transition-all"
+                              disabled={app.status !== "pending"}
+                              onClick={() => handleConfirmar(app.id!)}
+                            >
+                              <CheckCircle2 size={16} className="mr-2" /> Confirmar
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuItem
+                              className="p-3 cursor-pointer rounded-xl font-bold text-emerald-600 hover:bg-emerald-50 transition-all"
+                              disabled={app.status === "completed" || app.status === "cancelled"}
+                              onClick={() => handleConcluir(app.id!)}
+                            >
+                              <CheckCircle2 size={16} className="mr-2" /> Concluir
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 hover:text-violet-600 transition-all"
+                              disabled={app.status === "completed" || app.status === "cancelled"}
+                              onClick={() => {
+                                setEditingAppointment(app);
+                                setIsDialogOpen(true);
+                              }}
+                            >
+                              <Clock size={16} className="mr-2" /> Editar
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuItem
+                              className="p-3 cursor-pointer rounded-xl font-bold text-amber-600 hover:bg-amber-50 transition-all"
+                              disabled={app.status === "completed" || app.status === "cancelled" || app.status === "no_show"}
+                              onClick={() => handleFalta(app.id!)}
+                            >
+                              <CalendarX2 size={16} className="mr-2" /> Marcar Falta
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              className="p-3 cursor-pointer rounded-xl font-black text-purple-600 hover:bg-purple-50 transition-all"
+                              onClick={() => handleCancelar(app.id!)}
+                              disabled={app.status === "cancelled"}
+                            >
+                              <CalendarX2 size={16} className="mr-2" /> Cancelar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   ))}

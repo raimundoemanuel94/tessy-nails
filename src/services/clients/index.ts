@@ -22,18 +22,25 @@ export const clientService = {
    * Lista todas as clientes ordenadas por nome
    */
   async getAll(): Promise<Client[]> {
-    const q = query(collection(db, COLLECTION_NAME), orderBy("name"));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt ? new Date(data.createdAt) : new Date()),
-        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt ? new Date(data.updatedAt) : undefined),
-        lastVisit: data.lastVisit?.toDate ? data.lastVisit.toDate() : (data.lastVisit ? new Date(data.lastVisit) : undefined),
-      };
-    }) as Client[];
+    try {
+      // ✅ Buscar todos e ordenar no client side para evitar problemas de índice
+      const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+      const clients = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt ? new Date(data.createdAt) : new Date()),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt ? new Date(data.updatedAt) : undefined),
+          lastVisit: data.lastVisit?.toDate ? data.lastVisit.toDate() : (data.lastVisit ? new Date(data.lastVisit) : undefined),
+        };
+      }) as Client[];
+      
+      return clients.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    } catch (error) {
+      console.error("❌ Erro ao buscar clientes:", error);
+      return [];
+    }
   },
 
   /**

@@ -83,20 +83,22 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
   useEffect(() => {
     async function loadData() {
       try {
+        setFetching(true);
         const [loadedClients, loadedServices] = await Promise.all([
           clientService.getAll(),
-          salonService.getAll()
+          appointment ? salonService.getAllWithInactive() : salonService.getAll()
         ]);
-        setClients(loadedClients);
-        setServices(loadedServices);
+        setClients(loadedClients || []);
+        setServices(loadedServices || []);
       } catch (error) {
+        console.error("Erro ao carregar dados do formulário:", error);
         toast.error("Erro ao carregar dados do formulário");
       } finally {
         setFetching(false);
       }
     }
     loadData();
-  }, []);
+  }, [appointment]);
 
   async function onSubmit(data: any) {
     setLoading(true);
@@ -148,18 +150,24 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
           render={({ field }) => (
             <FormItem>
               <FormLabel>Cliente</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50/50">
                     <SelectValue placeholder="Selecione uma cliente" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id!}>
-                      {client.name}
+                  {clients.length > 0 ? (
+                    clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id!}>
+                        {client.name || `ID: ${client.id.slice(0, 8)}`}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      Nenhuma cliente cadastrada
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -174,18 +182,24 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
           render={({ field }) => (
             <FormItem>
               <FormLabel>Serviço</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50/50">
                     <SelectValue placeholder="Selecione um serviço" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {services.map((service) => (
-                    <SelectItem key={service.id} value={service.id!}>
-                      {service.name} - R$ {service.price}
+                  {services.length > 0 ? (
+                    services.map((service) => (
+                      <SelectItem key={service.id} value={service.id!}>
+                        {(service.name || "Sem Nome") + " - R$ " + (service.price?.toFixed(2) || "0.00")}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      Nenhum serviço disponível
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -257,6 +271,58 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
                         {time}
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Status */}
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status do Agendamento</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50/50">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="confirmed">Confirmado</SelectItem>
+                    <SelectItem value="completed">Concluído</SelectItem>
+                    <SelectItem value="no_show">Não Compareceu</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Pagamento */}
+          <FormField
+            control={form.control}
+            name="paymentStatus"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status de Pagamento</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50/50">
+                      <SelectValue placeholder="Pagamento" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="unpaid">Não Pago</SelectItem>
+                    <SelectItem value="deposit_paid">Sinal Pago</SelectItem>
+                    <SelectItem value="fully_paid">Totalmente Pago</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

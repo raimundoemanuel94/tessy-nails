@@ -31,8 +31,8 @@ export const salonService = {
     })) as Service[];
     // ✅ Filtrar apenas serviços ativos e ordenar no client side
     return allServices
-      .filter(service => service.isActive)
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .filter(service => service.isActive !== false)
+      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   },
 
   /**

@@ -121,19 +121,23 @@ export default function DashboardPage() {
         }
 
         // Calcular estatísticas
-        const todayApps = appointments.filter(apt => isToday(ensureDate(apt.appointmentDate)));
+        const todayApps = appointments.filter(apt => 
+          isToday(ensureDate(apt.appointmentDate)) && 
+          (apt.status === 'pending' || apt.status === 'confirmed')
+        );
         const pendingApps = filteredAppointments.filter(apt => apt.status === 'pending');
         const confirmedApps = filteredAppointments.filter(apt => apt.status === 'confirmed');
         const completedApps = appointments.filter(apt => apt.status === 'completed');
-        const completionRate = appointments.length > 0 
-          ? (completedApps.length / appointments.length) * 100 
-          : 0;
-
-        // Calcular receita real
+        
+        // Calcular receita real baseada apenas em concluídos
         const monthlyRevenue = completedApps.reduce((total, apt) => {
           const service = services.find(s => s.id === apt.serviceId);
           return total + (service?.price || 0);
         }, 0);
+
+        const completionRate = appointments.length > 0 
+          ? (completedApps.length / appointments.length) * 100 
+          : 0;
 
         setStats({
           totalClients: clients.length,
@@ -144,9 +148,12 @@ export default function DashboardPage() {
           completionRate: Math.round(completionRate)
         });
 
-        // Agendamentos recentes com dados reais
+        // Agendamentos recentes (Próximos atendimentos) com dados reais
         const recent = filteredAppointments
-          .filter(apt => !isPast(ensureDate(apt.appointmentDate)) || isToday(ensureDate(apt.appointmentDate)))
+          .filter(apt => 
+            (apt.status === 'pending' || apt.status === 'confirmed') &&
+            (!isPast(ensureDate(apt.appointmentDate)) || isToday(ensureDate(apt.appointmentDate)))
+          )
           .slice(0, 8)
           .map(apt => {
             // Buscar nome real do cliente

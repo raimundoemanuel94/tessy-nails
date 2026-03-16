@@ -234,6 +234,7 @@ export const appointmentService = {
     const docRef = doc(db, COLLECTION_NAME, id);
     await updateDoc(docRef, { 
       status: "cancelled",
+      cancelledAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     });
   },
@@ -256,6 +257,18 @@ export const appointmentService = {
     const docRef = doc(db, COLLECTION_NAME, id);
     await updateDoc(docRef, { 
       status: "completed",
+      completedAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    });
+  },
+
+  /**
+   * Marca um agendamento como falta (não compareceu)
+   */
+  async noShow(id: string): Promise<void> {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    await updateDoc(docRef, { 
+      status: "no_show",
       updatedAt: Timestamp.now(),
     });
   },

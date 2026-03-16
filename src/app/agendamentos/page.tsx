@@ -10,7 +10,7 @@ import { Appointment, Client, Service } from "@/types";
 
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Search, Plus, CalendarIcon, Clock, MoreHorizontal, User, Scissors, Loader2, UserPlus } from "lucide-react";
+import { Search, Plus, CalendarIcon, Clock, MoreHorizontal, User, Scissors, Loader2, UserPlus, Trash2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -96,7 +96,7 @@ export default function AgendamentosPage() {
       }
 
       try {
-        servicesData = await salonService.getAll();
+        servicesData = await salonService.getAllWithInactive(); // Buscar todos para garantir nomes em registros antigos
       } catch (e) {
         console.error("❌ Erro ao buscar SERVICES:", e);
       }
@@ -164,6 +164,32 @@ export default function AgendamentosPage() {
       await loadData();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao confirmar.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleConcluir = async (id: string) => {
+    setActionLoading(id);
+    try {
+      await appointmentService.complete(id);
+      toast.success("Atendimento concluído com sucesso!");
+      await loadData();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erro ao concluir atendimento.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleFalta = async (id: string) => {
+    setActionLoading(id);
+    try {
+      await appointmentService.noShow(id);
+      toast.success("Falta registrada.");
+      await loadData();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erro ao registrar falta.");
     } finally {
       setActionLoading(null);
     }
@@ -330,11 +356,13 @@ export default function AgendamentosPage() {
                         app.status === "confirmed" && "bg-blue-100/50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-900/30",
                         app.status === "pending" && "bg-amber-100/50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-900/30",
                         app.status === "completed" && "bg-emerald-100/50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-900/30",
-                        app.status === "cancelled" && "bg-purple-100/50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-900/30"
+                        app.status === "cancelled" && "bg-purple-100/50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-900/30",
+                        app.status === "no_show" && "bg-red-100/50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-900/30"
                       )}>
                         {app.status === "confirmed" ? "Confirmado" : 
                          app.status === "pending" ? "Pendente" : 
-                         app.status === "completed" ? "Concluído" : "Cancelado"}
+                         app.status === "completed" ? "Concluído" : 
+                         app.status === "no_show" ? "Não Compareceu" : "Cancelado"}
                       </Badge>
                     </TableCell>
                     <TableCell className="px-6 py-4 text-right">
@@ -353,33 +381,52 @@ export default function AgendamentosPage() {
                             </Button>
                           }
                         />
-                        <DropdownMenuContent align="end" className="w-48 p-2 rounded-2xl border-slate-200/60 dark:border-white/5 shadow-2xl">
+                        <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-slate-200/60 dark:border-white/5 shadow-2xl">
                           <DropdownMenuItem
                             className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:text-violet-600 transition-all"
-                            disabled={app.status === "confirmed" || app.status === "completed" || app.status === "cancelled"}
+                            disabled={app.status !== "pending"}
                             onClick={() => handleConfirmar(app.id)}
                           >
-                            Confirmar
+                            <CheckCircle2 size={16} className="mr-2" /> Confirmar Agendamento
                           </DropdownMenuItem>
+                          
+                          <DropdownMenuItem
+                            className="p-3 cursor-pointer rounded-xl font-bold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all"
+                            disabled={app.status === "completed" || app.status === "cancelled"}
+                            onClick={() => handleConcluir(app.id)}
+                          >
+                            <CheckCircle2 size={16} className="mr-2" /> Concluir Atendimento
+                          </DropdownMenuItem>
+
                           <DropdownMenuItem
                             className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:text-violet-600 transition-all"
                             disabled={app.status === "completed" || app.status === "cancelled"}
                             onClick={() => openRemarcar(app)}
                           >
-                            Remarcar / Editar
+                            <Clock size={16} className="mr-2" /> Remarcar / Editar
                           </DropdownMenuItem>
+                          
+                          <DropdownMenuItem
+                            className="p-3 cursor-pointer rounded-xl font-bold text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all"
+                            disabled={app.status === "completed" || app.status === "cancelled" || app.status === "no_show"}
+                            onClick={() => handleFalta(app.id)}
+                          >
+                            <CalendarX2 size={16} className="mr-2" /> Marcar Falta (Não Compareceu)
+                          </DropdownMenuItem>
+
                           <DropdownMenuItem
                             className="p-3 cursor-pointer rounded-xl font-black text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
                             onClick={() => handleCancelar(app.id)}
                             disabled={app.status === "cancelled"}
                           >
-                            Cancelar
+                            <CalendarX2 size={16} className="mr-2" /> Cancelar Agendamento
                           </DropdownMenuItem>
+                          
                           <DropdownMenuItem
                             className="p-3 cursor-pointer rounded-xl font-black text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
                             onClick={() => handleExcluir(app.id)}
                           >
-                            Excluir Registro
+                            <Trash2 size={16} className="mr-2" /> Excluir Registro
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

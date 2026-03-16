@@ -48,7 +48,7 @@ export const ServiceSchema = z.object({
 export type Service = z.infer<typeof ServiceSchema>;
 
 // Appointment Schema & Type
-export const AppointmentStatusEnum = z.enum(['pending', 'confirmed', 'completed', 'cancelled']);
+export const AppointmentStatusEnum = z.enum(['pending', 'confirmed', 'completed', 'cancelled', 'no_show']);
 export const PaymentStatusEnum = z.enum(['unpaid', 'deposit_paid', 'fully_paid']);
 
 export const AppointmentSchema = z.object({
@@ -62,6 +62,8 @@ export const AppointmentSchema = z.object({
   notes: z.string().nullable().optional(), // ✅ Aceita null ou undefined
   createdAt: z.date().optional(), // ✅ Opcional - gerado pelo serviço
   updatedAt: z.date().optional(),
+  completedAt: z.date().optional(),
+  cancelledAt: z.date().optional(),
 });
 
 export type Appointment = z.infer<typeof AppointmentSchema>;
