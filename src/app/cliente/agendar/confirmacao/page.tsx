@@ -93,7 +93,12 @@ export default function ConfirmacaoPage() {
     }
 
     // ✅ Validar data do agendamento
-    if (!appointmentData.date || appointmentData.date < new Date()) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Zerar horas para comparar apenas a data
+    const appointmentDate = new Date(appointmentData.date);
+    appointmentDate.setHours(0, 0, 0, 0);
+    
+    if (!appointmentData.date || appointmentDate < today) {
       setError('Data do agendamento inválida. Selecione uma data futura.');
       return;
     }
