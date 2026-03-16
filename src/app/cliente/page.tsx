@@ -24,6 +24,7 @@ import { format, isFuture, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Service } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { getGreeting } from "@/lib/utils";
 
 export default function ClientePage() {
   const { user, loading } = useAuth();
@@ -97,7 +98,7 @@ export default function ClientePage() {
       <header className="relative bg-linear-to-br from-violet-600 via-fuchsia-600 to-violet-700 px-5 pt-8 pb-20">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <p className="text-violet-100 text-sm font-medium mb-1">Olá 👋</p>
+            <p className="text-violet-100 text-sm font-medium mb-1">{getGreeting()} 👋</p>
             <h1 className="text-3xl font-black text-white">
               {firstName}
             </h1>

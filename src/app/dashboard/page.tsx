@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { cn } from "@/lib/utils";
+import { cn, getGreeting } from "@/lib/utils";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DashboardCard } from "@/components/shared/DashboardCard";
@@ -280,7 +280,7 @@ export default function DashboardPage() {
     <AdminLayout>
       <div className="max-w-[1400px] mx-auto space-y-10 pb-20">
         <PageHeader 
-          title={`Bom dia, ${dashboardDisplayName}`} 
+          title={`${getGreeting()}, ${dashboardDisplayName}`} 
           description="Prepare-se para um dia incrível de transformações!" 
           metadata={
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">

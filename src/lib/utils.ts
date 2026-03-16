@@ -15,3 +15,25 @@ export function ensureDate(date: any): Date {
   const parsed = new Date(date);
   return isNaN(parsed.getTime()) ? new Date() : parsed;
 }
+
+// Timezone de Sorriso-MT (America/Cuiaba - UTC-4)
+export const SALON_TIMEZONE = 'America/Cuiaba';
+
+// Obter hora atual no timezone do salão
+export function getSalonTime(): Date {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: SALON_TIMEZONE }));
+}
+
+// Saudação dinâmica baseada no horário
+export function getGreeting(): string {
+  const now = getSalonTime();
+  const hour = now.getHours();
+  
+  if (hour >= 5 && hour < 12) {
+    return 'Bom dia';
+  } else if (hour >= 12 && hour < 18) {
+    return 'Boa tarde';
+  } else {
+    return 'Boa noite';
+  }
+}
