@@ -2,6 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
+import { useState } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { 
@@ -12,7 +13,11 @@ import {
   Store, 
   Shield, 
   Moon, 
-  Sun 
+  Sun,
+  Check,
+  Mail,
+  MessageSquare,
+  Calendar as CalendarIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -30,9 +35,29 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "next-themes";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+
+const accentColors = [
+  { name: 'Violeta', value: 'violet', class: 'bg-violet-500' },
+  { name: 'Roxo', value: 'purple', class: 'bg-purple-500' },
+  { name: 'Índigo', value: 'indigo', class: 'bg-indigo-500' },
+  { name: 'Rosa', value: 'pink', class: 'bg-pink-500' },
+  { name: 'Azul', value: 'blue', class: 'bg-blue-500' },
+  { name: 'Verde', value: 'green', class: 'bg-green-500' }
+];
 
 export default function ConfiguracoesPage() {
   const { theme, setTheme } = useTheme();
+  const [selectedColor, setSelectedColor] = useState('violet');
+  const [notifications, setNotifications] = useState({
+    email: true,
+    push: true,
+    sms: false,
+    newAppointment: true,
+    appointmentReminder: true,
+    appointmentCancellation: true,
+    paymentReceived: true
+  });
 
   return (
     <AdminLayout>
@@ -123,6 +148,126 @@ export default function ConfiguracoesPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="notificacoes">
+          <Card>
+            <CardHeader>
+              <CardTitle>Preferências de Notificação</CardTitle>
+              <CardDescription>Escolha como e quando deseja receber notificações.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Canais de Notificação */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-sm">Canais de Comunicação</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Mail size={18} className="text-primary" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <Label className="font-medium">Email</Label>
+                        <p className="text-sm text-muted-foreground">Receber notificações por email</p>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={notifications.email}
+                      onCheckedChange={(checked) => setNotifications({...notifications, email: checked})}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Bell size={18} className="text-primary" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <Label className="font-medium">Push (Navegador)</Label>
+                        <p className="text-sm text-muted-foreground">Notificações no navegador</p>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={notifications.push}
+                      onCheckedChange={(checked) => setNotifications({...notifications, push: checked})}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <MessageSquare size={18} className="text-primary" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <Label className="font-medium">SMS</Label>
+                        <p className="text-sm text-muted-foreground">Mensagens de texto (em breve)</p>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={notifications.sms}
+                      onCheckedChange={(checked) => setNotifications({...notifications, sms: checked})}
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Tipos de Notificação */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-sm">Eventos para Notificar</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label className="font-medium text-sm">Novo Agendamento</Label>
+                      <p className="text-xs text-muted-foreground">Quando um cliente fizer um novo agendamento</p>
+                    </div>
+                    <Switch 
+                      checked={notifications.newAppointment}
+                      onCheckedChange={(checked) => setNotifications({...notifications, newAppointment: checked})}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label className="font-medium text-sm">Lembrete de Agendamento</Label>
+                      <p className="text-xs text-muted-foreground">1 hora antes do horário marcado</p>
+                    </div>
+                    <Switch 
+                      checked={notifications.appointmentReminder}
+                      onCheckedChange={(checked) => setNotifications({...notifications, appointmentReminder: checked})}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label className="font-medium text-sm">Cancelamento</Label>
+                      <p className="text-xs text-muted-foreground">Quando um agendamento for cancelado</p>
+                    </div>
+                    <Switch 
+                      checked={notifications.appointmentCancellation}
+                      onCheckedChange={(checked) => setNotifications({...notifications, appointmentCancellation: checked})}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label className="font-medium text-sm">Pagamento Recebido</Label>
+                      <p className="text-xs text-muted-foreground">Confirmação de pagamentos</p>
+                    </div>
+                    <Switch 
+                      checked={notifications.paymentReceived}
+                      onCheckedChange={(checked) => setNotifications({...notifications, paymentReceived: checked})}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="border-t pt-4">
+              <Button>Salvar Preferências</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="aparencia">
           <Card>
             <CardHeader>
@@ -145,16 +290,30 @@ export default function ConfiguracoesPage() {
                 </div>
               </div>
               <Separator />
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label>Cor de Destaque</Label>
-                <div className="flex gap-2 pt-2">
-                  {["bg-violet-500", "bg-purple-500", "bg-indigo-500", "bg-purple-500"].map((color) => (
-                    <div 
-                      key={color} 
-                      className={`h-8 w-8 rounded-full cursor-pointer border-2 border-transparent hover:border-slate-400 ${color}`}
-                    />
+                <p className="text-sm text-muted-foreground">Escolha a cor principal do sistema.</p>
+                <div className="flex flex-wrap gap-3 pt-2">
+                  {accentColors.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => setSelectedColor(color.value)}
+                      className={cn(
+                        "relative h-10 w-10 rounded-full cursor-pointer transition-all hover:scale-110",
+                        color.class,
+                        selectedColor === color.value && "ring-2 ring-offset-2 ring-primary"
+                      )}
+                      title={color.name}
+                    >
+                      {selectedColor === color.value && (
+                        <Check className="absolute inset-0 m-auto text-white" size={20} strokeWidth={3} />
+                      )}
+                    </button>
                   ))}
                 </div>
+                <p className="text-xs text-muted-foreground pt-2">
+                  Cor selecionada: <span className="font-bold">{accentColors.find(c => c.value === selectedColor)?.name}</span>
+                </p>
               </div>
             </CardContent>
           </Card>
