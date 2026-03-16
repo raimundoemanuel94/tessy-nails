@@ -6,9 +6,7 @@ service cloud.firestore {
       return request.auth != null && (
         request.auth.token.role in ['admin', 'professional'] ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'professional']) ||
-        // Fallback temporário para desenvolvimento
-        true
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'professional'])
       );
     }
 
@@ -20,7 +18,12 @@ service cloud.firestore {
     
     // ✅ Regras para clientes
     match /clients/{clientId} {
-      allow read, write: if request.auth != null && (request.auth.uid == clientId || isStaff());
+      // Leitura: O próprio ou staff
+      allow read: if request.auth != null && (request.auth.uid == clientId || isStaff());
+      // Criação: Próprio (ID coincide) ou staff (qualquer ID, ex: addDoc)
+      allow create: if request.auth != null && (request.auth.uid == clientId || isStaff());
+      // Update/Delete: Próprio ou staff
+      allow update, delete: if request.auth != null && (request.auth.uid == clientId || isStaff());
     }
     
     // ✅ Regras para serviços
@@ -31,33 +34,36 @@ service cloud.firestore {
     
     // ✅ Regras para agendamentos
     match /appointments/{appointmentId} {
-      // Leitura: O próprio cliente ou staff
-      allow read: if request.auth != null && (request.auth.uid == resource.data.clientId || isStaff());
+      // Leitura: O próprio cliente indicado no dado ou staff
+      allow read: if request.auth != null && (
+        (resource != null && request.auth.uid == resource.data.clientId) || isStaff()
+      );
       
-      // Escrita: O próprio cliente (apenas criação) ou staff (total)
-      allow create: if request.auth != null && (request.auth.uid == request.resource.data.clientId || isStaff());
-      allow update, delete: if isStaff();
+      // Criação: O próprio cliente ou staff
+      allow create: if request.auth != null && (
+        request.auth.uid == request.resource.data.clientId || isStaff()
+      );
+      
+      // Update/Delete: staff ou o próprio cliente (se for cancelamento, mas staff tem prioridade)
+      allow update, delete: if isStaff() || (
+        resource != null && request.auth.uid == resource.data.clientId
+      );
     }
     
-    // ✅ Regras para vendas (futuro)
+    // ✅ Regras para vendas
     match /sales/{saleId} {
-      allow read, write: if 
-        request.auth != null && 
-        request.auth.token.role in ['admin', 'professional'];
+      allow read, write: if isStaff();
     }
     
-    // ✅ Regras para relatórios (futuro)
+    // ✅ Regras para relatórios
     match /reports/{reportId} {
-      allow read, write: if 
-        request.auth != null && 
-        request.auth.token.role in ['admin', 'professional'];
+      allow read, write: if isStaff();
     }
     
-    // ✅ Regras para configuração do salão (futuro)
+    // ✅ Regras para configuração do salão
     match /salonConfig/{configId} {
-      allow read, write: if 
-        request.auth != null && 
-        request.auth.token.role in ['admin', 'professional'];
+      allow read: if true;
+      allow write: if isStaff();
     }
   }
 }

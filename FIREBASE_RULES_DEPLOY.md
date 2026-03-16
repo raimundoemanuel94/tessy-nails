@@ -14,88 +14,61 @@ Copy the content from `firestore.rules` file:
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // ✅ Função auxiliar para verificar se é Admin ou Profissional
+    function isStaff() {
+      return request.auth != null && (
+        request.auth.token.role in ['admin', 'professional'] ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'professional'])
+      );
+    }
+
     // ✅ Regras para usuários (admin/profissional)
     match /users/{userId} {
-      allow read, write: if 
-        request.auth != null && 
-        request.auth.uid == userId;
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (request.auth.uid == userId || isStaff());
     }
     
-    // ✅ Regras para clientes - acesso controlado
+    // ✅ Regras para clientes
     match /clients/{clientId} {
-      // ✅ Cliente pode ler/alterar próprio perfil
-      allow read, write: if 
-        request.auth != null && 
-        request.auth.uid == clientId;
-      
-      // ✅ Admin/profissional pode ler todos os clientes (com fallback)
-      allow read: if 
-        request.auth != null && (
-          request.auth.token.role in ['admin', 'professional'] ||
-          // ⚠️ Fallback temporário: qualquer autenticado pode ler (MVP)
-          true
-        );
+      allow read: if request.auth != null && (request.auth.uid == clientId || isStaff());
+      allow create: if request.auth != null && (request.auth.uid == clientId || isStaff());
+      allow update, delete: if request.auth != null && (request.auth.uid == clientId || isStaff());
     }
     
-    // ✅ Regras para serviços - leitura pública, escrita autenticada
+    // ✅ Regras para serviços
     match /services/{serviceId} {
-      allow read: if true; // ✅ Público pode ler (landing page)
-      allow write: if 
-        request.auth != null && (
-          request.auth.token.role in ['admin', 'professional'] ||
-          // ⚠️ Fallback temporário: qualquer autenticado pode escrever (MVP)
-          true
-        );
+      allow read: if true;
+      allow write: if isStaff();
     }
     
-    // ✅ Regras para agendamentos - acesso controlado
+    // ✅ Regras para agendamentos
     match /appointments/{appointmentId} {
-      // ✅ Cliente pode ler seus próprios agendamentos
-      allow read: if 
-        request.auth != null && 
-        request.auth.uid == resource.data.clientId;
-      
-      // ✅ Admin/profissional pode ler todos os agendamentos
-      allow read: if 
-        request.auth != null && (
-          request.auth.token.role in ['admin', 'professional'] ||
-          // ⚠️ Fallback temporário: qualquer autenticado pode ler (MVP)
-          true
-        );
-      
-      // ✅ Cliente pode criar seus próprios agendamentos
-      allow create: if 
-        request.auth != null && 
-        request.auth.uid == request.resource.data.clientId;
-      
-      // ✅ Admin/profissional pode atualizar qualquer agendamento (com fallback)
-      allow update: if 
-        request.auth != null && (
-          request.auth.token.role in ['admin', 'professional'] ||
-          // ⚠️ Fallback temporário: qualquer autenticado pode atualizar (MVP)
-          true
-        );
+      allow read: if request.auth != null && (
+        (resource != null && request.auth.uid == resource.data.clientId) || isStaff()
+      );
+      allow create: if request.auth != null && (
+        request.auth.uid == request.resource.data.clientId || isStaff()
+      );
+      allow update, delete: if isStaff() || (
+        resource != null && request.auth.uid == resource.data.clientId
+      );
     }
     
-    // ✅ Regras para vendas (futuro)
+    // ✅ Regras para vendas
     match /sales/{saleId} {
-      allow read, write: if 
-        request.auth != null && 
-        request.auth.token.role in ['admin', 'professional'];
+      allow read, write: if isStaff();
     }
     
-    // ✅ Regras para relatórios (futuro)
+    // ✅ Regras para relatórios
     match /reports/{reportId} {
-      allow read, write: if 
-        request.auth != null && 
-        request.auth.token.role in ['admin', 'professional'];
+      allow read, write: if isStaff();
     }
     
-    // ✅ Regras para configuração do salão (futuro)
+    // ✅ Regras para configuração do salão
     match /salonConfig/{configId} {
-      allow read, write: if 
-        request.auth != null && 
-        request.auth.token.role in ['admin', 'professional'];
+      allow read: if true;
+      allow write: if isStaff();
     }
   }
 }
