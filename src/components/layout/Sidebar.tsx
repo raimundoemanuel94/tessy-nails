@@ -39,7 +39,7 @@ const systemItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { signOut } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <aside className={cn(

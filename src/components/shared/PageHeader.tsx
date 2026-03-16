@@ -2,9 +2,10 @@ interface PageHeaderProps {
   title: string;
   description?: string;
   children?: React.ReactNode;
+  metadata?: React.ReactNode;
 }
 
-export function PageHeader({ title, description, children }: PageHeaderProps) {
+export function PageHeader({ title, description, children, metadata }: PageHeaderProps) {
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between mb-8 pb-8 border-b border-slate-200/60 dark:border-white/5 relative">
       <div className="space-y-1.5 self-start">
@@ -16,6 +17,7 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
             {description}
           </p>
         )}
+        {metadata && <div className="mt-2">{metadata}</div>}
       </div>
       <div className="flex items-center gap-3 shrink-0">
         {children}
@@ -23,6 +25,5 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
       {/* Subtle accent underline */}
       <div className="absolute bottom-0 left-0 w-24 h-1 bg-linear-to-r from-violet-500 to-purple-600 rounded-t-full" />
     </div>
-
   );
 }

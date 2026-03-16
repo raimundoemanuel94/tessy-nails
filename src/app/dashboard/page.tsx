@@ -64,6 +64,7 @@ export default function DashboardPage() {
   });
   const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
   const [topServices, setTopServices] = useState<any[]>([]);
+  const [revenueData, setRevenueData] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('today');
 
@@ -171,6 +172,8 @@ export default function DashboardPage() {
               price: servicePrice
             };
           });
+        
+        setRecentAppointments(recent);
 
         // Serviços mais procurados com dados reais
         const serviceStats = services.map(service => {
@@ -185,6 +188,35 @@ export default function DashboardPage() {
         }).filter(stat => stat.count > 0).slice(0, 4);
 
         setTopServices(serviceStats);
+
+        // Preparar dados de receita para o gráfico
+        const revenue = filteredAppointments
+          .filter(apt => apt.status === 'completed')
+          .reduce((acc: any[], apt) => {
+            const dateStr = format(ensureDate(apt.appointmentDate), 'dd/MM');
+            const service = services.find(s => s.id === apt.serviceId);
+            const price = service?.price || 0;
+            
+            const existing = acc.find(item => item.date === dateStr);
+            if (existing) {
+              existing.Revenue += price;
+            } else {
+              acc.push({ date: dateStr, Revenue: price });
+            }
+            return acc;
+          }, [])
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .slice(-7);
+
+        setRevenueData(revenue.length > 0 ? revenue : [
+          { date: '10/03', Revenue: 400 },
+          { date: '11/03', Revenue: 300 },
+          { date: '12/03', Revenue: 600 },
+          { date: '13/03', Revenue: 800 },
+          { date: '14/03', Revenue: 500 },
+          { date: '15/03', Revenue: 900 },
+          { date: '16/03', Revenue: 750 },
+        ]);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
       } finally {
@@ -207,302 +239,324 @@ export default function DashboardPage() {
 
   return (
     <AdminLayout>
-      {/* Header do workspace com contexto e ações */}
-      <PageHeader 
-        title="Central de Operações" 
-        description="Visão geral do salão com métricas em tempo real e ações rápidas."
-      >
-        <div className="flex items-center gap-3">
-          {/* Filtro de período */}
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
-            {(['today', 'week', 'month'] as const).map((period) => (
-              <Button
-                key={period}
-                variant={selectedPeriod === period ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setSelectedPeriod(period)}
-                className="h-8 px-3 text-xs font-medium"
-              >
-                {period === 'today' ? 'Hoje' : period === 'week' ? 'Semana' : 'Mês'}
-              </Button>
-            ))}
-          </div>
-          
-          {/* Ações rápidas */}
-          <Button 
-            onClick={() => router.push('/agenda')}
-            className="bg-violet-600 hover:bg-violet-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Agendamento
-          </Button>
-          <Button 
-            variant="outline"
-            onClick={() => router.push('/clientes')}
-          >
-            <UserPlus className="h-4 w-4 mr-2" />
-            Novo Cliente
-          </Button>
-        </div>
-      </PageHeader>
-
-      {/* Zona 1 - Cards de resumo com contexto */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <DashboardCard 
-          title="Total de Clientes" 
-          value={stats.totalClients.toString()} 
-          description="clientes ativos" 
-          icon={Users}
-          trend={{
-            value: 12,
-            isUp: true
-          }}
-        />
-        <DashboardCard 
-          title="Agendamentos Hoje" 
-          value={stats.todayAppointments.toString()} 
-          description="hoje" 
-          icon={Calendar}
-          trend={{
-            value: 8,
-            isUp: true
-          }}
-        />
-        <DashboardCard 
-          title="Pendentes" 
-          value={stats.pendingAppointments.toString()} 
-          description="aguardando confirmação" 
-          icon={Clock}
-          trend={{
-            value: 5,
-            isUp: false
-          }}
-        />
-        <DashboardCard 
-          title="Receita Mensal" 
-          value={`R$ ${stats.monthlyRevenue.toFixed(2)}`} 
-          description="este mês" 
-          icon={DollarSign}
-          trend={{
-            value: 15,
-            isUp: true
-          }}
-        />
-      </div>
-
-      {/* Zona 2 - Grid principal: Operação (esquerda) + Insights (direita) */}
-      <div className="grid gap-6 lg:grid-cols-7">
-        {/* Coluna esquerda - Operação do dia */}
-        <Card className="col-span-full lg:col-span-4 border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none overflow-hidden rounded-3xl">
-          <CardHeader className="px-6 py-5 border-b border-slate-100 dark:border-white/5">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                  <CalendarDays className="h-5 w-5 text-violet-600" />
-                  Agenda do Dia
-                </CardTitle>
-                <CardDescription className="mt-1 text-xs text-slate-400 dark:text-slate-500">
-                  {selectedPeriod === 'today' ? 'Compromissos de hoje' : 
-                   selectedPeriod === 'week' ? 'Compromissos da semana' : 
-                   'Compromissos do mês'}
-                </CardDescription>
+      <div className="max-w-[1400px] mx-auto space-y-10 pb-20">
+        <PageHeader 
+          title={`Bom dia, ${user?.name?.split(' ')[0] || 'Tessy'}`} 
+          description="Prepare-se para um dia incrível de transformações!" 
+          metadata={
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-primary bg-primary/5 px-4 py-2 rounded-full border border-primary/10 w-fit backdrop-blur-sm">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span>Hoje: <span className="text-foreground">{stats.todayAppointments} agendamentos</span></span>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge className="bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 border border-blue-100/70 dark:border-blue-500/25 px-2.5 py-1 text-[11px] font-semibold rounded-full">
-                  {stats.confirmedAppointments} confirmados
-                </Badge>
-                <Badge className="bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300 border border-amber-100/70 dark:border-amber-500/25 px-2.5 py-1 text-[11px] font-semibold rounded-full">
-                  {stats.pendingAppointments} pendentes
-                </Badge>
+              
+              <div className="flex items-center gap-1 bg-muted/30 backdrop-blur-sm rounded-xl p-1 border border-border/20">
+                {(['today', 'week', 'month'] as const).map((period) => (
+                  <Button
+                    key={period}
+                    variant={selectedPeriod === period ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setSelectedPeriod(period)}
+                    className={cn(
+                      "h-8 px-4 text-[10px] font-black uppercase tracking-widest transition-all duration-300 rounded-lg",
+                      selectedPeriod === period ? "shadow-lg shadow-primary/20" : "text-muted-foreground/60 hover:text-primary"
+                    )}
+                  >
+                    {period === 'today' ? 'Hoje' : period === 'week' ? 'Semana' : 'Mês'}
+                  </Button>
+                ))}
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader className="bg-slate-50/60 dark:bg-white/5">
-                <TableRow className="hover:bg-transparent border-slate-100 dark:border-white/5">
-                  <TableHead className="px-6 py-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Cliente
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Serviço
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Horário
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Status
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-right text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    Ações
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentAppointments.length > 0 ? (
-                  recentAppointments.map((appointment) => (
-                    <TableRow
-                      key={appointment.id}
-                      className="group border-slate-100 dark:border-white/5 transition-colors hover:bg-slate-50/80 dark:hover:bg-white/5"
-                    >
-                      <TableCell className="px-6 py-4 align-middle">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-sm font-semibold text-slate-900 dark:text-slate-50 truncate">
-                            {appointment.client}
-                          </span>
-                          <span className="text-xs text-slate-500 dark:text-slate-400">
-                            {appointment.date}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-4 align-middle">
-                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
-                          <Star className="h-3 w-3 text-violet-600" />
-                          <span className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight">
-                            {appointment.service}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-4 align-middle">
-                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
-                          <Clock className="h-3 w-3 text-violet-600" />
-                          <span className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight tabular-nums">
-                            {appointment.time}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-4 align-middle">
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "px-2.5 py-0.5 rounded-full text-[11px] font-semibold capitalize tracking-tight border-transparent",
-                            appointment.status === "confirmed" &&
-                              "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
-                            appointment.status === "pending" &&
-                              "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
-                            appointment.status === "completed" &&
-                              "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
-                          )}
-                        >
-                          {appointment.status === "confirmed"
-                            ? "Confirmado"
-                            : appointment.status === "pending"
-                            ? "Pendente"
-                            : "Concluído"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-right align-middle">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-slate-400 hover:text-violet-600"
-                            onClick={() => router.push(`/agenda?view=${appointment.id}`)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="py-20">
-                      <EmptyState
-                        icon={CalendarX2}
-                        title={`Nenhum agendamento ${selectedPeriod === 'today' ? 'hoje' : selectedPeriod === 'week' ? 'esta semana' : 'este mês'}`}
-                        description="Você não tem compromissos agendados para este período."
-                        className="py-10"
-                      />
-                    </TableCell>
-                  </TableRow>
+          }
+        >
+          <div className="hidden xl:flex items-center gap-3">
+             <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/clientes')}
+              className="rounded-xl border-border/40 font-bold text-[10px] uppercase tracking-widest h-10 px-4"
+            >
+              <Users size={14} className="mr-2" /> Clientes
+            </Button>
+            <Button 
+              size="sm"
+              onClick={() => router.push('/agenda')}
+              className="rounded-xl font-bold text-[10px] uppercase tracking-widest h-10 px-4 shadow-lg shadow-primary/10"
+            >
+              <Plus size={14} className="mr-2" /> Novo
+            </Button>
+          </div>
+        </PageHeader>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <DashboardCard 
+            title="Total de Clientes" 
+            value={stats.totalClients} 
+            description="clientes ativos" 
+            icon={Users} 
+          />
+          <DashboardCard 
+            title="Hoje" 
+            value={stats.todayAppointments} 
+            description="agendamentos" 
+            icon={Calendar} 
+          />
+          <DashboardCard 
+            title="Receita / Mês" 
+            value={`R$ ${stats.monthlyRevenue.toFixed(2)}`} 
+            description="faturamento consolidado" 
+            icon={DollarSign} 
+          />
+          <DashboardCard 
+            title="Produtividade" 
+            value={`${stats.completionRate}%`} 
+            description="taxa de finalização" 
+            icon={CheckCircle2} 
+          />
+        </div>
+
+        <div className="grid gap-10 lg:grid-cols-12">
+          {/* Main Operational View */}
+          <div className="lg:col-span-8 space-y-10">
+            
+            {/* Live Agenda Panel */}
+            <section className="space-y-6">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <Clock size={18} className="text-primary" />
+                  <h2 className="text-sm font-black uppercase tracking-[0.2em] text-foreground/80">Próximos atendimentos</h2>
+                </div>
+                {recentAppointments.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-primary font-black uppercase tracking-widest text-[10px] hover:bg-primary/5 group h-8" 
+                    onClick={() => router.push('/agenda')}
+                  >
+                    Ver Agenda Completa <TrendingUp size={12} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
                 )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+              </div>
+              
+              {recentAppointments.length > 0 ? (
+                <div className="space-y-10">
+                  {/* Focus Card (Primeiro agendamento) */}
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <Card className="border border-border/40 shadow-2xl shadow-primary/5 bg-gradient-to-br from-white via-white to-primary/5 dark:from-slate-900 dark:via-slate-900 dark:to-primary/5 overflow-hidden group transition-all duration-500 hover:shadow-primary/10">
+                      <CardContent className="p-0">
+                        <div className="flex flex-col sm:flex-row">
+                          <div className="bg-primary p-8 flex flex-col items-center justify-center text-primary-foreground sm:min-w-[180px] relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-12 -mt-12" />
+                             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-black/5 rounded-full blur-3xl" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 mb-1">Agora às</span>
+                            <span className="text-5xl font-black tracking-tighter drop-shadow-sm">{recentAppointments[0].time}</span>
+                          </div>
+                          <div className="p-8 flex-1 flex flex-col justify-center relative">
+                            <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
+                              <div className="space-y-1">
+                                <h3 className="text-3xl font-black tracking-tighter text-foreground group-hover:text-primary transition-colors duration-500">{recentAppointments[0].client}</h3>
+                                <div className="flex items-center gap-2">
+                                  <Badge className="bg-primary/10 text-primary border-none text-[10px] uppercase font-black tracking-widest px-2 py-0.5">
+                                    {recentAppointments[0].service}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <Badge variant="outline" className="border-primary/20 text-primary text-[10px] uppercase font-black tracking-widest py-1 px-3 bg-primary/5 animate-pulse rounded-full">
+                                Próximo Atendimento
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-6 text-[11px] text-muted-foreground font-bold uppercase tracking-wider">
+                              <div className="flex items-center gap-2 bg-muted/30 px-3 py-1.5 rounded-lg">
+                                <DollarSign size={14} className="text-primary" />
+                                {recentAppointments[0].price}
+                              </div>
+                              <div className="flex items-center gap-2 bg-muted/30 px-3 py-1.5 rounded-lg">
+                                <Clock size={14} className="text-primary" />
+                                {recentAppointments[0].date}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
 
-        {/* Coluna direita - Insights rápidos */}
-        <div className="col-span-full lg:col-span-3 space-y-6">
-          {/* Card de Serviços mais vendidos */}
-          <Card className="border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-6 rounded-3xl overflow-hidden relative">
-            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl" />
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-violet-600" />
-                Serviços Mais Vendidos
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-400 dark:text-slate-500">
-                Mais procurados no período
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ServicesDonut 
-                data={topServices.length > 0 ? topServices.map(s => ({ name: s.name, value: s.percent })) : [
-                  { name: "Manicure", value: 45 },
-                  { name: "Pedicure", value: 30 },
-                  { name: "Gel", value: 25 },
-                ]} 
-              />
-            </CardContent>
-          </Card>
+                  {/* Rest of the Timeline */}
+                  {recentAppointments.length > 1 && (
+                    <div className="space-y-4">
+                       <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/50 px-2">Sequência do dia</h4>
+                       <Card className="border border-border/40 shadow-xl bg-white/30 dark:bg-slate-900/30 backdrop-blur-xl overflow-hidden rounded-3xl">
+                        <CardContent className="p-0">
+                          <div className="divide-y divide-border/30">
+                            {recentAppointments.slice(1).map((apt, index) => (
+                              <div key={apt.id} className="group relative flex gap-8 p-6 hover:bg-primary/2 transition-all duration-500">
+                                {/* Timeline Line */}
+                                <div className="absolute left-[40px] top-0 bottom-0 w-0.5 bg-border/40 group-first:top-1/2 group-last:bottom-1/2" />
+                                
+                                {/* Timeline Point */}
+                                <div className="relative z-10 w-4 h-4 rounded-full mt-2 bg-muted border-4 border-white dark:border-slate-950 transition-all duration-500 group-hover:bg-primary/40 group-hover:scale-110" />
 
-          {/* Card de Receita */}
-          <Card className="border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none p-6 rounded-3xl overflow-hidden relative">
-            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-violet-500/5 rounded-full blur-3xl" />
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-violet-600" />
-                Tendência de Receita
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-400 dark:text-slate-500">
-                Últimos 6 meses
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <RevenueChart 
-                data={[
-                  { date: "Out", Revenue: 2100 },
-                  { date: "Nov", Revenue: 2800 },
-                  { date: "Dez", Revenue: 3500 },
-                  { date: "Jan", Revenue: 2900 },
-                  { date: "Fev", Revenue: 3800 },
-                  { date: "Mar", Revenue: stats.monthlyRevenue || 4200 },
-                ]} 
-              />
-            </CardContent>
-          </Card>
+                                <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                                  <div className="space-y-1.5">
+                                    <div className="flex items-center gap-4">
+                                      <span className="text-xl font-black tracking-tighter tabular-nums">{apt.time}</span>
+                                      <Badge 
+                                        variant="secondary" 
+                                        className={cn(
+                                          "rounded-full text-[9px] uppercase font-black tracking-[0.15em] px-3 py-0.5 border-none",
+                                          apt.status === "completed" ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/10 text-primary"
+                                        )}
+                                      >
+                                        {apt.status === "confirmed" ? "Confirmado" : 
+                                         apt.status === "pending" ? "Pendente" : 
+                                         apt.status === "completed" ? "Finalizado" : apt.status}
+                                      </Badge>
+                                    </div>
+                                    <div>
+                                      <h4 className="font-black text-base tracking-tight group-hover:text-primary transition-colors duration-500">{apt.client}</h4>
+                                      <p className="text-[10px] text-muted-foreground/70 font-bold uppercase tracking-wide">{apt.service}</p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-4">
+                                    <span className="text-xs font-black tabular-nums text-muted-foreground/50 bg-muted/30 px-3 py-1 rounded-full group-hover:bg-primary/5 group-hover:text-primary/70 transition-all">{apt.price}</span>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-xl border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground font-black text-[9px] uppercase tracking-widest px-3 h-8"
+                                      onClick={() => router.push(`/agendamentos`)}
+                                    >
+                                      Detalhes
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Card className="border-dashed border-2 border-border/60 bg-muted/10 rounded-3xl">
+                  <CardContent className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-muted/20 flex items-center justify-center">
+                      <Calendar className="text-muted-foreground/30" size={32} />
+                    </div>
+                    <div>
+                      <p className="font-black text-muted-foreground/40 uppercase tracking-widest text-xs">Agenda livre por hoje</p>
+                      <p className="text-sm text-muted-foreground/30 mt-1">Capture novas oportunidades e comece a agendar agora mesmo.</p>
+                    </div>
+                    <Button 
+                      onClick={() => router.push('/agendamentos')}
+                      className="rounded-full px-8 py-6 h-auto font-black uppercase tracking-widest text-[11px] shadow-lg shadow-primary/20"
+                    >
+                       + Criar agendamento
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </section>
+          </div>
+
+          {/* Right Column: Analysis */}
+          <div className="lg:col-span-4 space-y-10">
+            {/* New Charts Integration */}
+            <div className="grid gap-10">
+              <Card className="border border-border/40 shadow-xl bg-white/20 dark:bg-slate-900/20 backdrop-blur-xl rounded-3xl overflow-hidden p-6">
+                <CardHeader className="p-0 mb-6">
+                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">Fluxo de Receita</CardTitle>
+                </CardHeader>
+                <div className="h-[200px]">
+                  <RevenueChart data={revenueData} />
+                </div>
+              </Card>
+
+              <Card className="border border-border/40 shadow-xl bg-white/20 dark:bg-slate-900/20 backdrop-blur-xl rounded-3xl overflow-hidden">
+                <CardHeader className="pb-6 border-b border-border/20">
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <TrendingUp size={16} className="text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">Performance</CardTitle>
+                      <CardDescription className="text-xs font-bold text-foreground">Serviços mais procurados</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-8">
+                  <div className="space-y-8">
+                    {topServices.length > 0 ? (
+                      topServices.map((service) => (
+                        <div key={service.name} className="space-y-3">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-black tracking-tight text-foreground/80">{service.name}</span>
+                            <div className="flex items-center gap-1.5 font-black uppercase text-[10px]">
+                              <span className="text-primary">{service.count}</span>
+                              <span className="text-muted-foreground/40 tracking-widest">Exec</span>
+                            </div>
+                          </div>
+                          <div className="h-2 w-full bg-muted/40 rounded-full overflow-hidden p-px">
+                            <div 
+                              className="h-full bg-linear-to-r from-primary to-pink-400 rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(236,72,153,0.3)]" 
+                              style={{ width: `${service.percent}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-10">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Aguardando dados...</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Faturamento Goal Card */}
+            <Card className="border border-border/20 shadow-2xl bg-slate-900 dark:bg-black text-white rounded-3xl overflow-hidden group">
+              <CardContent className="p-8 relative">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-primary/20 rounded-full blur-[80px] -mr-10 -mt-10" />
+                <DollarSign className="absolute -right-6 -bottom-6 w-36 h-36 opacity-5 rotate-12 group-hover:scale-110 transition-transform duration-1000" />
+                
+                <div className="relative z-10 space-y-8">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">Objetivo Mensal</p>
+                    <h3 className="text-4xl font-black tracking-tighter">R$ 15.000</h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-end">
+                      <div className="space-y-0.5">
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Status atual</span>
+                        <div className="text-xl font-black tracking-tight">
+                        {Math.round((stats.monthlyRevenue / 15000) * 100)}% <span className="text-[10px] text-primary ml-1">↑</span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-black text-white/40 mb-1">Faltam R$ {(15000 - stats.monthlyRevenue).toFixed(0)}</span>
+                    </div>
+                    
+                    <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5 backdrop-blur-md">
+                      <div 
+                        className="h-full bg-primary rounded-full transition-all duration-1000 relative" 
+                        style={{ width: `${Math.min((stats.monthlyRevenue / 15000) * 100, 100)}%` }}
+                      >
+                        <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button variant="outline" className="w-full bg-white/5 border-white/10 text-white hover:bg-white hover:text-black font-black uppercase tracking-widest text-[9px] h-12 rounded-xl transition-all duration-500">
+                    Ver Relatório completo
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-
-      {/* Links rápidos para telas detalhadas */}
-      <div className="mt-8 flex items-center justify-center gap-4">
-        <Button 
-          variant="outline"
-          onClick={() => router.push('/agenda')}
-          className="flex items-center gap-2"
-        >
-          <Calendar className="h-4 w-4" />
-          Ver Agenda Completa
-        </Button>
-        <Button 
-          variant="outline"
-          onClick={() => router.push('/agendamentos')}
-          className="flex items-center gap-2"
-        >
-          <Eye className="h-4 w-4" />
-          Todos os Agendamentos
-        </Button>
-        <Button 
-          variant="outline"
-          onClick={() => router.push('/clientes')}
-          className="flex items-center gap-2"
-        >
-          <Users className="h-4 w-4" />
-          Gerenciar Clientes
-        </Button>
-      </div>
-
     </AdminLayout>
   );
 }

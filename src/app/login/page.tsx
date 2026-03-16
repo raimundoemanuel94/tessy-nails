@@ -115,10 +115,10 @@ function LoginPageContent() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="flex items-center gap-3"
           >
-            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 shadow-xl flex items-center justify-center">
-              <Scissors className="text-violet-600" size={24} />
+            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 shadow-xl flex items-center justify-center ring-1 ring-violet-500/10">
+              <Sparkles className="text-violet-600" size={24} />
             </div>
-            <span className="text-2xl font-black text-slate-900 dark:text-white tracking-widest uppercase italic">TESSY<span className="text-violet-600">NAILS</span></span>
+            <span className="text-2xl font-black text-slate-900 dark:text-white tracking-[0.2em] uppercase italic">TESSY<span className="text-violet-600">NAILS</span></span>
           </motion.div>
 
           <div className="max-w-md">
@@ -126,9 +126,9 @@ function LoginPageContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="text-6xl font-black text-slate-900 dark:text-white leading-[1.1] tracking-tighter mb-6"
+              className="text-5xl lg:text-7xl font-black text-slate-900 dark:text-white leading-[0.95] tracking-tighter mb-8"
             >
-              Elevando sua <span className="text-violet-600 italic">beleza</span>, um detalhe por vez.
+              Elevando sua <span className="bg-linear-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent italic">beleza</span>, um detalhe por vez.
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -174,16 +174,18 @@ function LoginPageContent() {
           transition={{ duration: 0.5 }}
           className="w-full max-w-md z-10"
         >
-          <div className="text-center mb-8 lg:hidden">
-             <Scissors className="mx-auto text-violet-600 mb-2" size={32} />
-             <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-widest uppercase italic">TESSYNAILS</h2>
+          <div className="text-center mb-10 lg:hidden flex flex-col items-center">
+             <div className="w-16 h-16 rounded-3xl bg-white dark:bg-slate-900 shadow-xl flex items-center justify-center mb-4 ring-1 ring-violet-500/10">
+               <Sparkles className="text-violet-600" size={32} />
+             </div>
+             <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-[0.2em] uppercase italic">TESSY<span className="text-violet-600">NAILS</span></h2>
           </div>
 
           <Card className="border-slate-200/60 dark:border-white/5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl shadow-2xl shadow-slate-200/50 dark:shadow-none rounded-[2.5rem] overflow-hidden">
             <CardHeader className="space-y-2 text-center pt-10 pb-6 px-8 relative overflow-hidden">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-linear-to-r from-transparent via-violet-500 to-transparent opacity-20" />
-              <CardTitle className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                {isRegisterMode ? "Bem-vinda!" : "Boas-vindas"}
+              <CardTitle className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">
+                {isRegisterMode ? "Bem-vinda" : "Boas-vindas"}
               </CardTitle>
               <CardDescription className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-4">
                 {isRegisterMode ? "Crie sua conta e comece sua jornada" : "Continue de onde parou"}
@@ -296,7 +298,7 @@ function LoginPageContent() {
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
-                  Google
+                  Entrar com Google
                 </Button>
               </CardFooter>
             </form>
@@ -321,7 +323,7 @@ export default function LoginPage() {
             transition={{ repeat: Infinity, duration: 2 }}
             className="w-20 h-20 rounded-3xl bg-violet-50 dark:bg-slate-900 shadow-2xl flex items-center justify-center border border-violet-100 dark:border-violet-900/30"
           >
-            <Scissors className="text-violet-600" size={40} />
+            <Sparkles className="text-violet-600" size={40} />
           </motion.div>
           <div className="space-y-2">
             <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-[0.3em] uppercase italic">TESSY<span className="text-violet-600">NAILS</span></h1>

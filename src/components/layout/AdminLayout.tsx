@@ -2,6 +2,7 @@
 
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { FloatingActionButton } from "../shared/FloatingActionButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
@@ -75,6 +76,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+      <FloatingActionButton />
     </div>
   );
 }

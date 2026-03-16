@@ -51,6 +51,5 @@ export function DashboardCard({ title, value, description, icon: Icon, trend, cl
         )}
       </CardContent>
     </Card>
-
   );
 }
