@@ -11,7 +11,9 @@ import {
   User as UserIcon, 
   Plus, 
   ChevronRight,
-  Loader2
+  Loader2,
+  Sparkles,
+  Gem
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -74,8 +76,8 @@ export default function ClientePage() {
 
   if (loading || dataLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
+      <div className="min-h-screen bg-linear-to-b from-[#f7f3ff] via-white to-[#fff4f8] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-fuchsia-600" />
       </div>
     );
   }
@@ -84,63 +86,85 @@ export default function ClientePage() {
   const nextStatus = nextAppointment ? (statusConfig[nextAppointment.status] || statusConfig.pending) : null;
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
-      <header className="bg-white px-5 pt-10 pb-5 border-b border-slate-100">
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-slate-500 text-sm font-medium">Dashboard de agendamentos</p>
-            <h1 className="text-2xl font-bold text-slate-900">Bem-vindo de volta, {firstName}</h1>
+    <div className="relative min-h-screen overflow-x-hidden bg-linear-to-b from-[#f7f3ff] via-[#fffefe] to-[#fff3f8] pb-24">
+      <div className="pointer-events-none absolute -top-24 -left-16 h-72 w-72 rounded-full bg-fuchsia-300/30 blur-3xl" />
+      <div className="pointer-events-none absolute top-28 -right-20 h-72 w-72 rounded-full bg-violet-300/25 blur-3xl" />
+
+      <header className="px-5 pt-8">
+        <div className="rounded-3xl border border-white/60 bg-white/85 p-5 shadow-xl shadow-fuchsia-100/50 backdrop-blur">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <p className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-fuchsia-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-fuchsia-700">
+                <Sparkles size={12} />
+                Boas-vindas
+              </p>
+              <h1 className="text-2xl font-extrabold leading-tight text-slate-900">
+                Bem-vindo de volta, {firstName}
+              </h1>
+              <p className="mt-1 text-sm text-slate-500">Seu painel premium de agendamentos</p>
+            </div>
+            <button
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-fuchsia-100 bg-linear-to-br from-fuchsia-100 to-violet-100 text-fuchsia-700 transition hover:scale-105"
+              onClick={() => router.push("/cliente/perfil")}
+              aria-label="Ir para perfil"
+            >
+              <UserIcon size={20} />
+            </button>
           </div>
-          <div 
-            className="h-11 w-11 rounded-2xl bg-violet-100 flex items-center justify-center text-violet-600 cursor-pointer"
-            onClick={() => router.push("/cliente/perfil")}
+
+          <Button
+            className="h-14 w-full rounded-2xl bg-linear-to-r from-fuchsia-600 via-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-300/50 transition hover:brightness-110"
+            onClick={() => router.push("/cliente/agendar")}
           >
-            <UserIcon size={20} />
-          </div>
+            <span className="flex items-center gap-2 text-base font-bold">
+              <Plus size={18} />
+              + Agendar novo horário
+            </span>
+          </Button>
         </div>
       </header>
 
-      <main className="p-5 space-y-5">
+      <main className="space-y-5 px-5 pt-5">
         <section className="space-y-3">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-900">Próximo agendamento</h2>
-            <button 
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-extrabold text-slate-900">Próximo agendamento</h2>
+            <button
               onClick={() => router.push("/cliente/agendamentos")}
-              className="text-violet-600 text-sm font-semibold"
+              className="text-sm font-semibold text-violet-700 hover:text-violet-800"
             >
               Ver todos
             </button>
           </div>
 
           {nextAppointment ? (
-            <Card className="border border-violet-100 shadow-sm bg-white rounded-3xl">
-              <CardContent className="p-5 space-y-4">
-                <div className="flex items-start justify-between gap-4">
+            <Card className="overflow-hidden rounded-3xl border border-white/60 bg-white/90 shadow-xl shadow-fuchsia-100/60">
+              <CardContent className="space-y-4 p-5">
+                <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Serviço</p>
-                    <h3 className="text-xl font-bold text-slate-900">{nextAppointment.service.name}</h3>
+                    <h3 className="mt-1 text-xl font-bold text-slate-900">{nextAppointment.service.name}</h3>
                   </div>
                   <Badge variant="outline" className={nextStatus?.className}>
                     {nextStatus?.label}
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-1 gap-2 text-sm text-slate-600 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-2 rounded-2xl bg-slate-50 p-3 text-sm text-slate-700 sm:grid-cols-2">
                   <div className="flex items-center gap-2">
-                    <Calendar size={16} className="text-violet-500" />
+                    <Calendar size={16} className="text-violet-600" />
                     <span>
                       {format(nextAppointment.date, "dd MMM", { locale: ptBR })} - {nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock size={16} className="text-violet-500" />
+                    <Clock size={16} className="text-violet-600" />
                     <span>{nextAppointment.service.durationMinutes} min</span>
                   </div>
                 </div>
 
                 <Button
                   variant="outline"
-                  className="w-full rounded-2xl border-violet-200 text-violet-700 hover:bg-violet-50 hover:text-violet-800"
+                  className="h-11 w-full rounded-2xl border-violet-200 font-semibold text-violet-700 hover:bg-violet-50"
                   onClick={() => router.push("/cliente/agendamentos")}
                 >
                   Ver detalhes
@@ -148,11 +172,14 @@ export default function ClientePage() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="border border-dashed border-slate-300 bg-white rounded-3xl">
-              <CardContent className="p-6 text-center space-y-4">
-                <p className="text-sm font-medium text-slate-600">Você não possui agendamentos futuros.</p>
+            <Card className="rounded-3xl border border-dashed border-violet-200 bg-white/85 shadow-lg shadow-fuchsia-100/40">
+              <CardContent className="space-y-4 p-6 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
+                  <Calendar size={20} />
+                </div>
+                <p className="text-sm font-medium text-slate-700">Você não possui agendamentos futuros.</p>
                 <Button
-                  className="w-full rounded-2xl bg-violet-600 hover:bg-violet-700 text-white"
+                  className="h-11 w-full rounded-2xl bg-linear-to-r from-fuchsia-600 to-violet-600 font-semibold text-white hover:brightness-110"
                   onClick={() => router.push("/cliente/agendar")}
                 >
                   Agendar horário
@@ -162,89 +189,73 @@ export default function ClientePage() {
           )}
         </section>
 
-        <section>
-          <Button 
-            className="w-full h-16 bg-violet-600 hover:bg-violet-700 text-white rounded-3xl flex items-center justify-between px-5 shadow-lg shadow-violet-200/60 group transition-all"
-            onClick={() => router.push("/cliente/agendar")}
-          >
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-2.5 rounded-xl group-hover:scale-110 transition-transform">
-                <Plus size={20} />
-              </div>
-              <div className="text-left">
-                <span className="block text-base font-bold">+ Agendar novo horário</span>
-                <span className="text-violet-100 text-xs">Reserve seu próximo atendimento</span>
-              </div>
-            </div>
-            <ChevronRight size={18} className="text-violet-200" />
-          </Button>
-        </section>
-
         <section className="grid grid-cols-3 gap-3">
-          <Button 
-            variant="outline" 
-            className="h-20 rounded-2xl bg-white border-slate-200 flex-col gap-1.5 hover:bg-slate-50 hover:border-violet-200 transition-all font-semibold text-xs"
+          <Button
+            variant="outline"
+            className="h-20 rounded-2xl border-white/70 bg-white/85 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur hover:border-violet-200 hover:bg-white"
             onClick={() => router.push("/cliente/agendamentos")}
           >
-            <div className="text-violet-600">
+            <span className="mb-1 text-violet-600">
               <Clock size={18} />
-            </div>
+            </span>
             Minha Agenda
           </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 rounded-2xl bg-white border-slate-200 flex-col gap-1.5 hover:bg-slate-50 hover:border-violet-200 transition-all font-semibold text-xs"
+          <Button
+            variant="outline"
+            className="h-20 rounded-2xl border-white/70 bg-white/85 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur hover:border-violet-200 hover:bg-white"
             onClick={() => router.push("/cliente/servicos")}
           >
-            <div className="text-violet-600">
+            <span className="mb-1 text-violet-600">
               <Star size={18} />
-            </div>
+            </span>
             Serviços
           </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 rounded-2xl bg-white border-slate-200 flex-col gap-1.5 hover:bg-slate-50 hover:border-violet-200 transition-all font-semibold text-xs"
+          <Button
+            variant="outline"
+            className="h-20 rounded-2xl border-white/70 bg-white/85 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur hover:border-violet-200 hover:bg-white"
             onClick={() => router.push("/cliente/agendamentos")}
           >
-            <div className="text-violet-600">
+            <span className="mb-1 text-violet-600">
               <History size={18} />
-            </div>
+            </span>
             Histórico
           </Button>
         </section>
 
-        <section className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-900">Serviços populares</h2>
-            <button 
+        <section className="space-y-3 pb-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-extrabold text-slate-900">Serviços populares</h2>
+            <button
               onClick={() => router.push("/cliente/servicos")}
-              className="text-violet-600 text-sm font-semibold"
+              className="text-sm font-semibold text-violet-700 hover:text-violet-800"
             >
               Ver mais
             </button>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {services.slice(0, 3).map((service) => (
-              <div 
+              <button
                 key={service.id}
-                className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center justify-between hover:border-violet-100 transition-colors cursor-pointer group"
+                className="group flex items-center justify-between rounded-2xl border border-white/70 bg-white/90 p-4 text-left shadow-sm transition hover:shadow-md"
                 onClick={() => router.push(`/cliente/servicos?id=${service.id}`)}
               >
-                <div>
-                  <h4 className="font-bold text-slate-800">{service.name}</h4>
-                  <p className="text-sm text-slate-500">R$ {service.price.toFixed(2)}</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-fuchsia-500 to-violet-600 text-white shadow-md shadow-violet-200">
+                    <Gem size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900">{service.name}</h4>
+                    <p className="text-sm font-medium text-slate-600">R$ {service.price.toFixed(2)}</p>
+                  </div>
                 </div>
-                <div className="h-9 w-9 rounded-full border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-violet-600 group-hover:border-violet-200 transition-all">
-                  <ChevronRight size={18} />
-                </div>
-              </div>
+                <ChevronRight size={18} className="text-slate-300 transition group-hover:text-violet-600" />
+              </button>
             ))}
           </div>
         </section>
       </main>
 
-      {/* Navegação Inferior */}
       <BottomNav />
     </div>
   );
