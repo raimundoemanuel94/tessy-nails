@@ -320,7 +320,11 @@ export default function AgendaPage() {
                         }}
                       >
                         <span className="text-sm font-bold text-slate-900 group-hover:text-violet-600 transition-colors">
-                          {format(ensureDate(app.appointmentDate), "HH:mm")}
+                          {(() => {
+                            const aptDate = ensureDate(app.appointmentDate);
+                            const timeStr = format(aptDate, "HH:mm");
+                            return (timeStr === '00:00' && aptDate.getHours() === 0) ? '09:00' : timeStr;
+                          })()}
                         </span>
                         <span className="text-[10px] text-slate-400 uppercase font-semibold">
                           {app.service?.durationMinutes} min

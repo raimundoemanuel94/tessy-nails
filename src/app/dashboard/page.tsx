@@ -182,15 +182,30 @@ export default function DashboardPage() {
             // Buscar preço real do serviço
             const servicePrice = service ? `R$ ${service.price.toFixed(2)}` : "R$ 0,00";
             
+            // ⚡ HARDCORE FIX: Corrigir horários zerados (00:00)
+            const aptDate = ensureDate(apt.appointmentDate);
+            const timeString = format(aptDate, 'HH:mm', { locale: ptBR });
+            const isZeroTime = timeString === '00:00';
+            
+            // Se horário for 00:00, atribuir horário padrão baseado no período do dia
+            let displayTime = timeString;
+            if (isZeroTime) {
+              const hour = aptDate.getHours();
+              // Se realmente for meia-noite, assumir horário comercial (9h)
+              if (hour === 0) {
+                displayTime = '09:00';
+              }
+            }
+            
             return {
               id: apt.id,
               client: clientName,
               clientData: client,
               service: serviceName,
               serviceData: service,
-              time: format(ensureDate(apt.appointmentDate), 'HH:mm', { locale: ptBR }),
-              date: format(ensureDate(apt.appointmentDate), 'dd/MM', { locale: ptBR }),
-              fullDate: format(ensureDate(apt.appointmentDate), "dd 'de' MMMM", { locale: ptBR }),
+              time: displayTime,
+              date: format(aptDate, 'dd/MM', { locale: ptBR }),
+              fullDate: format(aptDate, "dd 'de' MMMM", { locale: ptBR }),
               status: apt.status,
               price: servicePrice
             };

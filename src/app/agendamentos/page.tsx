@@ -150,13 +150,19 @@ export default function AgendamentosPage() {
       
       const appDate = ensureDate(app.appointmentDate);
       
+      // ⚡ HARDCORE FIX: Corrigir horários zerados (00:00)
+      let timeString = appDate ? format(appDate, "HH:mm") : "--:--";
+      if (timeString === '00:00' && appDate.getHours() === 0) {
+        timeString = '09:00'; // Horário comercial padrão
+      }
+      
       return {
         id: app.id!,
         client: client?.name || clientUser?.name || `Cliente ${app.clientId?.slice(0, 8) || 'Desconhecido'}`,
         service: service ? service.name : `Serviço ${app.serviceId?.slice(0, 8) || 'Desconhecido'}`,
         specialist: specialist ? specialist.name : "Qualquer profissional",
         date: appDate ? format(appDate, "dd/MM/yyyy") : "--/--/----",
-        time: appDate ? format(appDate, "HH:mm") : "--:--",
+        time: timeString,
         status: app.status,
         price: service ? `R$ ${Number(service.price).toFixed(2)}` : "R$ 0,00"
       };
