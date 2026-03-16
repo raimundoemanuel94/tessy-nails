@@ -92,13 +92,16 @@ export default function ConfirmacaoPage() {
       return;
     }
 
-    // ✅ Validar data do agendamento
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Zerar horas para comparar apenas a data
-    const appointmentDate = new Date(appointmentData.date);
-    appointmentDate.setHours(0, 0, 0, 0);
-    
-    if (!appointmentData.date || appointmentDate < today) {
+    const [hours, minutes] = (appointmentData.time?.time || "").split(":").map(Number);
+    const appointmentDateTime = new Date(appointmentData.date);
+    appointmentDateTime.setHours(
+      Number.isFinite(hours) ? hours : 0,
+      Number.isFinite(minutes) ? minutes : 0,
+      0,
+      0
+    );
+
+    if (!appointmentData.date || appointmentDateTime < new Date()) {
       setError('Data do agendamento inválida. Selecione uma data futura.');
       return;
     }
@@ -115,7 +118,7 @@ export default function ConfirmacaoPage() {
         clientId: user.uid, // ✅ Usar UID real do usuário
         serviceId: appointmentData.service.id,
         specialistId: user.uid, // ✅ Usar próprio usuário como especialista (temp)
-        appointmentDate: appointmentData.date,
+        appointmentDate: appointmentDateTime,
         status: "pending" as const,
         paymentStatus: "unpaid" as const,
         notes: observation || null, // ✅ Converter undefined para null
@@ -142,7 +145,7 @@ export default function ConfirmacaoPage() {
       const confirmedAppointment = {
         id: appointmentId,
         service: appointmentData.service, // ✅ Salvar objeto service completo
-        date: appointmentData.date,
+        date: appointmentDateTime,
         time: appointmentData.time,
         observation: observation || undefined,
         confirmedAt: new Date(),

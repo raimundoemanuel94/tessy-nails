@@ -54,6 +54,10 @@ import { RevenueChart, ServicesDonut } from "@/components/shared/DashboardCharts
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const dashboardDisplayName =
+    user?.name && user.name.trim() !== "" && user.name.trim().toLowerCase() !== "usuário"
+      ? user.name.split(" ")[0]
+      : user?.email?.split("@")[0] || "Tessy";
 
   const [stats, setStats] = useState({
     totalClients: 0,
@@ -260,7 +264,7 @@ export default function DashboardPage() {
     <AdminLayout>
       <div className="max-w-[1400px] mx-auto space-y-10 pb-20">
         <PageHeader 
-          title={`Bom dia, ${user?.name?.split(' ')[0] || 'Tessy'}`} 
+          title={`Bom dia, ${dashboardDisplayName}`} 
           description="Prepare-se para um dia incrível de transformações!" 
           metadata={
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
