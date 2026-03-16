@@ -80,6 +80,9 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
     },
   });
 
+  const selectedClient = clients.find((client) => client.id === form.watch("clientId"));
+  const selectedService = services.find((service) => service.id === form.watch("serviceId"));
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -153,7 +156,9 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50/50">
-                    <SelectValue placeholder="Selecione uma cliente" />
+                    <SelectValue placeholder="Selecione uma cliente">
+                      {selectedClient ? selectedClient.name : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -185,7 +190,11 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50/50">
-                    <SelectValue placeholder="Selecione um serviço" />
+                    <SelectValue placeholder="Selecione um serviço">
+                      {selectedService
+                        ? `${selectedService.name} - R$ ${selectedService.price?.toFixed(2) || "0.00"}`
+                        : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

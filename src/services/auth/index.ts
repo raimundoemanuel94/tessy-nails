@@ -79,6 +79,24 @@ export const authService = {
     } as User;
   },
 
+  async getUsersByIds(uids: string[]): Promise<User[]> {
+    const uniqueIds = Array.from(new Set((uids || []).filter(Boolean)));
+    const users = await Promise.all(
+      uniqueIds.map(async (uid) => {
+        const snapshot = await getDoc(doc(db, "users", uid));
+        if (!snapshot.exists()) return null;
+        return {
+          uid: snapshot.id,
+          ...snapshot.data(),
+          createdAt: snapshot.data().createdAt?.toDate?.() || new Date(),
+          updatedAt: snapshot.data().updatedAt?.toDate?.(),
+        } as User;
+      })
+    );
+
+    return users.filter((user): user is User => Boolean(user));
+  },
+
   /**
    * Cria ou atualiza o perfil do usuário no Firestore
    */

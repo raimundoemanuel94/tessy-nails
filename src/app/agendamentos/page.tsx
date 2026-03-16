@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { appointmentService, clientService, salonService } from "@/services";
+import { appointmentService, authService, clientService, salonService } from "@/services";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Appointment, Client, Service } from "@/types";
@@ -64,6 +64,7 @@ export default function AgendamentosPage() {
   const [rawAppointments, setRawAppointments] = useState<Appointment[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [clientUsers, setClientUsers] = useState<any[]>([]);
   const [specialists, setSpecialists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -82,6 +83,7 @@ export default function AgendamentosPage() {
       let clientsData: Client[] = [];
       let servicesData: Service[] = [];
       let specialistsData: any[] = [];
+      let clientUsersData: any[] = [];
 
       try {
         apps = await appointmentService.getAll();
@@ -107,9 +109,20 @@ export default function AgendamentosPage() {
         console.error("❌ Erro ao buscar SPECIALISTS (users):", e);
       }
 
+      try {
+        const unresolvedClientIds = apps
+          .map((app) => app.clientId)
+          .filter((clientId, index, array) => Boolean(clientId) && array.indexOf(clientId) === index)
+          .filter((clientId) => !clientsData.some((client) => client.id === clientId));
+        clientUsersData = unresolvedClientIds.length > 0 ? await authService.getUsersByIds(unresolvedClientIds) : [];
+      } catch (e) {
+        console.error("❌ Erro ao buscar fallback de USERS para clientes:", e);
+      }
+
       setRawAppointments(apps);
       setClients(clientsData);
       setServices(servicesData);
+      setClientUsers(clientUsersData);
       setSpecialists(specialistsData);
 
       if (apps.length === 0 && (clientsData.length > 0 || servicesData.length > 0)) {
@@ -131,6 +144,7 @@ export default function AgendamentosPage() {
   const enrichedAppointments = useMemo<EnrichedAppointment[]>(() => {
     return rawAppointments.map(app => {
       const client = clients.find(c => c.id === app.clientId);
+      const clientUser = clientUsers.find((u) => u.uid === app.clientId);
       const service = services.find(s => s.id === app.serviceId);
       const specialist = specialists.find(s => s.uid === app.specialistId);
       
@@ -138,7 +152,7 @@ export default function AgendamentosPage() {
       
       return {
         id: app.id!,
-        client: client ? client.name : `Cliente ${app.clientId?.slice(0, 8) || 'Desconhecido'}`,
+        client: client?.name || clientUser?.name || `Cliente ${app.clientId?.slice(0, 8) || 'Desconhecido'}`,
         service: service ? service.name : `Serviço ${app.serviceId?.slice(0, 8) || 'Desconhecido'}`,
         specialist: specialist ? specialist.name : "Qualquer profissional",
         date: appDate ? format(appDate, "dd/MM/yyyy") : "--/--/----",
@@ -147,7 +161,7 @@ export default function AgendamentosPage() {
         price: service ? `R$ ${Number(service.price).toFixed(2)}` : "R$ 0,00"
       };
     });
-  }, [rawAppointments, clients, services, specialists]);
+  }, [rawAppointments, clients, clientUsers, services, specialists]);
 
   const filteredAppointments = useMemo(() => {
     return enrichedAppointments.filter(app =>

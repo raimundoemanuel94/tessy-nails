@@ -44,6 +44,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { appointmentService } from "@/services/appointments";
+import { authService } from "@/services/auth";
 import { clientService } from "@/services/clients";
 import { salonService } from "@/services/salon";
 import { format, isToday, isPast, startOfDay, endOfDay } from "date-fns";
@@ -93,8 +94,17 @@ export default function DashboardPage() {
         const [appointments, clients, services] = await Promise.all([
           appointmentService.getAll(),
           clientService.getAll(),
-          salonService.getAll()
+          salonService.getAllWithInactive()
         ]);
+
+        const unresolvedClientIds = appointments
+          .map((apt) => apt.clientId)
+          .filter((clientId, index, array) => Boolean(clientId) && array.indexOf(clientId) === index)
+          .filter((clientId) => !clients.some((client) => client.id === clientId));
+
+        const clientUsers = unresolvedClientIds.length > 0
+          ? await authService.getUsersByIds(unresolvedClientIds)
+          : [];
 
         // Filtrar por período selecionado
         const now = new Date();
@@ -158,7 +168,8 @@ export default function DashboardPage() {
           .map(apt => {
             // Buscar nome real do cliente
             const client = clients.find(c => c.id === apt.clientId);
-            const clientName = client ? client.name : `Cliente ${apt.clientId.slice(0, 8)}`;
+            const clientUser = clientUsers.find((u) => u.uid === apt.clientId);
+            const clientName = client?.name || clientUser?.name || `Cliente ${apt.clientId.slice(0, 8)}`;
             
             // Buscar nome real do serviço
             const service = services.find(s => s.id === apt.serviceId);
@@ -175,6 +186,7 @@ export default function DashboardPage() {
               serviceData: service,
               time: format(ensureDate(apt.appointmentDate), 'HH:mm', { locale: ptBR }),
               date: format(ensureDate(apt.appointmentDate), 'dd/MM', { locale: ptBR }),
+              fullDate: format(ensureDate(apt.appointmentDate), "dd 'de' MMMM", { locale: ptBR }),
               status: apt.status,
               price: servicePrice
             };
@@ -349,7 +361,7 @@ export default function DashboardPage() {
                 <div className="space-y-10">
                   {/* Focus Card (Primeiro agendamento) */}
                   <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <Card className="border border-border/40 shadow-2xl shadow-primary/5 bg-gradient-to-br from-white via-white to-primary/5 dark:from-slate-900 dark:via-slate-900 dark:to-primary/5 overflow-hidden group transition-all duration-500 hover:shadow-primary/10">
+                    <Card className="border border-border/40 shadow-2xl shadow-primary/5 bg-linear-to-br from-white via-white to-primary/5 dark:from-slate-900 dark:via-slate-900 dark:to-primary/5 overflow-hidden group transition-all duration-500 hover:shadow-primary/10">
                       <CardContent className="p-0">
                         <div className="flex flex-col sm:flex-row">
                           <div className="bg-primary p-8 flex flex-col items-center justify-center text-primary-foreground sm:min-w-[180px] relative overflow-hidden">
@@ -369,17 +381,21 @@ export default function DashboardPage() {
                                 </div>
                               </div>
                               <Badge variant="outline" className="border-primary/20 text-primary text-[10px] uppercase font-black tracking-widest py-1 px-3 bg-primary/5 animate-pulse rounded-full">
-                                Próximo Atendimento
+                                {recentAppointments[0].status === "confirmed" ? "Confirmado" : "Pendente"}
                               </Badge>
                             </div>
-                            <div className="flex items-center gap-6 text-[11px] text-muted-foreground font-bold uppercase tracking-wider">
+                            <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground font-bold uppercase tracking-wider">
                               <div className="flex items-center gap-2 bg-muted/30 px-3 py-1.5 rounded-lg">
                                 <DollarSign size={14} className="text-primary" />
                                 {recentAppointments[0].price}
                               </div>
                               <div className="flex items-center gap-2 bg-muted/30 px-3 py-1.5 rounded-lg">
+                                <CalendarDays size={14} className="text-primary" />
+                                {recentAppointments[0].fullDate}
+                              </div>
+                              <div className="flex items-center gap-2 bg-muted/30 px-3 py-1.5 rounded-lg">
                                 <Clock size={14} className="text-primary" />
-                                {recentAppointments[0].date}
+                                {recentAppointments[0].time}
                               </div>
                             </div>
                           </div>

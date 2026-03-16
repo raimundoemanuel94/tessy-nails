@@ -47,7 +47,7 @@ import {
 } from "@/components/ui/dialog";
 import { format, startOfDay, endOfDay, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { appointmentService, clientService, salonService } from "@/services";
+import { appointmentService, authService, clientService, salonService } from "@/services";
 import { Appointment, Client, Service, AppointmentWithDetails } from "@/types";
 import { AppointmentForm } from "@/features/appointments/components/AppointmentForm";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -58,6 +58,7 @@ import { toast } from "sonner";
 export default function AgendaPage() {
   const [date, setDate] = useState<Date>(new Date());
   const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
+  const [clientUsers, setClientUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
@@ -75,6 +76,15 @@ export default function AgendaPage() {
         salonService.getAllWithInactive() // Buscar todos para garantir que agendamentos antigos mostrem o nome
       ]);
 
+      const unresolvedClientIds = apps
+        .map((app) => app.clientId)
+        .filter((clientId, index, array) => Boolean(clientId) && array.indexOf(clientId) === index)
+        .filter((clientId) => !clients.some((client) => client.id === clientId));
+
+      const resolvedClientUsers = unresolvedClientIds.length > 0
+        ? await authService.getUsersByIds(unresolvedClientIds)
+        : [];
+
       const enrichedApps = apps.map(app => ({
         ...app,
         client: clients.find(c => c.id === app.clientId),
@@ -82,6 +92,7 @@ export default function AgendaPage() {
       }));
 
       setAppointments(enrichedApps);
+      setClientUsers(resolvedClientUsers);
     } catch (error) {
       console.error(error);
       toast.error("Erro ao carregar agendamentos");
@@ -325,7 +336,7 @@ export default function AgendaPage() {
                       >
                         <div className="flex items-center justify-between mb-1.5">
                           <h4 className="font-bold text-slate-900 truncate group-hover:text-violet-600 transition-colors pr-2">
-                            {app.client?.name || "Cliente não encontrada"}
+                            {app.client?.name || clientUsers.find((user) => user.uid === app.clientId)?.name || "Cliente não encontrada"}
                           </h4>
                           <Badge variant={
                             app.status === "completed" ? "secondary" : 
