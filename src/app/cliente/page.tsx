@@ -86,58 +86,54 @@ export default function ClientePage() {
   const nextStatus = nextAppointment ? (statusConfig[nextAppointment.status] || statusConfig.pending) : null;
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-linear-to-b from-[#f7f3ff] via-[#fffefe] to-[#fff3f8] pb-24">
-      <div className="pointer-events-none absolute -top-24 -left-16 h-72 w-72 rounded-full bg-fuchsia-300/30 blur-3xl" />
-      <div className="pointer-events-none absolute top-28 -right-20 h-72 w-72 rounded-full bg-violet-300/25 blur-3xl" />
-
-      <header className="px-5 pt-8">
-        <div className="rounded-3xl border border-white/60 bg-white/85 p-5 shadow-xl shadow-fuchsia-100/50 backdrop-blur">
-          <div className="mb-4 flex items-start justify-between gap-3">
-            <div>
-              <p className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-fuchsia-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-fuchsia-700">
-                <Sparkles size={12} />
-                Boas-vindas
-              </p>
-              <h1 className="text-2xl font-extrabold leading-tight text-slate-900">
-                Bem-vindo de volta, {firstName}
-              </h1>
-              <p className="mt-1 text-sm text-slate-500">Seu painel premium de agendamentos</p>
-            </div>
-            <button
-              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-fuchsia-100 bg-linear-to-br from-fuchsia-100 to-violet-100 text-fuchsia-700 transition hover:scale-105"
-              onClick={() => router.push("/cliente/perfil")}
-              aria-label="Ir para perfil"
-            >
-              <UserIcon size={20} />
-            </button>
+    <div className="relative min-h-screen overflow-x-hidden bg-linear-to-b from-violet-50 via-white to-fuchsia-50/30 pb-24">
+      {/* SECTION 1 — Greeting */}
+      <header className="bg-white border-b border-violet-100/50 px-5 py-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">
+              Bem-vindo de volta, {firstName}
+            </h1>
+            <p className="mt-0.5 text-sm text-slate-500">Seu painel de agendamentos</p>
           </div>
-
-          <Button
-            className="h-14 w-full rounded-2xl bg-linear-to-r from-fuchsia-600 via-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-300/50 transition hover:brightness-110"
-            onClick={() => router.push("/cliente/agendar")}
+          <button
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-100 text-violet-600 transition hover:bg-violet-200"
+            onClick={() => router.push("/cliente/perfil")}
+            aria-label="Ir para perfil"
           >
-            <span className="flex items-center gap-2 text-base font-bold">
-              <Plus size={18} />
-              + Agendar novo horário
-            </span>
-          </Button>
+            <UserIcon size={20} />
+          </button>
         </div>
       </header>
 
-      <main className="space-y-5 px-5 pt-5">
+      <main className="space-y-6 px-5 py-6">
+        {/* SECTION 2 — Main Booking Button */}
+        <section>
+          <Button
+            className="h-16 w-full rounded-2xl bg-linear-to-r from-fuchsia-600 via-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-300/40 transition-all hover:shadow-xl hover:shadow-violet-400/50 active:scale-[0.98]"
+            onClick={() => router.push("/cliente/agendar")}
+          >
+            <span className="flex items-center gap-2.5 text-base font-bold">
+              <Plus size={20} strokeWidth={2.5} />
+              + Agendar novo horário
+            </span>
+          </Button>
+        </section>
+
+        {/* SECTION 3 — Next Appointment Card */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-slate-900">Próximo agendamento</h2>
+            <h2 className="text-lg font-bold text-slate-900">Próximo agendamento</h2>
             <button
               onClick={() => router.push("/cliente/agendamentos")}
-              className="text-sm font-semibold text-violet-700 hover:text-violet-800"
+              className="text-sm font-semibold text-violet-600 hover:text-violet-700"
             >
               Ver todos
             </button>
           </div>
 
           {nextAppointment ? (
-            <Card className="overflow-hidden rounded-3xl border border-white/60 bg-white/90 shadow-xl shadow-fuchsia-100/60">
+            <Card className="overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-md">
               <CardContent className="space-y-4 p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -149,22 +145,22 @@ export default function ClientePage() {
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-1 gap-2 rounded-2xl bg-slate-50 p-3 text-sm text-slate-700 sm:grid-cols-2">
+                <div className="flex items-center gap-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
                   <div className="flex items-center gap-2">
                     <Calendar size={16} className="text-violet-600" />
-                    <span>
-                      {format(nextAppointment.date, "dd MMM", { locale: ptBR })} - {nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}
+                    <span className="font-medium">
+                      {format(nextAppointment.date, "dd MMM", { locale: ptBR })} — {nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock size={16} className="text-violet-600" />
-                    <span>{nextAppointment.service.durationMinutes} min</span>
+                    <span className="font-medium">{nextAppointment.service.durationMinutes} min</span>
                   </div>
                 </div>
 
                 <Button
                   variant="outline"
-                  className="h-11 w-full rounded-2xl border-violet-200 font-semibold text-violet-700 hover:bg-violet-50"
+                  className="h-11 w-full rounded-xl border-violet-200 font-semibold text-violet-700 hover:bg-violet-50"
                   onClick={() => router.push("/cliente/agendamentos")}
                 >
                   Ver detalhes
@@ -172,14 +168,17 @@ export default function ClientePage() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="rounded-3xl border border-dashed border-violet-200 bg-white/85 shadow-lg shadow-fuchsia-100/40">
-              <CardContent className="space-y-4 p-6 text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
-                  <Calendar size={20} />
+            <Card className="rounded-2xl border border-dashed border-violet-200 bg-white">
+              <CardContent className="space-y-4 p-8 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+                  <Calendar size={28} />
                 </div>
-                <p className="text-sm font-medium text-slate-700">Você não possui agendamentos futuros.</p>
+                <div>
+                  <p className="text-sm font-semibold text-slate-700">Você ainda não possui agendamentos futuros.</p>
+                  <p className="mt-1 text-xs text-slate-500">Reserve seu horário agora mesmo</p>
+                </div>
                 <Button
-                  className="h-11 w-full rounded-2xl bg-linear-to-r from-fuchsia-600 to-violet-600 font-semibold text-white hover:brightness-110"
+                  className="h-12 w-full rounded-xl bg-linear-to-r from-fuchsia-600 to-violet-600 font-semibold text-white hover:brightness-110"
                   onClick={() => router.push("/cliente/agendar")}
                 >
                   Agendar horário
@@ -189,45 +188,47 @@ export default function ClientePage() {
           )}
         </section>
 
-        <section className="grid grid-cols-3 gap-3">
-          <Button
-            variant="outline"
-            className="h-20 rounded-2xl border-white/70 bg-white/85 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur hover:border-violet-200 hover:bg-white"
-            onClick={() => router.push("/cliente/agendamentos")}
-          >
-            <span className="mb-1 text-violet-600">
-              <Clock size={18} />
-            </span>
-            Minha Agenda
-          </Button>
-          <Button
-            variant="outline"
-            className="h-20 rounded-2xl border-white/70 bg-white/85 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur hover:border-violet-200 hover:bg-white"
-            onClick={() => router.push("/cliente/servicos")}
-          >
-            <span className="mb-1 text-violet-600">
-              <Star size={18} />
-            </span>
-            Serviços
-          </Button>
-          <Button
-            variant="outline"
-            className="h-20 rounded-2xl border-white/70 bg-white/85 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur hover:border-violet-200 hover:bg-white"
-            onClick={() => router.push("/cliente/agendamentos")}
-          >
-            <span className="mb-1 text-violet-600">
-              <History size={18} />
-            </span>
-            Histórico
-          </Button>
-        </section>
-
-        <section className="space-y-3 pb-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-slate-900">Serviços populares</h2>
+        {/* SECTION 4 — Quick Actions */}
+        <section className="space-y-3">
+          <h2 className="text-lg font-bold text-slate-900">Acesso rápido</h2>
+          <div className="grid grid-cols-3 gap-3">
+            <button
+              onClick={() => router.push("/cliente/agendamentos")}
+              className="flex flex-col items-center gap-2 rounded-2xl border border-violet-100 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-violet-200"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                <Calendar size={20} />
+              </div>
+              <span className="text-xs font-semibold text-slate-700">Minha Agenda</span>
+            </button>
             <button
               onClick={() => router.push("/cliente/servicos")}
-              className="text-sm font-semibold text-violet-700 hover:text-violet-800"
+              className="flex flex-col items-center gap-2 rounded-2xl border border-violet-100 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-violet-200"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                <Sparkles size={20} />
+              </div>
+              <span className="text-xs font-semibold text-slate-700">Serviços</span>
+            </button>
+            <button
+              onClick={() => router.push("/cliente/agendamentos")}
+              className="flex flex-col items-center gap-2 rounded-2xl border border-violet-100 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-violet-200"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                <History size={20} />
+              </div>
+              <span className="text-xs font-semibold text-slate-700">Histórico</span>
+            </button>
+          </div>
+        </section>
+
+        {/* SECTION 5 — Popular Services */}
+        <section className="space-y-3 pb-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900">Serviços populares</h2>
+            <button
+              onClick={() => router.push("/cliente/servicos")}
+              className="text-sm font-semibold text-violet-600 hover:text-violet-700"
             >
               Ver mais
             </button>
@@ -237,16 +238,16 @@ export default function ClientePage() {
             {services.slice(0, 3).map((service) => (
               <button
                 key={service.id}
-                className="group flex items-center justify-between rounded-2xl border border-white/70 bg-white/90 p-4 text-left shadow-sm transition hover:shadow-md"
+                className="group flex items-center justify-between rounded-2xl border border-violet-100 bg-white p-4 text-left shadow-sm transition-all hover:shadow-md hover:border-violet-200"
                 onClick={() => router.push(`/cliente/servicos?id=${service.id}`)}
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-fuchsia-500 to-violet-600 text-white shadow-md shadow-violet-200">
-                    <Gem size={16} />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-fuchsia-500 to-violet-600 text-white shadow-sm">
+                    <Gem size={18} />
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-900">{service.name}</h4>
-                    <p className="text-sm font-medium text-slate-600">R$ {service.price.toFixed(2)}</p>
+                    <p className="text-sm font-medium text-violet-600">R$ {service.price.toFixed(2)}</p>
                   </div>
                 </div>
                 <ChevronRight size={18} className="text-slate-300 transition group-hover:text-violet-600" />

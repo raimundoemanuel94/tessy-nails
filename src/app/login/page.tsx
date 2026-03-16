@@ -98,17 +98,15 @@ function LoginPageContent() {
 
   return (
     <div className="min-h-screen w-full flex overflow-hidden bg-white dark:bg-slate-950 font-sans">
-      {/* Left Pane: Lifestyle & Branding (Visible only on Desktop) */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-violet-50 dark:bg-slate-900 overflow-hidden">
+      {/* Left Pane: Nail Gallery & Branding (Visible only on Desktop) */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-linear-to-br from-violet-50 via-fuchsia-50 to-purple-50 dark:bg-slate-900 overflow-hidden">
         {/* Background Decorative Elements */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-violet-200/40 dark:bg-violet-900/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-purple-200/40 dark:bg-purple-900/20 rounded-full blur-3xl animate-pulse" />
-          {/* Mockup for the generated image or a beautiful placeholder */}
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1632345033839-247e997fc0aa?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay opacity-30 grayscale hover:grayscale-0 transition-all duration-1000" />
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-violet-300/30 dark:bg-violet-900/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-fuchsia-300/30 dark:bg-purple-900/20 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative z-10 w-full flex flex-col justify-between p-16">
+        <div className="relative z-10 w-full flex flex-col justify-between p-12">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -121,30 +119,46 @@ function LoginPageContent() {
             <span className="text-2xl font-black text-slate-900 dark:text-white tracking-[0.2em] uppercase italic">TESSY<span className="text-violet-600">NAILS</span></span>
           </motion.div>
 
-          <div className="max-w-md">
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              className="text-5xl lg:text-7xl font-black text-slate-900 dark:text-white leading-[0.95] tracking-tighter mb-8"
+          {/* Nail Gallery - 3 Images */}
+          <div className="flex-1 flex items-center justify-center py-8">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+              className="grid grid-cols-2 gap-4 max-w-lg"
             >
-              Elevando sua <span className="bg-linear-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent italic">beleza</span>, um detalhe por vez.
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="text-lg font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-loose"
-            >
-              A plataforma definitiva para gestão de beleza e cuidados exclusivos.
-            </motion.p>
+              {/* Image 1 - Large */}
+              <div className="col-span-2 h-64 rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/20 ring-1 ring-white/20">
+                <img 
+                  src="https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=800&auto=format&fit=crop" 
+                  alt="Nail art design" 
+                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
+                />
+              </div>
+              {/* Image 2 */}
+              <div className="h-48 rounded-3xl overflow-hidden shadow-2xl shadow-fuchsia-500/20 ring-1 ring-white/20">
+                <img 
+                  src="https://images.unsplash.com/photo-1610992015732-2449b76344bc?q=80&w=800&auto=format&fit=crop" 
+                  alt="Manicure service" 
+                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
+                />
+              </div>
+              {/* Image 3 */}
+              <div className="h-48 rounded-3xl overflow-hidden shadow-2xl shadow-purple-500/20 ring-1 ring-white/20">
+                <img 
+                  src="https://images.unsplash.com/photo-1519014816548-bf5fe059798b?q=80&w=800&auto=format&fit=crop" 
+                  alt="Nail polish colors" 
+                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
+                />
+              </div>
+            </motion.div>
           </div>
 
           <motion.div 
              initial={{ opacity: 0 }}
              animate={{ opacity: 1 }}
              transition={{ delay: 0.6, duration: 1 }}
-             className="flex gap-4"
+             className="flex items-center justify-between"
           >
             <div className="flex -space-x-3">
               {[1,2,3,4].map(i => (
