@@ -168,37 +168,43 @@ export default function ClientesPage() {
 
       <div className="space-y-6">
         {/* Search and Tabs */}
-        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
-          <Tabs 
-            defaultValue="active" 
-            value={statusFilter} 
-            onValueChange={setStatusFilter}
-            className="w-full md:w-auto"
-          >
-            <TabsList className="grid w-full grid-cols-2 lg:w-[400px] h-12 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-white/5 p-1 rounded-2xl">
-              <TabsTrigger 
-                value="active" 
-                className="rounded-xl data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-bold"
-              >
-                Ativos ({clients.filter(c => c.isActive !== false).length})
-              </TabsTrigger>
-              <TabsTrigger 
-                value="inactive" 
-                className="rounded-xl data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-bold"
-              >
-                Inativos ({clients.filter(c => c.isActive === false).length})
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+        <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between bg-white/40 dark:bg-slate-900/40 p-6 rounded-[2rem] border border-slate-200/60 dark:border-white/5 backdrop-blur-md">
+          <div className="flex flex-col gap-3 w-full lg:w-auto">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Status das Clientes</label>
+            <Tabs 
+              defaultValue="active" 
+              value={statusFilter} 
+              onValueChange={setStatusFilter}
+              className="w-full lg:w-auto"
+            >
+              <TabsList className="grid w-full grid-cols-2 lg:w-[350px] h-11 bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-xl">
+                <TabsTrigger 
+                  value="active" 
+                  className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-violet-600 data-[state=active]:shadow-sm transition-all font-bold text-xs"
+                >
+                  Ativas ({clients.filter(c => c.isActive !== false).length})
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="inactive" 
+                  className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-violet-600 data-[state=active]:shadow-sm transition-all font-bold text-xs"
+                >
+                  Inativas ({clients.filter(c => c.isActive === false).length})
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
 
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <Input
-              placeholder="Buscar por nome, email ou telefone..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-12 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all font-medium"
-            />
+          <div className="flex flex-col gap-3 flex-1 w-full max-w-md">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Buscar na Lista</label>
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-500 transition-colors" size={18} />
+              <Input
+                placeholder="Nome, email ou telefone..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 h-11 rounded-xl border-slate-200/60 dark:border-white/5 bg-slate-100/50 dark:bg-slate-800/50 focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all font-semibold text-sm"
+              />
+            </div>
           </div>
         </div>
 
