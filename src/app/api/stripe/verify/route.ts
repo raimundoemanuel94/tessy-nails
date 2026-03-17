@@ -58,7 +58,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Erro na verificação do Stripe:", error);
     return NextResponse.json(
-      { error: "Falha interna ao verificar o pagamento no Stripe" },
+      { error: error?.message || error?.toString() || "Falha interna ao verificar o pagamento no Stripe", stack: error?.stack },
       { status: 500 }
     );
   }
