@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from '@/hooks/useNotifications';
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { 
@@ -137,6 +138,8 @@ export default function ConfiguracoesPage() {
     paymentsConfigured: false,
     whatsappConfigured: false
   });
+
+  const { permission, requestPermission, isSupported } = useNotifications();
 
   // Carregar configurações do Firestore
   useEffect(() => {
@@ -547,9 +550,22 @@ export default function ConfiguracoesPage() {
                         <div className="p-2 bg-primary/10 rounded-lg">
                           <Bell size={18} className="text-primary" />
                         </div>
-                        <div className="space-y-0.5">
+                        <div className="flex-1 space-y-0.5">
                           <Label className="font-medium">Push (Navegador)</Label>
                           <p className="text-sm text-muted-foreground">Notificações no navegador</p>
+                          {isSupported && permission !== 'granted' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="mt-2 text-xs" 
+                              onClick={requestPermission}
+                            >
+                              Ativar Permissão no Navegador
+                            </Button>
+                          )}
+                          {permission === 'granted' && (
+                            <Badge className="mt-2 text-[10px] bg-green-500 hover:bg-green-600">Permissão Concedida</Badge>
+                          )}
                         </div>
                       </div>
                       <Switch 

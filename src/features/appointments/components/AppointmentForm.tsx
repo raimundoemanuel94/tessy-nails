@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AppointmentSchema, Appointment, Client, Service, User, AppointmentStatusEnum, PaymentStatusEnum } from "@/types";
 import { clientService, salonService, appointmentService, authService } from "@/services";
+import { notificationService } from "@/services/notifications";
 import { 
   Form, 
   FormControl, 
@@ -125,6 +126,21 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
           ...appointmentData,
           appointmentDate,
         });
+        
+        try {
+          await notificationService.notifyNewAppointment({
+            clientName: selectedClient?.name || 'Cliente',
+            serviceName: selectedService?.name || 'Serviço'
+          });
+          
+          await notificationService.notifyAppointmentConfirmed(
+            appointmentData.clientId,
+            { serviceName: selectedService?.name || 'Serviço' }
+          );
+        } catch (notifErr) {
+          console.error("Notificação falhou, mas agendamento foi salvo:", notifErr);
+        }
+        
         toast.success("Agendamento criado com sucesso!");
       }
       onSuccess();
