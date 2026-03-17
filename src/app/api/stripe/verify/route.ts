@@ -40,18 +40,28 @@ export async function POST(req: Request) {
       
       if (appointmentId && appointmentId !== "N/A" && admin.apps.length > 0) {
         
-        // Atualiza no Firestore diretamente pelo lado seguro do Servidor Vercel
-        const db = admin.firestore();
-        await db.collection('appointments').doc(appointmentId).update({
-          status: 'confirmed',
-          paymentStatus: session.metadata?.paymentType === 'deposit' ? 'deposit_paid' : 'fully_paid',
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-        
-        return NextResponse.json({ success: true, message: "Pagamento validado e Agendamento Confirmado!" });
+        try {
+          // Atualiza no Firestore diretamente pelo lado seguro do Servidor Vercel
+          const db = admin.firestore();
+          await db.collection('appointments').doc(appointmentId).update({
+            status: 'confirmed',
+            paymentStatus: session.metadata?.paymentType === 'deposit' ? 'deposit_paid' : 'fully_paid',
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+          
+          return NextResponse.json({ success: true, message: "Pagamento validado e Agendamento Confirmado!" });
+        } catch (firebaseError: any) {
+          console.error("Erro fatal ao escrever no Firebase Admin", firebaseError);
+          return NextResponse.json({ 
+            success: false, 
+            message: "Pagamento do Stripe CAIU na Conta, mas Firebase FALHOU em marcar como pago.",
+            firebaseError: firebaseError?.message,
+            firebaseStack: firebaseError?.stack
+          }, { status: 200 }); // Status 200 pra forçar o React a ler o Body JSON.
+        }
       }
       
-      return NextResponse.json({ success: true, message: "Pagamento validado, mas sem ID de agendamento atrelado." });
+      return NextResponse.json({ success: true, message: "Pagamento validado, mas sem ID de agendamento atrelado ou Firebase não iniciou." });
     }
 
     return NextResponse.json({ success: false, message: "Pagamento ainda pendente." });
@@ -59,7 +69,7 @@ export async function POST(req: Request) {
     console.error("Erro na verificação do Stripe:", error);
     return NextResponse.json(
       { error: error?.message || error?.toString() || "Falha interna ao verificar o pagamento no Stripe", stack: error?.stack },
-      { status: 500 }
+      { status: 200 } // Trocado 500 pra 200 temporario só para o Next.JS nao mascarar o fetch
     );
   }
 }
