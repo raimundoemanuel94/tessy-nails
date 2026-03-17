@@ -13,47 +13,45 @@ export async function POST(req: Request) {
       );
     }
 
-    // Calcula o valor: se for depósito, pode ser um valor fixo ou porcentagem.
-    // Para fundação, assumiremos que o "price" já vem calculado em centavos.
-    // Ex: R$ 50,00 -> 5000 centavos
     const amountInCents = Math.round(price * 100);
-
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-      
-      // Cria a sessão de checkout no Stripe
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price_data: {
-              currency: "brl",
-              product_data: {
-                name: isDeposit ? `Sinal / Reserva: ${serviceName}` : `Pagamento: ${serviceName}`,
-                description: `Agendamento no Tessy Nails${appointmentId ? ` (Ref: ${appointmentId})` : ""}`,
-              },
-              unit_amount: amountInCents,
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    
+    // Cria a sessão de checkout no Stripe
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "brl",
+            product_data: {
+              name: isDeposit ? `Sinal / Reserva: ${serviceName}` : `Pagamento: ${serviceName}`,
+              description: `Agendamento no Tessy Nails${appointmentId ? ` (Ref: ${appointmentId})` : ""}`,
             },
-            quantity: 1,
+            unit_amount: amountInCents,
           },
-        ],
-        mode: "payment",
-        success_url: `${appUrl}/pagamento/sucesso?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${appUrl}/pagamento/cancelado`,
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: `${appUrl}/pagamento/sucesso?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/pagamento/cancelado`,
       metadata: {
         appointmentId: appointmentId || "N/A",
         clientId: clientId || "N/A",
         serviceName: serviceName,
         paymentType: isDeposit ? "deposit" : "full",
       },
-      // opcional: guardar email do cliente se disponivel
-      // customer_email: clientEmail,
     });
+
+    if (!session || !session.url) {
+      throw new Error("Stripe não retornou URL de checkout");
+    }
 
     return NextResponse.json({ url: session.url });
   } catch (error: any) {
     console.error("Erro na criação de Checkout Session:", error);
     return NextResponse.json(
-      { error: "Falha ao criar sessão de pagamento" },
+      { error: error?.message || "Falha interna ao criar sessão de pagamento no Stripe" },
       { status: 500 }
     );
   }
