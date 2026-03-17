@@ -4,6 +4,7 @@ import { Clock, Calendar, DollarSign, MoreVertical, Eye, Edit, RotateCcw, X } fr
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { PaymentButton } from "@/components/shared/PaymentButton";
 
 export interface Service {
   id: string;
@@ -147,6 +148,11 @@ export function AppointmentCard({
           <span className="text-lg font-semibold text-violet-600">
             {appointment.service.price}
           </span>
+          {appointment.status === 'confirmed' && (
+            <span className="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
+              Sinal pago
+            </span>
+          )}
         </div>
       )}
 
@@ -163,6 +169,17 @@ export function AppointmentCard({
         </Button>
 
         <div className="flex items-center space-x-2">
+          {appointment.status === 'pending' && !isPast && (
+            <PaymentButton
+              serviceName={appointment.service.name}
+              price={10}
+              appointmentId={appointment.id}
+              isDeposit={true}
+              title="Pagar agora"
+              className="h-8 text-xs py-1 px-3 bg-purple-600 hover:bg-purple-700"
+            />
+          )}
+
           {canReschedule && (
             <Button
               variant="outline"

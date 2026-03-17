@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { appointmentService } from "@/services/appointments";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
 import { Appointment } from "@/types";
+import { toast } from "sonner";
 
 // Interfaces locais
 interface Service {
@@ -141,10 +142,10 @@ export default function ConfirmacaoPage() {
         throw new Error('Não foi possível obter o ID do agendamento criado');
       }
 
-      // Salvar dados completos do agendamento no localStorage para página de sucesso
+      // Salvar dados completos do agendamento no localStorage para página de sucesso/fallback
       const confirmedAppointment = {
         id: appointmentId,
-        service: appointmentData.service, // ✅ Salvar objeto service completo
+        service: appointmentData.service,
         date: appointmentDateTime,
         time: appointmentData.time,
         observation: observation || undefined,
@@ -153,16 +154,41 @@ export default function ConfirmacaoPage() {
       };
 
       localStorage.setItem('confirmedAppointment', JSON.stringify(confirmedAppointment));
-
-      // ✅ Limpar dados do localStorage após sucesso
       AppointmentStorage.clearAll();
 
-      // ✅ Navegar para página de sucesso
-      router.push('/cliente/agendar/sucesso');
+      // INICIA FLUXO DO STRIPE PARA PAGAMENTO DO SINAL
+      setConfirming(true);
+      try {
+        const stripeRes = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            serviceName: appointmentData.service.name,
+            price: 10, // R$ 10,00 deposit signal fixed amount
+            appointmentId: appointmentId,
+            clientId: user.uid,
+            isDeposit: true,
+          }),
+        });
+        
+        const stripeData = await stripeRes.json();
+        if (stripeData.url) {
+          window.location.href = stripeData.url;
+          return; // Sai da execução e vai pro stripe
+        } else {
+          console.warn("Sem url de checkout, fallback normal", stripeData);
+          router.push('/cliente/agendar/sucesso');
+        }
+      } catch (e) {
+        console.error("Erro na comunicação com o Stripe, operando fallback:", e);
+        // Em caso de erro na comunicação, permite que o usuário vá à sucesso (ou pode cobrar depois)
+        toast.error("Houve uma falha ao abrir o pagamento do sinal, mas o agendamento foi salvo.");
+        router.push('/cliente/agendamentos');
+      }
+
     } catch (error: any) {
       console.error('Error confirming appointment:', error);
       setError('Ocorreu um erro ao confirmar seu agendamento. Tente novamente.');
-    } finally {
       setConfirming(false);
     }
   };
@@ -329,20 +355,26 @@ export default function ConfirmacaoPage() {
 
           {/* Actions */}
           <div className="space-y-4">
+            <div className="bg-purple-50 border border-purple-100 p-4 rounded-xl mb-6">
+              <p className="text-purple-800 text-sm font-medium text-center">
+                Para garantir seu horário, é necessário um sinal de R$10,00. O restante será pago no atendimento.
+              </p>
+            </div>
+
             <Button 
               onClick={handleConfirmAppointment}
               disabled={confirming}
-              className="w-full"
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold h-12 rounded-xl"
             >
               {confirming ? (
                 <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Confirmando...
+                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Redirecionando para pagamento...
                 </>
               ) : (
                 <>
-                  <CheckCircle className="h-4 w-4" />
-                  Confirmar agendamento
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Pagar sinal e confirmar horário
                 </>
               )}
             </Button>
