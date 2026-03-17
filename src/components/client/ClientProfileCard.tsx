@@ -27,104 +27,67 @@ export function ClientProfileCard({
 }: ClientProfileCardProps) {
   const getStatusConfig = (status?: string) => {
     switch (status) {
-      case 'active':
-        return {
-          label: 'Ativa',
-          bgColor: 'bg-green-100',
-          textColor: 'text-green-700',
-          borderColor: 'border-green-200'
-        };
-      case 'inactive':
-        return {
-          label: 'Inativa',
-          bgColor: 'bg-gray-100',
-          textColor: 'text-gray-700',
-          borderColor: 'border-gray-200'
-        };
-      case 'pending':
-        return {
-          label: 'Pendente',
-          bgColor: 'bg-yellow-100',
-          textColor: 'text-yellow-700',
-          borderColor: 'border-yellow-200'
-        };
+      case "inactive":
+        return { label: "Inativa", className: "bg-slate-100 text-slate-600" };
+      case "pending":
+        return { label: "Pendente", className: "bg-amber-50 text-amber-700" };
       default:
-        return {
-          label: 'Ativa',
-          bgColor: 'bg-green-100',
-          textColor: 'text-green-700',
-          borderColor: 'border-green-200'
-        };
+        return { label: "Ativa", className: "bg-emerald-50 text-emerald-700" };
     }
   };
 
   const statusConfig = getStatusConfig(client.status);
 
   return (
-    <div className="rounded-2xl border border-violet-100 bg-white p-6 shadow-sm">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <h3 className="text-lg font-bold text-gray-900">
-          Meus dados
-        </h3>
-        
+    <div className="overflow-hidden rounded-[30px] border border-violet-100/70 bg-white/95 p-5 shadow-sm shadow-violet-100/40">
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-violet-500">Perfil</p>
+          <h3 className="text-xl font-black tracking-tight text-slate-900">Seus dados principais</h3>
+        </div>
         {showEditButton && onEditProfile && (
           <Button
             variant="outline"
             size="sm"
             onClick={onEditProfile}
-            className="border-violet-200 text-violet-700 hover:bg-violet-50"
+            className="rounded-2xl border-violet-200 text-violet-700 hover:bg-violet-50"
           >
             Editar perfil
           </Button>
         )}
       </div>
 
-      {/* Profile Info */}
-      <div className="flex flex-col items-center space-y-4 sm:flex-row sm:items-start sm:space-y-0 sm:space-x-6">
-        {/* Avatar */}
-        <div className="relative">
-          <div className="h-24 w-24 rounded-full bg-linear-to-br from-violet-400 to-violet-600 flex items-center justify-center shadow-lg">
+      <div className="flex items-start gap-4">
+        <div className="relative shrink-0">
+          <div className="flex h-20 w-20 items-center justify-center rounded-[26px] bg-linear-to-br from-violet-500 via-fuchsia-500 to-pink-500 text-white shadow-lg shadow-violet-300/30">
             {client.avatar ? (
               <img 
                 src={client.avatar} 
                 alt={client.name}
-                className="h-full w-full rounded-full object-cover"
+                className="h-full w-full rounded-[26px] object-cover"
               />
             ) : (
-              <User className="h-10 w-10 text-white" />
+              <User className="h-9 w-9 text-white" />
             )}
           </div>
-          
-          {/* Avatar Upload Button */}
-          <button className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-violet-500 text-white flex items-center justify-center border-2 border-white shadow-md hover:bg-violet-600 transition-colors">
+          <button className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-white text-violet-700 shadow-md">
             <Camera className="h-4 w-4" />
           </button>
         </div>
 
-        {/* User Info */}
-        <div className="flex-1 text-center sm:text-left">
-          <h4 className="text-xl font-semibold text-gray-900 mb-2">
-            {client.name}
-          </h4>
-          
-          {/* Status Badge */}
-          <div className={`
-            inline-flex items-center rounded-full px-3 py-1 text-xs font-medium mb-4
-            ${statusConfig.bgColor} ${statusConfig.textColor}
-          `}>
-            <Shield className="mr-1 h-3 w-3" />
+        <div className="min-w-0 flex-1">
+          <h4 className="truncate text-xl font-black tracking-tight text-slate-900">{client.name}</h4>
+          <div className={`mt-2 inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold ${statusConfig.className}`}>
+            <Shield className="h-3.5 w-3.5" />
             Conta {statusConfig.label}
           </div>
 
-          {/* Contact Info */}
-          <div className="space-y-2 text-sm text-gray-600">
-            <div className="flex items-center justify-center sm:justify-start">
+          <div className="mt-4 space-y-2 text-sm text-slate-500">
+            <div className="flex items-center gap-2">
               <Mail className="mr-2 h-4 w-4 text-violet-600" />
-              <span>{client.email}</span>
+              <span className="truncate">{client.email}</span>
             </div>
-            
-            <div className="flex items-center justify-center sm:justify-start">
+            <div className="flex items-center gap-2">
               <Phone className="mr-2 h-4 w-4 text-violet-600" />
               <span>{client.phone}</span>
             </div>
@@ -132,17 +95,14 @@ export function ClientProfileCard({
         </div>
       </div>
 
-      {/* Visual Separator */}
-      <div className="mt-6 h-px bg-linear-to-r from-transparent via-violet-200 to-transparent" />
-
-      {/* Additional Info */}
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-500">
-          Membro desde {ensureDate(client.createdAt).toLocaleDateString('pt-BR', { 
+      <div className="mt-5 rounded-2xl bg-violet-50/70 px-4 py-3 text-sm text-violet-700">
+        Membro desde{" "}
+        <span className="font-bold">
+          {ensureDate(client.createdAt).toLocaleDateString('pt-BR', { 
             month: 'long', 
             year: 'numeric' 
           })}
-        </p>
+        </span>
       </div>
     </div>
   );

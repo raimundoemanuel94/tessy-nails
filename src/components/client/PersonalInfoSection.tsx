@@ -23,20 +23,37 @@ export function PersonalInfoSection({
   onEdit, 
   showEditButton = true 
 }: PersonalInfoSectionProps) {
+  const items = [
+    { label: "Nome completo", value: info.fullName, icon: User },
+    { label: "E-mail", value: info.email, icon: Mail },
+    { label: "Telefone", value: info.phone, icon: Phone },
+    { label: "Endereço", value: info.address, icon: MapPin },
+    {
+      label: "Data de nascimento",
+      value: info.birthDate
+        ? new Date(info.birthDate).toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })
+        : undefined,
+      icon: Calendar,
+    },
+  ].filter((item) => item.value);
+
   return (
-    <div className="rounded-2xl border border-violet-100 bg-white p-6 shadow-sm">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <h3 className="text-lg font-bold text-gray-900">
-          Informações pessoais
-        </h3>
-        
+    <div className="rounded-[30px] border border-violet-100/70 bg-white/95 p-5 shadow-sm shadow-violet-100/40">
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-violet-500">Informações</p>
+          <h3 className="text-xl font-black tracking-tight text-slate-900">Detalhes pessoais</h3>
+        </div>
         {showEditButton && onEdit && (
           <Button
             variant="outline"
             size="sm"
             onClick={onEdit}
-            className="border-violet-200 text-violet-700 hover:bg-violet-50"
+            className="rounded-2xl border-violet-200 text-violet-700 hover:bg-violet-50"
           >
             <Edit className="mr-1 h-4 w-4" />
             Editar
@@ -44,83 +61,26 @@ export function PersonalInfoSection({
         )}
       </div>
 
-      {/* Personal Information */}
-      <div className="space-y-4">
-        {/* Full Name */}
-        <div className="flex items-start space-x-3">
-          <User className="mt-1 h-4 w-4 text-violet-600 flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-700">Nome completo</p>
-            <p className="text-gray-900">{info.fullName}</p>
-          </div>
-        </div>
-
-        {/* Email */}
-        <div className="flex items-start space-x-3">
-          <Mail className="mt-1 h-4 w-4 text-violet-600 flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-700">E-mail</p>
-            <p className="text-gray-900">{info.email}</p>
-          </div>
-        </div>
-
-        {/* Phone */}
-        <div className="flex items-start space-x-3">
-          <Phone className="mt-1 h-4 w-4 text-violet-600 flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-700">Telefone</p>
-            <p className="text-gray-900">{info.phone}</p>
-          </div>
-        </div>
-
-        {/* Address */}
-        {info.address && (
-          <div className="flex items-start space-x-3">
-            <MapPin className="mt-1 h-4 w-4 text-violet-600 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-700">Endereço</p>
-              <p className="text-gray-900">{info.address}</p>
+      <div className="space-y-3">
+        {items.map((item) => (
+          <div key={item.label} className="flex items-start gap-3 rounded-2xl bg-slate-50/80 px-4 py-3">
+            <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
+              <item.icon className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{item.label}</p>
+              <p className="wrap-break-word text-sm font-semibold text-slate-800">{item.value}</p>
             </div>
           </div>
-        )}
-
-        {/* Birth Date */}
-        {info.birthDate && (
-          <div className="flex items-start space-x-3">
-            <Calendar className="mt-1 h-4 w-4 text-violet-600 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-700">Data de nascimento</p>
-              <p className="text-gray-900">
-                {new Date(info.birthDate).toLocaleDateString('pt-BR', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric'
-                })}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Observations */}
-        {info.observations && (
-          <div className="mt-6">
-            <p className="text-sm font-medium text-gray-700 mb-2">Observações</p>
-            <div className="rounded-lg bg-gray-50 p-3">
-              <p className="text-gray-700 text-sm">{info.observations}</p>
-            </div>
-          </div>
-        )}
+        ))}
       </div>
 
-      {/* Visual Separator */}
-      <div className="mt-6 h-px bg-gradient-to-r from-transparent via-violet-200 to-transparent" />
-
-      {/* Privacy Note */}
-      <div className="mt-6 text-center">
-        <p className="text-xs text-gray-500">
-          Suas informações são mantidas em segurança e usadas apenas para melhorar sua experiência.
-        </p>
-      </div>
+      {info.observations && (
+        <div className="mt-4 rounded-2xl border border-violet-100 bg-violet-50/60 p-4">
+          <p className="mb-1 text-[11px] font-black uppercase tracking-[0.18em] text-violet-500">Observações</p>
+          <p className="text-sm leading-6 text-slate-600">{info.observations}</p>
+        </div>
+      )}
     </div>
   );
 }
