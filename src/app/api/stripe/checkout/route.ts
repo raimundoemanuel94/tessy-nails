@@ -14,7 +14,15 @@ export async function POST(req: Request) {
     }
 
     const amountInCents = Math.round(price * 100);
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    // Garantir uso correto da origem 
+    const origin = req.headers.get("origin") || req.headers.get("referer");
+    // Extrai apenas o site raiz se vier URL inteira e usa localhost como fallback absoluto de ultima chance
+    let appUrl = "https://tessy-nails.vercel.app";
+    if (origin) {
+         try { appUrl = new URL(origin).origin } catch(e){}
+    } else if (process.env.NEXT_PUBLIC_APP_URL) {
+         appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    }
     
     // Cria a sessão de checkout no Stripe
     const session = await stripe.checkout.sessions.create({
