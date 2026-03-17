@@ -97,7 +97,7 @@ function LoginPageContent() {
   };
 
   return (
-    <div className="min-h-screen w-full flex overflow-hidden bg-white dark:bg-slate-950 font-sans">
+    <div className="min-h-[100dvh] w-full flex overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans relative">
       {/* Left Pane: Nail Gallery & Branding (Visible only on Desktop) */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-linear-to-br from-violet-50 via-fuchsia-50 to-purple-50 dark:bg-slate-900 overflow-hidden">
         {/* Background Decorative Elements */}
@@ -176,17 +176,19 @@ function LoginPageContent() {
       </div>
 
       {/* Right Pane: Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 relative bg-slate-50/50 dark:bg-slate-950/50">
-        <div className="absolute inset-0 lg:hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 md:p-12 relative bg-transparent">
+        {/* Dynamic Mobile Background */}
+        <div className="absolute inset-0 overflow-hidden lg:hidden pointer-events-none">
+          <div className="absolute -top-32 -right-32 w-96 h-96 bg-violet-500/30 dark:bg-violet-600/20 rounded-full blur-[80px] animate-pulse" />
+          <div className="absolute top-1/2 -left-32 w-96 h-96 bg-fuchsia-500/30 dark:bg-fuchsia-600/20 rounded-full blur-[80px]" style={{ animationDelay: '2s' }} />
+          <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-purple-500/30 dark:bg-purple-600/20 rounded-full blur-[100px]" />
         </div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md z-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-md z-10 relative"
         >
           <div className="text-center mb-10 lg:hidden flex flex-col items-center">
              <div className="w-16 h-16 rounded-3xl bg-white dark:bg-slate-900 shadow-xl flex items-center justify-center mb-4 ring-1 ring-violet-500/10">
@@ -195,10 +197,13 @@ function LoginPageContent() {
              <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-[0.2em] uppercase italic">TESSY<span className="text-violet-600">NAILS</span></h2>
           </div>
 
-          <Card className="border-slate-200/60 dark:border-white/5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl shadow-2xl shadow-slate-200/50 dark:shadow-none rounded-[2.5rem] overflow-hidden">
-            <CardHeader className="space-y-2 text-center pt-10 pb-6 px-8 relative overflow-hidden">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-linear-to-r from-transparent via-violet-500 to-transparent opacity-20" />
-              <CardTitle className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">
+          <Card className="relative border border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl shadow-[0_8px_32px_rgba(139,92,246,0.15)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-[0_16px_48px_rgba(139,92,246,0.25)]">
+            {/* Glass Reflection */}
+            <div className="absolute inset-0 bg-linear-to-br from-white/50 via-white/5 to-transparent dark:from-white/10 dark:via-transparent dark:to-transparent pointer-events-none" />
+            
+            <CardHeader className="space-y-2 text-center pt-10 pb-6 px-4 sm:px-8 relative z-10">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-linear-to-r from-transparent via-violet-500 to-transparent opacity-50 shadow-[0_0_10px_rgba(139,92,246,0.8)]" />
+              <CardTitle className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter mb-1 drop-shadow-sm">
                 {isRegisterMode ? "Bem-vinda" : "Boas-vindas"}
               </CardTitle>
               <CardDescription className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-4">
@@ -226,7 +231,7 @@ function LoginPageContent() {
                           onChange={(e) => setName(e.target.value)}
                           required 
                           autoComplete="name"
-                          className="h-14 rounded-2xl bg-white/50 dark:bg-slate-800/50 border-slate-200/60 dark:border-white/5 px-4 font-semibold text-slate-900 dark:text-white transition-all focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500"
+                          className="h-14 rounded-2xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-inner px-4 font-semibold text-slate-900 dark:text-white transition-all duration-300 hover:bg-white/70 dark:hover:bg-slate-800/70 focus:bg-white/80 dark:focus:bg-slate-800/80 focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 lg:text-sm text-base"
                         />
                       </div>
                     </motion.div>
@@ -268,7 +273,7 @@ function LoginPageContent() {
               </CardContent>
               
               <CardFooter className="flex flex-col space-y-6 px-8 pb-10">
-                <Button type="submit" className="w-full h-14 rounded-2xl bg-linear-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-black uppercase tracking-widest shadow-xl shadow-violet-500/20 transition-all hover:-translate-y-1 active:scale-95 group" disabled={loading}>
+                <Button type="submit" className="w-full h-14 rounded-2xl bg-linear-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-black uppercase tracking-widest shadow-[0_8px_20px_rgba(139,92,246,0.3)] transition-all duration-300 hover:shadow-[0_12px_25px_rgba(139,92,246,0.4)] hover:-translate-y-1 active:scale-95 group border border-violet-400/30" disabled={loading}>
                   {loading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
@@ -303,7 +308,7 @@ function LoginPageContent() {
                   type="button"
                   variant="outline"
                   onClick={handleGoogleLogin}
-                  className="w-full h-14 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800/50 font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest transition-all hover:bg-slate-50 dark:hover:bg-white/5 flex items-center justify-center gap-3"
+                  className="w-full h-14 rounded-2xl border border-white/50 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest transition-all duration-300 hover:bg-white/70 dark:hover:bg-slate-800/60 hover:shadow-lg flex items-center justify-center gap-3 relative z-10"
                   disabled={loading}
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
