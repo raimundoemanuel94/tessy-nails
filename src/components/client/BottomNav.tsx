@@ -19,7 +19,7 @@ export function BottomNav() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 md:hidden">
       <div className="mx-auto max-w-[430px] px-3 pb-3">
-        <nav className="rounded-[28px] border border-white/70 bg-white/90 px-2 py-2 shadow-[0_-10px_40px_rgba(124,58,237,0.12)] backdrop-blur-2xl">
+        <nav className="rounded-[28px] border border-[#E9DDF7] bg-white/95 px-2 py-2 shadow-[0_-10px_35px_rgba(31,23,42,0.08)] backdrop-blur-2xl">
           <div className="flex items-end justify-between gap-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
@@ -33,18 +33,22 @@ export function BottomNav() {
                   >
                     <div
                       className={cn(
-                        "flex h-14 w-14 items-center justify-center rounded-[20px] shadow-lg transition-all duration-200",
+                        "flex h-14 w-14 items-center justify-center rounded-[20px] transition-all duration-200",
                         isActive
-                          ? "bg-linear-to-br from-fuchsia-600 via-violet-600 to-indigo-600 scale-[1.02] shadow-violet-500/40"
-                          : "bg-linear-to-br from-fuchsia-500 via-violet-500 to-indigo-500 shadow-violet-400/25 hover:scale-[1.02]"
+                          ? "bg-linear-to-br from-[#7C3AED] to-[#F472B6] shadow-[0_14px_28px_-14px_rgba(124,58,237,0.5)]"
+                          : "bg-[#F8F5FF] hover:bg-[#F3EEFF]"
                       )}
                     >
-                      <item.icon size={24} className="text-white" strokeWidth={2.6} />
+                      <item.icon
+                        size={22}
+                        className={cn(isActive ? "text-white" : "text-[#7C3AED]")}
+                        strokeWidth={2.5}
+                      />
                     </div>
                     <span
                       className={cn(
-                        "text-[10px] font-bold tracking-wide",
-                        isActive ? "text-violet-700" : "text-slate-500"
+                        "text-[10px] font-semibold tracking-wide",
+                        isActive ? "text-[#7C3AED]" : "text-[#6B6280]"
                       )}
                     >
                       {item.label}
@@ -62,7 +66,7 @@ export function BottomNav() {
                   <div
                     className={cn(
                       "flex h-10 w-10 items-center justify-center rounded-2xl transition-all",
-                      isActive ? "bg-violet-100 text-violet-700" : "text-slate-400"
+                      isActive ? "bg-[#F3EEFF] text-[#7C3AED]" : "text-[#8A819C]"
                     )}
                   >
                     <item.icon size={20} strokeWidth={isActive ? 2.6 : 2.2} />
@@ -70,7 +74,7 @@ export function BottomNav() {
                   <span
                     className={cn(
                       "text-[10px] font-semibold tracking-wide transition-colors",
-                      isActive ? "text-violet-700" : "text-slate-500"
+                      isActive ? "text-[#7C3AED]" : "text-[#6B6280]"
                     )}
                   >
                     {item.label}
