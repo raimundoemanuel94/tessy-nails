@@ -18,25 +18,27 @@ export async function POST(req: Request) {
     // Ex: R$ 50,00 -> 5000 centavos
     const amountInCents = Math.round(price * 100);
 
-    // Cria a sessão de checkout no Stripe
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "brl",
-            product_data: {
-              name: isDeposit ? `Sinal / Reserva: ${serviceName}` : `Pagamento: ${serviceName}`,
-              description: `Agendamento no Tessy Nails${appointmentId ? ` (Ref: ${appointmentId})` : ""}`,
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      
+      // Cria a sessão de checkout no Stripe
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "brl",
+              product_data: {
+                name: isDeposit ? `Sinal / Reserva: ${serviceName}` : `Pagamento: ${serviceName}`,
+                description: `Agendamento no Tessy Nails${appointmentId ? ` (Ref: ${appointmentId})` : ""}`,
+              },
+              unit_amount: amountInCents,
             },
-            unit_amount: amountInCents,
+            quantity: 1,
           },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/pagamento/sucesso?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pagamento/cancelado`,
+        ],
+        mode: "payment",
+        success_url: `${appUrl}/pagamento/sucesso?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${appUrl}/pagamento/cancelado`,
       metadata: {
         appointmentId: appointmentId || "N/A",
         clientId: clientId || "N/A",

@@ -6,8 +6,16 @@ import { Loader2, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { loadStripe } from "@stripe/stripe-js";
 
-// Initialize Stripe outside of component to avoid recreating the instance
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+// Define promise handler que não quebra em runtime se a var falhar
+const getStripe = () => {
+  const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  if (!key) {
+    console.warn("Stripe publishable key is missing");
+    return null;
+  }
+  return loadStripe(key);
+};
+const stripePromise = getStripe();
 
 interface PaymentButtonProps {
   serviceName: string;
