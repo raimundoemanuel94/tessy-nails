@@ -634,7 +634,7 @@ export default function DashboardPage() {
                   <div className="space-y-6">
                     {/* Focus Card (Primeiro agendamento) */}
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                      <div className="border border-slate-200-40 shadow-xl bg-gradient-to-br from-white via-white to-violet-50/30 rounded-2xl overflow-hidden group transition-all duration-500 hover:shadow-violet-500-10">
+                      <div className="border border-slate-200-40 shadow-xl bg-gradient-to-br from-white via-white to-violet-50-30 rounded-2xl overflow-hidden group transition-all duration-500 hover:shadow-violet-500-10">
                         <div className="flex flex-col lg:flex-row">
                           <div className="bg-gradient-to-br from-violet-600 to-purple-600 p-10 flex flex-col items-center justify-center text-white lg:min-w-[200px] relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white-10 rounded-full blur-3xl -mr-16 -mt-16" />
@@ -953,7 +953,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <Button variant="outline" className="w-full bg-white/5 border-white-10 text-white hover:bg-white hover:text-slate-900 font-black uppercase tracking-wider text-sm h-12 rounded-xl transition-all duration-500">
+                  <Button variant="outline" className="w-full bg-white-5 border-white-10 text-white hover:bg-white hover:text-slate-900 font-black uppercase tracking-wider text-sm h-12 rounded-xl transition-all duration-500">
                     Ver Relatório Completo
                   </Button>
                 </div>
@@ -1010,7 +1010,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <Button variant="outline" className="w-full bg-white/5 border-white-10 text-white hover:bg-white hover:text-black font-black uppercase tracking-widest text-[9px] h-12 rounded-xl transition-all duration-500">
+                    <Button variant="outline" className="w-full bg-white-5 border-white-10 text-white hover:bg-white hover:text-black font-black uppercase tracking-widest text-[9px] h-12 rounded-xl transition-all duration-500">
                       Ver Relatório Completo
                     </Button>
                   </div>
