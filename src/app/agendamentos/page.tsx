@@ -4,13 +4,13 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { appointmentService, authService, clientService, salonService } from "@/services";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay, isSameDay, addDays, addWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Appointment, Client, Service } from "@/types";
 
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Search, Plus, CalendarIcon, Clock, MoreHorizontal, User, Scissors, Loader2, UserPlus, Trash2, CheckCircle2 } from "lucide-react";
+import { Search, Plus, CalendarIcon, Clock, MoreHorizontal, User, Scissors, Loader2, UserPlus, Trash2, CheckCircle2, TrendingUp, Users, DollarSign, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -68,6 +68,7 @@ export default function AgendamentosPage() {
   const [specialists, setSpecialists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeFilter, setActiveFilter] = useState("all");
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
   const [remarcarAppointment, setRemarcarAppointment] = useState<Appointment | null>(null);
   const [remarcarDate, setRemarcarDate] = useState<Date>(new Date());
@@ -170,11 +171,57 @@ export default function AgendamentosPage() {
   }, [rawAppointments, clients, clientUsers, services, specialists]);
 
   const filteredAppointments = useMemo(() => {
-    return enrichedAppointments.filter(app =>
+    let filtered = enrichedAppointments.filter(app =>
       app.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.service.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [enrichedAppointments, searchTerm]);
+
+    // Aplicar filtros rápidos
+    if (activeFilter !== "all") {
+      const today = startOfDay(new Date());
+      const tomorrow = addDays(today, 1);
+      const weekEnd = addDays(today, 7);
+
+      filtered = filtered.filter(app => {
+        // Converter data do formato DD/MM/YYYY para Date
+        const [day, month, year] = app.date.split('/').map(Number);
+        const appDate = new Date(year, month - 1, day);
+        
+        switch (activeFilter) {
+          case "today":
+            return isSameDay(appDate, today);
+          case "tomorrow":
+            return isSameDay(appDate, tomorrow);
+          case "week":
+            return appDate >= today && appDate <= weekEnd;
+          case "pending":
+            return app.status === "pending";
+          default:
+            return true;
+        }
+      });
+    }
+
+    return filtered;
+  }, [enrichedAppointments, searchTerm, activeFilter]);
+  
+  // Calcular estatísticas para cards de resumo
+  const stats = useMemo(() => {
+    const total = enrichedAppointments.length;
+    const pending = enrichedAppointments.filter(app => app.status === 'pending').length;
+    const confirmed = enrichedAppointments.filter(app => app.status === 'confirmed').length;
+    const completed = enrichedAppointments.filter(app => app.status === 'completed').length;
+    
+    // Calcular receita prevista (soma de confirmados + pendentes)
+    const revenue = enrichedAppointments
+      .filter(app => app.status === 'confirmed' || app.status === 'pending')
+      .reduce((total, app) => {
+        const price = parseFloat(app.price.replace('R$ ', '').replace(',', '.')) || 0;
+        return total + price;
+      }, 0);
+    
+    return { total, pending, confirmed, completed, revenue };
+  }, [enrichedAppointments]);
 
   const handleConfirmar = async (id: string) => {
     setActionLoading(id);
@@ -279,8 +326,8 @@ export default function AgendamentosPage() {
         <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
           <DialogTrigger
             render={
-              <Button className="gap-2">
-                <Plus size={18} /> Novo Agendamento
+              <Button className="gap-2 bg-violet-600 hover:bg-violet-700 text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all rounded-xl font-bold text-sm px-8 py-3">
+                <Plus size={20} /> Novo Agendamento
               </Button>
             }
           />
@@ -299,85 +346,210 @@ export default function AgendamentosPage() {
         </Dialog>
       </PageHeader>
 
-      <div className="flex items-center gap-4 mb-8">
-        <div className="relative flex-1 max-w-md group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-500 transition-colors" size={20} />
-          <Input 
-            id="search-appointments"
-            name="search-appointments"
-            placeholder="Pesquisar por cliente, serviço ou data..." 
-            className="pl-12 h-12 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all font-medium"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Management Toolbar */}
+      <div className="mb-8">
+        {/* Summary Cards */}
+        <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-5">
+          <div className="rounded-2xl border border-slate-200/40 dark:border-white/5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-lg shadow-slate-200/30 dark:shadow-none p-8">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
+                <CalendarCheck className="h-7 w-7 text-violet-600 dark:text-violet-400" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Total</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="rounded-2xl border border-slate-200/40 dark:border-white/5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-lg shadow-slate-200/30 dark:shadow-none p-8">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+                <Clock className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Pendentes</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.pending}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="rounded-2xl border border-slate-200/40 dark:border-white/5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-lg shadow-slate-200/30 dark:shadow-none p-8">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
+                <CheckCircle2 className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Confirmados</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.confirmed}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="rounded-2xl border border-slate-200/40 dark:border-white/5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-lg shadow-slate-200/30 dark:shadow-none p-8">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                <Users className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Concluídos</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.completed}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="rounded-2xl border border-slate-200/40 dark:border-white/5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-lg shadow-slate-200/30 dark:shadow-none p-8">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center">
+                <DollarSign className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Receita</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white">R$ {stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Search and Filters */}
+        <div className="space-y-4">
+          {/* Search Input */}
+          <div className="relative max-w-2xl group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-500 transition-colors" size={22} />
+            <Input 
+              id="search-appointments"
+              name="search-appointments"
+              placeholder="Pesquisar por cliente, serviço ou data..." 
+              className="pl-16 h-16 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-lg focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all font-medium text-lg w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          {/* Filters Section */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            {/* Filter Chips */}
+            <div className="flex items-center gap-3 p-2 bg-slate-100/60 dark:bg-slate-800/60 rounded-2xl backdrop-blur-sm border border-slate-200/40 dark:border-white/5">
+              <Button
+                variant={activeFilter === "all" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveFilter("all")}
+                className="rounded-xl font-bold text-sm px-5 py-3 h-auto"
+              >
+                Todos
+              </Button>
+              <Button
+                variant={activeFilter === "today" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveFilter("today")}
+                className="rounded-xl font-bold text-sm px-5 py-3 h-auto"
+              >
+                Hoje
+              </Button>
+              <Button
+                variant={activeFilter === "tomorrow" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveFilter("tomorrow")}
+                className="rounded-xl font-bold text-sm px-5 py-3 h-auto"
+              >
+                Amanhã
+              </Button>
+              <Button
+                variant={activeFilter === "week" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveFilter("week")}
+                className="rounded-xl font-bold text-sm px-5 py-3 h-auto"
+              >
+                Semana
+              </Button>
+              <Button
+                variant={activeFilter === "pending" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveFilter("pending")}
+                className="rounded-xl font-bold text-sm px-5 py-3 h-auto"
+              >
+                Pendentes
+              </Button>
+            </div>
+            
+            {/* Results Count */}
+            <div className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+              <span className="text-violet-600 dark:text-violet-400 font-black text-lg">{filteredAppointments.length}</span> de <span className="text-slate-900 dark:text-white font-black text-lg">{enrichedAppointments.length}</span> resultados
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md shadow-xl shadow-slate-200/40 dark:shadow-none overflow-hidden">
+      {/* Enhanced Table - No Horizontal Scroll */}
+      <div className="rounded-3xl border border-slate-200/40 dark:border-white/5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-2xl shadow-slate-200/40 dark:shadow-none overflow-hidden">
         {loading ? (
-          <div className="flex flex-col items-center justify-center p-24 gap-4">
+          <div className="flex flex-col items-center justify-center p-32 gap-6">
             <div className="relative">
-              <div className="absolute inset-0 bg-violet-500/20 rounded-full blur-xl animate-pulse" />
-              <Loader2 className="h-10 w-10 animate-spin text-violet-600 relative z-10" />
+              <div className="absolute inset-0 bg-violet-500/20 rounded-full blur-2xl animate-pulse" />
+              <Loader2 className="h-12 w-12 animate-spin text-violet-600 relative z-10" />
             </div>
-            <p className="text-sm font-black text-slate-400 dark:text-slate-500 tracking-widest uppercase">Sincronizando agendamentos...</p>
+            <p className="text-base font-black text-slate-400 dark:text-slate-500 tracking-widest uppercase">Sincronizando agendamentos...</p>
           </div>
         ) : (
           <Table>
-            <TableHeader className="bg-slate-50/50 dark:bg-white/5">
-              <TableRow className="hover:bg-transparent border-slate-100 dark:border-white/5">
-                <TableHead className="px-6 py-5 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Data & Horário</TableHead>
-                <TableHead className="px-6 py-5 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Cliente</TableHead>
-                <TableHead className="px-6 py-5 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Serviço / Profissional</TableHead>
-                <TableHead className="px-6 py-5 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Status</TableHead>
-                <TableHead className="px-6 py-5 text-right text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Valor</TableHead>
-                <TableHead className="px-6 py-5 text-right text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Gestão</TableHead>
+            <TableHeader className="bg-slate-50/60 dark:bg-white/5 border-b border-slate-200/40 dark:border-white/5">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="px-6 py-5 text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Data & Horário</TableHead>
+                <TableHead className="px-6 py-5 text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Cliente</TableHead>
+                <TableHead className="px-6 py-5 text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Serviço</TableHead>
+                <TableHead className="px-6 py-5 text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Profissional</TableHead>
+                <TableHead className="px-6 py-5 text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Status</TableHead>
+                <TableHead className="px-6 py-5 text-right text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Valor</TableHead>
+                <TableHead className="px-6 py-5 text-center text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredAppointments.length > 0 ? (
                 filteredAppointments.map((app) => (
-                  <TableRow key={app.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 border-slate-100 dark:border-white/5 transition-all">
-                    <TableCell className="px-6 py-4">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white uppercase tracking-tighter">
+                  <TableRow key={app.id} className="group hover:bg-slate-50/80 dark:hover:bg-white/5 border-b border-slate-100/40 dark:border-white/5 transition-all">
+                    <TableCell className="px-6 py-5">
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
                           <CalendarIcon size={14} className="text-violet-600" />
                           {app.date}
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                           <Clock size={12} />
                           {app.time}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="px-6 py-4">
+                    <TableCell className="px-6 py-5">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-[10px] font-black text-slate-600 dark:text-slate-400">
+                        <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-xs font-black text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10">
                           {String(app.client || "").substring(0, 2).toUpperCase() || "CN"}
                         </div>
-                        <span className="font-bold text-slate-700 dark:text-slate-300">{String(app.client || "")}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2 px-3 py-1 bg-violet-50 dark:bg-violet-950/20 border border-violet-100/50 dark:border-violet-900/50 rounded-xl w-fit">
-                          <Scissors size={14} className="text-violet-600" />
-                          <span className="text-xs font-bold text-violet-700 dark:text-violet-400">{app.service}</span>
-                        </div>
-                        <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 rounded-xl w-fit">
-                          <User size={12} className="text-slate-400" />
-                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{app.specialist}</span>
+                        <div>
+                          <span className="font-bold text-slate-900 dark:text-white text-base block">{String(app.client || "")}</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">Cliente</span>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="px-6 py-4">
+                    <TableCell className="px-6 py-5">
+                      <div className="flex items-center gap-2 px-3 py-2 bg-violet-50 dark:bg-violet-950/20 border border-violet-100/50 dark:border-violet-900/50 rounded-lg w-fit">
+                        <Scissors size={14} className="text-violet-600" />
+                        <span className="text-sm font-bold text-violet-700 dark:text-violet-400">{app.service}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-6 py-5">
+                      <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 rounded-lg w-fit">
+                        <User size={12} className="text-slate-400" />
+                        <span className="text-xs font-bold text-slate-500">{app.specialist}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-6 py-5">
                       <Badge variant="outline" className={cn(
-                        "px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm",
-                        app.status === "confirmed" && "bg-blue-100/50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-900/30",
-                        app.status === "pending" && "bg-amber-100/50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-900/30",
-                        app.status === "completed" && "bg-emerald-100/50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-900/30",
-                        app.status === "cancelled" && "bg-purple-100/50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-900/30",
-                        app.status === "no_show" && "bg-red-100/50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-900/30"
+                        "px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-tighter shadow-md border-2",
+                        app.status === "confirmed" && "bg-blue-100/70 text-blue-800 border-blue-300 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-700/50",
+                        app.status === "pending" && "bg-amber-100/70 text-amber-800 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-700/50",
+                        app.status === "completed" && "bg-emerald-100/70 text-emerald-800 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-700/50",
+                        app.status === "cancelled" && "bg-purple-100/70 text-purple-800 border-purple-300 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-700/50",
+                        app.status === "no_show" && "bg-red-100/70 text-red-800 border-red-300 dark:bg-red-500/20 dark:text-red-300 dark:border-red-700/50"
                       )}>
                         {app.status === "confirmed" ? "Confirmado" : 
                          app.status === "pending" ? "Pendente" : 
@@ -385,14 +557,17 @@ export default function AgendamentosPage() {
                          app.status === "no_show" ? "Não Compareceu" : "Cancelado"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="px-6 py-4 text-right">
-                      <span className="text-sm font-black text-slate-900 dark:text-white">{app.price}</span>
+                    <TableCell className="px-6 py-5 text-right">
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="text-xl font-black text-slate-900 dark:text-white">{app.price}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">Valor</span>
+                      </div>
                     </TableCell>
-                    <TableCell className="px-6 py-4 text-right">
+                    <TableCell className="px-6 py-5 text-center">
                       <DropdownMenu>
                         <DropdownMenuTrigger
                           render={
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-white/5 border border-transparent hover:border-slate-200 dark:hover:border-white/10 transition-all shadow-sm group-hover:bg-white dark:group-hover:bg-white/5" disabled={actionLoading === app.id}>
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 border border-transparent hover:border-slate-200 dark:hover:border-white/20 transition-all shadow-sm group-hover:bg-slate-50 dark:group-hover:bg-white/5" disabled={actionLoading === app.id}>
                               {actionLoading === app.id ? (
                                 <Loader2 size={18} className="animate-spin text-violet-600" />
                               ) : (
@@ -403,35 +578,35 @@ export default function AgendamentosPage() {
                         />
                         <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-slate-200/60 dark:border-white/5 shadow-2xl">
                           <DropdownMenuItem
-                            className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:text-violet-600 transition-all"
+                            className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:text-violet-600 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
                             disabled={app.status !== "pending"}
                             onClick={() => handleConfirmar(app.id)}
                           >
-                            <CheckCircle2 size={16} className="mr-2" /> Confirmar Agendamento
+                            <CheckCircle2 size={16} className="mr-3" /> Confirmar Agendamento
                           </DropdownMenuItem>
-                          
+                             
                           <DropdownMenuItem
                             className="p-3 cursor-pointer rounded-xl font-bold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all"
                             disabled={app.status === "completed" || app.status === "cancelled"}
                             onClick={() => handleConcluir(app.id)}
                           >
-                            <CheckCircle2 size={16} className="mr-2" /> Concluir Atendimento
+                            <CheckCircle2 size={16} className="mr-3" /> Concluir Atendimento
                           </DropdownMenuItem>
 
                           <DropdownMenuItem
-                            className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:text-violet-600 transition-all"
+                            className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:text-violet-600 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
                             disabled={app.status === "completed" || app.status === "cancelled"}
                             onClick={() => openRemarcar(app)}
                           >
-                            <Clock size={16} className="mr-2" /> Remarcar / Editar
+                            <Clock size={16} className="mr-3" /> Remarcar / Editar
                           </DropdownMenuItem>
-                          
+                             
                           <DropdownMenuItem
                             className="p-3 cursor-pointer rounded-xl font-bold text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all"
                             disabled={app.status === "completed" || app.status === "cancelled" || app.status === "no_show"}
                             onClick={() => handleFalta(app.id)}
                           >
-                            <CalendarX2 size={16} className="mr-2" /> Marcar Falta (Não Compareceu)
+                            <CalendarX2 size={16} className="mr-3" /> Marcar Falta
                           </DropdownMenuItem>
 
                           <DropdownMenuItem
@@ -439,14 +614,14 @@ export default function AgendamentosPage() {
                             onClick={() => handleCancelar(app.id)}
                             disabled={app.status === "cancelled"}
                           >
-                            <CalendarX2 size={16} className="mr-2" /> Cancelar Agendamento
+                            <CalendarX2 size={16} className="mr-3" /> Cancelar Agendamento
                           </DropdownMenuItem>
-                          
+                             
                           <DropdownMenuItem
                             className="p-3 cursor-pointer rounded-xl font-black text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
                             onClick={() => handleExcluir(app.id)}
                           >
-                            <Trash2 size={16} className="mr-2" /> Excluir Registro
+                            <Trash2 size={16} className="mr-3" /> Excluir Registro
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -455,12 +630,12 @@ export default function AgendamentosPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-20">
+                  <TableCell colSpan={7} className="py-24">
                     <EmptyState 
                       icon={CalendarX2}
                       title="Nenhum registro"
                       description="Não encontramos agendamentos com os filtros aplicados."
-                      className="py-10"
+                      className="py-12"
                     />
                   </TableCell>
                 </TableRow>

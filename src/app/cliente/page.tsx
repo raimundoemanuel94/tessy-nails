@@ -119,24 +119,22 @@ export default function ClientePage() {
   ];
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#FFFDFE] pb-28">
+    <div className="relative min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_right,rgba(244,114,182,0.10),transparent_22%),radial-gradient(circle_at_top_left,rgba(167,139,250,0.14),transparent_28%),linear-gradient(180deg,#FFFDFE_0%,#FFF9FC_52%,#FFFDFE_100%)] pb-28">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 right-[-80px] h-64 w-64 rounded-full bg-[#FCE7F3]/70 blur-3xl" />
         <div className="absolute top-72 -left-20 h-64 w-64 rounded-full bg-[#F3EEFF]/80 blur-3xl" />
       </div>
 
-      <header className="relative mx-auto max-w-[1200px] px-5 pt-6 lg:px-8">
-        <div className="rounded-[32px] border border-[#E9DDF7] bg-white/95 px-5 py-5 shadow-[0_20px_60px_-42px_rgba(124,58,237,0.28)] backdrop-blur-sm">
+      <header className="relative mx-auto max-w-[1280px] px-4 pt-6 md:px-6 xl:px-8">
+        <div className="rounded-[34px] border border-white/70 bg-white/78 px-5 py-5 shadow-[0_18px_50px_-34px_rgba(124,58,237,0.28),0_1px_0_rgba(255,255,255,0.85)_inset] ring-1 ring-[#F3E8FF]/80 backdrop-blur-xl md:px-6 md:py-6 xl:px-7">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="mb-1 text-sm font-medium text-[#7C3AED]">{getGreeting()}</p>
-              <h1 className="text-[1.9rem] font-black leading-none tracking-tight text-[#1F172A]">{firstName}</h1>
-              <p className="mt-2 max-w-[260px] text-sm leading-6 text-[#6B6280]">
-                Seu espaço para agendar com leveza, praticidade e um toque premium.
-              </p>
+              <p className="mb-1 text-sm font-semibold tracking-[0.01em] text-[#7C3AED]">{getGreeting()}</p>
+              <h1 className="text-[1.95rem] font-black leading-none tracking-tight text-[#1F172A] md:text-[2.1rem]">{firstName}</h1>
+              <p className="mt-2 max-w-[320px] text-sm leading-6 text-[#6B6280] md:text-[15px]">Seu espaço para agendar com leveza, praticidade e um toque premium.</p>
             </div>
             <button
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#E9DDF7] bg-[#F8F5FF] text-[#7C3AED] transition hover:bg-[#F3EEFF]"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#E9DDF7] bg-white/90 text-[#7C3AED] shadow-[0_12px_28px_-18px_rgba(124,58,237,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#F8F5FF] hover:shadow-[0_16px_32px_-20px_rgba(124,58,237,0.4)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#C4B5FD] focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98]"
               onClick={() => router.push("/cliente/perfil")}
               aria-label="Ir para perfil"
             >
@@ -146,26 +144,30 @@ export default function ClientePage() {
         </div>
       </header>
 
-      <main className="relative mx-auto max-w-[1200px] px-5 pt-5 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start xl:gap-8">
-          <div className="space-y-6">
+      <main className="relative mx-auto max-w-[1280px] px-4 pt-5 md:px-6 xl:px-8">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:gap-8">
+          <div className="space-y-6 md:space-y-7 xl:col-span-7">
             <section>
               <Button
-                className="h-[74px] w-full justify-between rounded-[30px] border border-[#E9DDF7] bg-linear-to-r from-[#7C3AED] to-[#F472B6] px-5 text-white shadow-[0_20px_40px_-22px_rgba(124,58,237,0.45)] transition hover:opacity-95 active:scale-[0.99] lg:h-[78px]"
+                className="h-[84px] w-full justify-between rounded-[32px] border border-white/20 bg-linear-to-r from-[#7C3AED] via-[#8B5CF6] to-[#F472B6] px-5 text-white shadow-[0_24px_50px_-24px_rgba(124,58,237,0.52)] ring-1 ring-white/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_30px_56px_-24px_rgba(124,58,237,0.46)] active:scale-[0.99] md:px-6 lg:h-[88px] xl:h-[96px] xl:px-7"
                 onClick={() => router.push("/cliente/agendar")}
               >
-                <span className="flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
-                    <Plus size={22} strokeWidth={3} />
+                <span className="flex items-center gap-3.5 md:gap-4">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-[20px] bg-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.22)] backdrop-blur-sm md:h-14 md:w-14">
+                    <Plus size={24} strokeWidth={3} />
                   </span>
                   <span className="text-left">
-                    <span className="block text-[11px] font-bold uppercase tracking-[0.18em] text-white/80">
+                    <span className="block text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">
                       Principal
                     </span>
-                    <span className="block text-base font-black">Agendar novo horário</span>
+                    <span className="mt-0.5 block text-[1.02rem] font-black leading-tight md:text-[1.1rem] xl:text-[1.18rem]">
+                      Agendar novo horário
+                    </span>
                   </span>
                 </span>
-                <ChevronRight size={18} />
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/16 md:h-11 md:w-11">
+                  <ChevronRight size={19} />
+                </span>
               </Button>
             </section>
 
@@ -175,25 +177,29 @@ export default function ClientePage() {
                 <h2 className="text-lg font-black tracking-tight text-[#1F172A]">Tudo o que você mais usa</h2>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 lg:gap-4">
+              <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-2 xl:gap-5">
                 {quickActions.map((item) => (
                   <button
                     key={item.id}
                     onClick={item.action}
-                    className="rounded-[28px] border border-[#E9DDF7] bg-white p-4 text-left shadow-[0_18px_45px_-36px_rgba(31,23,42,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-36px_rgba(124,58,237,0.22)] active:scale-[0.99] lg:min-h-[168px] lg:p-5"
+                    className="group rounded-[28px] border border-white/80 bg-white/92 p-4 text-left shadow-[0_18px_45px_-36px_rgba(31,23,42,0.22)] ring-1 ring-[#F4ECFF] transition-all duration-200 hover:-translate-y-1 hover:border-[#E6D8FB] hover:bg-white hover:shadow-[0_26px_54px_-34px_rgba(124,58,237,0.24)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#C4B5FD] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFDFE] active:scale-[0.985] md:min-h-[176px] md:p-5 xl:min-h-[196px] xl:p-6"
                   >
-                    <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-[18px] ${item.iconBox}`}>
+                    <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-[20px] shadow-sm transition-transform duration-200 group-hover:scale-105 ${item.iconBox}`}>
                       <item.icon size={20} strokeWidth={2.4} />
                     </div>
-                    <p className="text-sm font-black text-[#1F172A]">{item.title}</p>
-                    <p className="mt-1 text-xs leading-5 text-[#6B6280]">{item.description}</p>
+                    <p className="text-sm font-black text-[#1F172A] md:text-[15px]">{item.title}</p>
+                    <p className="mt-1.5 text-xs leading-5 text-[#6B6280] md:text-[13px]">{item.description}</p>
+                    <div className="mt-4 flex items-center text-xs font-semibold text-[#7C3AED] opacity-0 transition duration-200 group-hover:opacity-100">
+                      Abrir
+                      <ChevronRight size={14} className="ml-1 transition-transform duration-200 group-hover:translate-x-0.5" />
+                    </div>
                   </button>
                 ))}
               </div>
             </section>
           </div>
 
-          <div className="space-y-6 pb-4">
+          <div className="grid gap-6 md:gap-7 xl:col-span-5 xl:content-start">
             <section className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <div>
@@ -211,44 +217,40 @@ export default function ClientePage() {
               </div>
 
               {nextAppointment ? (
-                <Card className="overflow-hidden rounded-[30px] border border-[#E9DDF7] bg-white shadow-[0_20px_60px_-44px_rgba(31,23,42,0.25)]">
-                  <CardContent className="p-5 lg:p-6">
-                    <div className="mb-4 flex items-start justify-between gap-3">
+                <Card className="overflow-hidden rounded-[32px] border border-white/75 bg-white/94 shadow-[0_22px_60px_-42px_rgba(31,23,42,0.26)] ring-1 ring-[#F3E8FF]/80">
+                  <CardContent className="p-5 md:p-6 xl:p-7">
+                    <div className="mb-5 flex items-start justify-between gap-3">
                       <div>
                         <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#A78BFA]">Agendado</p>
-                        <h3 className="text-[1.2rem] font-black leading-tight text-[#1F172A]">{nextAppointment.service.name}</h3>
+                        <h3 className="text-[1.2rem] font-black leading-tight text-[#1F172A] md:text-[1.28rem]">{nextAppointment.service.name}</h3>
                       </div>
                       <Badge
                         variant="outline"
-                        className={`rounded-full border px-3 py-1 text-[11px] font-bold shadow-none ${nextStatus?.className ?? ""}`}
+                        className={`rounded-full border px-3 py-1.5 text-[11px] font-bold shadow-[0_8px_22px_-18px_rgba(31,23,42,0.25)] ${nextStatus?.className ?? ""}`}
                       >
                         {nextStatus?.label}
                       </Badge>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-                      <div className="rounded-[22px] bg-[#F8F5FF] px-4 py-3">
-                        <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white text-[#7C3AED] shadow-sm">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                      <div className="rounded-[24px] border border-[#EEE5FB] bg-[#FAF7FF] px-4 py-3.5">
+                        <div className="mb-2.5 flex h-10 w-10 items-center justify-center rounded-[14px] bg-white text-[#7C3AED] shadow-[0_10px_22px_-16px_rgba(124,58,237,0.35)]">
                           <Calendar size={16} />
                         </div>
                         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#A78BFA]">Data</p>
-                        <p className="mt-1 text-sm font-bold text-[#1F172A]">
-                          {format(nextAppointment.date, "dd MMM", { locale: ptBR })}
-                        </p>
+                        <p className="mt-1 text-sm font-bold text-[#1F172A]">{format(nextAppointment.date, "dd MMM", { locale: ptBR })}</p>
                       </div>
 
-                      <div className="rounded-[22px] bg-[#FFF7FB] px-4 py-3">
-                        <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white text-[#F472B6] shadow-sm">
+                      <div className="rounded-[24px] border border-[#FCE3EF] bg-[#FFF7FB] px-4 py-3.5">
+                        <div className="mb-2.5 flex h-10 w-10 items-center justify-center rounded-[14px] bg-white text-[#F472B6] shadow-[0_10px_22px_-16px_rgba(244,114,182,0.35)]">
                           <Clock size={16} />
                         </div>
                         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#F472B6]">Horário</p>
-                        <p className="mt-1 text-sm font-bold text-[#1F172A]">
-                          {nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}
-                        </p>
+                        <p className="mt-1 text-sm font-bold text-[#1F172A]">{nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}</p>
                       </div>
 
-                      <div className="rounded-[22px] bg-[#F8F5FF] px-4 py-3">
-                        <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white text-[#7C3AED] shadow-sm">
+                      <div className="rounded-[24px] border border-[#EEE5FB] bg-[#FAF7FF] px-4 py-3.5">
+                        <div className="mb-2.5 flex h-10 w-10 items-center justify-center rounded-[14px] bg-white text-[#7C3AED] shadow-[0_10px_22px_-16px_rgba(124,58,237,0.35)]">
                           <Clock size={16} />
                         </div>
                         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#A78BFA]">Duração</p>
@@ -256,16 +258,16 @@ export default function ClientePage() {
                       </div>
                     </div>
 
-                    <div className="mt-4 flex gap-2">
+                    <div className="mt-5 flex gap-2.5">
                       <Button
-                        className="h-11 flex-1 rounded-2xl bg-[#7C3AED] font-bold text-white shadow-[0_14px_30px_-18px_rgba(124,58,237,0.5)] hover:bg-[#6D28D9]"
+                        className="h-11 flex-1 rounded-2xl bg-[#7C3AED] font-bold text-white shadow-[0_16px_30px_-18px_rgba(124,58,237,0.48)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#6D28D9] hover:shadow-[0_20px_32px_-18px_rgba(124,58,237,0.48)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#C4B5FD] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                         onClick={() => router.push("/cliente/agendamentos")}
                       >
                         Ver detalhes
                       </Button>
                       <Button
                         variant="outline"
-                        className="h-11 rounded-2xl border-[#E9DDF7] bg-white px-4 text-[#7C3AED] hover:bg-[#F8F5FF]"
+                        className="h-11 rounded-2xl border-[#E9DDF7] bg-[#FCFAFF] px-4 text-[#7C3AED] transition-colors duration-200 hover:bg-[#F8F5FF] hover:text-[#6D28D9]"
                         onClick={() => router.push("/cliente/agendar")}
                       >
                         Remarcar
@@ -274,8 +276,8 @@ export default function ClientePage() {
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="rounded-[30px] border border-[#E9DDF7] bg-white shadow-[0_20px_60px_-44px_rgba(31,23,42,0.2)]">
-                  <CardContent className="p-6 lg:p-7">
+                <Card className="rounded-[32px] border border-white/80 bg-white/94 shadow-[0_22px_60px_-42px_rgba(31,23,42,0.22)] ring-1 ring-[#F3E8FF]/80">
+                  <CardContent className="p-6 md:p-7 xl:p-8">
                     <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[24px] bg-[#F8F5FF] text-[#7C3AED]">
                       <Calendar size={28} strokeWidth={2.2} />
                     </div>
@@ -286,7 +288,7 @@ export default function ClientePage() {
                       </p>
                     </div>
                     <Button
-                      className="mt-5 h-12 w-full rounded-2xl bg-linear-to-r from-[#7C3AED] to-[#F472B6] font-bold text-white shadow-[0_18px_32px_-20px_rgba(124,58,237,0.45)] hover:opacity-95"
+                      className="mt-5 h-12 w-full rounded-2xl bg-linear-to-r from-[#7C3AED] to-[#F472B6] font-bold text-white shadow-[0_18px_32px_-20px_rgba(124,58,237,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95"
                       onClick={() => router.push("/cliente/agendar")}
                     >
                       Agendar agora
@@ -311,7 +313,7 @@ export default function ClientePage() {
                 </button>
               </div>
 
-              <div className="grid gap-3 lg:gap-4">
+              <div className="grid gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-1">
                 {services.slice(0, 3).map((service, index) => {
                   const gradients = [
                     "from-violet-500 to-purple-600",
@@ -322,19 +324,22 @@ export default function ClientePage() {
                   return (
                     <button
                       key={service.id}
-                      className="group flex items-center justify-between rounded-[28px] border border-[#E9DDF7] bg-white p-4 text-left shadow-[0_18px_45px_-36px_rgba(31,23,42,0.2)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-36px_rgba(124,58,237,0.22)] active:scale-[0.99] lg:p-5"
+                      className="group flex items-center justify-between rounded-[28px] border border-white/80 bg-white/94 p-4 text-left shadow-[0_18px_45px_-36px_rgba(31,23,42,0.2)] ring-1 ring-[#F4ECFF] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#E6D8FB] hover:bg-white hover:shadow-[0_24px_50px_-34px_rgba(124,58,237,0.22)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#C4B5FD] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFDFE] active:scale-[0.99] md:min-h-[120px] md:p-5 xl:p-6"
                       onClick={() => router.push(`/cliente/servicos?id=${service.id}`)}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`flex h-12 w-12 items-center justify-center rounded-[18px] bg-linear-to-br ${gradients[index % 3]} text-white shadow-sm`}>
+                        <div className={`flex h-12 w-12 items-center justify-center rounded-[18px] bg-linear-to-br ${gradients[index % 3]} text-white shadow-[0_14px_26px_-16px_rgba(124,58,237,0.45)] transition-transform duration-200 group-hover:scale-105`}>
                           <Sparkles size={22} strokeWidth={2.4} />
                         </div>
                         <div>
-                          <h4 className="text-sm font-black text-[#1F172A]">{service.name}</h4>
+                          <h4 className="text-sm font-black text-[#1F172A] md:text-[15px]">{service.name}</h4>
                           <p className="mt-1 text-base font-black text-[#7C3AED]">R$ {service.price.toFixed(2)}</p>
                         </div>
                       </div>
-                      <ChevronRight size={18} className="text-[#C4B5D9] transition group-hover:text-[#7C3AED] group-hover:translate-x-0.5" />
+                      <ChevronRight
+                        size={18}
+                        className="text-[#C4B5D9] transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-[#7C3AED]"
+                      />
                     </button>
                   );
                 })}

@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { 
   LayoutGrid, 
-  CalendarDays, 
+  Calendar, 
+  CalendarDays,
   Users2, 
   Sparkles, 
   Clock4, 
@@ -14,26 +15,27 @@ import {
   ChevronLeft,
   ChevronRight,
   PieChart,
-  Sparkle
+  Sparkle,
+  ClipboardList
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
 const operationItems = [
-  { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
-  { icon: CalendarDays, label: "Agenda", href: "/agenda" },
-  { icon: Clock4, label: "Agendamentos", href: "/agendamentos" },
-  { icon: PieChart, label: "Relatórios", href: "/relatorios" },
+  { icon: LayoutGrid, label: "Dashboard", href: "/dashboard", description: "Visão geral do negócio" },
+  { icon: Calendar, label: "Calendário", href: "/agenda", description: "Visualização e planejamento" },
+  { icon: ClipboardList, label: "Agendamentos", href: "/agendamentos", description: "Histórico e gestão" },
+  { icon: PieChart, label: "Relatórios", href: "/relatorios", description: "Análises e exportações" },
 ];
 
 const cadastrosItems = [
-  { icon: Users2, label: "Clientes", href: "/clientes" },
-  { icon: Sparkles, label: "Serviços", href: "/servicos" },
+  { icon: Users2, label: "Clientes", href: "/clientes", description: "Lista e gestão" },
+  { icon: Sparkles, label: "Serviços", href: "/servicos", description: "Catálogo e preços" },
 ];
 
 const systemItems = [
-  { icon: Settings2, label: "Configurações", href: "/configuracoes" },
+  { icon: Settings2, label: "Configurações", href: "/configuracoes", description: "Preferências do sistema" },
 ];
 
 export function Sidebar() {
@@ -75,9 +77,12 @@ export function Sidebar() {
       <nav className="flex-1 px-3 space-y-4 overflow-y-auto custom-scrollbar">
         {/* Operação */}
         {!collapsed && (
-          <p className="px-4 pt-2 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-            Operação
-          </p>
+          <div className="px-4 pt-2 pb-2">
+            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
+              Operação
+            </p>
+            <div className="h-px bg-linear-to-r from-slate-100/80 to-transparent dark:from-slate-700/30 dark:to-transparent" />
+          </div>
         )}
         <div className="space-y-1.5">
           {operationItems.map((item) => {
@@ -87,10 +92,10 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-500 hover:scale-[1.03]",
+                  "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-500 hover:scale-[1.01]",
                   isActive
-                    ? "bg-white dark:bg-slate-800 text-violet-600 shadow-sm border border-slate-200/50 dark:border-white/5"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5",
+                    ? "bg-linear-to-r from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/10 text-violet-600 shadow-lg border border-violet-200/50 dark:border-violet-800/30 shadow-violet-500/10 ring-2 ring-violet-500/10"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5",
                   collapsed && "justify-center px-0"
                 )}
               >
@@ -107,7 +112,7 @@ export function Sidebar() {
                 {!collapsed && <span>{item.label}</span>}
 
                 {isActive && !collapsed && (
-                  <div className="absolute left-0 w-1 h-6 bg-violet-600 rounded-r-full" />
+                  <div className="absolute left-0 w-1 h-8 bg-linear-to-b from-violet-500 to-purple-600 rounded-r-full shadow-sm" />
                 )}
               </Link>
             );
@@ -116,9 +121,12 @@ export function Sidebar() {
 
         {/* Cadastros */}
         {!collapsed && (
-          <p className="px-4 pt-4 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-            Cadastros
-          </p>
+          <div className="px-4 pt-6 pb-2">
+            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
+              Cadastros
+            </p>
+            <div className="h-px bg-linear-to-r from-slate-100/80 to-transparent dark:from-slate-700/30 dark:to-transparent" />
+          </div>
         )}
         <div className="space-y-1.5">
           {cadastrosItems.map((item) => {
@@ -128,10 +136,10 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-500 hover:scale-[1.03]",
+                  "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-500 hover:scale-[1.01]",
                   isActive
-                    ? "bg-white dark:bg-slate-800 text-violet-600 shadow-sm border border-slate-200/50 dark:border-white/5"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5",
+                    ? "bg-linear-to-r from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/10 text-violet-600 shadow-lg border border-violet-200/50 dark:border-violet-800/30 shadow-violet-500/10 ring-2 ring-violet-500/10"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5",
                   collapsed && "justify-center px-0"
                 )}
               >
@@ -148,7 +156,7 @@ export function Sidebar() {
                 {!collapsed && <span>{item.label}</span>}
 
                 {isActive && !collapsed && (
-                  <div className="absolute left-0 w-1 h-6 bg-violet-600 rounded-r-full" />
+                  <div className="absolute left-0 w-1 h-8 bg-linear-to-b from-violet-500 to-purple-600 rounded-r-full shadow-sm" />
                 )}
               </Link>
             );
@@ -157,9 +165,12 @@ export function Sidebar() {
 
         {/* Sistema */}
         {!collapsed && (
-          <p className="px-4 pt-4 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-            Sistema
-          </p>
+          <div className="px-4 pt-6 pb-2">
+            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
+              Sistema
+            </p>
+            <div className="h-px bg-linear-to-r from-slate-100/80 to-transparent dark:from-slate-700/30 dark:to-transparent" />
+          </div>
         )}
         <div className="space-y-1.5">
           {systemItems.map((item) => {
@@ -169,10 +180,10 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-500 hover:scale-[1.03]",
+                  "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-500 hover:scale-[1.01]",
                   isActive
-                    ? "bg-white dark:bg-slate-800 text-violet-600 shadow-sm border border-slate-200/50 dark:border-white/5"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5",
+                    ? "bg-linear-to-r from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/10 text-violet-600 shadow-lg border border-violet-200/50 dark:border-violet-800/30 shadow-violet-500/10 ring-2 ring-violet-500/10"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5",
                   collapsed && "justify-center px-0"
                 )}
               >
@@ -189,7 +200,7 @@ export function Sidebar() {
                 {!collapsed && <span>{item.label}</span>}
 
                 {isActive && !collapsed && (
-                  <div className="absolute left-0 w-1 h-6 bg-violet-600 rounded-r-full" />
+                  <div className="absolute left-0 w-1 h-8 bg-linear-to-b from-violet-500 to-purple-600 rounded-r-full shadow-sm" />
                 )}
               </Link>
             );

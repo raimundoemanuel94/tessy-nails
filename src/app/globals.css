@@ -110,4 +110,20 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-linear-to-r from-violet-500 to-purple-600;
   }
+  
+  /* Animação para MensagemInicial */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }

@@ -3,6 +3,7 @@
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { FloatingActionButton } from "../shared/FloatingActionButton";
+import MensagemInicial from "@/components/MensagemInicial";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
@@ -49,6 +50,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden font-sans selection:bg-violet-500/20 selection:text-violet-600">
+      {/* Mensagem Inspiracional */}
+      <MensagemInicial />
+      
       <div className="hidden md:block">
         <Sidebar />
       </div>
