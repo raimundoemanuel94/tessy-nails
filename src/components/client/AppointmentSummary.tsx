@@ -22,63 +22,72 @@ interface AppointmentSummaryProps {
 
 export function AppointmentSummary({ service, selectedDate, professional }: AppointmentSummaryProps) {
   return (
-    <div className="rounded-2xl border border-violet-100 bg-white p-6 shadow-sm">
+    <div className="relative overflow-hidden rounded-[2.5rem] border border-brand-border bg-white p-6 shadow-xl shadow-brand-primary/5">
+      {/* Visual Accent */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-bl-[5rem] -mr-8 -mt-8" />
+      
       {/* Header */}
-      <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-2">
-          Resumo do agendamento
+      <div className="relative mb-6">
+        <h3 className="text-lg font-black text-brand-text uppercase tracking-tight">
+          Resumo do Agendamento
         </h3>
-        <div className="h-px bg-gradient-to-r from-transparent via-violet-200 to-transparent" />
+        <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">Confira os detalhes escolhidos</p>
       </div>
 
-      {/* Service Info */}
-      <div className="mb-6">
-        <h4 className="text-base font-semibold text-violet-600 mb-3">
-          {service.name}
-        </h4>
-        
-        <div className="space-y-2 text-sm text-gray-700">
-          <div className="flex items-center">
-            <Clock className="mr-2 h-4 w-4 text-violet-600" />
-            <span className="font-medium">Duração:</span>
-            <span>{service.duration}</span>
+      {/* Content Grid */}
+      <div className="relative space-y-6">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+             <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest">Procedimento</p>
+             <h4 className="text-xl font-black text-brand-text leading-tight">{service.name}</h4>
           </div>
-          
-          <div className="flex items-center">
-            <DollarSign className="mr-2 h-4 w-4 text-violet-600" />
-            <span className="font-medium">Valor:</span>
-            <span>{service.price}</span>
+          <div className="text-right">
+             <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest">Valor</p>
+             <p className="text-lg font-black text-brand-text">{service.price}</p>
           </div>
-
-          <div className="flex items-center">
-            <Calendar className="mr-2 h-4 w-4 text-violet-600" />
-            <span className="font-medium">Data:</span>
-            <span>{format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
-          </div>
-
-          {professional && (
-            <div className="flex items-center">
-              <User className="mr-2 h-4 w-4 text-violet-600" />
-              <span className="font-medium">Profissional:</span>
-              <span>{professional}</span>
-            </div>
-          )}
         </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-3">
+             <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
+                <Calendar size={18} />
+             </div>
+             <div>
+                <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest leading-none mb-1">Data</p>
+                <p className="text-[11px] font-black text-brand-text capitalize">
+                  {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+                </p>
+             </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+             <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
+                <Clock size={18} />
+             </div>
+             <div>
+                <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest leading-none mb-1">Tempo</p>
+                <p className="text-[11px] font-black text-brand-text uppercase">{service.duration}</p>
+             </div>
+          </div>
+        </div>
+
+        {professional && (
+          <div className="flex items-center gap-3 pt-2 border-t border-brand-border">
+             <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
+                <User size={18} />
+             </div>
+             <div>
+                <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest leading-none mb-1">Especialista</p>
+                <p className="text-[11px] font-black text-brand-text">{professional}</p>
+             </div>
+          </div>
+        )}
       </div>
 
-      {/* Service Description */}
-      {service.description && (
-        <div className="mb-6">
-          <p className="text-sm text-gray-600 leading-relaxed">
-            {service.description}
-          </p>
-        </div>
-      )}
-
-      {/* Footer */}
-      <div className="rounded-lg bg-violet-50 p-4 text-center">
-        <p className="text-sm text-violet-700 font-medium">
-          Próximo passo: Escolher um horário disponível
+      {/* Info Badge */}
+      <div className="mt-8 rounded-2xl bg-brand-primary/5 p-4 text-center border border-brand-primary/10">
+        <p className="text-[10px] text-brand-primary font-black uppercase tracking-[0.2em]">
+          Próximo passo: Reservar seu Horário
         </p>
       </div>
     </div>

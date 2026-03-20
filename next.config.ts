@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+// v1.0.1 - Force PWA update after Brand Migration
+
 const withPWA = require("next-pwa")({
   dest: "public",
   disable: process.env.NODE_ENV === "development",

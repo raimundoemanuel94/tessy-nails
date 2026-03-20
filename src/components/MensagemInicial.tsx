@@ -71,7 +71,7 @@ export default function MensagemInicial() {
   return (
     <div className="fixed top-5 right-5 z-50 bg-white shadow-2xl rounded-3xl p-6 max-w-sm border border-violet-100 animate-fade-in">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-bold text-violet-600">Mensagem do dia ✨</p>
+        <p className="text-sm font-bold text-brand-primary">Mensagem do dia ✨</p>
         <button
           onClick={() => setMostrar(false)}
           className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -93,7 +93,7 @@ export default function MensagemInicial() {
 
       <button
         onClick={() => setMostrar(false)}
-        className="mt-4 text-xs font-medium text-violet-600 hover:text-violet-700 transition-colors"
+        className="mt-4 text-xs font-medium text-brand-primary hover:opacity-80 transition-colors"
       >
         Fechar
       </button>

@@ -5,8 +5,10 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from '@/hooks/useNotifications';
-import { AdminLayout } from "@/components/layout/AdminLayout";
+import { PageShell } from "@/components/shared/PageShell";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { PageHero } from "@/components/shared/PageHero";
+import { SectionCard } from "@/components/shared/SectionCard";
 import { 
   User, 
   Bell, 
@@ -26,7 +28,8 @@ import {
   Zap,
   Save,
   Loader2,
-  CreditCard
+  CreditCard,
+  Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -248,57 +251,73 @@ export default function ConfiguracoesPage() {
 
   if (loading) {
     return (
-      <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <PageShell>
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <div className="relative">
+            <div className="h-12 w-12 rounded-full border-b-2 border-brand-primary animate-spin" />
+          </div>
+          <p className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">
+            Sincronizando suas preferências...
+          </p>
         </div>
-      </AdminLayout>
+      </PageShell>
     );
   }
 
   return (
-    <AdminLayout>
-      <div className="max-w-[1200px] mx-auto space-y-8 pb-20">
+    <PageShell>
+      <div className="space-y-8 pb-20">
         <PageHeader 
           title="Configurações" 
-          description="Personalize o sistema e gerencie suas preferências."
+          description="Personalize o sistema e gerencie suas preferências globais."
+          icon={Settings}
+        />
+
+        <PageHero 
+          title="Painel de Controle"
+          subtitle="Ajuste fino de cada detalhe do seu negócio. Do perfil pessoal às integrações mais avançadas."
+          metrics={[
+            { label: "Negócio", value: "Salão", icon: Store },
+            { label: "Preferências", value: "Ativas", icon: Bell },
+            { label: "Segurança", value: "Protegido", icon: Shield },
+          ]}
         />
 
         <Tabs defaultValue="perfil" className="w-full">
-          <TabsList className="mb-8 flex flex-wrap h-auto gap-2 bg-muted/30 p-2 rounded-xl">
+          <TabsList className="mb-8 flex flex-wrap h-auto gap-2 bg-slate-100/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 p-1.5 rounded-2xl backdrop-blur-md">
             <TabsTrigger 
               value="perfil" 
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-brand-primary data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
             >
               <User size={16} className="mr-2" /> Perfil
             </TabsTrigger>
             <TabsTrigger 
               value="salao" 
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-brand-primary data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
             >
               <Store size={16} className="mr-2" /> Salão
             </TabsTrigger>
             <TabsTrigger 
               value="notificacoes" 
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-brand-primary data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
             >
               <Bell size={16} className="mr-2" /> Notificações
             </TabsTrigger>
             <TabsTrigger 
               value="aparencia" 
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-brand-primary data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
             >
               <Moon size={16} className="mr-2" /> Aparência
             </TabsTrigger>
             <TabsTrigger 
               value="seguranca" 
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-brand-primary data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
             >
               <Shield size={16} className="mr-2" /> Segurança
             </TabsTrigger>
             <TabsTrigger 
               value="integracoes" 
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-violet-600 data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
             >
               <Zap size={16} className="mr-2" /> Integrações
             </TabsTrigger>
@@ -306,19 +325,17 @@ export default function ConfiguracoesPage() {
 
           {/* ABA PERFIL */}
           <TabsContent value="perfil" className="space-y-6">
-            <Card className="border-border/40 shadow-lg">
-              <CardHeader className="border-b bg-muted/20">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <User size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle>Dados Pessoais</CardTitle>
-                    <CardDescription>Gerencie suas informações de acesso e perfil</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
+            <SectionCard
+              title="Dados Pessoais"
+              description="Gerencie suas informações de acesso e perfil público."
+              actions={
+                <Button onClick={handleSaveProfile} disabled={saving} className="bg-brand-primary hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5">
+                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" /> : <Save className="mr-2 h-4 w-4 text-white" />}
+                  Salvar Perfil
+                </Button>
+              }
+            >
+              <div className="space-y-6 pb-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="name" className="font-semibold">Nome completo</Label>
@@ -357,31 +374,23 @@ export default function ConfiguracoesPage() {
                     </Badge>
                   </div>
                 </div>
-              </CardContent>
-              <CardFooter className="border-t pt-4 bg-muted/10">
-                <Button onClick={handleSaveProfile} disabled={saving} className="font-bold">
-                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                  Salvar Alterações
-                </Button>
-              </CardFooter>
-            </Card>
+              </div>
+            </SectionCard>
           </TabsContent>
 
           {/* ABA SALÃO */}
           <TabsContent value="salao" className="space-y-6">
-            <Card className="border-border/40 shadow-lg">
-              <CardHeader className="border-b bg-muted/20">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Store size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle>Informações do Salão</CardTitle>
-                    <CardDescription>Configure os detalhes do seu estabelecimento</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
+            <SectionCard
+              title="Informações do Salão"
+              description="Configure os detalhes e horários do seu estabelecimento."
+              actions={
+                <Button onClick={handleSaveSalon} disabled={saving} className="bg-brand-primary hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5">
+                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" /> : <Save className="mr-2 h-4 w-4 text-white" />}
+                  Atualizar Salão
+                </Button>
+              }
+            >
+              <div className="space-y-6 pb-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="salonName" className="font-semibold flex items-center gap-2">
@@ -500,31 +509,23 @@ export default function ConfiguracoesPage() {
                     ))}
                   </div>
                 </div>
-              </CardContent>
-              <CardFooter className="border-t pt-4 bg-muted/10">
-                <Button onClick={handleSaveSalon} disabled={saving} className="font-bold">
-                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                  Atualizar Salão
-                </Button>
-              </CardFooter>
-            </Card>
+              </div>
+            </SectionCard>
           </TabsContent>
 
           {/* ABA NOTIFICAÇÕES */}
           <TabsContent value="notificacoes" className="space-y-6">
-            <Card className="border-border/40 shadow-lg">
-              <CardHeader className="border-b bg-muted/20">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Bell size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle>Preferências de Notificação</CardTitle>
-                    <CardDescription>Escolha como e quando deseja receber notificações</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
+            <SectionCard
+              title="Preferências de Notificação"
+              description="Escolha como e quando deseja receber alertas importantes."
+              actions={
+                <Button onClick={handleSaveNotifications} disabled={saving} className="bg-brand-primary hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5">
+                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" /> : <Save className="mr-2 h-4 w-4 text-white" />}
+                  Salvar Preferências
+                </Button>
+              }
+            >
+              <div className="space-y-6 pb-4">
                 {/* Canais de Notificação */}
                 <div className="space-y-4">
                   <h3 className="font-bold text-sm uppercase tracking-wider">Canais de Comunicação</h3>
@@ -664,31 +665,17 @@ export default function ConfiguracoesPage() {
                     </SelectContent>
                   </Select>
                 </div>
-              </CardContent>
-              <CardFooter className="border-t pt-4 bg-muted/10">
-                <Button onClick={handleSaveNotifications} disabled={saving} className="font-bold">
-                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                  Salvar Preferências
-                </Button>
-              </CardFooter>
-            </Card>
+              </div>
+            </SectionCard>
           </TabsContent>
 
           {/* ABA APARÊNCIA */}
           <TabsContent value="aparencia" className="space-y-6">
-            <Card className="border-border/40 shadow-lg">
-              <CardHeader className="border-b bg-muted/20">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Moon size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle>Tema do Sistema</CardTitle>
-                    <CardDescription>Escolha como o sistema deve aparecer para você</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
+            <SectionCard
+              title="Tema e Cores"
+              description="Escolha como o sistema deve aparecer para você e seus clientes."
+            >
+              <div className="space-y-6 pb-4">
                 <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
                   <div className="flex flex-col gap-1">
                     <span className="font-medium">Modo Escuro</span>
@@ -722,36 +709,23 @@ export default function ConfiguracoesPage() {
                         title={color.name}
                       >
                         {selectedColor === color.value && (
-                          <Check className="absolute inset-0 m-auto text-white drop-shadow-lg" size={24} strokeWidth={3} />
+                          <Check className="absolute inset-0 m-auto text-white drop-shadow-lg stroke-3" size={24} />
                         )}
                       </button>
                     ))}
                   </div>
-                  <div className="flex items-center gap-2 pt-2">
-                    <Badge variant="secondary" className="font-bold">
-                      Cor selecionada: {accentColors.find(c => c.value === selectedColor)?.name}
-                    </Badge>
-                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </SectionCard>
           </TabsContent>
 
           {/* ABA SEGURANÇA */}
           <TabsContent value="seguranca" className="space-y-6">
-            <Card className="border-border/40 shadow-lg">
-              <CardHeader className="border-b bg-muted/20">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Shield size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle>Segurança e Permissões</CardTitle>
-                    <CardDescription>Gerencie configurações de segurança da conta</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
+            <SectionCard
+              title="Seguraça e Permissões"
+              description="Gerencie as configurações de proteção da sua conta."
+            >
+              <div className="space-y-6 pb-4">
                 <div className="space-y-4">
                   <h3 className="font-bold text-sm uppercase tracking-wider">Autenticação</h3>
                   <div className="grid gap-3">
@@ -825,25 +799,17 @@ export default function ConfiguracoesPage() {
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </SectionCard>
           </TabsContent>
 
           {/* ABA INTEGRAÇÕES */}
           <TabsContent value="integracoes" className="space-y-6">
-            <Card className="border-border/40 shadow-lg">
-              <CardHeader className="border-b bg-muted/20">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Zap size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle>Integrações</CardTitle>
-                    <CardDescription>Conecte serviços externos ao sistema</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
+            <SectionCard
+              title="Integrações"
+              description="Conecte serviços externos para potencializar seu salão."
+            >
+              <div className="space-y-6 pb-4">
                 <div className="grid gap-4">
                   <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
                     <div className="flex items-center gap-3">
@@ -913,11 +879,11 @@ export default function ConfiguracoesPage() {
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </SectionCard>
           </TabsContent>
         </Tabs>
       </div>
-    </AdminLayout>
+    </PageShell>
   );
 }

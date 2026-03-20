@@ -30,7 +30,7 @@ export function AppointmentActions({
           variant="ghost"
           size="sm"
           onClick={() => onViewDetails?.(appointment)}
-          className="text-violet-600 hover:bg-violet-50"
+          className="text-brand-primary hover:bg-brand-primary/5"
         >
           <Eye className="mr-1 h-4 w-4" />
           Ver detalhes

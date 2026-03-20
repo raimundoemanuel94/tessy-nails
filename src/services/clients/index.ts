@@ -60,6 +60,35 @@ export const clientService = {
   },
 
   /**
+   * Busca uma cliente pelo telefone
+   */
+  async getByPhone(phone: string): Promise<Client | null> {
+    try {
+      const sanitizedPhone = phone.replace(/\D/g, "");
+      if (!sanitizedPhone) return null;
+
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where("phone", "==", sanitizedPhone)
+      );
+      
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) return null;
+
+      const doc = snapshot.docs[0];
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+      } as Client;
+    } catch (error) {
+      console.error("❌ Erro ao buscar cliente por telefone:", error);
+      return null;
+    }
+  },
+
+  /**
    * Cria um novo cliente
    * Schema de entrada não exige id e createdAt; id vem do doc ref e createdAt é gerado aqui.
    */

@@ -13,46 +13,29 @@ export function SuccessActions({
   onBackToHome 
 }: SuccessActionsProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 pt-4 max-w-sm mx-auto">
       {/* Primary Action */}
-      <div className="text-center">
-        <Button 
-          onClick={onMyAppointments}
-          className="bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium px-8 py-3 text-lg shadow-lg"
-        >
-          <List className="mr-2 h-5 w-5" />
-          Ver meus agendamentos
-        </Button>
-      </div>
+      <Button 
+        onClick={onMyAppointments}
+        className="w-full h-16 rounded-[2rem] bg-linear-to-br from-brand-primary to-brand-secondary text-white font-black text-base shadow-2xl shadow-brand-primary/20 hover:opacity-90 active:scale-[0.98] transition-all"
+      >
+        <List className="mr-3 h-5 w-5" />
+        Meus Agendamentos
+      </Button>
 
       {/* Secondary Actions */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+      <div className="flex flex-col gap-3">
         <Button 
           variant="outline"
           onClick={onBackToHome}
-          className="border-violet-200 text-violet-700 hover:bg-violet-50 px-6 py-3"
+          className="w-full h-14 rounded-2xl border-brand-border text-brand-text font-black text-[10px] uppercase tracking-[0.2em] shadow-sm hover:text-brand-primary hover:bg-brand-primary/5 transition-all"
         >
           <Home className="mr-2 h-4 w-4" />
-          Voltar para o início
+          Voltar para o Início
         </Button>
 
-        <Button 
-          variant="ghost"
-          onClick={() => window.history.back()}
-          className="text-gray-600 hover:bg-gray-50 px-6 py-3"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Voltar
-        </Button>
-      </div>
-
-      {/* Additional Info */}
-      <div className="text-center">
-        <p className="text-sm text-gray-600">
-          Você pode gerenciar seus agendamentos a qualquer momento
-        </p>
-        <p className="text-xs text-gray-500 mt-1">
-          Precisa de ajuda? Entre em contato conosco
+        <p className="text-center text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em] px-8 leading-relaxed opacity-60">
+          Você pode gerenciar ou cancelar seu horário a qualquer momento
         </p>
       </div>
     </div>

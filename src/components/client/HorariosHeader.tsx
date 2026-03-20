@@ -8,33 +8,25 @@ interface HorariosHeaderProps {
   onBack?: () => void;
 }
 
-export function HorariosHeader({ title = "Escolha um horário", onBack }: HorariosHeaderProps) {
+export function HorariosHeader({ title = "Escolha o horário", onBack }: HorariosHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-violet-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        {/* Back Button */}
-        {onBack && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="text-violet-600 hover:bg-violet-50"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        )}
-
-        {/* Title */}
-        <div className="flex-1 text-center">
-          <h1 className="text-xl font-bold text-gray-900 md:text-2xl flex items-center">
-            <Clock className="mr-2 h-5 w-5 text-violet-600" />
-            {title}
-          </h1>
-        </div>
-
-        {/* Spacer */}
-        <div className="w-20 md:w-24" />
+    <div className="flex items-center gap-4 px-2 py-4">
+      {onBack && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onBack}
+          className="h-12 w-12 rounded-2xl bg-white border border-brand-border text-brand-text hover:text-brand-primary shadow-sm hover:scale-110 active:scale-95 transition-all"
+        >
+          <ArrowLeft size={20} strokeWidth={2.5} />
+        </Button>
+      )}
+      <div className="flex-1">
+        <h1 className="text-2xl font-black text-brand-text tracking-tight uppercase">
+          {title}
+        </h1>
+        <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">O momento perfeito para você</p>
       </div>
-    </header>
+    </div>
   );
 }

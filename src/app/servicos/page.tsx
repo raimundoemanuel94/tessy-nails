@@ -2,11 +2,15 @@
 
 export const dynamic = 'force-dynamic';
 
-import { AdminLayout } from "@/components/layout/AdminLayout";
+import { PageShell } from "@/components/shared/PageShell";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { PageHero } from "@/components/shared/PageHero";
+import { MetricCard } from "@/components/shared/MetricCard";
+import { SectionCard } from "@/components/shared/SectionCard";
 import { 
   Plus, Scissors, Clock, DollarSign, Edit2, Loader2,
-  Search, Sparkles, Tag, EyeOff, Power, CheckCircle2, XCircle
+  Search, Sparkles, Tag, EyeOff, Power, CheckCircle2, XCircle,
+  LayoutDashboard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -214,121 +218,78 @@ export default function ServicosPage() {
   };
 
   return (
-    <AdminLayout>
+    <PageShell>
       {loading ? (
         <div className="flex flex-col items-center justify-center h-64 gap-4">
           <div className="relative">
-            <div className="h-12 w-12 rounded-2xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-violet-600" />
-            </div>
+            <div className="h-12 w-12 rounded-full border-b-2 border-brand-primary animate-spin" />
           </div>
-          <p className="text-sm font-medium text-slate-400 dark:text-slate-500">Carregando serviços...</p>
+          <p className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Carregando serviços...</p>
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center justify-center py-20">
+        <div className="flex flex-col items-center justify-center py-20 bg-white/60 dark:bg-slate-900/60 rounded-[2.5rem] border border-slate-200/40 dark:border-white/5 backdrop-blur-xl">
           <div className="h-20 w-20 rounded-3xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center mb-6">
             <XCircle className="h-10 w-10 text-red-400" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Erro ao carregar</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-md text-center">{error}</p>
+          <h2 className="text-xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">Erro ao carregar</h2>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-8 max-w-md text-center">{error}</p>
           <Button 
             onClick={loadData}
-            className="bg-violet-600 hover:bg-violet-700 rounded-xl px-6"
+            className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl px-8 h-12 shadow-lg shadow-red-500/20 transition-all hover:-translate-y-0.5"
           >
             Tentar novamente
           </Button>
         </div>
       ) : services.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="relative mb-6">
-            <div className="h-24 w-24 rounded-3xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center">
+        <div className="flex flex-col items-center justify-center py-24 bg-white/60 dark:bg-slate-900/60 rounded-[2.5rem] border border-slate-200/40 dark:border-white/5 backdrop-blur-xl">
+          <div className="relative mb-8">
+            <div className="h-28 w-28 rounded-[2rem] bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center border border-violet-100 dark:border-violet-500/20 shadow-inner">
               <Scissors className="h-12 w-12 text-violet-400" />
             </div>
-            <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-violet-500 flex items-center justify-center">
-              <Plus className="h-3.5 w-3.5 text-white" />
+            <div className="absolute -top-2 -right-2 h-8 w-8 rounded-xl bg-brand-primary flex items-center justify-center shadow-lg shadow-brand-primary/40 border-2 border-white dark:border-slate-900 animate-bounce">
+              <Plus className="h-4 w-4 text-white stroke-3" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Nenhum serviço cadastrado</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-md text-center">
-            Comece cadastrando seus serviços para que seus clientes possam agendar.
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3 uppercase tracking-tight">Nenhum serviço cadastrado</h2>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-10 max-w-sm text-center">
+            Sua lista está vazia. Comece cadastrando seus serviços para que seus clientes possam agendar e sua agenda cresça!
           </p>
           <Button 
             onClick={openCreate}
-            className="bg-violet-600 hover:bg-violet-700 rounded-xl px-6 h-11 text-sm font-semibold"
+            className="bg-brand-primary hover:opacity-90 text-white font-bold rounded-xl px-10 h-14 text-base shadow-xl shadow-brand-primary/30 transition-all hover:scale-105 active:scale-95"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-5 w-5 mr-2 stroke-3" />
             Cadastrar Primeiro Serviço
           </Button>
         </div>
       ) : (
         <>
-          {/* Header */}
           <PageHeader 
             title="Serviços" 
             description="Gerencie todos os serviços oferecidos pelo salão."
+            icon={Sparkles}
           >
             <Button 
               onClick={openCreate}
-              className="bg-violet-600 hover:bg-violet-700 rounded-xl px-5 h-10 text-sm font-semibold shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:shadow-violet-500/30"
+              className="bg-brand-primary hover:opacity-90 text-white rounded-xl px-6 h-11 font-bold shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-5 w-5 mr-2 stroke-3" />
               Novo Serviço
             </Button>
           </PageHeader>
 
-          {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md p-4 group hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300">
-              <div className="absolute top-0 right-0 -mr-4 -mt-4 w-20 h-20 bg-violet-500/5 rounded-full blur-2xl" />
-              <div className="flex items-center gap-3 relative z-10">
-                <div className="h-10 w-10 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center shrink-0">
-                  <Sparkles className="h-5 w-5 text-violet-600" strokeWidth={2.5} />
-                </div>
-                <div>
-                  <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total}</p>
-                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Total</p>
-                </div>
-              </div>
-            </div>
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md p-4 group hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300">
-              <div className="absolute top-0 right-0 -mr-4 -mt-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl" />
-              <div className="flex items-center gap-3 relative z-10">
-                <div className="h-10 w-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600" strokeWidth={2.5} />
-                </div>
-                <div>
-                  <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{stats.active}</p>
-                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ativos</p>
-                </div>
-              </div>
-            </div>
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md p-4 group hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300">
-              <div className="absolute top-0 right-0 -mr-4 -mt-4 w-20 h-20 bg-amber-500/5 rounded-full blur-2xl" />
-              <div className="flex items-center gap-3 relative z-10">
-                <div className="h-10 w-10 rounded-xl bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center shrink-0">
-                  <EyeOff className="h-5 w-5 text-amber-600" strokeWidth={2.5} />
-                </div>
-                <div>
-                  <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{stats.inactive}</p>
-                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Inativos</p>
-                </div>
-              </div>
-            </div>
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md p-4 group hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300">
-              <div className="absolute top-0 right-0 -mr-4 -mt-4 w-20 h-20 bg-violet-500/5 rounded-full blur-2xl" />
-              <div className="flex items-center gap-3 relative z-10">
-                <div className="h-10 w-10 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center shrink-0">
-                  <DollarSign className="h-5 w-5 text-violet-600" strokeWidth={2.5} />
-                </div>
-                <div>
-                  <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                    R$ {stats.avgPrice.toFixed(0)}
-                  </p>
-                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Preço Médio</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <PageHero 
+            title="Seu Catálogo"
+            subtitle="Organize seus serviços, defina preços e otimize o tempo de sua equipe com precisão."
+            metrics={[
+              { label: "Total", value: stats.total, icon: Scissors },
+              { label: "Ativos", value: stats.active, icon: CheckCircle2 },
+              { label: "Inativos", value: stats.inactive, icon: EyeOff },
+              { label: "Média", value: `R$ ${stats.avgPrice.toFixed(0)}`, icon: DollarSign },
+            ]}
+          />
+
+          <SectionCard title="Lista de Serviços">
 
           {/* Search & Filters */}
           <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -351,7 +312,7 @@ export default function ServicosPage() {
                   className={cn(
                     "h-9 px-3.5 text-xs font-semibold rounded-lg transition-all",
                     activeFilter === filter 
-                      ? "bg-violet-600 hover:bg-violet-700 text-white shadow-md shadow-violet-500/25" 
+                      ? "bg-brand-primary hover:opacity-90 text-white shadow-md shadow-brand-primary/25" 
                       : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
                   )}
                 >
@@ -383,7 +344,7 @@ export default function ServicosPage() {
                   )}
                 >
                   {/* Premium Shine Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-br from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                   
                   {/* Decorative glow */}
                   <div className={cn(
@@ -405,7 +366,7 @@ export default function ServicosPage() {
                         )}>
                           <Scissors className={cn(
                             "h-5 w-5",
-                            service.isActive !== false ? "text-violet-600" : "text-slate-400"
+                            service.isActive !== false ? "text-brand-primary" : "text-slate-400"
                           )} strokeWidth={2.5} />
                         </div>
                         <div className="min-w-0">
@@ -509,7 +470,8 @@ export default function ServicosPage() {
               ))}
             </div>
           )}
-        </>
+        </SectionCard>
+      </>
       )}
 
       {/* Dialog Novo / Editar Serviço */}
@@ -519,9 +481,9 @@ export default function ServicosPage() {
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center">
                 {editingService ? (
-                  <Edit2 className="h-5 w-5 text-violet-600" />
+                  <Edit2 className="h-5 w-5 text-brand-primary" />
                 ) : (
-                  <Plus className="h-5 w-5 text-violet-600" />
+                  <Plus className="h-5 w-5 text-brand-primary" />
                 )}
               </div>
               <div>
@@ -609,7 +571,7 @@ export default function ServicosPage() {
                   id="form-active"
                   checked={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.checked)}
-                  className="rounded-md border-slate-300 dark:border-white/20 text-violet-600 focus:ring-violet-500/30 h-4 w-4"
+                  className="rounded-md border-slate-300 dark:border-white/20 text-brand-primary focus:ring-brand-primary/30 h-4 w-4"
                 />
                 <Label htmlFor="form-active" className="cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-300">
                   Serviço ativo e visível para clientes
@@ -628,7 +590,7 @@ export default function ServicosPage() {
               <Button 
                 type="submit" 
                 disabled={formLoading}
-                className="rounded-xl px-6 h-10 text-sm font-semibold bg-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-500/25"
+                className="rounded-xl px-6 h-10 text-sm font-semibold bg-brand-primary hover:opacity-90 shadow-lg shadow-brand-primary/25"
               >
                 {formLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {editingService ? "Salvar Alterações" : "Cadastrar Serviço"}
@@ -637,6 +599,6 @@ export default function ServicosPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </PageShell>
   );
 }

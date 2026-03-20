@@ -11,7 +11,8 @@ import {
   Plus, 
   ChevronRight,
   Loader2,
-  Sparkles
+  Sparkles,
+  Sparkle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,7 +23,7 @@ import { format, isFuture, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Service } from "@/types";
 import { Badge } from "@/components/ui/badge";
-import { getGreeting } from "@/lib/utils";
+import { getGreeting, cn } from "@/lib/utils";
 
 export default function ClientePage() {
   const { user, loading } = useAuth();
@@ -31,12 +32,6 @@ export default function ClientePage() {
   const [nextAppointment, setNextAppointment] = useState<any>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
-  }, [user, loading, router]);
 
   useEffect(() => {
     if (!user) return;
@@ -49,13 +44,12 @@ export default function ClientePage() {
           salonService.getAll()
         ]);
 
-        // Encontrar o próximo agendamento (futuro ou hoje)
         const upcoming = appointments
           .filter(apt => (isFuture(apt.date) || isToday(apt.date)) && apt.status !== 'cancelled')
           .sort((a, b) => a.date.getTime() - b.date.getTime())[0];
         
         setNextAppointment(upcoming);
-        setServices(allServices.slice(0, 4)); // Mostrar apenas os 4 primeiros no dashboard
+        setServices(allServices.slice(0, 4));
       } catch (error) {
         console.error("Erro ao carregar dados do cliente:", error);
       } finally {
@@ -69,287 +63,196 @@ export default function ClientePage() {
   const statusConfig: Record<string, { label: string; className: string }> = {
     pending: { label: "Pendente", className: "bg-amber-100 text-amber-700 border-amber-200" },
     confirmed: { label: "Confirmado", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-    completed: { label: "Concluído", className: "bg-sky-100 text-sky-700 border-sky-200" },
+    completed: { label: "Concluído", className: "bg-brand-primary/10 text-brand-primary border-brand-primary/20" },
     cancelled: { label: "Cancelado", className: "bg-rose-100 text-rose-700 border-rose-200" },
   };
 
   if (loading || dataLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-[#f7f3ff] via-white to-[#fff4f8] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-fuchsia-600" />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-brand-primary" />
       </div>
     );
   }
 
   const firstName = user?.name?.split(" ")[0] || "Cliente";
   const nextStatus = nextAppointment ? (statusConfig[nextAppointment.status] || statusConfig.pending) : null;
+  
   const quickActions = [
     {
       id: "agenda",
       title: "Minha agenda",
-      description: "Veja próximos horários",
+      description: "Próximos horários",
       icon: Calendar,
-      iconBox: "bg-[#F3EEFF] text-[#7C3AED]",
-      action: () => router.push("/cliente/agendamentos"),
+      gradient: "from-brand-primary/10 to-brand-primary/5",
+      iconColor: "text-brand-primary",
+      href: "/cliente/agendamentos",
     },
     {
       id: "services",
       title: "Serviços",
-      description: "Escolha seu cuidado",
+      description: "Tabela de preços",
       icon: Sparkles,
-      iconBox: "bg-[#FCE7F3] text-[#F472B6]",
-      action: () => router.push("/cliente/servicos"),
+      gradient: "from-brand-secondary/10 to-brand-secondary/5",
+      iconColor: "text-brand-secondary",
+      href: "/cliente/servicos",
     },
     {
       id: "history",
       title: "Histórico",
-      description: "Revise atendimentos",
+      description: "Seus atendimentos",
       icon: History,
-      iconBox: "bg-[#EEF2FF] text-[#7C3AED]",
-      action: () => router.push("/cliente/agendamentos"),
+      gradient: "from-brand-accent/20 to-brand-accent/10",
+      iconColor: "text-brand-primary",
+      href: "/cliente/agendamentos",
     },
     {
       id: "profile",
-      title: "Perfil",
-      description: "Dados e preferências",
+      title: "Meu Perfil",
+      description: "Dados da conta",
       icon: UserIcon,
-      iconBox: "bg-[#FFF1F2] text-[#7C3AED]",
-      action: () => router.push("/cliente/perfil"),
+      gradient: "from-brand-text-muted/10 to-brand-text-muted/5",
+      iconColor: "text-brand-text",
+      href: "/cliente/perfil",
     },
   ];
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_right,rgba(244,114,182,0.10),transparent_22%),radial-gradient(circle_at_top_left,rgba(167,139,250,0.14),transparent_28%),linear-gradient(180deg,#FFFDFE_0%,#FFF9FC_52%,#FFFDFE_100%)] pb-28">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 right-[-80px] h-64 w-64 rounded-full bg-[#FCE7F3]/70 blur-3xl" />
-        <div className="absolute top-72 -left-20 h-64 w-64 rounded-full bg-[#F3EEFF]/80 blur-3xl" />
-      </div>
+    <div className="px-5 pt-8 max-w-2xl mx-auto space-y-10">
+      {/* Premium Hero Section */}
+      <section className="relative overflow-hidden rounded-[3rem] bg-linear-to-br from-brand-primary to-brand-secondary p-8 text-white shadow-2xl shadow-brand-primary/30">
+        <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -left-12 -bottom-12 h-48 w-48 rounded-full bg-brand-accent/20 blur-3xl" />
+        
+        <div className="relative z-10 space-y-4">
+          <div className="flex items-center gap-3">
+             <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+               <Sparkles className="text-white" size={24} />
+             </div>
+             <div>
+               <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/80">{getGreeting()}</p>
+               <h1 className="text-3xl font-black tracking-tight">{firstName}</h1>
+             </div>
+          </div>
+          
+          <p className="text-sm leading-relaxed text-white/90 font-medium max-w-[280px]">
+            Seu momento de beleza está apenas a alguns toques de distância.
+          </p>
 
-      <header className="relative mx-auto max-w-[1280px] px-4 pt-6 md:px-6 xl:px-8">
-        <div className="rounded-[34px] border border-white/70 bg-white/78 px-5 py-5 shadow-[0_18px_50px_-34px_rgba(124,58,237,0.28),0_1px_0_rgba(255,255,255,0.85)_inset] ring-1 ring-[#F3E8FF]/80 backdrop-blur-xl md:px-6 md:py-6 xl:px-7">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="mb-1 text-sm font-semibold tracking-[0.01em] text-[#7C3AED]">{getGreeting()}</p>
-              <h1 className="text-[1.95rem] font-black leading-none tracking-tight text-[#1F172A] md:text-[2.1rem]">{firstName}</h1>
-              <p className="mt-2 max-w-[320px] text-sm leading-6 text-[#6B6280] md:text-[15px]">Seu espaço para agendar com leveza, praticidade e um toque premium.</p>
+          <Button 
+            className="w-full h-14 rounded-2xl bg-white text-brand-primary font-black text-base shadow-xl hover:bg-white/90 active:scale-95 transition-all mt-4"
+            onClick={() => router.push("/cliente/agendar")}
+          >
+            <Plus className="mr-2" size={20} strokeWidth={3} />
+            Agendar Agora
+          </Button>
+        </div>
+      </section>
+
+      {/* Next Appointment Card */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between px-2">
+          <h2 className="text-xl font-black text-brand-text tracking-tight">Próximo Horário</h2>
+          {nextAppointment && (
+            <button onClick={() => router.push("/cliente/agendamentos")} className="text-xs font-bold text-brand-primary uppercase tracking-widest">Ver Todos</button>
+          )}
+        </div>
+
+        {nextAppointment ? (
+          <div className="group relative overflow-hidden rounded-[2.5rem] border border-brand-border bg-white p-6 shadow-xl shadow-brand-primary/5 transition-all hover:shadow-2xl hover:shadow-brand-primary/10">
+            <div className="flex items-start justify-between">
+              <div className="space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary/80">Confirmado</span>
+                <h3 className="text-xl font-black text-brand-text">{nextAppointment.service.name}</h3>
+              </div>
+              <div className={`rounded-xl px-3 py-1.5 text-[10px] font-black uppercase tracking-wider ${nextStatus?.className}`}>
+                {nextStatus?.label}
+              </div>
             </div>
-            <button
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#E9DDF7] bg-white/90 text-[#7C3AED] shadow-[0_12px_28px_-18px_rgba(124,58,237,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#F8F5FF] hover:shadow-[0_16px_32px_-20px_rgba(124,58,237,0.4)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#C4B5FD] focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98]"
-              onClick={() => router.push("/cliente/perfil")}
-              aria-label="Ir para perfil"
+
+            <div className="mt-6 grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-brand-background border border-brand-border/40">
+                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-brand-primary">
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-brand-text-muted uppercase tracking-wider">Data</p>
+                  <p className="text-sm font-black text-brand-text">{format(nextAppointment.date, "dd 'de' MMMM", { locale: ptBR })}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-brand-background border border-brand-border/40">
+                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-brand-secondary">
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-brand-text-muted uppercase tracking-wider">Horário</p>
+                  <p className="text-sm font-black text-brand-text font-mono tracking-wider">{nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}</p>
+                </div>
+              </div>
+            </div>
+            
+            <Button 
+              variant="outline"
+              className="w-full mt-6 h-12 rounded-2xl border-brand-border text-brand-text font-bold hover:bg-brand-background hover:text-brand-primary transition-all"
+              onClick={() => router.push("/cliente/agendamentos")}
             >
-              <UserIcon size={18} />
-            </button>
+              Ver Detalhes
+            </Button>
           </div>
-        </div>
-      </header>
-
-      <main className="relative mx-auto max-w-[1280px] px-4 pt-5 md:px-6 xl:px-8">
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:gap-8">
-          <div className="space-y-6 md:space-y-7 xl:col-span-7">
-            <section>
-              <Button
-                className="h-[84px] w-full justify-between rounded-[32px] border border-white/20 bg-linear-to-r from-[#7C3AED] via-[#8B5CF6] to-[#F472B6] px-5 text-white shadow-[0_24px_50px_-24px_rgba(124,58,237,0.52)] ring-1 ring-white/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_30px_56px_-24px_rgba(124,58,237,0.46)] active:scale-[0.99] md:px-6 lg:h-[88px] xl:h-[96px] xl:px-7"
-                onClick={() => router.push("/cliente/agendar")}
-              >
-                <span className="flex items-center gap-3.5 md:gap-4">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-[20px] bg-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.22)] backdrop-blur-sm md:h-14 md:w-14">
-                    <Plus size={24} strokeWidth={3} />
-                  </span>
-                  <span className="text-left">
-                    <span className="block text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">
-                      Principal
-                    </span>
-                    <span className="mt-0.5 block text-[1.02rem] font-black leading-tight md:text-[1.1rem] xl:text-[1.18rem]">
-                      Agendar novo horário
-                    </span>
-                  </span>
-                </span>
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/16 md:h-11 md:w-11">
-                  <ChevronRight size={19} />
-                </span>
-              </Button>
-            </section>
-
-            <section className="space-y-3">
-              <div className="px-1">
-                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#A78BFA]">Acesso rápido</p>
-                <h2 className="text-lg font-black tracking-tight text-[#1F172A]">Tudo o que você mais usa</h2>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-2 xl:gap-5">
-                {quickActions.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={item.action}
-                    className="group rounded-[28px] border border-white/80 bg-white/92 p-4 text-left shadow-[0_18px_45px_-36px_rgba(31,23,42,0.22)] ring-1 ring-[#F4ECFF] transition-all duration-200 hover:-translate-y-1 hover:border-[#E6D8FB] hover:bg-white hover:shadow-[0_26px_54px_-34px_rgba(124,58,237,0.24)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#C4B5FD] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFDFE] active:scale-[0.985] md:min-h-[176px] md:p-5 xl:min-h-[196px] xl:p-6"
-                  >
-                    <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-[20px] shadow-sm transition-transform duration-200 group-hover:scale-105 ${item.iconBox}`}>
-                      <item.icon size={20} strokeWidth={2.4} />
-                    </div>
-                    <p className="text-sm font-black text-[#1F172A] md:text-[15px]">{item.title}</p>
-                    <p className="mt-1.5 text-xs leading-5 text-[#6B6280] md:text-[13px]">{item.description}</p>
-                    <div className="mt-4 flex items-center text-xs font-semibold text-[#7C3AED] opacity-0 transition duration-200 group-hover:opacity-100">
-                      Abrir
-                      <ChevronRight size={14} className="ml-1 transition-transform duration-200 group-hover:translate-x-0.5" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </section>
+        ) : (
+          <div className="flex flex-col items-center justify-center p-10 rounded-[2.5rem] border border-dashed border-brand-border bg-white/50 text-center space-y-4">
+             <div className="h-16 w-16 rounded-full bg-brand-primary/5 flex items-center justify-center text-brand-primary/40">
+               <Calendar size={32} />
+             </div>
+             <div className="space-y-1">
+               <p className="font-black text-brand-text">Nenhum agendamento ativo</p>
+               <p className="text-xs text-brand-text-muted max-w-[200px] mx-auto">Sua próxima experiência está esperando por você.</p>
+             </div>
+             <Button 
+               variant="link" 
+               className="text-brand-primary font-bold decoration-2 underline-offset-4"
+               onClick={() => router.push("/cliente/agendar")}
+             >
+               Reservar meu horário
+             </Button>
           </div>
+        )}
+      </section>
 
-          <div className="grid gap-6 md:gap-7 xl:col-span-5 xl:content-start">
-            <section className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#A78BFA]">Agenda</p>
-                  <h2 className="text-lg font-black tracking-tight text-[#1F172A]">Próximo agendamento</h2>
-                </div>
-                {nextAppointment ? (
-                  <button
-                    onClick={() => router.push("/cliente/agendamentos")}
-                    className="text-sm font-bold text-[#7C3AED]"
-                  >
-                    Ver todos
-                  </button>
-                ) : null}
-              </div>
-
-              {nextAppointment ? (
-                <Card className="overflow-hidden rounded-[32px] border border-white/75 bg-white/94 shadow-[0_22px_60px_-42px_rgba(31,23,42,0.26)] ring-1 ring-[#F3E8FF]/80">
-                  <CardContent className="p-5 md:p-6 xl:p-7">
-                    <div className="mb-5 flex items-start justify-between gap-3">
-                      <div>
-                        <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#A78BFA]">Agendado</p>
-                        <h3 className="text-[1.2rem] font-black leading-tight text-[#1F172A] md:text-[1.28rem]">{nextAppointment.service.name}</h3>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className={`rounded-full border px-3 py-1.5 text-[11px] font-bold shadow-[0_8px_22px_-18px_rgba(31,23,42,0.25)] ${nextStatus?.className ?? ""}`}
-                      >
-                        {nextStatus?.label}
-                      </Badge>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                      <div className="rounded-[24px] border border-[#EEE5FB] bg-[#FAF7FF] px-4 py-3.5">
-                        <div className="mb-2.5 flex h-10 w-10 items-center justify-center rounded-[14px] bg-white text-[#7C3AED] shadow-[0_10px_22px_-16px_rgba(124,58,237,0.35)]">
-                          <Calendar size={16} />
-                        </div>
-                        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#A78BFA]">Data</p>
-                        <p className="mt-1 text-sm font-bold text-[#1F172A]">{format(nextAppointment.date, "dd MMM", { locale: ptBR })}</p>
-                      </div>
-
-                      <div className="rounded-[24px] border border-[#FCE3EF] bg-[#FFF7FB] px-4 py-3.5">
-                        <div className="mb-2.5 flex h-10 w-10 items-center justify-center rounded-[14px] bg-white text-[#F472B6] shadow-[0_10px_22px_-16px_rgba(244,114,182,0.35)]">
-                          <Clock size={16} />
-                        </div>
-                        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#F472B6]">Horário</p>
-                        <p className="mt-1 text-sm font-bold text-[#1F172A]">{nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}</p>
-                      </div>
-
-                      <div className="rounded-[24px] border border-[#EEE5FB] bg-[#FAF7FF] px-4 py-3.5">
-                        <div className="mb-2.5 flex h-10 w-10 items-center justify-center rounded-[14px] bg-white text-[#7C3AED] shadow-[0_10px_22px_-16px_rgba(124,58,237,0.35)]">
-                          <Clock size={16} />
-                        </div>
-                        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#A78BFA]">Duração</p>
-                        <p className="mt-1 text-sm font-bold text-[#1F172A]">{nextAppointment.service.durationMinutes} min</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-5 flex gap-2.5">
-                      <Button
-                        className="h-11 flex-1 rounded-2xl bg-[#7C3AED] font-bold text-white shadow-[0_16px_30px_-18px_rgba(124,58,237,0.48)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#6D28D9] hover:shadow-[0_20px_32px_-18px_rgba(124,58,237,0.48)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#C4B5FD] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                        onClick={() => router.push("/cliente/agendamentos")}
-                      >
-                        Ver detalhes
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-11 rounded-2xl border-[#E9DDF7] bg-[#FCFAFF] px-4 text-[#7C3AED] transition-colors duration-200 hover:bg-[#F8F5FF] hover:text-[#6D28D9]"
-                        onClick={() => router.push("/cliente/agendar")}
-                      >
-                        Remarcar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="rounded-[32px] border border-white/80 bg-white/94 shadow-[0_22px_60px_-42px_rgba(31,23,42,0.22)] ring-1 ring-[#F3E8FF]/80">
-                  <CardContent className="p-6 md:p-7 xl:p-8">
-                    <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[24px] bg-[#F8F5FF] text-[#7C3AED]">
-                      <Calendar size={28} strokeWidth={2.2} />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-black tracking-tight text-[#1F172A]">Nenhum agendamento futuro</p>
-                      <p className="mt-2 text-sm leading-6 text-[#6B6280]">
-                        Escolha seu próximo cuidado e reserve em poucos toques.
-                      </p>
-                    </div>
-                    <Button
-                      className="mt-5 h-12 w-full rounded-2xl bg-linear-to-r from-[#7C3AED] to-[#F472B6] font-bold text-white shadow-[0_18px_32px_-20px_rgba(124,58,237,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95"
-                      onClick={() => router.push("/cliente/agendar")}
-                    >
-                      Agendar agora
-                    </Button>
-                  </CardContent>
-                </Card>
+      {/* Quick Access Grid */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-black text-brand-text tracking-tight px-2">Acesso Rápido</h2>
+        <div className="grid grid-cols-2 gap-4">
+          {quickActions.map((action) => (
+            <button
+              key={action.id}
+              onClick={() => router.push(action.href)}
+              className={cn(
+                "group relative overflow-hidden rounded-[2rem] border border-brand-border bg-white p-5 text-left transition-all hover:scale-[1.02] hover:shadow-xl active:scale-95",
               )}
-            </section>
-
-            <section className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#A78BFA]">Descobertas</p>
-                  <h2 className="text-lg font-black tracking-tight text-[#1F172A]">Serviços populares</h2>
-                </div>
-                <button
-                  onClick={() => router.push("/cliente/servicos")}
-                  className="flex items-center gap-1 text-sm font-bold text-[#7C3AED] hover:text-[#6D28D9]"
-                >
-                  Ver todos
-                  <ChevronRight size={16} />
-                </button>
+            >
+              <div className={cn(
+                "mb-4 flex h-12 w-12 items-center justify-center rounded-2xl transition-transform group-hover:scale-110",
+                "bg-linear-to-br", action.gradient
+              )}>
+                <action.icon className={action.iconColor} size={22} strokeWidth={2.5} />
               </div>
-
-              <div className="grid gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-1">
-                {services.slice(0, 3).map((service, index) => {
-                  const gradients = [
-                    "from-violet-500 to-purple-600",
-                    "from-fuchsia-500 to-pink-600",
-                    "from-indigo-500 to-blue-600"
-                  ];
-
-                  return (
-                    <button
-                      key={service.id}
-                      className="group flex items-center justify-between rounded-[28px] border border-white/80 bg-white/94 p-4 text-left shadow-[0_18px_45px_-36px_rgba(31,23,42,0.2)] ring-1 ring-[#F4ECFF] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#E6D8FB] hover:bg-white hover:shadow-[0_24px_50px_-34px_rgba(124,58,237,0.22)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#C4B5FD] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFDFE] active:scale-[0.99] md:min-h-[120px] md:p-5 xl:p-6"
-                      onClick={() => router.push(`/cliente/servicos?id=${service.id}`)}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`flex h-12 w-12 items-center justify-center rounded-[18px] bg-linear-to-br ${gradients[index % 3]} text-white shadow-[0_14px_26px_-16px_rgba(124,58,237,0.45)] transition-transform duration-200 group-hover:scale-105`}>
-                          <Sparkles size={22} strokeWidth={2.4} />
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-black text-[#1F172A] md:text-[15px]">{service.name}</h4>
-                          <p className="mt-1 text-base font-black text-[#7C3AED]">R$ {service.price.toFixed(2)}</p>
-                        </div>
-                      </div>
-                      <ChevronRight
-                        size={18}
-                        className="text-[#C4B5D9] transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-[#7C3AED]"
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          </div>
+              <p className="text-sm font-black text-brand-text tracking-tight">{action.title}</p>
+              <p className="text-[10px] font-medium text-brand-text-muted leading-relaxed mt-1">{action.description}</p>
+            </button>
+          ))}
         </div>
-      </main>
+      </section>
 
-      <BottomNav />
+      {/* Footer Branding */}
+      <footer className="pt-10 flex flex-col items-center justify-center gap-4 text-center pb-8 opacity-50">
+        <div className="flex items-center gap-2">
+          <Sparkle className="text-brand-primary" size={12} />
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-text">Tessy Nails</span>
+        </div>
+        <p className="text-[10px] font-bold text-brand-text-muted">A experiência premium que você merece.</p>
+      </footer>
     </div>
   );
 }

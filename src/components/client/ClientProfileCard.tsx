@@ -84,11 +84,11 @@ export function ClientProfileCard({
 
           <div className="mt-4 space-y-2 text-sm text-slate-500">
             <div className="flex items-center gap-2">
-              <Mail className="mr-2 h-4 w-4 text-violet-600" />
+              <Mail className="mr-2 h-4 w-4 text-brand-primary" />
               <span className="truncate">{client.email}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Phone className="mr-2 h-4 w-4 text-violet-600" />
+              <Phone className="mr-2 h-4 w-4 text-brand-primary" />
               <span>{client.phone}</span>
             </div>
           </div>

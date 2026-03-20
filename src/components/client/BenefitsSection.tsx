@@ -33,7 +33,7 @@ export function BenefitsSection() {
         {/* Section Header */}
         <div className="mb-12 text-center">
           <h2 className="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Por que escolher <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Tessy Nails</span>
+            Por que escolher <span className="bg-linear-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">Tessy Nails</span>
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-gray-600">
             Uma experiência completa pensada para sua comodidade e satisfação
@@ -50,12 +50,12 @@ export function BenefitsSection() {
                 className="group rounded-2xl bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
               >
                 {/* Icon */}
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-violet-100 text-violet-600 transition-colors group-hover:bg-violet-200">
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary transition-colors group-hover:bg-brand-primary/20">
                   <Icon className="h-6 w-6" />
                 </div>
 
                 {/* Content */}
-                <h3 className="mb-3 text-lg font-semibold text-gray-900 group-hover:text-violet-600 transition-colors">
+                <h3 className="mb-3 text-lg font-semibold text-gray-900 group-hover:text-brand-primary transition-colors">
                   {benefit.title}
                 </h3>
                 
@@ -79,7 +79,7 @@ export function BenefitsSection() {
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Link 
                 href="/cliente/agendar"
-                className="bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white px-8 py-3 font-medium rounded-lg inline-flex items-center justify-center transition-colors"
+                className="bg-linear-to-r from-brand-primary to-brand-secondary hover:opacity-90 text-white px-8 py-3 font-medium rounded-lg inline-flex items-center justify-center transition-all"
               >
                 Agendar agora
               </Link>

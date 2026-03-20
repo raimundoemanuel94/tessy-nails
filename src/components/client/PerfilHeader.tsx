@@ -23,7 +23,7 @@ export function PerfilHeader({
             variant="ghost"
             size="sm"
             onClick={onBack}
-            className="text-violet-600 hover:bg-violet-50"
+            className="text-brand-primary hover:bg-brand-primary/5"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -32,7 +32,7 @@ export function PerfilHeader({
         {/* Title */}
         <div className="flex-1 text-center">
           <h1 className="text-xl font-bold text-gray-900 md:text-2xl flex items-center">
-            <User className="mr-2 h-5 w-5 text-violet-600" />
+            <User className="mr-2 h-5 w-5 text-brand-primary" />
             {title}
           </h1>
           {subtitle && (

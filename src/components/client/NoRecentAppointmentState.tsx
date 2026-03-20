@@ -17,7 +17,7 @@ export function NoRecentAppointmentState({
       <div className="w-full max-w-md text-center">
         {/* Icon */}
         <div className="mb-6 h-20 w-20 rounded-full bg-violet-100 flex items-center justify-center mx-auto">
-          <Calendar className="h-8 w-8 text-violet-600" />
+          <Calendar className="h-8 w-8 text-brand-primary" />
         </div>
 
         {/* Content */}
@@ -35,7 +35,7 @@ export function NoRecentAppointmentState({
           <div className="space-y-3">
             <Button 
               onClick={onSearchAppointments}
-              className="w-full bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium"
+              className="w-full bg-linear-to-r from-brand-primary to-brand-secondary hover:opacity-90 text-white font-medium"
             >
               <Search className="mr-2 h-4 w-4" />
               Buscar agendamentos

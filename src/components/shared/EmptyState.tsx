@@ -29,7 +29,7 @@ export function EmptyState({
       <div className="relative mb-8">
         <div className="absolute inset-0 bg-violet-500/10 rounded-full blur-3xl animate-pulse" />
         <div className="relative flex items-center justify-center w-24 h-24 rounded-3xl bg-white dark:bg-slate-900 border border-violet-100 dark:border-violet-500/20 shadow-2xl shadow-violet-500/10 transition-transform hover:scale-110 duration-500">
-          <Icon size={40} className="text-violet-600" strokeWidth={1.5} />
+          <Icon size={40} className="text-brand-primary" strokeWidth={1.5} />
         </div>
         <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/10 flex items-center justify-center shadow-lg">
           <div className="w-4 h-4 rounded-full bg-violet-500/20 animate-ping" />
@@ -47,7 +47,7 @@ export function EmptyState({
       {actionLabel && onAction && (
         <Button 
           onClick={onAction}
-          className="h-12 px-8 rounded-2xl bg-linear-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-black uppercase tracking-widest shadow-xl shadow-violet-500/20 transition-all hover:-translate-y-1 active:scale-95"
+          className="h-12 px-8 rounded-2xl bg-linear-to-r from-brand-primary to-brand-secondary hover:opacity-90 text-white font-black uppercase tracking-widest shadow-xl shadow-brand-primary/20 transition-all hover:-translate-y-1 active:scale-95"
         >
           {actionLabel}
         </Button>

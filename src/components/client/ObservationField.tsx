@@ -23,7 +23,7 @@ export function ObservationField({
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700">
         <div className="flex items-center">
-          <MessageSquare className="mr-2 h-4 w-4 text-violet-600" />
+          <MessageSquare className="mr-2 h-4 w-4 text-brand-primary" />
           Observação (opcional)
         </div>
       </label>

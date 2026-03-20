@@ -75,9 +75,9 @@ export default function ServiceDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-violet-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-brand-primary/5 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Carregando detalhes do serviço...</p>
         </div>
       </div>
@@ -86,7 +86,7 @@ export default function ServiceDetailPage() {
 
   if (error || !service) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-violet-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-brand-primary/5 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <p className="text-red-600">{error || 'Serviço não encontrado'}</p>
@@ -101,7 +101,7 @@ export default function ServiceDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-violet-50 to-purple-50">
+    <div className="min-h-screen bg-brand-primary/5">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -128,7 +128,7 @@ export default function ServiceDetailPage() {
           {/* Main Content */}
           <div className="lg:col-span-2">
             <Card className="overflow-hidden">
-              <div className="bg-linear-to-r from-violet-500 to-purple-500 h-48 flex items-center justify-center">
+              <div className="bg-linear-to-r from-brand-primary to-brand-secondary h-48 flex items-center justify-center">
                 <div className="text-white text-center">
                   <div className="text-6xl mb-4">💅</div>
                   <h2 className="text-2xl font-bold">{service.name}</h2>
@@ -170,14 +170,14 @@ export default function ServiceDetailPage() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="flex items-center mb-2">
-                        <Clock className="h-5 w-5 text-violet-500 mr-2" />
+                        <Clock className="h-5 w-5 text-brand-primary mr-2" />
                         <span className="font-medium">Duração</span>
                       </div>
                       <p className="text-gray-700">{service.durationMinutes} minutos</p>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="flex items-center mb-2">
-                        <DollarSign className="h-5 w-5 text-violet-500 mr-2" />
+                        <DollarSign className="h-5 w-5 text-brand-primary mr-2" />
                         <span className="font-medium">Preço</span>
                       </div>
                       <p className="text-2xl font-bold text-gray-900">

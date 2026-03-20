@@ -26,7 +26,7 @@ export default function RootPage() {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-slate-50 dark:bg-slate-950">
       <div className="flex flex-col items-center gap-4 text-center">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
       </div>
     </div>
   );

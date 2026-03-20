@@ -9,65 +9,25 @@ interface ServicesHeaderProps {
   onBack?: () => void;
 }
 
-export function ServicesHeader({ title = "Escolha um serviço", onBack }: ServicesHeaderProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+export function ServicesHeader({ title = "Nossos Serviços", onBack }: ServicesHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-violet-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        {/* Back Button */}
-        {onBack && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="text-violet-600 hover:bg-violet-50"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        )}
-
-        {/* Title */}
-        <div className="flex-1 text-center">
-          <h1 className="text-xl font-bold text-gray-900 md:text-2xl">
-            {title}
-          </h1>
-        </div>
-
-        {/* Mobile Menu Button */}
+    <div className="flex items-center gap-4 px-2 py-4">
+      {onBack && (
         <Button
           variant="ghost"
-          size="sm"
-          className="md:hidden"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          size="icon"
+          onClick={onBack}
+          className="h-12 w-12 rounded-2xl bg-white border border-brand-border text-brand-text hover:text-brand-primary shadow-sm hover:scale-110 active:scale-95 transition-all"
         >
-          <Menu className="h-4 w-4" />
+          <ArrowLeft size={20} strokeWidth={2.5} />
         </Button>
-
-        {/* Desktop Actions */}
-        <div className="hidden md:block">
-          <a 
-            href="/cliente"
-            className="bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium px-6 py-2 rounded-lg inline-flex items-center transition-colors"
-          >
-            Voltar
-          </a>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-violet-100 bg-white">
-          <div className="container px-4 py-4">
-            <a 
-              href="/cliente"
-              className="w-full bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium px-6 py-2 rounded-lg inline-flex items-center justify-center transition-colors"
-            >
-              Voltar
-            </a>
-          </div>
-        </div>
       )}
-    </header>
+      <div className="flex-1">
+        <h1 className="text-2xl font-black text-brand-text tracking-tight uppercase">
+          {title}
+        </h1>
+        <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">Escolha o seu cuidado hoje</p>
+      </div>
+    </div>
   );
 }

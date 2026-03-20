@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Calendar, DollarSign, CheckCircle } from "lucide-react";
+import { Clock, Calendar, DollarSign, CheckCircle, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -37,79 +37,84 @@ export function SuccessAppointmentSummary({
   status = "Confirmado"
 }: SuccessAppointmentSummaryProps) {
   return (
-    <div className="rounded-2xl border border-violet-100 bg-white p-6 shadow-sm max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-2">
-          Detalhes do seu agendamento
-        </h3>
-        <div className="h-px bg-gradient-to-r from-transparent via-violet-200 to-transparent" />
-      </div>
-
-      {/* Status Badge */}
-      <div className="mb-6 text-center">
-        <div className="inline-flex items-center rounded-full bg-green-100 px-4 py-2">
-          <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
-          <span className="font-semibold text-green-700">
+    <div className="relative overflow-hidden rounded-[2.5rem] border border-brand-border bg-white p-8 shadow-xl shadow-brand-primary/5 space-y-8 max-w-2xl mx-auto">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-bl-[5rem] -mr-8 -mt-8" />
+      
+      <div className="relative flex items-center justify-between border-b border-brand-border pb-6">
+        <div>
+          <h3 className="text-lg font-black text-brand-text uppercase tracking-tight">
+            Detalhes da Reserva
+          </h3>
+          <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">Resumo do que foi agendado</p>
+        </div>
+        <div className="rounded-full bg-green-500/10 px-4 py-1.5 border border-green-500/20">
+          <span className="text-[10px] font-black text-green-600 uppercase tracking-widest leading-none">
             {status}
           </span>
         </div>
       </div>
 
-      {/* Service Info */}
-      <div className="mb-6">
-        <h4 className="text-base font-semibold text-violet-600 mb-3">
-          {service.name}
-        </h4>
-        
-        <div className="grid gap-3 text-sm text-gray-700 sm:grid-cols-2">
-          <div className="flex items-center">
-            <Clock className="mr-2 h-4 w-4 text-violet-600" />
-            <span className="font-medium">Duração:</span>
-            <span>{service.duration}</span>
+      <div className="relative space-y-6">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+             <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest leading-none">Procedimento</p>
+             <h4 className="text-xl font-black text-brand-text tracking-tight leading-none">{service.name}</h4>
           </div>
-          
-          <div className="flex items-center">
-            <DollarSign className="mr-2 h-4 w-4 text-violet-600" />
-            <span className="font-medium">Valor:</span>
-            <span>{service.price}</span>
+          <div className="text-right">
+             <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest leading-none">Valor Total</p>
+             <p className="text-lg font-black text-brand-text">{service.price}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div className="flex items-center gap-3">
+             <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
+                <Calendar size={18} />
+             </div>
+             <div>
+                <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest leading-none mb-1">Data</p>
+                <p className="text-[11px] font-black text-brand-text capitalize">
+                  {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+                </p>
+             </div>
           </div>
 
-          <div className="flex items-center">
-            <Calendar className="mr-2 h-4 w-4 text-violet-600" />
-            <span className="font-medium">Data:</span>
-            <span>{format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}</span>
-          </div>
-
-          <div className="flex items-center">
-            <Clock className="mr-2 h-4 w-4 text-violet-600" />
-            <span className="font-medium">Horário:</span>
-            <span>{selectedTime.time}</span>
+          <div className="flex items-center gap-3">
+             <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
+                <Clock size={18} />
+             </div>
+             <div>
+                <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest leading-none mb-1">Horário</p>
+                <p className="text-[11px] font-black text-brand-text uppercase">{selectedTime.time}</p>
+             </div>
           </div>
         </div>
       </div>
 
-      {/* Observation */}
       {observation && (
-        <div className="mb-6">
-          <h5 className="text-sm font-semibold text-gray-700 mb-2">
-            Sua observação:
-          </h5>
-          <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-            {observation}
-          </p>
+        <div className="relative pt-6 border-t border-brand-border space-y-3">
+           <div className="flex items-center gap-2">
+              <CheckCircle className="text-brand-primary" size={16} />
+              <p className="text-[10px] font-black text-brand-text uppercase tracking-widest">Sua Observação</p>
+           </div>
+           <p className="text-xs font-bold text-brand-text-muted bg-brand-background/50 p-4 rounded-2xl italic">
+              "{observation}"
+           </p>
         </div>
       )}
 
-      {/* Important Info */}
-      <div className="rounded-lg bg-violet-50 p-4">
-        <div className="flex items-center text-violet-700">
-          <CheckCircle className="mr-2 h-4 w-4" />
-          <div>
-            <p className="font-medium">Você receberá um e-mail de confirmação</p>
-            <p className="text-sm">Cancelamento gratuito até 24h antes</p>
-          </div>
-        </div>
+      <div className="relative rounded-2xl bg-brand-primary/5 p-4 border border-brand-primary/10 flex items-start gap-4">
+         <div className="h-10 w-10 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0">
+            <Sparkles size={18} />
+         </div>
+         <div>
+            <p className="text-[10px] text-brand-primary font-black uppercase tracking-[0.2em] leading-relaxed mb-0.5">
+              Tudo pronto para você!
+            </p>
+            <p className="text-[10px] font-bold text-brand-text-muted leading-tight uppercase opacity-60">
+              Você receberá uma confirmação no WhatsApp em breve.
+            </p>
+         </div>
       </div>
     </div>
   );

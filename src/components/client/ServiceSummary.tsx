@@ -49,13 +49,13 @@ export function ServiceSummary({ service }: ServiceSummaryProps) {
       {/* Service Details */}
       <div className="space-y-3 text-sm text-gray-700">
         <div className="flex items-center">
-          <Clock className="mr-2 h-4 w-4 text-violet-600" />
+          <Clock className="mr-2 h-4 w-4 text-brand-primary" />
           <span className="font-medium">Duração:</span>
           <span>{service.duration}</span>
         </div>
         
         <div className="flex items-center">
-          <DollarSign className="mr-2 h-4 w-4 text-violet-600" />
+          <DollarSign className="mr-2 h-4 w-4 text-brand-primary" />
           <span className="font-medium">Valor:</span>
           <span>{service.price}</span>
         </div>

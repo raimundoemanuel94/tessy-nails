@@ -5,8 +5,13 @@ import { useRouter } from "next/navigation";
 import { format, addDays, isToday, isBefore, isAfter, setHours, setMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, CheckCircle } from "lucide-react";
+import { 
+  Loader2, 
+  Clock, 
+  CheckCircle 
+} from "lucide-react";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
+import { cn } from "@/lib/utils";
 import { HorariosHeader } from "@/components/client/HorariosHeader";
 import { AppointmentSummary } from "@/components/client/AppointmentSummary";
 import { TimeSlotGrid, TimeSlot } from "@/components/client/TimeSlotGrid";
@@ -61,19 +66,9 @@ export default function HorariosPage() {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Carregar dados do localStorage com validação
   useEffect(() => {
-    // ✅ Carregar dados completos do agendamento
     const appointmentData = AppointmentStorage.loadAppointmentData();
-    if (!appointmentData) {
-      console.error('No appointment data found, redirecting...');
-      router.push('/cliente/agendar');
-      return;
-    }
-
-    // ✅ Validar dados essenciais
-    if (!appointmentData.service || !appointmentData.date) {
-      console.error('Invalid appointment data:', appointmentData);
+    if (!appointmentData || !appointmentData.service || !appointmentData.date) {
       router.push('/cliente/agendar');
       return;
     }
@@ -84,24 +79,12 @@ export default function HorariosPage() {
     setLoading(false);
   }, [router]);
 
-  const handleTimeSelect = (timeId: string) => {
-    setSelectedTime(timeId);
-  };
-
   const handleContinue = () => {
-    if (!selectedTime || !selectedService || !selectedDate) {
-      console.error('Missing required data for appointment');
-      return;
-    }
+    if (!selectedTime || !selectedService || !selectedDate) return;
 
-    // ✅ Encontrar o horário selecionado
     const selectedTimeSlot = timeSlots.find(slot => slot.id === selectedTime);
-    if (!selectedTimeSlot) {
-      console.error('Selected time slot not found');
-      return;
-    }
+    if (!selectedTimeSlot) return;
 
-    // ✅ Criar dados completos do agendamento
     const appointmentData = {
       service: selectedService,
       date: selectedDate,
@@ -110,43 +93,14 @@ export default function HorariosPage() {
       observation: undefined
     };
 
-    // ✅ Salvar dados completos com validação
-    const success = AppointmentStorage.saveAppointmentData(appointmentData);
-    if (!success) {
-      console.error('Failed to save appointment data');
-      // Fallback: localStorage direto
-      try {
-        localStorage.setItem('appointmentData', JSON.stringify(appointmentData));
-      } catch (error) {
-        console.error('Fallback save failed:', error);
-        return;
-      }
-    }
-
-    // ✅ Navegar para próxima etapa
+    AppointmentStorage.saveAppointmentData(appointmentData);
     router.push('/cliente/agendar/confirmacao');
   };
 
-  const handleBack = () => {
-    router.push('/cliente/agendar');
-  };
-
-  const handleBackToServices = () => {
-    router.push('/cliente/servicos');
-  };
-
-  const handleChangeDate = () => {
-    router.push('/cliente/agendar');
-  };
-
-  // Estados de erro
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
-          <p className="mt-4 text-gray-600">Carregando horários...</p>
-        </div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-brand-primary" />
       </div>
     );
   }
@@ -154,71 +108,61 @@ export default function HorariosPage() {
   if (!selectedService || !selectedDate) {
     return (
       <NoTimeSlotsState 
-        onBack={handleBackToServices}
-        onChangeDate={handleChangeDate}
-      />
-    );
-  }
-
-  if (timeSlots.length === 0) {
-    return (
-      <NoTimeSlotsState 
-        onBack={handleBack}
-        onChangeDate={handleChangeDate}
+        onBack={() => router.push('/cliente/servicos')}
+        onChangeDate={() => router.push('/cliente/agendar')}
       />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="px-5 pt-4 max-w-2xl mx-auto space-y-8">
       <HorariosHeader 
-        title="Escolha um horário"
-        onBack={handleBack}
+        title="Escolha o horário"
+        onBack={() => router.push('/cliente/agendar')}
       />
 
-      <main className="container px-4 py-8">
-        {/* Appointment Summary */}
-        <div className="mb-8">
-          <AppointmentSummary 
-            service={selectedService}
-            selectedDate={selectedDate}
-          />
-        </div>
+      <main className="space-y-8 pb-10">
+        <AppointmentSummary 
+          service={selectedService}
+          selectedDate={selectedDate}
+        />
 
-        {/* Time Slots */}
-        <div className="mb-8">
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Horários disponíveis
-            </h2>
-            <p className="text-gray-600">
-              Selecione um horário para {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
-            </p>
+        <section className="space-y-4">
+          <div className="flex items-center justify-between px-2">
+            <div>
+              <h2 className="text-xl font-black text-brand-text uppercase tracking-tight">Horários</h2>
+              <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">Disponíveis para este dia</p>
+            </div>
+            <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
+              <Clock size={18} />
+            </div>
           </div>
 
           <TimeSlotGrid 
             timeSlots={timeSlots}
             selectedTime={selectedTime || undefined}
-            onTimeSelect={handleTimeSelect}
+            onTimeSelect={setSelectedTime}
           />
-        </div>
+        </section>
 
-        {/* Continue Button */}
-        <div className="text-center">
-          <Button 
-            onClick={handleContinue}
-            disabled={!selectedTime}
-            className="bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium px-8 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Continuar
-          </Button>
-          
-          {!selectedTime && (
-            <p className="mt-3 text-sm text-gray-500">
-              Selecione um horário para continuar
-            </p>
+        <section className="pt-4">
+          {selectedTime ? (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+               <Button 
+                onClick={handleContinue}
+                className="w-full h-16 rounded-[2rem] bg-linear-to-br from-brand-primary to-brand-secondary text-white font-black text-base shadow-2xl shadow-brand-primary/20 hover:opacity-90 active:scale-[0.98] transition-all"
+              >
+                Revisar Agendamento
+              </Button>
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <p className="text-[10px] font-black text-brand-text-muted uppercase tracking-[0.3em] animate-pulse">
+                Selecione um horário para prosseguir
+              </p>
+            </div>
           )}
-        </div>
+        </section>
       </main>
     </div>
   );

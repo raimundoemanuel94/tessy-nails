@@ -2,6 +2,7 @@
 
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export interface TimeSlot {
   id: string;
@@ -24,64 +25,47 @@ export function TimeSlotGrid({ timeSlots, selectedTime, onTimeSelect }: TimeSlot
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Time Slots Grid */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-3 gap-3">
         {timeSlots.map((slot) => {
           const isSelected = selectedTime === slot.id;
           const isAvailable = slot.available;
 
           return (
-            <Button
+            <button
               key={slot.id}
               onClick={() => handleTimeSelect(slot.id)}
               disabled={!isAvailable}
-              className={`
-                relative h-16 p-4 text-sm font-medium transition-all
-                ${isSelected
-                  ? 'bg-violet-500 text-white border-violet-500 shadow-lg transform scale-105'
+              className={cn(
+                "relative h-16 rounded-2xl text-sm font-black transition-all duration-300 active:scale-95 shadow-sm border",
+                isSelected
+                  ? 'bg-linear-to-br from-brand-primary to-brand-secondary text-white border-transparent shadow-xl shadow-brand-primary/30 scale-105'
                   : isAvailable
-                  ? 'bg-white text-gray-900 border-violet-200 hover:bg-violet-50 hover:border-violet-300 hover:shadow-md'
-                  : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                }
-              `}
-            >
-              <div className="flex items-center justify-center">
-                {isSelected && (
-                  <Check className="mr-2 h-4 w-4" />
-                )}
-                {!isAvailable && !isSelected && (
-                  <X className="mr-2 h-4 w-4" />
-                )}
-                <span className={isSelected ? 'font-semibold' : ''}>
-                  {slot.time}
-                </span>
-              </div>
-
-              {/* Slot Label */}
-              {slot.label && (
-                <div className="absolute -top-2 -right-2 rounded-full bg-violet-500 px-2 py-1 text-xs text-white">
-                  {slot.label}
-                </div>
+                  ? 'bg-white text-brand-text border-brand-border hover:border-brand-primary hover:bg-brand-primary/5'
+                  : 'bg-brand-background text-brand-text-muted border-brand-border/50 opacity-40 cursor-not-allowed'
               )}
-            </Button>
+            >
+              <div className="flex flex-col items-center justify-center gap-1">
+                <span>{slot.time}</span>
+                {slot.label && !isSelected && (
+                  <span className="text-[8px] uppercase tracking-tighter text-brand-primary">{slot.label}</span>
+                )}
+              </div>
+            </button>
           );
         })}
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
-        <div className="flex items-center">
-          <div className="h-3 w-3 rounded-full bg-violet-500 mr-2" />
-          <span>Selecionado</span>
+      <div className="flex items-center justify-center gap-6 px-4 py-4 rounded-3xl bg-white border border-brand-border shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-brand-primary" />
+          <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest">Livre</span>
         </div>
-        <div className="flex items-center">
-          <div className="h-3 w-3 rounded-full bg-green-500 mr-2" />
-          <span>Disponível</span>
-        </div>
-        <div className="flex items-center">
-          <div className="h-3 w-3 rounded-full bg-gray-300 mr-2" />
-          <span>Indisponível</span>
+        <div className="flex items-center gap-2 opacity-40">
+          <div className="h-2 w-2 rounded-full bg-brand-text-muted" />
+          <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest">Ocupado</span>
         </div>
       </div>
     </div>

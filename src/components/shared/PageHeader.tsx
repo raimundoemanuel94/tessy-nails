@@ -1,29 +1,38 @@
+import { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+
 interface PageHeaderProps {
   title: string;
   description?: string;
+  icon?: LucideIcon;
   children?: React.ReactNode;
-  metadata?: React.ReactNode;
 }
 
-export function PageHeader({ title, description, children, metadata }: PageHeaderProps) {
+export function PageHeader({ title, description, icon: Icon, children }: PageHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between mb-8 pb-8 border-b border-slate-200/60 dark:border-white/5 relative">
-      <div className="space-y-1.5 self-start">
-        <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-900 dark:text-white capitalize">
-          {title}
-        </h1>
-        {description && (
-          <p className="text-sm lg:text-base font-medium text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
-            {description}
-          </p>
+    <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between mb-10 pb-10 border-b border-slate-200/40 dark:border-white/5 relative group">
+      <div className="flex items-start gap-5">
+        {Icon && (
+          <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-brand-primary/10 to-brand-secondary/10 dark:from-brand-primary/30 dark:to-brand-secondary/20 flex items-center justify-center text-brand-primary dark:text-brand-accent shadow-inner group-hover:scale-110 transition-transform duration-500">
+            <Icon size={28} strokeWidth={2.5} />
+          </div>
         )}
-        {metadata && <div className="mt-2">{metadata}</div>}
+        <div className="space-y-1">
+          <h1 className="text-3xl lg:text-5xl font-black tracking-tighter text-slate-900 dark:text-white capitalize">
+            {title}
+          </h1>
+          {description && (
+            <p className="text-sm lg:text-lg font-bold text-slate-500/80 dark:text-slate-400/80 max-w-2xl leading-relaxed">
+              {description}
+            </p>
+          )}
+        </div>
       </div>
       <div className="flex items-center gap-3 shrink-0">
         {children}
       </div>
-      {/* Subtle accent underline */}
-      <div className="absolute bottom-0 left-0 w-24 h-1 bg-linear-to-r from-violet-500 to-purple-600 rounded-t-full" />
+      {/* Premium Gradient Underline */}
+      <div className="absolute -bottom-px left-0 w-32 h-[3px] bg-linear-to-r from-brand-primary to-brand-secondary rounded-full shadow-lg shadow-brand-primary/20" />
     </div>
   );
 }

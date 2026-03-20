@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { SuccessHeader } from "@/components/client/SuccessHeader";
 import { SuccessBlock } from "@/components/client/SuccessBlock";
 import { SuccessAppointmentSummary } from "@/components/client/SuccessAppointmentSummary";
@@ -40,9 +41,7 @@ export default function SucessoPage() {
   const [appointment, setAppointment] = useState<ConfirmedAppointment | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Carregar dados do agendamento confirmado
   useEffect(() => {
-    // ✅ SSR-safe localStorage check
     if (typeof window === 'undefined') {
       setLoading(false);
       return;
@@ -52,97 +51,56 @@ export default function SucessoPage() {
     if (savedAppointment) {
       try {
         const data: ConfirmedAppointment = JSON.parse(savedAppointment);
-        
-        // ✅ Validar estrutura dos dados
-        if (!data.service || !data.service.name) {
-          console.error('Invalid appointment data: missing service information');
-          setAppointment(null);
-          setLoading(false);
-          return;
+        if (data.service && data.service.name) {
+          if (typeof data.date === 'string') {
+            data.date = new Date(data.date);
+          }
+          setAppointment(data);
         }
-        
-        // Converter string de data para Date
-        if (typeof data.date === 'string') {
-          data.date = new Date(data.date);
-        }
-        
-        setAppointment(data);
-        setLoading(false);
       } catch (error) {
         console.error('Error parsing confirmed appointment:', error);
-        setAppointment(null);
-        setLoading(false);
       }
-    } else {
-      setLoading(false);
     }
+    setLoading(false);
   }, []);
 
-  const handleMyAppointments = () => {
-    // Preparar para futura implementação
-    router.push('/cliente/agendamentos');
-  };
-
-  const handleBackToHome = () => {
-    router.push('/cliente');
-  };
-
-  const handleSearchAppointments = () => {
-    // Preparar para futura implementação
-    router.push('/cliente/agendamentos');
-  };
-
-  // Estados de loading
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
-          <p className="mt-4 text-gray-600">Carregando...</p>
-        </div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-brand-primary" />
       </div>
     );
   }
 
-  // Estado sem agendamento
   if (!appointment) {
     return (
       <NoRecentAppointmentState 
-        onBackToHome={handleBackToHome}
-        onSearchAppointments={handleSearchAppointments}
+        onBackToHome={() => router.push('/cliente')}
+        onSearchAppointments={() => router.push('/cliente/agendamentos')}
       />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50">
-      <SuccessHeader />
+    <div className="px-5 pt-8 max-w-2xl mx-auto space-y-12 pb-20 overflow-hidden">
+      <SuccessBlock 
+        title="Reserva Concluída!"
+        subtitle="Seu momento de cuidado está garantido"
+        message="Prepare-se para uma experiência incrível. Nos vemos em breve!"
+      />
 
-      <main className="container px-4 py-8">
-        <div className="space-y-8">
-          {/* Success Block */}
-          <SuccessBlock 
-            title="Agendamento confirmado!"
-            subtitle="Seu horário foi reservado com sucesso"
-            message="Estamos muito felizes em receber você! Prepare-se para uma experiência incrível de cuidado e beleza."
-          />
+      <SuccessAppointmentSummary 
+        service={appointment.service}
+        selectedDate={appointment.date}
+        selectedTime={appointment.time}
+        observation={appointment.observation}
+        status="Agendado"
+      />
 
-          {/* Appointment Summary */}
-          <SuccessAppointmentSummary 
-            service={appointment.service}
-            selectedDate={appointment.date}
-            selectedTime={appointment.time}
-            observation={appointment.observation}
-            status="Confirmado"
-          />
-
-          {/* Action Buttons */}
-          <SuccessActions 
-            onMyAppointments={handleMyAppointments}
-            onBackToHome={handleBackToHome}
-          />
-        </div>
-      </main>
+      <SuccessActions 
+        onMyAppointments={() => router.push('/cliente/agendamentos')}
+        onBackToHome={() => router.push('/cliente')}
+      />
     </div>
   );
 }

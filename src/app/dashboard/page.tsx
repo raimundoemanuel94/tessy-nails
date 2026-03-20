@@ -275,7 +275,7 @@ export default function DashboardPage() {
       <AdminLayout>
         <div className="max-w-[1600px] mx-auto space-y-8 pb-20">
           {/* Hero Skeleton */}
-          <div className="rounded-3xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 p-12 text-white shadow-2xl">
+          <div className="rounded-3xl bg-linear-to-br from-brand-primary via-brand-secondary to-brand-primary p-12 text-white shadow-2xl">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10">
               <div className="flex-1">
                 <div className="h-12 bg-white-20 rounded-xl animate-pulse mb-4 w-64"></div>
@@ -337,32 +337,32 @@ export default function DashboardPage() {
     <AdminLayout>
       <div className="max-w-[1600px] mx-auto space-y-8 pb-20">
         {/* ROW 1: HERO GREETING + SUMMARY CONTROLS */}
-        <div className="rounded-3xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 p-12 text-white shadow-2xl">
+        <div className="rounded-3xl bg-linear-to-br from-brand-primary via-brand-secondary to-brand-primary p-12 text-white shadow-2xl">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10">
             <div className="flex-1">
               <h1 className="text-5xl font-black mb-4">
                 {getGreeting()}, {dashboardDisplayName}
               </h1>
-              <p className="text-violet-100 text-2xl font-semibold mb-6">
+              <p className="text-brand-accent/80 text-2xl font-semibold mb-6">
                 Prepare-se para um dia incrível de transformações!
               </p>
               <div className="flex items-center gap-10">
                 <div className="flex items-center gap-3">
-                  <Calendar className="h-8 w-8 text-violet-200" />
+                  <Calendar className="h-8 w-8 text-brand-accent" />
                   <div>
                     <span className="text-3xl font-bold">
                       {stats.todayAppointments}
                     </span>
-                    <span className="text-violet-200 text-lg ml-2">agendamentos hoje</span>
+                    <span className="text-brand-accent/70 text-lg ml-2">agendamentos hoje</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <DollarSign className="h-8 w-8 text-violet-200" />
+                  <DollarSign className="h-8 w-8 text-brand-accent" />
                   <div>
                     <span className="text-3xl font-bold">
                       R$ {stats.monthlyRevenue.toFixed(0)}
                     </span>
-                    <span className="text-violet-200 text-lg ml-2">receita mês</span>
+                    <span className="text-brand-accent/70 text-lg ml-2">receita mês</span>
                   </div>
                 </div>
               </div>
@@ -376,7 +376,7 @@ export default function DashboardPage() {
                     size="sm"
                     onClick={() => setSelectedPeriod(period)}
                     className={
-                      selectedPeriod === period ? "bg-white text-violet-600 shadow-lg shadow-white-20" : "text-white-80 hover:text-white hover:bg-white-10"
+                      selectedPeriod === period ? "bg-white text-brand-primary shadow-lg shadow-white-20" : "text-white-80 hover:text-white hover:bg-white-10"
                     }
                   >
                     {period === 'today' ? 'Hoje' : period === 'week' ? 'Semana' : 'Mês'}
@@ -401,7 +401,7 @@ export default function DashboardPage() {
                     toast.success("Abrindo agenda para novo agendamento...");
                     router.push('/agenda');
                   }}
-                  className="rounded-2xl bg-white text-violet-600 font-bold text-sm uppercase tracking-wider h-12 px-6 shadow-2xl shadow-white-20 hover:bg-violet-50 hover:scale-105 transition-all duration-300"
+                  className="rounded-2xl bg-white text-brand-primary font-bold text-sm uppercase tracking-wider h-12 px-6 shadow-2xl shadow-white-20 hover:bg-brand-primary/5 hover:scale-105 transition-all duration-300"
                 >
                   <Plus size={18} className="mr-3" /> Novo
                 </Button>
@@ -415,7 +415,7 @@ export default function DashboardPage() {
           <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
             <CardContent className="p-10">
               <div className="flex items-center justify-between mb-6">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <Users className="h-10 w-10 text-white" />
                 </div>
                 <div className="text-blue-600 text-lg font-bold uppercase tracking-wider">
@@ -431,19 +431,19 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
+          <Card className="shadow-2xl border-slate-200/40 bg-white/95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
             <CardContent className="p-10">
               <div className="flex items-center justify-between mb-6">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-brand-secondary to-brand-primary flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <Calendar className="h-10 w-10 text-white" />
                 </div>
-                <div className="text-violet-600 text-lg font-bold uppercase tracking-wider">
+                <div className="text-brand-primary text-lg font-bold uppercase tracking-wider">
                   Hoje
                 </div>
               </div>
               <div>
                 <p className="text-slate-600 text-base font-semibold uppercase tracking-wider mb-3">Agendamentos</p>
-                <p className="text-5xl font-black text-slate-900 tabular-nums group-hover:text-violet-600 transition-colors duration-300">
+                <p className="text-5xl font-black text-slate-900 tabular-nums group-hover:text-brand-primary transition-colors duration-300">
                   {stats.todayAppointments}
                 </p>
               </div>
@@ -453,7 +453,7 @@ export default function DashboardPage() {
           <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
             <CardContent className="p-10">
               <div className="flex items-center justify-between mb-6">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <DollarSign className="h-10 w-10 text-white" />
                 </div>
                 <div className="text-emerald-600 text-lg font-bold uppercase tracking-wider">
@@ -472,7 +472,7 @@ export default function DashboardPage() {
           <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
             <CardContent className="p-10">
               <div className="flex items-center justify-between mb-6">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <CheckCircle2 className="h-10 w-10 text-white" />
                 </div>
                 <div className="text-amber-600 text-lg font-bold uppercase tracking-wider">
@@ -527,7 +527,7 @@ export default function DashboardPage() {
               <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
                 <CardContent className="p-10">
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                       <CheckCircle2 className="h-10 w-10 text-white" />
                     </div>
                     <div className="text-emerald-600 text-lg font-bold uppercase tracking-wider">
@@ -546,7 +546,7 @@ export default function DashboardPage() {
               <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
                 <CardContent className="p-10">
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                       <Clock className="h-10 w-10 text-white" />
                     </div>
                     <div className="text-amber-600 text-lg font-bold uppercase tracking-wider">
@@ -565,7 +565,7 @@ export default function DashboardPage() {
               <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
                 <CardContent className="p-10">
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                       <DollarSign className="h-10 w-10 text-white" />
                     </div>
                     <div className="text-blue-600 text-lg font-bold uppercase tracking-wider">
@@ -581,35 +581,37 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
+              <Card className="shadow-2xl border-slate-200/40 bg-white/95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
                 <CardContent className="p-10">
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-brand-accent to-brand-primary flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                       <TrendingUp className="h-10 w-10 text-white" />
                     </div>
-                    <div className="text-purple-600 text-lg font-bold uppercase tracking-wider">
+                    <div className="text-brand-primary text-lg font-bold uppercase tracking-wider">
                       Taxa
                     </div>
                   </div>
                   <div>
                     <p className="text-slate-600 text-base font-semibold uppercase tracking-wider mb-3">Ocupação</p>
-                    <p className="text-5xl font-black text-slate-900 tabular-nums group-hover:text-purple-600 transition-colors duration-300">
+                    <p className="text-5xl font-black text-slate-900 tabular-nums group-hover:text-brand-primary transition-colors duration-300">
                       {stats.todayAppointments > 0 ? Math.round((stats.confirmedAppointments / stats.todayAppointments) * 100) : 0}%
                     </p>
                   </div>
                 </CardContent>
               </Card>
             </div>
+          </div>
+        )}
 
         {/* MAIN CONTENT ROW */}
         <div className="grid gap-8 lg:grid-cols-3">
           {/* LEFT (LARGER): PRÓXIMOS ATENDIMENTOS - MAIN OPERATIONAL HIGHLIGHT */}
           <div className="lg:col-span-2">
             <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-500">
-              <CardHeader className="pb-6 bg-gradient-to-r from-violet-50 to-purple-50 border-b border-violet-100-40">
+              <CardHeader className="pb-6 bg-linear-to-r from-brand-primary/5 to-brand-secondary/5 border-b border-brand-primary/10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500-25">
+                    <div className="p-3 rounded-xl bg-linear-to-br from-brand-primary to-brand-secondary shadow-lg shadow-brand-primary/20">
                       <Clock size={20} className="text-white" />
                     </div>
                     <div>
@@ -621,7 +623,7 @@ export default function DashboardPage() {
                     <Button 
                       variant="ghost" 
                       size="lg"
-                      className="text-violet-600 font-black uppercase tracking-wider text-sm hover:bg-violet-50 group h-12 px-6" 
+                      className="text-brand-primary font-black uppercase tracking-wider text-sm hover:bg-brand-primary/5 group h-12 px-6" 
                       onClick={() => router.push('/agenda')}
                     >
                       Ver Agenda <TrendingUp size={16} className="ml-3 group-hover:translate-x-1 transition-transform" />
@@ -634,11 +636,11 @@ export default function DashboardPage() {
                   <div className="space-y-6">
                     {/* Focus Card (Primeiro agendamento) */}
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                      <div className="border border-slate-200-40 shadow-xl bg-gradient-to-br from-white via-white to-violet-50-30 rounded-2xl overflow-hidden group transition-all duration-500 hover:shadow-violet-500-10">
+                      <div className="border border-brand-primary/10 shadow-xl bg-linear-to-br from-white via-white to-brand-primary/5 rounded-2xl overflow-hidden group transition-all duration-500 hover:shadow-brand-primary/10">
                         <div className="flex flex-col lg:flex-row">
-                          <div className="bg-gradient-to-br from-violet-600 to-purple-600 p-10 flex flex-col items-center justify-center text-white lg:min-w-[200px] relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-white-10 rounded-full blur-3xl -mr-16 -mt-16" />
-                            <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-black-10 rounded-full blur-3xl" />
+                          <div className="bg-linear-to-br from-brand-primary to-brand-secondary p-10 flex flex-col items-center justify-center text-white lg:min-w-[200px] relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16" />
+                            <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-black/10 rounded-full blur-3xl" />
                             <span className="text-xs font-black uppercase tracking-[0.2em] opacity-80 mb-2">
                               {recentAppointments[0].isToday ? 'Agora às' : recentAppointments[0].date}
                             </span>
@@ -647,24 +649,24 @@ export default function DashboardPage() {
                           <div className="p-10 flex-1 flex flex-col justify-center relative">
                             <div className="flex flex-wrap justify-between items-start gap-6 mb-6">
                               <div className="space-y-2">
-                                <h3 className="text-4xl font-black tracking-tighter text-slate-900 group-hover:text-violet-600 transition-colors duration-500">{recentAppointments[0].client}</h3>
+                                <h3 className="text-4xl font-black tracking-tighter text-slate-900 group-hover:text-brand-primary transition-colors duration-500">{recentAppointments[0].client}</h3>
                                 <div className="flex items-center gap-3">
-                                  <Badge className="bg-violet-100 text-violet-700 border-none text-sm uppercase font-black tracking-wider px-4 py-2 rounded-xl">
+                                  <Badge className="bg-brand-primary/10 text-brand-primary border-none text-sm uppercase font-black tracking-wider px-4 py-2 rounded-xl">
                                     {recentAppointments[0].service}
                                   </Badge>
                                 </div>
                               </div>
-                              <Badge variant="outline" className="border-violet-200 text-violet-600 text-sm uppercase font-black tracking-wider py-2 px-6 bg-violet-50 animate-pulse rounded-xl">
+                              <Badge variant="outline" className="border-brand-primary/20 text-brand-primary text-sm uppercase font-black tracking-wider py-2 px-6 bg-brand-primary/5 rounded-xl">
                                 {recentAppointments[0].status === "confirmed" ? "🟢 Confirmado" : "🟡 Pendente"}
                               </Badge>
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 font-bold uppercase tracking-wider">
                               <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl">
-                                <DollarSign size={18} className="text-violet-600" />
+                                <DollarSign size={18} className="text-brand-primary" />
                                 {recentAppointments[0].price}
                               </div>
                               <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl">
-                                <CalendarDays size={18} className="text-violet-600" />
+                                <CalendarDays size={18} className="text-brand-primary" />
                                 {recentAppointments[0].fullDate}
                               </div>
                             </div>
@@ -701,13 +703,13 @@ export default function DashboardPage() {
                                       </Badge>
                                     </div>
                                     <div>
-                                      <h4 className="font-black text-lg tracking-tight text-slate-900 group-hover:text-violet-600 transition-colors duration-500">{apt.client}</h4>
+                                      <h4 className="font-black text-lg tracking-tight text-slate-900 group-hover:text-brand-primary transition-colors duration-500">{apt.client}</h4>
                                       <p className="text-xs text-slate-500 font-bold uppercase tracking-wide">{apt.service}</p>
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-4 text-sm text-slate-600 font-bold uppercase tracking-wider">
                                     <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg">
-                                      <DollarSign size={16} className="text-violet-600" />
+                                      <DollarSign size={16} className="text-brand-primary" />
                                       {apt.price}
                                     </div>
                                   </div>
@@ -721,8 +723,8 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="text-center py-16">
-                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center border-2 border-violet-200 shadow-xl">
-                      <Calendar className="text-violet-600" size={48} />
+                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center border-2 border-violet-200 shadow-xl">
+                      <Calendar className="text-brand-primary" size={48} />
                     </div>
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-4">
                       Agenda livre por hoje
@@ -735,7 +737,7 @@ export default function DashboardPage() {
                         toast.success("Abrindo agenda para novo agendamento...");
                         router.push('/agenda');
                       }}
-                      className="rounded-2xl px-12 py-6 h-auto font-black uppercase tracking-wider text-sm bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-2xl shadow-violet-500/20 hover:shadow-violet-500/30 hover:scale-105 transition-all duration-300"
+                      className="rounded-2xl px-12 py-6 h-auto font-black uppercase tracking-wider text-sm bg-linear-to-r from-brand-primary to-brand-secondary hover:opacity-90 text-white shadow-2xl shadow-brand-primary/20 hover:scale-105 transition-all duration-300"
                     >
                       <Plus size={20} className="mr-3" />
                       Criar Primeiro Agendamento
@@ -749,9 +751,9 @@ export default function DashboardPage() {
           {/* RIGHT: EVOLUÇÃO FINANCEIRA - MAIN ANALYTICAL HIGHLIGHT */}
           <div className="space-y-8">
             <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md rounded-2xl overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="pb-6 bg-gradient-to-r from-emerald-50 to-green-50 border-b border-emerald-100-40">
+              <CardHeader className="pb-6 bg-linear-to-r from-emerald-50 to-green-50 border-b border-emerald-100-40">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-500-25">
+                  <div className="p-3 rounded-xl bg-linear-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-500-25">
                     <BarChart3 size={20} className="text-white" />
                   </div>
                   <div>
@@ -761,7 +763,7 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-8">
-                <div className="h-64 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-200/60 flex items-center justify-center">
+                <div className="h-64 bg-linear-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-200/60 flex items-center justify-center">
                   <div className="text-center">
                     <TrendingUp className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
                     <p className="text-emerald-700 font-bold text-lg">Gráfico de Receita</p>
@@ -785,7 +787,7 @@ export default function DashboardPage() {
             <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
               <CardContent className="p-10">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                     <CheckCircle2 className="h-10 w-10 text-white" />
                   </div>
                   <div className="text-emerald-600 text-lg font-bold uppercase tracking-wider">
@@ -804,7 +806,7 @@ export default function DashboardPage() {
             <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
               <CardContent className="p-10">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                     <Clock className="h-10 w-10 text-white" />
                   </div>
                   <div className="text-amber-600 text-lg font-bold uppercase tracking-wider">
@@ -823,7 +825,7 @@ export default function DashboardPage() {
             <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
               <CardContent className="p-10">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                     <DollarSign className="h-10 w-10 text-white" />
                   </div>
                   <div className="text-blue-600 text-lg font-bold uppercase tracking-wider">
@@ -842,7 +844,7 @@ export default function DashboardPage() {
             <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
               <CardContent className="p-10">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-purple-400 to-pink-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                     <TrendingUp className="h-10 w-10 text-white" />
                   </div>
                   <div className="text-purple-600 text-lg font-bold uppercase tracking-wider">
@@ -864,9 +866,9 @@ export default function DashboardPage() {
         <div className="grid gap-8 lg:grid-cols-2">
           {/* PERFORMANCE */}
           <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md rounded-2xl overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-1">
-            <CardHeader className="pb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100-40">
+            <CardHeader className="pb-6 bg-linear-to-r from-blue-50 to-indigo-50 border-b border-blue-100-40">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500-25">
+                <div className="p-3 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500-25">
                   <TrendingUp size={20} className="text-white" />
                 </div>
                 <div>
@@ -882,7 +884,7 @@ export default function DashboardPage() {
                     <div key={service.name} className="space-y-3 group/item">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-black text-sm shadow-lg group-hover/item:scale-110 transition-transform duration-300">
+                          <div className="w-8 h-8 rounded-full bg-linear-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-black text-sm shadow-lg group-hover/item:scale-110 transition-transform duration-300">
                             {index + 1}
                           </div>
                           <span className="font-bold text-slate-900 group-hover/item:text-blue-600 transition-colors duration-300">{service.name}</span>
@@ -894,7 +896,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-1000 ease-out shadow-lg shadow-blue-500-30 group-hover/item:shadow-blue-500-50" 
+                          className="h-full bg-linear-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-1000 ease-out shadow-lg shadow-blue-500-30 group-hover/item:shadow-blue-500-50" 
                           style={{ width: `${service.percent}%` }}
                         />
                       </div>
@@ -913,7 +915,7 @@ export default function DashboardPage() {
           </Card>
 
           {/* META MENSAL */}
-          <Card className="shadow-2xl border-slate-200-40 bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-1">
+          <Card className="shadow-2xl border-slate-200-40 bg-linear-to-br from-slate-900 to-slate-800 text-white rounded-2xl overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-1">
             <CardContent className="p-10 relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500-10 rounded-full blur-3xl -mr-16 -mt-16" />
               <div className="absolute -bottom-16 -left-16 w-40 h-40 bg-violet-500-5 rounded-full blur-3xl" />
@@ -945,7 +947,7 @@ export default function DashboardPage() {
                     
                     <div className="h-3 w-full bg-white-10 rounded-full overflow-hidden border border-white-5 backdrop-blur-md">
                       <div 
-                        className="h-full bg-gradient-to-r from-violet-500 to-purple-600 rounded-full transition-all duration-1000 relative" 
+                        className="h-full bg-linear-to-r from-violet-500 to-purple-600 rounded-full transition-all duration-1000 relative" 
                         style={{ width: `${Math.min((stats.monthlyRevenue / 15000) * 100, 100)}%` }}
                       >
                         <div className="absolute inset-0 bg-white-20 animate-pulse" />
@@ -1022,16 +1024,16 @@ export default function DashboardPage() {
               <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
                 <CardContent className="p-10">
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-violet-400 to-purple-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                       <Calendar className="h-10 w-10 text-white" />
                     </div>
-                    <div className="text-violet-600 text-lg font-bold uppercase tracking-wider">
+                    <div className="text-brand-primary text-lg font-bold uppercase tracking-wider">
                       Total
                     </div>
                   </div>
                   <div>
                     <p className="text-slate-600 text-base font-semibold uppercase tracking-wider mb-3">Agendamentos Mês</p>
-                    <p className="text-5xl font-black text-slate-900 tabular-nums group-hover:text-violet-600 transition-colors duration-300">
+                    <p className="text-5xl font-black text-slate-900 tabular-nums group-hover:text-brand-primary transition-colors duration-300">
                       {stats.todayAppointments + stats.pendingAppointments + stats.confirmedAppointments}
                     </p>
                   </div>
@@ -1041,7 +1043,7 @@ export default function DashboardPage() {
               <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
                 <CardContent className="p-10">
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                       <Users className="h-10 w-10 text-white" />
                     </div>
                     <div className="text-emerald-600 text-lg font-bold uppercase tracking-wider">
@@ -1060,7 +1062,7 @@ export default function DashboardPage() {
               <Card className="shadow-2xl border-slate-200-40 bg-white-95 backdrop-blur-md overflow-hidden group hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] cursor-pointer">
                 <CardContent className="p-10">
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                       <TrendingUp className="h-10 w-10 text-white" />
                     </div>
                     <div className="text-blue-600 text-lg font-bold uppercase tracking-wider">

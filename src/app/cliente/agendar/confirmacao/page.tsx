@@ -5,15 +5,12 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Calendar, Clock, User, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, CheckCircle, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { appointmentService } from "@/services/appointments";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
-import { Appointment } from "@/types";
-import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 // Interfaces locais
 interface Service {
@@ -43,42 +40,26 @@ interface AppointmentData {
 
 export default function ConfirmacaoPage() {
   const router = useRouter();
-  const { user } = useAuth(); // ✅ Adicionar user do AuthContext
+  const { user } = useAuth();
   const [appointmentData, setAppointmentData] = useState<AppointmentData | null>(null);
   const [observation, setObservation] = useState("");
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Carregar dados do localStorage com validação
   useEffect(() => {
-    // ✅ Carregar dados completos do agendamento
-    const appointmentData = AppointmentStorage.loadAppointmentData();
-    if (!appointmentData) {
-      console.error('No appointment data found, redirecting...');
+    const data = AppointmentStorage.loadAppointmentData();
+    if (!data || !data.service || !data.date || !data.time) {
       router.push('/cliente/agendar');
       return;
     }
-
-    // ✅ Validar dados essenciais
-    if (!appointmentData.service || !appointmentData.date || !appointmentData.time) {
-      console.error('Invalid appointment data:', appointmentData);
-      router.push('/cliente/agendar');
-      return;
-    }
-
-    setAppointmentData(appointmentData);
-    setObservation(appointmentData.observation || "");
+    setAppointmentData(data);
+    setObservation(data.observation || "");
     setLoading(false);
   }, [router]);
 
   const handleConfirmAppointment = async () => {
-    if (!appointmentData) return;
-
-    // Prevenir duplo clique
-    if (confirming) return;
-
-    // ✅ Validar usuário autenticado
+    if (!appointmentData || confirming) return;
     if (!user) {
       setError('Você precisa estar logado para confirmar agendamento.');
       return;
@@ -87,308 +68,167 @@ export default function ConfirmacaoPage() {
     setConfirming(true);
     setError(null);
 
-    // ✅ Validar dados do agendamento
-    if (!appointmentData.service.id || !user.uid) {
-      setError('Dados do agendamento inválidos. Tente novamente começando do início.');
-      return;
-    }
-
     const [hours, minutes] = (appointmentData.time?.time || "").split(":").map(Number);
     const appointmentDateTime = new Date(appointmentData.date);
-    appointmentDateTime.setHours(
-      Number.isFinite(hours) ? hours : 0,
-      Number.isFinite(minutes) ? minutes : 0,
-      0,
-      0
-    );
-
-    if (!appointmentData.date || appointmentDateTime < new Date()) {
-      setError('Data do agendamento inválida. Selecione uma data futura.');
-      return;
-    }
-
-    // ✅ Validar horário do agendamento
-    if (!appointmentData.time || !appointmentData.time.time) {
-      setError('Horário do agendamento inválido. Selecione um horário disponível.');
-      return;
-    }
+    appointmentDateTime.setHours( hours || 0, minutes || 0, 0, 0);
 
     try {
-      // Preparar dados para o Firestore
-      const appointmentDataForFirestore = {
-        clientId: user.uid, // ✅ Usar UID real do usuário
+      const appointmentId = await appointmentService.create({
+        clientId: user.uid,
         serviceId: appointmentData.service.id,
-        specialistId: user.uid, // ✅ Usar próprio usuário como especialista (temp)
+        specialistId: user.uid,
         appointmentDate: appointmentDateTime,
-        status: "pending" as const,
-        paymentStatus: "unpaid" as const,
-        notes: observation || null, // ✅ Converter undefined para null
-      };
+        status: "pending",
+        paymentStatus: "unpaid",
+        notes: observation || null,
+      });
 
-      console.log('Enviando dados para Firestore:', appointmentDataForFirestore);
+      if (!appointmentId) throw new Error('Falha ao criar agendamento');
 
-      // ✅ Validar dados antes de enviar
-      if (!appointmentDataForFirestore.clientId || !appointmentDataForFirestore.serviceId) {
-        throw new Error('Dados essenciais do agendamento estão faltando');
+      // Stripe signal payment logic
+      const stripeRes = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          serviceName: appointmentData.service.name,
+          price: 10,
+          appointmentId,
+          clientId: user.uid,
+          isDeposit: true,
+        }),
+      });
+      
+      const stripeData = await stripeRes.json();
+      if (stripeData.url) {
+        window.location.href = stripeData.url;
+      } else {
+        router.push('/cliente/agendar/sucesso');
       }
-
-      // Salvar no Firestore usando o appointmentService
-      const appointmentId = await appointmentService.create(appointmentDataForFirestore);
-
-      console.log('Agendamento criado com ID:', appointmentId);
-
-      // ✅ Validar se o ID foi retornado
-      if (!appointmentId) {
-        throw new Error('Não foi possível obter o ID do agendamento criado');
-      }
-
-      // Salvar dados completos do agendamento no localStorage para página de sucesso/fallback
-      const confirmedAppointment = {
-        id: appointmentId,
-        service: appointmentData.service,
-        date: appointmentDateTime,
-        time: appointmentData.time,
-        observation: observation || undefined,
-        confirmedAt: new Date(),
-        status: "pending"
-      };
-
-      localStorage.setItem('confirmedAppointment', JSON.stringify(confirmedAppointment));
-      AppointmentStorage.clearAll();
-
-      // INICIA FLUXO DO STRIPE PARA PAGAMENTO DO SINAL
-      setConfirming(true);
-      try {
-        const stripeRes = await fetch("/api/stripe/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            serviceName: appointmentData.service.name,
-            price: 10, // R$ 10,00 deposit signal fixed amount
-            appointmentId: appointmentId,
-            clientId: user.uid,
-            isDeposit: true,
-          }),
-        });
-        
-        const stripeData = await stripeRes.json();
-        if (stripeData.url) {
-          window.location.href = stripeData.url;
-          return; // Sai da execução e vai pro stripe
-        } else {
-          console.warn("Sem url de checkout, fallback normal", stripeData);
-          router.push('/cliente/agendar/sucesso');
-        }
-      } catch (e) {
-        console.error("Erro na comunicação com o Stripe, operando fallback:", e);
-        // Em caso de erro na comunicação, permite que o usuário vá à sucesso (ou pode cobrar depois)
-        toast.error("Houve uma falha ao abrir o pagamento do sinal, mas o agendamento foi salvo.");
-        router.push('/cliente/agendamentos');
-      }
-
-    } catch (error: any) {
-      console.error('Error confirming appointment:', error);
-      setError('Ocorreu um erro ao confirmar seu agendamento. Tente novamente.');
+    } catch (err: any) {
+      console.error(err);
+      setError('Ocorreu um erro ao confirmar seu agendamento.');
       setConfirming(false);
     }
   };
 
-  const handleBack = () => {
-    router.push('/cliente/agendar/horarios');
-  };
-
-  const handleEdit = () => {
-    router.push('/cliente/agendar/horarios');
-  };
-
-  const handleChangeDate = () => {
-    router.push('/cliente/agendar');
-  };
-
-  const handleBackToServices = () => {
-    router.push('/cliente/servicos');
-  };
-
-  // Estados de erro
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
-          <p className="mt-4 text-gray-600">Carregando...</p>
-        </div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-brand-primary" />
       </div>
     );
   }
 
-  if (!appointmentData) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-lg font-medium text-gray-900 mb-2">Dados do agendamento não encontrados</h2>
-          <p className="text-gray-600 mb-6">Por favor, comece o processo de agendamento novamente.</p>
-          <div className="space-x-4">
-            <Button onClick={handleBackToServices} variant="outline">
-              Voltar para Serviços
-            </Button>
-            <Button onClick={handleEdit}>
-              Editar Agendamento
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const missingFields = [];
-  if (!appointmentData.service) missingFields.push("Serviço");
-  if (!appointmentData.date) missingFields.push("Data");
-  if (!appointmentData.time) missingFields.push("Horário");
-
-  if (missingFields.length > 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-lg font-medium text-gray-900 mb-2">Dados incompletos</h2>
-          <p className="text-gray-600 mb-6">
-            Faltam as seguintes informações: {missingFields.join(", ")}
-          </p>
-          <div className="space-x-4">
-            <Button onClick={handleBackToServices} variant="outline">
-              Voltar para Serviços
-            </Button>
-            <Button onClick={handleEdit}>
-              Editar Agendamento
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (!appointmentData) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleBack}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Voltar
-            </Button>
-            <h1 className="text-xl font-semibold text-gray-900">Confirmar agendamento</h1>
-            <div></div>
-          </div>
+    <div className="px-5 pt-4 max-w-2xl mx-auto space-y-8">
+      {/* Header Area */}
+      <div className="flex items-center gap-4 py-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.push('/cliente/agendar/horarios')}
+          className="h-12 w-12 rounded-2xl bg-white border border-brand-border text-brand-text hover:text-brand-primary shadow-sm active:scale-95 transition-all"
+        >
+          <ArrowLeft size={20} strokeWidth={2.5} />
+        </Button>
+        <div className="flex-1">
+          <h1 className="text-2xl font-black text-brand-text tracking-tight uppercase">Confirmar</h1>
+          <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">Revise sua reserva</p>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Error Message */}
+      <main className="space-y-6 pb-20">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center gap-2 text-red-800">
-              <AlertCircle className="h-5 w-5" />
-              <span className="font-medium">Erro</span>
-            </div>
-            <p className="text-red-700 mt-1">{error}</p>
+          <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-800 text-xs font-bold uppercase tracking-wider">
+            {error}
           </div>
         )}
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Resumo do agendamento */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  Resumo do agendamento
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Serviço */}
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-medium text-gray-900">Serviço</h3>
-                    <p className="text-gray-600">{appointmentData.service.name}</p>
-                    <p className="text-sm text-gray-500">{appointmentData.service.duration}</p>
-                  </div>
-                  <Badge variant="secondary">{appointmentData.service.price}</Badge>
-                </div>
-
-                {/* Data e horário */}
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-medium text-gray-900">Data e horário</h3>
-                    <p className="text-gray-600">
-                      {format(appointmentData.date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                    </p>
-                    <p className="text-sm text-gray-500">{appointmentData.time.time}</p>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-500">
-                    <Calendar className="h-4 w-4" />
-                    <Clock className="h-4 w-4" />
-                  </div>
-                </div>
-
-                {/* Observações */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Observações (opcional)
-                  </label>
-                  <Textarea
-                    value={observation}
-                    onChange={(e) => setObservation(e.target.value)}
-                    placeholder="Adicione alguma observação para seu agendamento..."
-                    className="min-h-[100px]"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Actions */}
-          <div className="space-y-4">
-            <div className="bg-purple-50 border border-purple-100 p-4 rounded-xl mb-6">
-              <p className="text-purple-800 text-sm font-medium text-center">
-                Para garantir seu horário, é necessário um sinal de R$10,00. O restante será pago no atendimento.
-              </p>
+        {/* Detail Card */}
+        <div className="relative overflow-hidden rounded-[2.5rem] border border-brand-border bg-white p-8 shadow-xl shadow-brand-primary/5 space-y-8">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-bl-[5rem] -mr-8 -mt-8" />
+          
+          <div className="relative space-y-6">
+            <div className="flex items-start justify-between">
+              <div className="space-y-1">
+                 <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest leading-none">Procedimento</p>
+                 <h4 className="text-2xl font-black text-brand-text tracking-tight leading-none">{appointmentData.service.name}</h4>
+              </div>
+              <div className="text-right">
+                 <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest leading-none">Sinal</p>
+                 <p className="text-xl font-black text-brand-text">R$ 10,00</p>
+              </div>
             </div>
 
-            <Button 
-              onClick={handleConfirmAppointment}
-              disabled={confirming}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold h-12 rounded-xl"
-            >
-              {confirming ? (
-                <>
-                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Redirecionando para pagamento...
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Pagar sinal e confirmar horário
-                </>
-              )}
-            </Button>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="flex items-center gap-3">
+                 <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
+                    <Calendar size={18} />
+                 </div>
+                 <div>
+                    <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest leading-none mb-1">Data</p>
+                    <p className="text-[11px] font-black text-brand-text capitalize">
+                      {format(appointmentData.date, "dd 'de' MMMM", { locale: ptBR })}
+                    </p>
+                 </div>
+              </div>
 
-            <Button 
-              variant="outline" 
-              onClick={handleEdit}
-              className="w-full"
-            >
-              Editar agendamento
-            </Button>
+              <div className="flex items-center gap-3">
+                 <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
+                    <Clock size={18} />
+                 </div>
+                 <div>
+                    <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest leading-none mb-1">Horário</p>
+                    <p className="text-[11px] font-black text-brand-text uppercase">{appointmentData.time.time}</p>
+                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative pt-6 border-t border-brand-border space-y-4">
+             <div className="flex items-center gap-2">
+                <CheckCircle className="text-brand-primary" size={16} />
+                <p className="text-[10px] font-black text-brand-text uppercase tracking-widest">Observações Adicionais</p>
+             </div>
+             <Textarea
+                value={observation}
+                onChange={(e) => setObservation(e.target.value)}
+                placeholder="Ex: Preciso de remoção, chegar 5 min antes..."
+                className="min-h-[120px] rounded-2xl border-brand-border bg-brand-background/50 focus:bg-white focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 transition-all font-medium text-sm"
+             />
+          </div>
+
+          <div className="relative rounded-2xl bg-brand-primary/5 p-4 border border-brand-primary/10 text-center">
+             <p className="text-[10px] text-brand-primary font-black uppercase tracking-[0.2em] leading-relaxed">
+               Garantia de horário: sinal de R$ 10,00 (Stripe)<br/>
+               <span className="opacity-60">O restante será pago no estabelecimento</span>
+             </p>
           </div>
         </div>
-      </div>
+
+        {/* Action Button */}
+        <section className="pt-4 px-2">
+          <Button 
+            onClick={handleConfirmAppointment}
+            disabled={confirming}
+            className="w-full h-18 rounded-[2rem] bg-linear-to-br from-brand-primary to-brand-secondary text-white font-black text-lg shadow-2xl shadow-brand-primary/20 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-70"
+          >
+            {confirming ? (
+              <div className="flex items-center gap-3">
+                 <Loader2 size={24} className="animate-spin text-white" />
+                 <span className="uppercase tracking-[0.2em] text-xs">Processando...</span>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                 <span className="uppercase tracking-[0.2em] text-xs">Pagar Sinal e Confirmar</span>
+                 <span className="text-[10px] font-bold opacity-60 tracking-wider">Você será redirecionado para o Stripe</span>
+              </div>
+            )}
+          </Button>
+        </section>
+      </main>
     </div>
   );
 }

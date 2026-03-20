@@ -33,7 +33,7 @@ export function AppointmentTabs({ activeTab, onTabChange, counts }: AppointmentT
               className={cn(
                 "rounded-[20px] px-3 py-3 text-center transition-all",
                 isActive
-                  ? "bg-linear-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-300/30"
+                  ? "bg-linear-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/20"
                   : "bg-transparent text-slate-500 hover:bg-violet-50"
               )}
             >

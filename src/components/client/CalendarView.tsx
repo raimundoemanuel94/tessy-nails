@@ -67,7 +67,7 @@ export function CalendarView({
           variant="outline"
           size="sm"
           onClick={previousMonth}
-          className="text-violet-600 hover:bg-violet-50"
+          className="text-brand-primary hover:bg-brand-primary/5"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>

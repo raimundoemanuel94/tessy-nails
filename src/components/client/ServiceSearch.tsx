@@ -3,6 +3,7 @@
 import { Search, Filter } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface ServiceSearchProps {
   onSearch: (query: string) => void;
@@ -31,18 +32,18 @@ export function ServiceSearch({
   };
 
   return (
-    <div className="mb-8 space-y-4">
+    <div className="mb-8 space-y-4 px-2">
       {/* Search Bar */}
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
+      <div className="relative group">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-primary text-brand-text-muted">
+          <Search size={20} strokeWidth={2.5} />
         </div>
         <input
           type="text"
           value={searchQuery}
           onChange={handleSearchChange}
           placeholder={placeholder}
-          className="w-full rounded-lg border border-violet-200 bg-white py-3 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200 transition-colors"
+          className="w-full h-14 rounded-2xl border border-brand-border bg-white py-3 pl-12 pr-4 text-brand-text font-bold placeholder:text-brand-text-muted/60 focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-sm"
         />
       </div>
 
@@ -52,20 +53,21 @@ export function ServiceSearch({
           variant={showOnlyActive ? "default" : "outline"}
           size="sm"
           onClick={toggleActiveFilter}
-          className={`${
+          className={cn(
+            "h-10 rounded-xl font-bold transition-all",
             showOnlyActive 
-              ? "bg-violet-500 text-white hover:bg-violet-600" 
-              : "border-violet-200 text-violet-700 hover:bg-violet-50"
-          }`}
+              ? "bg-brand-primary text-white hover:bg-brand-secondary border-none shadow-lg shadow-brand-primary/20" 
+              : "border-brand-border text-brand-text-muted hover:bg-brand-primary/5"
+          )}
         >
           <Filter className="mr-2 h-4 w-4" />
-          {showOnlyActive ? "Todos" : "Apenas ativos"}
+          <span className="text-[10px] uppercase tracking-widest">{showOnlyActive ? "Todos" : "Apenas ativos"}</span>
         </Button>
       </div>
 
       {/* Active Filter Info */}
       {showOnlyActive && (
-        <div className="rounded-lg bg-violet-50 p-3 text-sm text-violet-700">
+        <div className="rounded-2xl bg-brand-primary/5 p-4 text-[10px] font-bold text-brand-primary uppercase tracking-widest border border-brand-primary/10 animate-in fade-in slide-in-from-top-2">
           Mostrando apenas serviços disponíveis para agendamento
         </div>
       )}

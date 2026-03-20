@@ -4,17 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { 
-  LayoutGrid, 
+  LayoutDashboard, 
   Calendar, 
   CalendarDays,
-  Users2, 
+  Users, 
   Sparkles, 
   Clock4, 
-  Settings2, 
+  Settings, 
   LogOut,
   ChevronLeft,
   ChevronRight,
-  PieChart,
+  BarChart3,
   Sparkle,
   ClipboardList
 } from "lucide-react";
@@ -23,40 +23,40 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
 const operationItems = [
-  { icon: LayoutGrid, label: "Dashboard", href: "/dashboard", description: "Visão geral do negócio" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", description: "Visão geral do negócio" },
   { icon: Calendar, label: "Calendário", href: "/agenda", description: "Visualização e planejamento" },
   { icon: ClipboardList, label: "Agendamentos", href: "/agendamentos", description: "Histórico e gestão" },
-  { icon: PieChart, label: "Relatórios", href: "/relatorios", description: "Análises e exportações" },
+  { icon: BarChart3, label: "Relatórios", href: "/relatorios", description: "Análises e exportações" },
 ];
 
 const cadastrosItems = [
-  { icon: Users2, label: "Clientes", href: "/clientes", description: "Lista e gestão" },
+  { icon: Users, label: "Clientes", href: "/clientes", description: "Lista e gestão" },
   { icon: Sparkles, label: "Serviços", href: "/servicos", description: "Catálogo e preços" },
 ];
 
 const systemItems = [
-  { icon: Settings2, label: "Configurações", href: "/configuracoes", description: "Preferências do sistema" },
+  { icon: Settings, label: "Configurações", href: "/configuracoes", description: "Preferências do sistema" },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(true);
 
   return (
     <aside className={cn(
-      "relative h-screen flex flex-col transition-all duration-500 ease-in-out border-r border-slate-200/60 dark:border-white/5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl z-40",
-      collapsed ? "w-[70px]" : "w-72"
+      "relative h-screen flex flex-col transition-all duration-500 ease-in-out border-r border-slate-200/40 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl z-40",
+      collapsed ? "w-[80px]" : "w-72"
     )}>
       {/* Brand Section */}
       <div className="flex h-20 items-center px-6 mb-2">
         {!collapsed && (
           <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500">
-            <div className="w-8 h-8 rounded-xl bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-              <Sparkle className="text-white" size={18} strokeWidth={2.5} />
+            <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/30">
+              <Sparkle className="text-white" size={20} strokeWidth={2.5} />
             </div>
-            <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white uppercase">
-              Tessy<span className="text-violet-600">Nails</span>
+            <span className="text-xl font-black tracking-[0.3em] text-brand-text dark:text-white uppercase ml-1">
+              Tessy<span className="text-brand-primary">Nails</span>
             </span>
           </div>
         )}
@@ -77,14 +77,13 @@ export function Sidebar() {
       <nav className="flex-1 px-3 space-y-4 overflow-y-auto custom-scrollbar">
         {/* Operação */}
         {!collapsed && (
-          <div className="px-4 pt-2 pb-2">
-            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
+          <div className="px-4 pt-6 pb-2">
+            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[1.5px] opacity-60">
               Operação
             </p>
-            <div className="h-px bg-linear-to-r from-slate-100/80 to-transparent dark:from-slate-700/30 dark:to-transparent" />
           </div>
         )}
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {operationItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -92,11 +91,11 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-500 hover:scale-[1.01]",
+                  "group relative flex items-center gap-3 rounded-2xl px-3 h-12 text-sm font-bold transition-all duration-300",
                   isActive
-                    ? "bg-linear-to-r from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/10 text-violet-600 shadow-lg border border-violet-200/50 dark:border-violet-800/30 shadow-violet-500/10 ring-2 ring-violet-500/10"
-                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5",
-                  collapsed && "justify-center px-0"
+                    ? "bg-linear-to-br from-brand-primary to-brand-secondary text-white shadow-xl shadow-brand-primary/30 border border-white/10"
+                    : "text-slate-500 dark:text-slate-400 hover:text-brand-primary dark:hover:text-brand-accent hover:bg-brand-primary/10 hover:translate-x-1",
+                  collapsed && "justify-center px-0 mx-auto w-12"
                 )}
               >
                 <item.icon
@@ -104,16 +103,10 @@ export function Sidebar() {
                   strokeWidth={isActive ? 2.5 : 2}
                   className={cn(
                     "transition-all duration-300",
-                    isActive
-                      ? "text-violet-600 scale-110"
-                      : "group-hover:text-slate-900 dark:group-hover:text-white group-hover:scale-110"
+                    isActive ? "text-white" : "group-hover:scale-110"
                   )}
                 />
                 {!collapsed && <span>{item.label}</span>}
-
-                {isActive && !collapsed && (
-                  <div className="absolute left-0 w-1 h-8 bg-linear-to-b from-violet-500 to-purple-600 rounded-r-full shadow-sm" />
-                )}
               </Link>
             );
           })}
@@ -122,13 +115,12 @@ export function Sidebar() {
         {/* Cadastros */}
         {!collapsed && (
           <div className="px-4 pt-6 pb-2">
-            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
+            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[1.5px] opacity-60">
               Cadastros
             </p>
-            <div className="h-px bg-linear-to-r from-slate-100/80 to-transparent dark:from-slate-700/30 dark:to-transparent" />
           </div>
         )}
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {cadastrosItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -136,11 +128,11 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-500 hover:scale-[1.01]",
+                  "group relative flex items-center gap-3 rounded-2xl px-3 h-12 text-sm font-bold transition-all duration-300",
                   isActive
-                    ? "bg-linear-to-r from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/10 text-violet-600 shadow-lg border border-violet-200/50 dark:border-violet-800/30 shadow-violet-500/10 ring-2 ring-violet-500/10"
-                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5",
-                  collapsed && "justify-center px-0"
+                    ? "bg-linear-to-br from-brand-primary to-brand-secondary text-white shadow-xl shadow-brand-primary/30 border border-white/10"
+                    : "text-slate-500 dark:text-slate-400 hover:text-brand-primary dark:hover:text-brand-accent hover:bg-brand-primary/10 hover:translate-x-1",
+                  collapsed && "justify-center px-0 mx-auto w-12"
                 )}
               >
                 <item.icon
@@ -148,16 +140,10 @@ export function Sidebar() {
                   strokeWidth={isActive ? 2.5 : 2}
                   className={cn(
                     "transition-all duration-300",
-                    isActive
-                      ? "text-violet-600 scale-110"
-                      : "group-hover:text-slate-900 dark:group-hover:text-white group-hover:scale-110"
+                    isActive ? "text-white" : "group-hover:scale-110"
                   )}
                 />
                 {!collapsed && <span>{item.label}</span>}
-
-                {isActive && !collapsed && (
-                  <div className="absolute left-0 w-1 h-8 bg-linear-to-b from-violet-500 to-purple-600 rounded-r-full shadow-sm" />
-                )}
               </Link>
             );
           })}
@@ -166,13 +152,12 @@ export function Sidebar() {
         {/* Sistema */}
         {!collapsed && (
           <div className="px-4 pt-6 pb-2">
-            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
+            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[1.5px] opacity-60">
               Sistema
             </p>
-            <div className="h-px bg-linear-to-r from-slate-100/80 to-transparent dark:from-slate-700/30 dark:to-transparent" />
           </div>
         )}
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {systemItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -180,11 +165,11 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-500 hover:scale-[1.01]",
+                  "group relative flex items-center gap-3 rounded-2xl px-3 h-12 text-sm font-bold transition-all duration-300",
                   isActive
-                    ? "bg-linear-to-r from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/10 text-violet-600 shadow-lg border border-violet-200/50 dark:border-violet-800/30 shadow-violet-500/10 ring-2 ring-violet-500/10"
-                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5",
-                  collapsed && "justify-center px-0"
+                    ? "bg-linear-to-br from-brand-primary to-brand-secondary text-white shadow-xl shadow-brand-primary/30 border border-white/10"
+                    : "text-slate-500 dark:text-slate-400 hover:text-brand-primary dark:hover:text-brand-accent hover:bg-brand-primary/10 hover:translate-x-1",
+                  collapsed && "justify-center px-0 mx-auto w-12"
                 )}
               >
                 <item.icon
@@ -192,16 +177,10 @@ export function Sidebar() {
                   strokeWidth={isActive ? 2.5 : 2}
                   className={cn(
                     "transition-all duration-300",
-                    isActive
-                      ? "text-violet-600 scale-110"
-                      : "group-hover:text-slate-900 dark:group-hover:text-white group-hover:scale-110"
+                    isActive ? "text-white" : "group-hover:scale-110"
                   )}
                 />
                 {!collapsed && <span>{item.label}</span>}
-
-                {isActive && !collapsed && (
-                  <div className="absolute left-0 w-1 h-8 bg-linear-to-b from-violet-500 to-purple-600 rounded-r-full shadow-sm" />
-                )}
               </Link>
             );
           })}
@@ -209,18 +188,48 @@ export function Sidebar() {
       </nav>
 
       {/* Footer Section */}
-      <div className="p-4 mt-auto">
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full flex items-center gap-3 justify-start rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all duration-300 font-semibold",
-            collapsed && "justify-center p-0 h-10 w-10 mx-auto"
+      <div className="p-4 mt-auto border-t border-slate-200/40 dark:border-white/5">
+        <div className={cn(
+          "flex items-center gap-3 p-2 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-200/40 dark:border-white/5",
+          collapsed ? "justify-center" : "px-3"
+        )}>
+          {!collapsed ? (
+            <>
+              <div className="w-10 h-10 rounded-xl bg-brand-primary/10 dark:bg-brand-primary/20 flex items-center justify-center text-brand-primary dark:text-brand-accent font-bold overflow-hidden shadow-inner">
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span>{user?.name?.charAt(0) || "U"}</span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                  {user?.name || "Usuário"}
+                </p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate uppercase tracking-wider">
+                  Administrador
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => signOut()}
+                className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                <LogOut size={16} />
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => signOut()}
+              className="h-10 w-10 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
+            >
+              <LogOut size={20} />
+            </Button>
           )}
-          onClick={() => signOut()}
-        >
-          <LogOut size={20} className="shrink-0" />
-          {!collapsed && <span>Encerrar Sessão</span>}
-        </Button>
+        </div>
       </div>
     </aside>
   );

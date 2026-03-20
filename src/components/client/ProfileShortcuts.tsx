@@ -34,7 +34,7 @@ export function ProfileShortcuts({
       title: 'Meus agendamentos',
       description: 'Ver todos os seus horários agendados',
       icon: Calendar,
-      color: 'text-violet-600',
+      color: 'text-brand-primary',
       bgColor: 'bg-violet-50',
       action: onMyAppointments
     },
@@ -94,7 +94,7 @@ export function ProfileShortcuts({
                 </div>
                 
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 group-hover:text-violet-600">
+                  <h4 className="font-semibold text-gray-900 group-hover:text-brand-primary">
                     {shortcut.title}
                   </h4>
                   <p className="text-sm text-gray-600 group-hover:text-gray-700">

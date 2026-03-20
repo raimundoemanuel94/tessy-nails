@@ -64,14 +64,14 @@ export function AppointmentCard({
   const canCancel = appointment.status === 'confirmed' && !isPast;
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-violet-100/70 bg-white/95 p-5 shadow-sm shadow-violet-100/40">
+    <div className="overflow-hidden rounded-[28px] border border-brand-primary/10 bg-white/95 p-5 shadow-sm shadow-brand-primary/5">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="mb-1 text-[11px] font-black uppercase tracking-[0.18em] text-violet-500">Agendamento</p>
+          <p className="mb-1 text-[11px] font-black uppercase tracking-[0.18em] text-brand-primary">Agendamento</p>
           <h3 className="truncate text-lg font-black tracking-tight text-slate-900">{appointment.service.name}</h3>
           <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-            <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1">
-              <Calendar className="h-3.5 w-3.5 text-violet-600" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-primary/5 px-2.5 py-1">
+              <Calendar className="h-3.5 w-3.5 text-brand-primary" />
               {format(appointment.date, "dd 'de' MMM", { locale: ptBR })}
             </span>
             <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1">
@@ -79,7 +79,7 @@ export function AppointmentCard({
               {appointment.time.time}
             </span>
             {appointment.service.duration && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-fuchsia-50 px-2.5 py-1 text-fuchsia-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand-accent/10 px-2.5 py-1 text-brand-primary">
                 <Clock className="h-3.5 w-3.5" />
                 {appointment.service.duration}
               </span>
@@ -99,7 +99,7 @@ export function AppointmentCard({
       <div className="mb-4 flex items-center justify-between rounded-2xl bg-slate-50/80 px-4 py-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Valor</p>
-          <p className="text-base font-black text-violet-700">{appointment.service.price || "A confirmar"}</p>
+          <p className="text-base font-black text-brand-primary">{appointment.service.price || "A confirmar"}</p>
         </div>
         {appointment.status === 'confirmed' && (
           <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700">
@@ -109,8 +109,8 @@ export function AppointmentCard({
       </div>
 
       {appointment.observation && (
-        <div className="mb-4 rounded-2xl border border-violet-100 bg-violet-50/60 p-3">
-          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-violet-500">Observação</p>
+        <div className="mb-4 rounded-2xl border border-brand-primary/10 bg-brand-primary/5 p-3">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-primary">Observação</p>
           <p className="text-sm text-slate-600">{appointment.observation}</p>
         </div>
       )}
@@ -119,7 +119,7 @@ export function AppointmentCard({
         <Button
           variant="ghost"
           onClick={() => onViewDetails?.(appointment)}
-          className="h-11 justify-center rounded-2xl bg-violet-50 text-violet-700 hover:bg-violet-100"
+          className="h-11 justify-center rounded-2xl bg-brand-primary/5 text-brand-primary hover:bg-brand-primary/10"
         >
           <Eye className="mr-2 h-4 w-4" />
           Ver detalhes
@@ -133,7 +133,7 @@ export function AppointmentCard({
               appointmentId={appointment.id}
               isDeposit={true}
               title="Pagar agora"
-              className="h-11 rounded-2xl bg-purple-600 text-sm font-bold hover:bg-purple-700"
+              className="h-11 rounded-2xl bg-brand-primary text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-brand-primary/20"
             />
           )}
 
@@ -141,7 +141,7 @@ export function AppointmentCard({
             <Button
               variant="outline"
               onClick={() => onReschedule?.(appointment)}
-              className="h-11 rounded-2xl border-violet-200 text-violet-700 hover:bg-violet-50"
+              className="h-11 rounded-2xl border-brand-primary/20 text-brand-primary hover:bg-brand-primary/5"
             >
               <RotateCcw className="mr-2 h-4 w-4" />
               Remarcar

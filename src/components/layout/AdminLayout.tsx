@@ -28,8 +28,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      <div className="flex h-screen w-full items-center justify-center bg-brand-background">
+        <Loader2 className="h-10 w-10 animate-spin text-brand-primary" />
       </div>
     );
   }
@@ -38,19 +38,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  // If we're on the login page, just show the content
   if (pathname === "/login") {
     return <>{children}</>;
   }
 
-  // Client role must not see admin layout (redirect handled in useEffect)
   if (user && user.role !== "admin" && user.role !== "professional") {
     return null;
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden font-sans selection:bg-violet-500/20 selection:text-violet-600">
-      {/* Mensagem Inspiracional */}
+    <div className="flex h-screen bg-brand-background text-brand-text overflow-hidden font-sans selection:bg-brand-primary/20 selection:text-brand-primary">
+      {/* Inspirational Message */}
       <MensagemInicial />
       
       <div className="hidden md:block">
@@ -58,20 +56,20 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       <div className="flex flex-col flex-1 min-w-0 relative">
-        {/* Background decorative elements */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-violet-200/20 dark:bg-violet-900/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-purple-200/20 dark:bg-purple-900/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Premium Background Decorative Elements */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-brand-primary/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-brand-secondary/10 rounded-full blur-[100px] pointer-events-none" />
         
         <Header />
         
-        <main className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 relative z-10">
-          <div className="mx-auto max-w-7xl">
+        <main className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-10 relative z-10">
+          <div className="mx-auto max-w-[1600px]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={pathname}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.02 }}
                 transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               >
                 {children}
