@@ -32,7 +32,7 @@ import { authService } from "@/services/auth";
 import { clientService } from "@/services/clients";
 import { salonService } from "@/services/salon";
 import { format, isToday, isPast, startOfDay } from "date-fns";
-import { RevenueChart } from "@/components/shared/DashboardCharts";
+import { RevenueChart } from "@/components/dashboard/DashboardCharts";
 import { toast } from "sonner";
 import { MetricCard } from "@/components/shared/MetricCard";
 import { AppointmentForm } from "@/features/appointments/components/AppointmentForm";
@@ -233,17 +233,17 @@ export default function DashboardPage() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <motion.div variants={itemVariants}><MetricCard title="Clientes Ativos" value={stats.totalClients} icon={Users} variant="blue" /></motion.div>
-          <motion.div variants={itemVariants}><MetricCard title="Agendamentos Hoje" value={stats.todayAppointments} icon={CalendarDays} variant="purple" /></motion.div>
-          <motion.div variants={itemVariants}><MetricCard title="Receita Hoje" value={`R$ ${stats.dailyRevenue.toLocaleString('pt-BR')}`} icon={DollarSign} variant="green" trend={{ value: 8.2, isPositive: true }} /></motion.div>
-          <motion.div variants={itemVariants}><MetricCard title="Ocupação %" value={`${stats.completionRate}%`} icon={Target} variant="orange" /></motion.div>
+          <motion.div variants={itemVariants}><MetricCard title="Clientes Ativos" value={stats.totalClients} icon={Users} variant="accent" /></motion.div>
+          <motion.div variants={itemVariants}><MetricCard title="Agendamentos Hoje" value={stats.todayAppointments} icon={CalendarDays} variant="primary" /></motion.div>
+          <motion.div variants={itemVariants}><MetricCard title="Receita Hoje" value={`R$ ${stats.dailyRevenue.toLocaleString('pt-BR')}`} icon={DollarSign} variant="success" trend={{ value: 8.2, isPositive: true }} /></motion.div>
+          <motion.div variants={itemVariants}><MetricCard title="Ocupação %" value={`${stats.completionRate}%`} icon={Target} variant="warning" /></motion.div>
         </div>
 
         <motion.div variants={itemVariants} className="flex justify-center py-6">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <Button 
               onClick={() => setIsDialogOpen(true)}
-              className="h-28 px-20 bg-linear-to-r from-brand-primary to-brand-secondary text-white font-black text-2xl rounded-[3rem] shadow-[0_30px_70px_rgba(75,46,43,0.4)] hover:shadow-[0_40px_80px_rgba(75,46,43,0.5)] transition-all cursor-pointer flex items-center justify-center group relative overflow-hidden"
+              className="h-28 px-20 bg-linear-to-r from-brand-primary to-brand-secondary text-white font-black text-2xl rounded-full shadow-premium-xl hover:shadow-[0_40px_80px_rgba(75,46,43,0.3)] transition-all cursor-pointer flex items-center justify-center group relative overflow-hidden active:scale-95 border-none"
             >
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <Plus size={40} className="mr-6 group-hover:rotate-180 transition-transform duration-500" />
@@ -275,20 +275,16 @@ export default function DashboardPage() {
                       <motion.div 
                         key={apt.id} 
                         whileHover={{ x: 10 }}
-                        className="py-5 first:pt-0 last:pb-0 flex items-center justify-between group px-4 rounded-2xl transition-all hover:bg-white/60 cursor-pointer"
+                        className="py-6 first:pt-0 last:pb-0 flex items-center justify-between group px-6 rounded-[2rem] transition-all hover:bg-brand-soft/10 cursor-pointer"
                       >
-                        <div className="flex items-center gap-8">
-                          <div className="text-2xl font-black text-brand-primary tabular-nums min-w-[75px]">{apt.time}</div>
+                        <div className="flex items-center gap-10">
+                          <div className="text-3xl font-black text-brand-primary tabular-nums min-w-[80px]">{apt.time}</div>
                           <div className="space-y-0.5">
-                            <p className="font-bold text-slate-800 text-xl leading-tight">{apt.client}</p>
-                            <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">{apt.service}</p>
+                            <p className="font-bold text-brand-text-main text-lg leading-tight">{apt.client}</p>
+                            <p className="text-xs font-black text-brand-text-sub uppercase tracking-widest opacity-60">{apt.service}</p>
                           </div>
                         </div>
-                        <Badge variant="outline" className={cn(
-                          "text-[10px] uppercase font-black px-4 py-1.5 rounded-full border-none shadow-sm",
-                          apt.status === 'confirmed' ? "bg-success/15 text-success" : 
-                          apt.status === 'pending' ? "bg-warning/15 text-warning" : "bg-slate-100 text-slate-500"
-                        )}>
+                        <Badge variant={apt.status === 'confirmed' ? "success" : apt.status === 'pending' ? "warning" : "neutral"} size="xs" className="shadow-none border-none">
                           {apt.status === 'confirmed' ? 'Confirmado' : apt.status === 'pending' ? 'Pendente' : apt.status}
                         </Badge>
                       </motion.div>
@@ -299,7 +295,7 @@ export default function DashboardPage() {
                     <Sparkles size={40} className="mx-auto mb-2 text-brand-accent" />
                     <div>
                       <p className="text-2xl font-black text-brand-primary">Agenda livre agora ✨</p>
-                      <p className="text-slate-500 font-medium max-w-xs mx-auto">Aproveite para organizar novos horários e preparar o seu espaço.</p>
+                      <p className="text-brand-text-sub font-black uppercase tracking-widest text-[10px] opacity-40 max-w-xs mx-auto">Aproveite para organizar novos horários e preparar o seu espaço.</p>
                     </div>
                   </div>
                 )}
@@ -321,7 +317,7 @@ export default function DashboardPage() {
 
           <div className="space-y-10">
             <motion.div variants={itemVariants}>
-              <Card className="shadow-2xl border-brand-accent/5 bg-linear-to-br from-brand-primary to-brand-secondary text-white rounded-[2.5rem] overflow-hidden group">
+              <Card className="shadow-premium border-brand-accent/5 bg-linear-to-br from-brand-primary to-brand-secondary text-white rounded-2xl overflow-hidden group">
                 <CardContent className="p-10 space-y-8 relative">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16" />
                   <div className="flex items-center justify-between relative z-10">
@@ -361,10 +357,10 @@ export default function DashboardPage() {
                   {topServices.map((service, idx) => (
                     <div key={service.name} className="space-y-2 group/item">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="font-bold text-slate-700 group-hover/item:text-brand-primary transition-colors">{service.name}</span>
+                        <span className="font-bold text-brand-text-main group-hover/item:text-brand-primary transition-colors">{service.name}</span>
                         <span className="text-xs font-black bg-brand-accent/10 text-brand-secondary px-3 py-1 rounded-lg tabular-nums">{service.count}</span>
                       </div>
-                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-brand-soft/20 rounded-full overflow-hidden">
                         <motion.div 
                           initial={{ width: 0 }}
                           animate={{ width: `${(service.count / (topServices[0]?.count || 1)) * 100}%` }}

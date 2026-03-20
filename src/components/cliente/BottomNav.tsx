@@ -26,8 +26,8 @@ export function BottomNav() {
     : navItems;
 
   return (
-    <div className="fixed inset-x-0 bottom-6 z-50 px-4 pointer-events-none sm:hidden">
-      <nav className="mx-auto flex h-20 max-w-[400px] items-center justify-around gap-1 rounded-[2.5rem] border border-white/20 bg-white/80 px-2 shadow-[0_20px_50px_-12px_rgba(139,92,246,0.3)] backdrop-blur-xl pointer-events-auto">
+    <div className="fixed inset-x-0 bottom-6 z-50 px-6 pointer-events-none sm:hidden max-w-lg mx-auto">
+      <nav className="flex h-20 items-center justify-around gap-1 rounded-[2.5rem] border border-white/40 bg-white/70 px-2 shadow-premium-xl backdrop-blur-2xl pointer-events-auto">
         {items.map((item) => {
           if ('isSpecial' in item && item.isSpecial) {
             return (
@@ -36,8 +36,8 @@ export function BottomNav() {
                 href={item.href}
                 className="relative -top-6 flex flex-col items-center"
               >
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-brand-primary to-brand-secondary p-1 shadow-[0_12px_24px_-8px_rgba(139,92,246,0.6)] ring-4 ring-white transition-all duration-300 hover:scale-110 active:scale-95">
-                  <Plus className="h-8 w-8 text-white" strokeWidth={3} />
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-brand-primary to-brand-secondary p-1 shadow-premium-xl ring-4 ring-white transition-all duration-300 hover:scale-110 active:scale-95">
+                  <Plus className="h-8 w-8 text-white" strokeWidth={4} />
                 </div>
                 <span className="mt-1 text-[10px] font-black uppercase tracking-widest text-brand-primary">
                   {item.label}

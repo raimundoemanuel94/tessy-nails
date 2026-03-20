@@ -22,13 +22,13 @@ import {
   Target,
   Activity
 } from "lucide-react";
-import { RevenueChart, ServicesDonut } from "@/components/shared/DashboardCharts";
+import { RevenueChart, ServicesDonut } from "@/components/dashboard/DashboardCharts";
 import { useEffect, useState } from "react";
 import { appointmentService } from "@/services/appointments";
 import { salonService } from "@/services/salon";
 import { clientService } from "@/services/clients";
 import { Appointment, Client, Service } from "@/types";
-import { ensureDate } from "@/lib/utils";
+import { ensureDate, cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isWithinInterval, parseISO, isToday, isThisWeek, isThisMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -251,39 +251,23 @@ export default function RelatoriosPage() {
       >
         <div className="flex items-center gap-3">
           {/* Filtros de Período */}
-          <div className="flex items-center gap-1 p-1 bg-slate-100/60 dark:bg-slate-800/60 rounded-2xl backdrop-blur-sm border border-slate-200/40 dark:border-white/5">
-            <Button
-              variant={activeFilter === "hoje" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveFilter("hoje")}
-              className="rounded-xl font-semibold text-xs px-4 py-2 h-auto"
-            >
-              Hoje
-            </Button>
-            <Button
-              variant={activeFilter === "semana" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveFilter("semana")}
-              className="rounded-xl font-semibold text-xs px-4 py-2 h-auto"
-            >
-              Semana
-            </Button>
-            <Button
-              variant={activeFilter === "mes" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveFilter("mes")}
-              className="rounded-xl font-semibold text-xs px-4 py-2 h-auto"
-            >
-              Mês
-            </Button>
-            <Button
-              variant={activeFilter === "periodo" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveFilter("periodo")}
-              className="rounded-xl font-semibold text-xs px-4 py-2 h-auto"
-            >
-              Período
-            </Button>
+          <div className="flex items-center gap-1.5 p-1.5 bg-white/40 rounded-2xl backdrop-blur-md border border-brand-accent/10 shadow-sm">
+            {(["hoje", "semana", "mes", "periodo"] as const).map((filter) => (
+              <Button
+                key={filter}
+                variant={activeFilter === filter ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveFilter(filter)}
+                className={cn(
+                  "rounded-xl font-black text-[10px] uppercase tracking-wider px-4 h-9 transition-all",
+                  activeFilter === filter
+                    ? "bg-brand-primary text-white shadow-premium"
+                    : "text-brand-text-sub opacity-50 hover:opacity-100"
+                )}
+              >
+                {filter === "mes" ? "Mês" : filter === "periodo" ? "Período" : filter.charAt(0).toUpperCase() + filter.slice(1)}
+              </Button>
+            ))}
           </div>
           
           {/* Botão Exportar */}
@@ -302,9 +286,9 @@ export default function RelatoriosPage() {
         title="Visão Geral do Negócio"
         subtitle="Analise seu faturamento, crescimento de clientes e métricas de desempenho para tomar decisões estratégicas."
         metrics={[
-          { label: "Receita Mensal", value: `R$ ${stats.monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`, icon: DollarSign },
-          { label: "Clientes", value: stats.totalClients, icon: Users },
-          { label: "Ticket Médio", value: `R$ ${stats.avgTicket.toFixed(0)}`, icon: Target },
+          { label: "Receita Mês", value: `R$ ${stats.monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`, icon: DollarSign, variant: "primary" },
+          { label: "Clientes", value: stats.totalClients, icon: Users, variant: "success" },
+          { label: "Ticket Médio", value: `R$ ${stats.avgTicket.toFixed(0)}`, icon: Target, variant: "warning" },
         ]}
       />
 
@@ -315,28 +299,28 @@ export default function RelatoriosPage() {
           value={`R$ ${stats.weeklyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`} 
           icon={DollarSign} 
           trend={{ value: stats.weeklyGrowth, isPositive: stats.weeklyGrowth >= 0 }}
-          variant="purple"
+          variant="primary"
         />
         <MetricCard 
           title="Receita do Dia" 
           value={`R$ ${stats.dailyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`} 
           icon={Activity} 
           trend={{ value: Math.abs(stats.dailyGrowth), isPositive: stats.dailyGrowth >= 0 }}
-          variant="blue"
+          variant="accent"
         />
         <MetricCard 
           title="Total de Clientes" 
           value={stats.totalClients} 
           icon={Users} 
           description="+12% este mês"
-          variant="green"
+          variant="success"
         />
         <MetricCard 
           title="Ticket Médio" 
           value={`R$ ${stats.avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`} 
           icon={Target} 
           description="Por atendimento"
-          variant="orange"
+          variant="warning"
         />
       </div>
 
@@ -371,58 +355,58 @@ export default function RelatoriosPage() {
         icon={Activity}
       >
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
-              <Scissors className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+          <div className="flex items-start gap-4 p-5 rounded-2xl bg-brand-soft/10 border border-brand-accent/5">
+            <div className="w-12 h-12 rounded-xl bg-brand-success/20 flex items-center justify-center shrink-0 shadow-sm">
+              <Scissors className="h-6 w-6 text-brand-success" strokeWidth={3} />
             </div>
             <div className="flex-1">
-              <h4 className="text-base font-bold text-slate-900 dark:text-white mb-2">
-                Serviço Mais Popular
+              <h4 className="text-sm font-black text-brand-text-main uppercase tracking-tight mb-1">
+                Serviço Popular
               </h4>
-              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                {mostPopularService[0]} lidera com <span className="font-black text-emerald-600 dark:text-emerald-400">{mostPopularService[1]}</span> atendimentos
+              <p className="text-sm font-bold text-brand-text-sub opacity-70 leading-relaxed">
+                {mostPopularService[0]} lidera com <span className="font-black text-brand-success">{mostPopularService[1]}</span> atendimentos
               </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
-            <div className="w-12 h-12 rounded-xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center shrink-0">
-              <TrendingUp className="h-6 w-6 text-brand-primary dark:text-brand-accent" />
+          <div className="flex items-start gap-4 p-5 rounded-2xl bg-brand-soft/10 border border-brand-accent/5">
+            <div className="w-12 h-12 rounded-xl bg-brand-primary/20 flex items-center justify-center shrink-0 shadow-sm">
+              <TrendingUp className="h-6 w-6 text-brand-primary" strokeWidth={3} />
             </div>
             <div className="flex-1">
-              <h4 className="text-base font-bold text-slate-900 dark:text-white mb-2">
-                Melhor Desempenho
+              <h4 className="text-sm font-black text-brand-text-main uppercase tracking-tight mb-1">
+                Pico de Atividade
               </h4>
-              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                {bestDay[0]} com maior faturamento: <span className="font-black text-brand-primary dark:text-brand-accent">{bestDay[1]} atendimentos</span>
+              <p className="text-sm font-bold text-brand-text-sub opacity-70 leading-relaxed">
+                {bestDay[0]} concentra maior volume: <span className="font-black text-brand-primary">{bestDay[1]} atendimentos</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
-            <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center shrink-0">
-              <Target className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+          <div className="flex items-start gap-4 p-5 rounded-2xl bg-brand-soft/10 border border-brand-accent/5">
+            <div className="w-12 h-12 rounded-xl bg-brand-secondary/20 flex items-center justify-center shrink-0 shadow-sm">
+              <Target className="h-6 w-6 text-brand-secondary" strokeWidth={3} />
             </div>
             <div className="flex-1">
-              <h4 className="text-base font-bold text-slate-900 dark:text-white mb-2">
-                Tendência
+              <h4 className="text-sm font-black text-brand-text-main uppercase tracking-tight mb-1">
+                Tendência Mensal
               </h4>
-              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                <span className="font-black text-purple-600 dark:text-purple-400">{monthlyAppointments}</span> atendimentos realizados este mês
+              <p className="text-sm font-bold text-brand-text-sub opacity-70 leading-relaxed">
+                <span className="font-black text-brand-secondary">{monthlyAppointments}</span> agendamentos concluídos neste período
               </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
-            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0">
-              <DollarSign className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          <div className="flex items-start gap-4 p-5 rounded-2xl bg-brand-soft/10 border border-brand-accent/5">
+            <div className="w-12 h-12 rounded-xl bg-brand-accent/20 flex items-center justify-center shrink-0 shadow-sm">
+              <DollarSign className="h-6 w-6 text-brand-accent" strokeWidth={3} />
             </div>
             <div className="flex-1">
-              <h4 className="text-base font-bold text-slate-900 dark:text-white mb-2">
-                Faturamento
+              <h4 className="text-sm font-black text-brand-text-main uppercase tracking-tight mb-1">
+                Status Financeiro
               </h4>
-              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Meta: <span className="font-black text-blue-600 dark:text-blue-400">{stats.monthlyRevenue > 0 ? 'Em andamento' : 'Sem receita'}</span>
+              <p className="text-sm font-bold text-brand-text-sub opacity-70 leading-relaxed">
+                Meta Mensal: <span className="font-black text-brand-accent">{stats.monthlyRevenue > 0 ? 'Em Crescimento' : 'Iniciando'}</span>
               </p>
             </div>
           </div>

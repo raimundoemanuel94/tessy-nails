@@ -7,12 +7,12 @@ import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { appointmentService } from "@/services/appointments";
 import { Clock, Calendar, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import { EmptyAppointmentsState } from "@/components/client/EmptyAppointmentsState";
-import { AgendamentosHeader } from "@/components/client/AgendamentosHeader";
-import { AppointmentTabs } from "@/components/client/AppointmentTabs";
-import { AppointmentCard } from "@/components/client/AppointmentCard";
+import { EmptyAppointmentsState } from "@/components/cliente/EmptyAppointmentsState";
+import { AgendamentosHeader } from "@/components/cliente/AgendamentosHeader";
+import { AppointmentTabs } from "@/components/cliente/AppointmentTabs";
+import { AppointmentCard } from "@/components/cliente/AppointmentCard";
 import { Button } from "@/components/ui/button";
-import { BottomNav } from "@/components/client/BottomNav";
+import { BottomNav } from "@/components/cliente/BottomNav";
 
 export default function AgendamentosPage() {
   const router = useRouter();

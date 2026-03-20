@@ -10,7 +10,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, icon: Icon, children }: PageHeaderProps) {
   return (
-    <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between mb-10 pb-10 border-b border-slate-200/40 dark:border-white/5 relative group">
+    <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between mb-10 pb-10 border-b border-brand-accent/10 relative group">
       <div className="flex items-start gap-5">
         {Icon && (
           <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-brand-primary/10 to-brand-secondary/10 dark:from-brand-primary/30 dark:to-brand-secondary/20 flex items-center justify-center text-brand-primary dark:text-brand-accent shadow-inner group-hover:scale-110 transition-transform duration-500">
@@ -18,11 +18,11 @@ export function PageHeader({ title, description, icon: Icon, children }: PageHea
           </div>
         )}
         <div className="space-y-1">
-          <h1 className="text-3xl lg:text-5xl font-black tracking-tighter text-slate-900 dark:text-white capitalize">
+          <h1 className="text-3xl lg:text-5xl font-black tracking-tighter text-brand-text-main capitalize">
             {title}
           </h1>
           {description && (
-            <p className="text-sm lg:text-lg font-bold text-slate-500/80 dark:text-slate-400/80 max-w-2xl leading-relaxed">
+            <p className="text-sm lg:text-lg font-bold text-brand-text-sub/80 max-w-2xl leading-relaxed">
               {description}
             </p>
           )}

@@ -3,7 +3,7 @@
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { FloatingActionButton } from "../shared/FloatingActionButton";
-import MensagemInicial from "@/components/MensagemInicial";
+import MensagemInicial from "@/components/shared/MensagemInicial";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";

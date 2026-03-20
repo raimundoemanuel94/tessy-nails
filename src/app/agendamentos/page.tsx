@@ -334,17 +334,27 @@ export default function AgendamentosPage() {
               </Button>
             }
           />
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Novo Agendamento</DialogTitle>
+          <DialogContent className="sm:max-w-[500px] rounded-3xl border-brand-accent/10 shadow-premium-xl bg-white p-0 overflow-hidden">
+            <DialogHeader className="px-8 pt-8 pb-6 border-b border-brand-accent/5">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-brand-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Plus className="h-6 w-6 text-brand-primary" strokeWidth={3} />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-black text-brand-text-main tracking-tight uppercase">Novo Agendamento</DialogTitle>
+                  <p className="text-xs font-bold text-brand-text-sub opacity-50 mt-1">Cadastre um novo horário no sistema</p>
+                </div>
+              </div>
             </DialogHeader>
-            <AppointmentForm
-              onSuccess={() => {
-                setIsNewDialogOpen(false);
-                loadData();
-              }}
-              initialDate={new Date()}
-            />
+            <div className="p-8">
+              <AppointmentForm
+                onSuccess={() => {
+                  setIsNewDialogOpen(false);
+                  loadData();
+                }}
+                initialDate={new Date()}
+              />
+            </div>
           </DialogContent>
         </Dialog>
       </PageHeader>
@@ -357,35 +367,35 @@ export default function AgendamentosPage() {
             title="Total"
             value={stats.total}
             icon={CalendarCheck}
-            variant="purple"
+            variant="primary"
           />
           
           <MetricCard
             title="Pendentes"
             value={stats.pending}
             icon={Clock}
-            variant="orange"
+            variant="warning"
           />
           
           <MetricCard
             title="Confirmados"
             value={stats.confirmed}
             icon={CheckCircle2}
-            variant="blue"
+            variant="accent"
           />
           
           <MetricCard
             title="Concluídos"
             value={stats.completed}
             icon={Users}
-            variant="green"
+            variant="success"
           />
           
           <MetricCard
             title="Receita"
-            value={`R$ ${stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+            value={`R$ ${stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`}
             icon={DollarSign}
-            variant="purple"
+            variant="primary"
             className="bg-brand-primary/5 border-brand-primary/10"
           />
         </div>
@@ -401,12 +411,12 @@ export default function AgendamentosPage() {
             <div className="flex flex-col gap-6">
               {/* Search Input */}
               <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={20} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-sub opacity-40 group-focus-within:text-brand-primary transition-colors" size={20} />
                 <Input 
                   id="search-appointments"
                   name="search-appointments"
                   placeholder="Pesquisar por cliente ou serviço..." 
-                  className="pl-12 h-12 rounded-xl border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all font-medium"
+                  className="pl-12 h-12 rounded-2xl border-brand-accent/10 bg-brand-soft/5 focus:ring-brand-primary/10 focus:border-brand-primary transition-all font-bold"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -415,7 +425,7 @@ export default function AgendamentosPage() {
               {/* Filters Section */}
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 {/* Filter Chips */}
-                <div className="flex items-center gap-2 p-1.5 bg-slate-100/50 dark:bg-slate-800/50 rounded-xl border border-slate-200/40 dark:border-white/5 w-fit">
+                <div className="flex items-center gap-1.5 p-1.5 bg-white/40 rounded-2xl border border-brand-accent/5 shadow-sm backdrop-blur-md">
                   {["all", "today", "tomorrow", "week", "pending"].map((filter) => (
                     <Button
                       key={filter}
@@ -423,8 +433,8 @@ export default function AgendamentosPage() {
                       size="sm"
                       onClick={() => setActiveFilter(filter)}
                       className={cn(
-                        "rounded-lg font-bold text-xs px-4 py-2 h-auto",
-                        activeFilter === filter ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm" : "text-slate-500"
+                        "rounded-xl font-black text-[10px] uppercase tracking-wider px-4 h-9 transition-all",
+                        activeFilter === filter ? "bg-brand-primary text-white shadow-premium" : "text-brand-text-sub opacity-50 hover:opacity-100"
                       )}
                     >
                       {filter === "all" ? "Todos" : 
@@ -436,66 +446,67 @@ export default function AgendamentosPage() {
                 </div>
                 
                 {/* Results Count */}
-                <div className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                  Exibindo <span className="text-slate-900 dark:text-white">{filteredAppointments.length}</span> resultados
+                <div className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-40">
+                  <span className="text-brand-primary">{filteredAppointments.length}</span> agendamentos encontrados
                 </div>
               </div>
             </div>
 
             {/* Enhanced Table */}
-            <div className="rounded-2xl border border-slate-100 dark:border-white/5 overflow-hidden bg-slate-50/30 dark:bg-transparent">
+            <div className="rounded-2xl border border-brand-accent/5 overflow-hidden bg-brand-soft/5">
               {loading ? (
                 <div className="flex flex-col items-center justify-center p-20 gap-4">
-                  <Loader2 className="h-10 w-10 animate-spin text-brand-primary/50" />
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Sincronizando...</p>
+                  <Loader2 className="h-10 w-10 animate-spin text-brand-primary/30" />
+                  <p className="text-[10px] font-black text-brand-text-sub opacity-40 uppercase tracking-widest">Sincronizando...</p>
                 </div>
               ) : (
                 <Table>
-                  <TableHeader className="bg-slate-100/50 dark:bg-white/5">
-                    <TableRow className="hover:bg-transparent border-b border-slate-200/40 dark:border-white/5">
-                      <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-slate-500 tracking-wider">Data & Horário</TableHead>
-                      <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-slate-500 tracking-wider">Cliente</TableHead>
-                      <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-slate-500 tracking-wider">Serviço</TableHead>
-                      <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-slate-500 tracking-wider">Status</TableHead>
-                      <TableHead className="px-6 py-4 text-right text-[10px] font-black uppercase text-slate-500 tracking-wider">Valor</TableHead>
-                      <TableHead className="px-6 py-4 text-center text-[10px] font-black uppercase text-slate-500 tracking-wider">Ações</TableHead>
+                  <TableHeader className="bg-brand-soft/20">
+                    <TableRow className="hover:bg-transparent border-b border-brand-accent/5">
+                      <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Data & Horário</TableHead>
+                      <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Cliente</TableHead>
+                      <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Serviço</TableHead>
+                      <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Status</TableHead>
+                      <TableHead className="px-6 py-4 text-right text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Valor</TableHead>
+                      <TableHead className="px-6 py-4 text-center text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredAppointments.length > 0 ? (
                       filteredAppointments.map((app) => (
-                        <TableRow key={app.id} className="group hover:bg-white dark:hover:bg-white/5 border-b border-slate-100 dark:border-white/5 transition-all">
-                          <TableCell className="px-6 py-4">
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-sm font-bold text-slate-900 dark:text-white">{app.date}</span>
-                              <span className="text-[10px] font-bold text-slate-500">{app.time}</span>
+                        <TableRow key={app.id} className="group hover:bg-white border-b border-brand-accent/5 transition-all">
+                          <TableCell className="px-6 py-5">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-black text-brand-text-main tabular-nums">{app.date}</span>
+                              <span className="text-[10px] font-black text-brand-text-sub opacity-50 uppercase tracking-tight">{app.time}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="px-6 py-4">
-                            <span className="font-bold text-slate-900 dark:text-white text-sm">{app.client}</span>
+                          <TableCell className="px-6 py-5">
+                            <span className="font-bold text-brand-text-main text-sm">{app.client}</span>
                           </TableCell>
-                          <TableCell className="px-6 py-4">
-                            <Badge variant="outline" className="bg-brand-primary/5 dark:bg-brand-primary/10 text-brand-primary dark:text-brand-accent border-brand-primary/20 dark:border-brand-primary/20 text-[10px] font-bold px-2 py-0">
+                          <TableCell className="px-6 py-5">
+                            <Badge variant="outline" className="bg-brand-primary/5 text-brand-primary border-brand-primary/10 text-[10px] font-black uppercase px-2 py-0">
                               {app.service}
                             </Badge>
                           </TableCell>
-                          <TableCell className="px-6 py-4">
-                            <Badge className={cn(
-                              "text-[10px] font-black uppercase px-2 py-0.5 rounded-md border-0",
-                              app.status === "confirmed" && "bg-brand-secondary/10 text-brand-secondary dark:bg-brand-secondary/20 dark:text-brand-accent",
-                              app.status === "pending" && "bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning/80",
-                              app.status === "completed" && "bg-success/10 text-success dark:bg-success/20 dark:text-success/80",
-                              app.status === "cancelled" && "bg-brand-primary/10 text-brand-primary dark:bg-brand-primary/20 dark:text-brand-accent",
-                              app.status === "no_show" && "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive/80"
+                          <TableCell className="px-6 py-5">
+                            <Badge variant="neutral" className={cn(
+                              "text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border-0 shadow-sm",
+                              app.status === "confirmed" && "bg-brand-secondary/10 text-brand-secondary",
+                              app.status === "pending" && "bg-warning/10 text-warning",
+                              app.status === "completed" && "bg-success/10 text-success",
+                              app.status === "cancelled" && "bg-brand-primary/10 text-brand-primary",
+                              app.status === "no_show" && "bg-destructive/10 text-destructive"
                             )}>
-                              {app.status === "confirmed" ? "Confirmado" : 
-                               app.status === "pending" ? "Pendente" : 
-                               app.status === "completed" ? "Concluído" : 
-                               app.status === "no_show" ? "Falta" : "Cancelado"}
+                              {app.status === "confirmed" && "Confirmado"}
+                              {app.status === "pending" && "Pendente"}
+                              {app.status === "completed" && "Concluído"}
+                              {app.status === "no_show" && "Falta"}
+                              {app.status === "cancelled" && "Cancelado"}
                             </Badge>
                           </TableCell>
-                          <TableCell className="px-6 py-4 text-right">
-                            <span className="text-sm font-black text-slate-900 dark:text-white">{app.price}</span>
+                          <TableCell className="px-6 py-5 text-right">
+                            <span className="text-sm font-black text-brand-text-main tabular-nums">{app.price}</span>
                           </TableCell>
                           <TableCell className="px-6 py-4 text-center">
                             <DropdownMenu>

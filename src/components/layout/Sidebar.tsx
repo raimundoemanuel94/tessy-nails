@@ -45,8 +45,8 @@ export function Sidebar() {
 
   return (
     <aside className={cn(
-      "relative h-screen flex flex-col transition-all duration-500 ease-in-out border-r border-slate-200/40 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl z-40",
-      collapsed ? "w-[80px]" : "w-72"
+      "relative h-screen flex flex-col transition-all duration-500 ease-in-out border-r border-brand-accent/10 bg-white/40 backdrop-blur-2xl z-40",
+      collapsed ? "w-[80px]" : "w-80"
     )}>
       {/* Brand Section */}
       <div className="flex h-20 items-center px-6 mb-2">
@@ -55,7 +55,7 @@ export function Sidebar() {
             <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/30">
               <Sparkle className="text-white" size={20} strokeWidth={2.5} />
             </div>
-            <span className="text-xl font-black tracking-[0.3em] text-brand-text dark:text-white uppercase ml-1">
+            <span className="text-xl font-black tracking-[0.3em] text-brand-text-main uppercase ml-1">
               Tessy<span className="text-brand-primary">Nails</span>
             </span>
           </div>
@@ -65,11 +65,11 @@ export function Sidebar() {
           size="icon" 
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
-            "h-8 w-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 shadow-sm hover:scale-110 transition-all duration-300",
+            "h-8 w-8 rounded-full border border-brand-accent/20 bg-white shadow-premium hover:scale-110 transition-all duration-300",
             collapsed ? "mx-auto" : "ml-auto"
           )}
         >
-          {collapsed ? <ChevronRight size={14} className="text-slate-600" /> : <ChevronLeft size={14} className="text-slate-600" />}
+          {collapsed ? <ChevronRight size={14} className="text-brand-text-sub" /> : <ChevronLeft size={14} className="text-brand-text-sub" />}
         </Button>
       </div>
 
@@ -78,7 +78,7 @@ export function Sidebar() {
         {/* Operação */}
         {!collapsed && (
           <div className="px-4 pt-6 pb-2">
-            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[1.5px] opacity-60">
+            <p className="text-[10px] font-black text-brand-text-sub/40 uppercase tracking-[2px] opacity-100">
               Operação
             </p>
           </div>
@@ -91,10 +91,10 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-2xl px-3 h-12 text-sm font-bold transition-all duration-300",
+                  "group relative flex items-center gap-4 rounded-2xl px-4 h-12 text-sm font-black tracking-wide transition-all duration-300",
                   isActive
-                    ? "bg-linear-to-br from-brand-primary to-brand-secondary text-white shadow-xl shadow-brand-primary/30 border border-white/10"
-                    : "text-slate-500 dark:text-slate-400 hover:text-brand-primary dark:hover:text-brand-accent hover:bg-brand-primary/10 hover:translate-x-1",
+                    ? "bg-linear-to-br from-brand-primary to-brand-secondary text-white shadow-premium border border-white/20"
+                    : "text-brand-text-sub hover:text-brand-primary hover:bg-brand-primary/5 hover:translate-x-1",
                   collapsed && "justify-center px-0 mx-auto w-12"
                 )}
               >
@@ -115,7 +115,7 @@ export function Sidebar() {
         {/* Cadastros */}
         {!collapsed && (
           <div className="px-4 pt-6 pb-2">
-            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[1.5px] opacity-60">
+            <p className="text-[10px] font-black text-brand-text-sub/40 uppercase tracking-[2px] opacity-100">
               Cadastros
             </p>
           </div>
@@ -152,7 +152,7 @@ export function Sidebar() {
         {/* Sistema */}
         {!collapsed && (
           <div className="px-4 pt-6 pb-2">
-            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[1.5px] opacity-60">
+            <p className="text-[10px] font-black text-brand-text-sub/40 uppercase tracking-[2px] opacity-100">
               Sistema
             </p>
           </div>
@@ -167,8 +167,8 @@ export function Sidebar() {
                 className={cn(
                   "group relative flex items-center gap-3 rounded-2xl px-3 h-12 text-sm font-bold transition-all duration-300",
                   isActive
-                    ? "bg-linear-to-br from-brand-primary to-brand-secondary text-white shadow-xl shadow-brand-primary/30 border border-white/10"
-                    : "text-slate-500 dark:text-slate-400 hover:text-brand-primary dark:hover:text-brand-accent hover:bg-brand-primary/10 hover:translate-x-1",
+                    ? "bg-linear-to-br from-brand-primary to-brand-secondary text-white shadow-premium border border-white/20"
+                    : "text-brand-text-sub hover:text-brand-primary hover:bg-brand-primary/5 hover:translate-x-1",
                   collapsed && "justify-center px-0 mx-auto w-12"
                 )}
               >
@@ -188,9 +188,9 @@ export function Sidebar() {
       </nav>
 
       {/* Footer Section */}
-      <div className="p-4 mt-auto border-t border-slate-200/40 dark:border-white/5">
+      <div className="p-4 mt-auto border-t border-brand-accent/10">
         <div className={cn(
-          "flex items-center gap-3 p-2 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-200/40 dark:border-white/5",
+          "flex items-center gap-3 p-2 rounded-2xl bg-brand-soft/10 border border-brand-accent/10",
           collapsed ? "justify-center" : "px-3"
         )}>
           {!collapsed ? (
@@ -203,10 +203,10 @@ export function Sidebar() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                <p className="text-sm font-black text-brand-text-main truncate">
                   {user?.name || "Usuário"}
                 </p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate uppercase tracking-wider">
+                <p className="text-[10px] text-brand-text-sub font-black truncate uppercase tracking-[1.5px]">
                   Administrador
                 </p>
               </div>
@@ -214,7 +214,7 @@ export function Sidebar() {
                 variant="ghost"
                 size="icon"
                 onClick={() => signOut()}
-                className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                className="h-8 w-8 rounded-lg text-brand-text-sub hover:text-red-500 hover:bg-red-50 transition-colors"
               >
                 <LogOut size={16} />
               </Button>

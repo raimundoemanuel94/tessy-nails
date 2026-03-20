@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { SuccessHeader } from "@/components/client/SuccessHeader";
-import { SuccessBlock } from "@/components/client/SuccessBlock";
-import { SuccessAppointmentSummary } from "@/components/client/SuccessAppointmentSummary";
-import { SuccessActions } from "@/components/client/SuccessActions";
-import { NoRecentAppointmentState } from "@/components/client/NoRecentAppointmentState";
+import { SuccessHeader } from "@/components/cliente/SuccessHeader";
+import { SuccessBlock } from "@/components/cliente/SuccessBlock";
+import { SuccessAppointmentSummary } from "@/components/cliente/SuccessAppointmentSummary";
+import { SuccessActions } from "@/components/cliente/SuccessActions";
+import { NoRecentAppointmentState } from "@/components/cliente/NoRecentAppointmentState";
 
 // Interfaces locais
 interface Service {

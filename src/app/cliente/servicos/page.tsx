@@ -7,10 +7,10 @@ import {
   Search, 
   Filter 
 } from "lucide-react";
-import { ServicesHeader } from "@/components/client/ServicesHeader";
-import { ServiceSearch } from "@/components/client/ServiceSearch";
-import { ServiceList } from "@/components/client/ServiceList";
-import { EmptyState } from "@/components/client/EmptyState";
+import { ServicesHeader } from "@/components/cliente/ServicesHeader";
+import { ServiceSearch } from "@/components/cliente/ServiceSearch";
+import { ServiceList } from "@/components/cliente/ServiceList";
+import { EmptyState } from "@/components/cliente/EmptyState";
 import { salonService } from "@/services/salon";
 import { Service as ServiceType } from "@/types";
 import { AppointmentStorage } from "@/lib/appointmentStorage";

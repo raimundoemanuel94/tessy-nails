@@ -67,8 +67,8 @@ export function Header() {
                 </Button>
               }
             />
-            <SheetContent side="left" className="w-72 p-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/5">
-              <SheetHeader className="p-6 h-20 border-b border-slate-100 dark:border-white/5 flex flex-row items-center gap-3">
+            <SheetContent side="left" className="w-80 p-0 bg-white border-r border-brand-accent/10">
+              <SheetHeader className="p-6 h-20 border-b border-brand-accent/5 flex flex-row items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-linear-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20">
                   <Sparkle className="text-white" size={18} strokeWidth={2.5} />
                 </div>
@@ -88,8 +88,8 @@ export function Header() {
                       className={cn(
                         "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
                         isActive
-                          ? "bg-brand-primary/5 dark:bg-brand-primary/10 text-brand-primary shadow-xs border border-brand-primary/10 dark:border-white/5"
-                          : "text-slate-500 hover:text-brand-primary dark:text-slate-400 dark:hover:text-white hover:bg-brand-primary/5 dark:hover:bg-white/5"
+                          ? "bg-brand-primary/10 text-brand-primary shadow-sm border border-brand-primary/10"
+                          : "text-brand-text-sub hover:text-brand-primary hover:bg-brand-primary/5"
                       )}
                     >
                       <item.icon
@@ -165,21 +165,21 @@ export function Header() {
               </Button>
             }
           />
-          <DropdownMenuContent className="w-64 mt-2 p-2 rounded-2xl border-slate-200/60 dark:border-white/5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl" align="end">
+          <DropdownMenuContent className="w-64 mt-2 p-2 rounded-2xl border border-brand-accent/10 bg-white/95 backdrop-blur-xl shadow-premium-xl" align="end">
             <DropdownMenuGroup>
               <DropdownMenuLabel className="p-3">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">{String(user?.name || "")}</p>
-                  <p className="text-xs font-medium leading-none text-slate-400 dark:text-slate-500">{String(user?.email || "")}</p>
+                  <p className="text-sm font-black text-brand-text-main leading-none">{String(user?.name || "")}</p>
+                  <p className="text-xs font-bold leading-none text-brand-text-sub/70">{String(user?.email || "")}</p>
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/5" />
+            <DropdownMenuSeparator className="bg-brand-accent/10" />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="p-3 cursor-pointer rounded-xl gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-brand-primary/5 dark:hover:bg-white/5 hover:text-brand-primary dark:hover:text-brand-accent transition-all" onClick={() => router.push("/configuracoes")}>
+              <DropdownMenuItem className="p-3 cursor-pointer rounded-xl gap-3 text-sm font-black text-brand-text-sub hover:bg-brand-primary/5 hover:text-brand-primary transition-all" onClick={() => router.push("/configuracoes")}>
                 <User size={18} /> Ver Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem className="p-3 cursor-pointer rounded-xl gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-brand-primary/5 dark:hover:bg-white/5 hover:text-brand-primary dark:hover:text-brand-accent transition-all" onClick={() => router.push("/configuracoes")}>
+              <DropdownMenuItem className="p-3 cursor-pointer rounded-xl gap-3 text-sm font-black text-brand-text-sub hover:bg-brand-primary/5 hover:text-brand-primary transition-all" onClick={() => router.push("/configuracoes")}>
                 <Settings size={18} /> Preferências
               </DropdownMenuItem>
             </DropdownMenuGroup>

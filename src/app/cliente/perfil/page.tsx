@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { PerfilHeader } from "@/components/client/PerfilHeader";
-import { ClientProfileCard, ClientData } from "@/components/client/ClientProfileCard";
-import { PersonalInfoSection, PersonalInfo } from "@/components/client/PersonalInfoSection";
-import { ProfileShortcuts } from "@/components/client/ProfileShortcuts";
-import { NoProfileDataState } from "@/components/client/NoProfileDataState";
+import { PerfilHeader } from "@/components/cliente/PerfilHeader";
+import { ClientProfileCard, ClientData } from "@/components/cliente/ClientProfileCard";
+import { PersonalInfoSection, PersonalInfo } from "@/components/cliente/PersonalInfoSection";
+import { ProfileShortcuts } from "@/components/cliente/ProfileShortcuts";
+import { NoProfileDataState } from "@/components/cliente/NoProfileDataState";
 import { useAuth } from "@/contexts/AuthContext";
 import { clientService } from "@/services/clients";
 import { Client } from "@/types";
-import { BottomNav } from "@/components/client/BottomNav";
+import { BottomNav } from "@/components/cliente/BottomNav";
 
 // Mock data para perfil da cliente
 const generateMockClientData = (): ClientData => {

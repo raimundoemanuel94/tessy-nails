@@ -12,10 +12,10 @@ import {
 } from "lucide-react";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
 import { cn } from "@/lib/utils";
-import { HorariosHeader } from "@/components/client/HorariosHeader";
-import { AppointmentSummary } from "@/components/client/AppointmentSummary";
-import { TimeSlotGrid, TimeSlot } from "@/components/client/TimeSlotGrid";
-import { NoTimeSlotsState } from "@/components/client/NoTimeSlotsState";
+import { HorariosHeader } from "@/components/cliente/HorariosHeader";
+import { AppointmentSummary } from "@/components/cliente/AppointmentSummary";
+import { TimeSlotGrid, TimeSlot } from "@/components/cliente/TimeSlotGrid";
+import { NoTimeSlotsState } from "@/components/cliente/NoTimeSlotsState";
 
 // Interfaces locais
 interface Service {

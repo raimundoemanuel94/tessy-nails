@@ -16,7 +16,7 @@ interface SectionCardProps {
 export function SectionCard({ title, description, children, actions, icon: Icon, className }: SectionCardProps) {
   return (
     <Card className={cn(
-      "rounded-[2.5rem] border border-slate-200/40 dark:border-white/5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-2xl shadow-slate-200/40 dark:shadow-none transition-all duration-300",
+      "rounded-2xl border border-brand-accent/10 bg-white shadow-premium transition-all duration-300",
       className
     )}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 p-8 pb-4">
@@ -27,11 +27,11 @@ export function SectionCard({ title, description, children, actions, icon: Icon,
             </div>
           )}
           <div className="space-y-1">
-            <CardTitle className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            <CardTitle className="text-2xl font-black text-brand-text-main tracking-tight">
               {title}
             </CardTitle>
             {description && (
-              <CardDescription className="text-sm font-bold text-slate-500 dark:text-slate-400">
+              <CardDescription className="text-sm font-bold text-brand-text-sub">
                 {description}
               </CardDescription>
             )}

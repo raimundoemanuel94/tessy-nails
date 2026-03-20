@@ -17,9 +17,25 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tessy Nails - Sistema de Agendamento",
-  description: "Plataforma moderna de agendamento para manicure e nail designer.",
+  title: "Tessy Nails - Studio de Beleza Premium",
+  description: "Plataforma exclusiva de agendamento e gestão para Tessy Nails.",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Tessy Nails",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport = {
+  themeColor: "#4B2E2B",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

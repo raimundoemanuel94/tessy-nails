@@ -185,25 +185,25 @@ export default function ClientesPage() {
       />
 
       {/* Search and Tabs */}
-      <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between bg-white/60 dark:bg-slate-900/60 p-8 rounded-[2.5rem] border border-slate-200/40 dark:border-white/5 backdrop-blur-xl shadow-xl shadow-slate-200/40 dark:shadow-none">
+      <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between bg-white/40 p-8 rounded-[2.5rem] border border-brand-accent/10 backdrop-blur-2xl shadow-premium">
         <div className="flex flex-col gap-3 w-full lg:w-auto">
-          <label className="text-[10px] font-black uppercase tracking-[1.5px] text-slate-400 dark:text-slate-500 ml-1">Status das Clientes</label>
+          <label className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50 ml-1">Status das Clientes</label>
           <Tabs 
             defaultValue="active" 
             value={statusFilter} 
             onValueChange={setStatusFilter}
             className="w-full lg:w-auto"
           >
-            <TabsList className="grid w-full grid-cols-2 lg:w-[350px] h-12 bg-slate-100/50 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-200/40 dark:border-white/5">
+            <TabsList className="grid w-full grid-cols-2 lg:w-[350px] h-12 bg-white/50 p-1.5 rounded-2xl border border-brand-accent/10">
               <TabsTrigger 
                 value="active" 
-                className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-brand-primary data-[state=active]:shadow-md transition-all font-black text-xs h-full"
+                className="rounded-xl data-[state=active]:bg-brand-primary data-[state=active]:text-white data-[state=active]:shadow-premium transition-all font-black text-xs h-full"
               >
                 Ativas ({clients.filter(c => c.isActive !== false).length})
               </TabsTrigger>
               <TabsTrigger 
                 value="inactive" 
-                className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-brand-primary data-[state=active]:shadow-md transition-all font-black text-xs h-full"
+                className="rounded-xl data-[state=active]:bg-brand-primary data-[state=active]:text-white data-[state=active]:shadow-premium transition-all font-black text-xs h-full"
               >
                 Inativas ({clients.filter(c => c.isActive === false).length})
               </TabsTrigger>
@@ -212,14 +212,14 @@ export default function ClientesPage() {
         </div>
 
         <div className="flex flex-col gap-3 flex-1 w-full max-w-md">
-          <label className="text-[10px] font-black uppercase tracking-[1.5px] text-slate-400 dark:text-slate-500 ml-1">Buscar na Lista</label>
+          <label className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50 ml-1">Buscar na Lista</label>
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={20} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-sub opacity-40 group-focus-within:text-brand-primary transition-colors" size={20} />
             <Input
               placeholder="Nome, email ou telefone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-12 rounded-2xl border-slate-200/40 dark:border-white/5 bg-slate-100/50 dark:bg-white/5 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all font-bold text-sm shadow-inner"
+              className="pl-12 h-12 rounded-2xl border-brand-accent/10 bg-white/50 focus:ring-4 focus:ring-brand-primary/10 transition-all font-bold text-sm shadow-inner"
             />
           </div>
         </div>
@@ -231,14 +231,14 @@ export default function ClientesPage() {
           value={clients.length} 
           icon={Users} 
           description="Clientes registrados"
-          variant="purple"
+          variant="primary"
         />
         <MetricCard 
           title="Status Ativo" 
           value={clients.filter(c => c.isActive !== false).length} 
           icon={UserCheck} 
           description="Clientes Recorrentes"
-          variant="green"
+          variant="success"
           trend={{ value: 12, isPositive: true }}
         />
         <MetricCard 
@@ -246,7 +246,7 @@ export default function ClientesPage() {
           value={clients.filter(c => c.isActive === false).length} 
           icon={UserMinus} 
           description="Clientes perdidos"
-          variant="orange"
+          variant="warning"
         />
       </div>
 
@@ -258,50 +258,50 @@ export default function ClientesPage() {
         {filteredClientsList.length > 0 ? (
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-200/40 dark:border-white/5 hover:bg-transparent">
-                <TableHead className="text-[10px] font-black uppercase tracking-wider text-slate-400">Cliente</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-wider text-slate-400">Contato</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Agendamentos</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-wider text-slate-400">Última Visita</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-wider text-slate-400">Status</TableHead>
-                <TableHead className="text-right text-[10px] font-black uppercase tracking-wider text-slate-400">Ações</TableHead>
+              <TableRow className="border-brand-accent/5 hover:bg-transparent">
+                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-40">Cliente</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-40">Contato</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-40">Agendamentos</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-40">Última Visita</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-40">Status</TableHead>
+                <TableHead className="text-right text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-40">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredClientsList.map((client) => (
-                <TableRow key={client.id} className="group border-slate-200/40 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                <TableRow key={client.id} className="group border-brand-accent/5 hover:bg-brand-soft/10 transition-colors">
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 rounded-xl border border-slate-200/40 dark:border-white/10 shadow-sm">
+                      <Avatar className="h-10 w-10 rounded-xl border border-brand-accent/10 shadow-sm">
                         <AvatarImage src={client.photoURL} />
-                        <AvatarFallback className="bg-brand-primary/10 text-brand-primary font-bold">
-                          {client.name.charAt(0)}
+                        <AvatarFallback className="bg-linear-to-br from-brand-primary to-brand-secondary text-white font-black">
+                          {client.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-bold text-slate-900 dark:text-white group-hover:text-brand-primary transition-colors">
+                        <div className="font-black text-brand-text-main group-hover:text-brand-primary transition-colors tracking-tight">
                           {client.name}
                         </div>
-                        <div className="text-xs font-medium text-slate-500">
+                        <div className="text-[10px] font-black uppercase tracking-wider text-brand-text-sub opacity-40">
                           Desde {format(ensureDate(client.createdAt), "MMM yyyy", { locale: ptBR })}
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <div className="flex items-center gap-2 group/contact">
-                        <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover/contact:text-brand-primary transition-colors">
+                        <div className="w-6 h-6 rounded-lg bg-brand-soft/20 flex items-center justify-center text-brand-text-sub group-hover/contact:text-brand-primary transition-colors">
                           <Mail size={12} />
                         </div>
-                        <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">{client.email}</span>
+                        <span className="text-xs font-bold text-brand-text-main">{client.email}</span>
                       </div>
                       {client.phone && (
                         <div className="flex items-center gap-2 group/contact">
-                          <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover/contact:text-brand-primary transition-colors">
+                          <div className="w-6 h-6 rounded-lg bg-brand-soft/20 flex items-center justify-center text-brand-text-sub group-hover/contact:text-brand-primary transition-colors">
                             <Phone size={12} />
                           </div>
-                          <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">{client.phone}</span>
+                          <span className="text-xs font-bold text-brand-text-main">{client.phone}</span>
                         </div>
                       )}
                     </div>
@@ -315,20 +315,15 @@ export default function ClientesPage() {
                   </TableCell>
                   <TableCell>
                     {client.lastVisit ? (
-                      <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                      <span className="text-xs font-black text-brand-text-main tabular-nums">
                         {format(ensureDate(client.lastVisit), "dd/MM/yyyy", { locale: ptBR })}
                       </span>
                     ) : (
-                      <Badge variant="outline" className="text-[10px] uppercase font-black tracking-tighter opacity-50">Nunca</Badge>
+                      <Badge variant="neutral" size="xs" className="opacity-30">Nunca</Badge>
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge className={cn(
-                      "px-2.5 py-1 rounded-lg font-black text-[10px] uppercase tracking-wider border-0 shadow-sm",
-                      client.isActive !== false 
-                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400" 
-                        : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-                    )}>
+                    <Badge variant={client.isActive !== false ? "success" : "neutral"} size="xs" className="border-none shadow-none font-black">
                       {client.isActive !== false ? "Ativo" : "Inativo"}
                     </Badge>
                   </TableCell>
@@ -336,7 +331,7 @@ export default function ClientesPage() {
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={
-                          <Button variant="ghost" size="icon" disabled={actionLoading === client.id} className="h-9 w-9 rounded-xl hover:bg-brand-primary/10 dark:hover:bg-brand-primary/20 text-slate-400 hover:text-brand-primary transition-all">
+                          <Button variant="ghost" size="icon" disabled={actionLoading === client.id} className="h-9 w-9 rounded-xl hover:bg-brand-primary/10 text-brand-text-sub hover:text-brand-primary transition-all">
                             {actionLoading === client.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
@@ -345,7 +340,7 @@ export default function ClientesPage() {
                           </Button>
                         }
                       />
-                      <DropdownMenuContent align="end" className="rounded-2xl border-slate-200/40 dark:border-white/5 p-2 shadow-2xl">
+                      <DropdownMenuContent align="end" className="rounded-2xl border border-brand-accent/10 p-2 shadow-premium-xl bg-white">
                         <DropdownMenuItem onClick={() => handleEdit(client)} className="rounded-xl font-bold cursor-pointer">
                           <Edit className="h-4 w-4 mr-2 text-brand-primary" />
                           Editar

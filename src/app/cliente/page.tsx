@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BottomNav } from "@/components/client/BottomNav";
+import { BottomNav } from "@/components/cliente/BottomNav";
 import { appointmentService } from "@/services/appointments";
 import { salonService } from "@/services/salon";
 import { format, isFuture, isToday } from "date-fns";
@@ -60,11 +60,11 @@ export default function ClientePage() {
     loadData();
   }, [user]);
 
-  const statusConfig: Record<string, { label: string; className: string }> = {
-    pending: { label: "Pendente", className: "bg-amber-100 text-amber-700 border-amber-200" },
-    confirmed: { label: "Confirmado", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-    completed: { label: "Concluído", className: "bg-brand-primary/10 text-brand-primary border-brand-primary/20" },
-    cancelled: { label: "Cancelado", className: "bg-rose-100 text-rose-700 border-rose-200" },
+  const statusConfig: Record<string, { variant: "warning" | "success" | "default" | "destructive" }> = {
+    pending: { variant: "warning" },
+    confirmed: { variant: "success" },
+    completed: { variant: "default" },
+    cancelled: { variant: "destructive" },
   };
 
   if (loading || dataLoading) {
@@ -111,8 +111,8 @@ export default function ClientePage() {
       title: "Meu Perfil",
       description: "Dados da conta",
       icon: UserIcon,
-      gradient: "from-brand-text-muted/10 to-brand-text-muted/5",
-      iconColor: "text-brand-text",
+      gradient: "from-brand-soft/20 to-brand-soft/10",
+      iconColor: "text-brand-text-main",
       href: "/cliente/perfil",
     },
   ];
@@ -140,11 +140,11 @@ export default function ClientePage() {
           </p>
 
           <Button 
-            className="w-full h-14 rounded-2xl bg-white text-brand-primary font-black text-base shadow-xl hover:bg-white/90 active:scale-95 transition-all mt-4"
+            className="w-full h-14 rounded-2xl bg-white text-brand-primary font-black text-base shadow-premium-xl hover:bg-white/90 active:scale-95 transition-all mt-4 border-none"
             onClick={() => router.push("/cliente/agendar")}
           >
-            <Plus className="mr-2" size={20} strokeWidth={3} />
-            Agendar Agora
+            <Plus className="mr-3" size={24} strokeWidth={4} />
+            AGENDAR AGORA
           </Button>
         </div>
       </section>
@@ -162,12 +162,12 @@ export default function ClientePage() {
           <div className="group relative overflow-hidden rounded-[2.5rem] border border-brand-border bg-white p-6 shadow-xl shadow-brand-primary/5 transition-all hover:shadow-2xl hover:shadow-brand-primary/10">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary/80">Confirmado</span>
-                <h3 className="text-xl font-black text-brand-text">{nextAppointment.service.name}</h3>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-text-sub opacity-50">Próxima Visita</span>
+                <h3 className="text-xl font-black text-brand-text-main tracking-tight">{nextAppointment.service.name}</h3>
               </div>
-              <div className={`rounded-xl px-3 py-1.5 text-[10px] font-black uppercase tracking-wider ${nextStatus?.className}`}>
-                {nextStatus?.label}
-              </div>
+              <Badge variant={nextStatus?.variant || "default"} size="xs" className="border-none shadow-none">
+                {nextAppointment.status}
+              </Badge>
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-4">

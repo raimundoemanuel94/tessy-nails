@@ -3,7 +3,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { BottomNav } from "@/components/client/BottomNav";
+import { BottomNav } from "@/components/cliente/BottomNav";
 import { Toaster } from "sonner";
 
 export default function ClienteLayout({
