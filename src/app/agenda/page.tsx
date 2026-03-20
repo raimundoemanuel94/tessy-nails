@@ -404,11 +404,11 @@ export default function AgendaPage() {
                                 app.status === "cancelled" ? "destructive" : "outline"
                               } className={cn(
                                 "capitalize font-black text-[10px] px-3 h-6 rounded-lg",
-                                app.status === "confirmed" && "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 border-0",
-                                app.status === "pending" && "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border-0",
-                                app.status === "completed" && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border-0",
-                                app.status === "cancelled" && "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400 border-0",
-                                app.status === "no_show" && "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 border-0"
+                                app.status === "confirmed" && "bg-brand-secondary/10 text-brand-secondary dark:bg-brand-secondary/20 dark:text-brand-accent border-0",
+                                app.status === "pending" && "bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning/80 border-0",
+                                app.status === "completed" && "bg-success/10 text-success dark:bg-success/20 dark:text-success/80 border-0",
+                                app.status === "cancelled" && "bg-brand-primary/10 text-brand-primary dark:bg-brand-primary/20 dark:text-brand-accent border-0",
+                                app.status === "no_show" && "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive/80 border-0"
                               )}>
                                 {app.status === "confirmed" ? "Confirmado" : 
                                  app.status === "pending" ? "Pendente" : 
@@ -441,7 +441,7 @@ export default function AgendaPage() {
                               </DropdownMenuItem>
                                 
                               <DropdownMenuItem
-                                className="p-3 cursor-pointer rounded-xl font-bold text-emerald-600 hover:bg-emerald-50 transition-all"
+                                className="p-3 cursor-pointer rounded-xl font-bold text-success hover:bg-success/5 transition-all"
                                 disabled={app.status === "completed" || app.status === "cancelled"}
                                 onClick={() => handleConcluir(app.id!)}
                               >
@@ -460,7 +460,7 @@ export default function AgendaPage() {
                               </DropdownMenuItem>
                                 
                               <DropdownMenuItem
-                                className="p-3 cursor-pointer rounded-xl font-bold text-amber-600 hover:bg-amber-50 transition-all"
+                                className="p-3 cursor-pointer rounded-xl font-bold text-warning hover:bg-warning/5 transition-all"
                                 disabled={app.status === "completed" || app.status === "cancelled" || app.status === "no_show"}
                                 onClick={() => handleFalta(app.id!)}
                               >
@@ -468,7 +468,7 @@ export default function AgendaPage() {
                               </DropdownMenuItem>
   
                               <DropdownMenuItem
-                                className="p-3 cursor-pointer rounded-xl font-black text-purple-600 hover:bg-purple-50 transition-all"
+                                className="p-3 cursor-pointer rounded-xl font-black text-brand-primary hover:bg-brand-primary/5 transition-all"
                                 onClick={() => handleCancelar(app.id!)}
                                 disabled={app.status === "cancelled"}
                               >
@@ -489,26 +489,26 @@ export default function AgendaPage() {
             <SectionCard
               title="Desempenho Financeiro"
               icon={BarChart3}
-              className="border-emerald-100/40 bg-linear-to-r from-emerald-50/10 to-transparent"
+              className="border-success/20 bg-linear-to-r from-success/5 to-transparent"
             >
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-slate-500 text-[10px] font-black uppercase tracking-wider mb-1">Hoje</p>
-                    <p className="text-2xl font-black text-emerald-600">
+                    <p className="text-2xl font-black text-success">
                       R$ {appointments.reduce((acc, curr) => acc + (curr.service?.price || 0), 0).toFixed(0)}
                     </p>
                   </div>
                   <div>
                     <p className="text-slate-500 text-[10px] font-black uppercase tracking-wider mb-1">Mês</p>
-                    <p className="text-2xl font-black text-emerald-600">
+                    <p className="text-2xl font-black text-success">
                       R$ {(appointments.reduce((acc, curr) => acc + (curr.service?.price || 0), 0) * 30).toLocaleString('pt-BR')}
                     </p>
                   </div>
                 </div>
-                <div className="h-24 bg-linear-to-r from-emerald-500/5 to-transparent rounded-2xl border border-emerald-200/20 flex flex-col items-center justify-center">
-                  <TrendingUp className="h-8 w-8 text-emerald-500 mb-1" />
-                  <p className="text-emerald-700 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">Crescendo 12%</p>
+                <div className="h-24 bg-linear-to-r from-success/5 to-transparent rounded-2xl border border-success/20 flex flex-col items-center justify-center">
+                  <TrendingUp className="h-8 w-8 text-success/60 mb-1" />
+                  <p className="text-success dark:text-success/80 text-[10px] font-black uppercase tracking-wider">Crescendo 12%</p>
                 </div>
               </div>
             </SectionCard>
@@ -516,18 +516,18 @@ export default function AgendaPage() {
             <SectionCard
               title="Performance"
               icon={Award}
-              className="border-blue-100/40 bg-linear-to-r from-blue-50/10 to-transparent"
+              className="border-brand-accent/20 bg-linear-to-r from-brand-accent/5 to-transparent"
             >
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 rounded-2xl bg-blue-50/50 dark:bg-blue-900/10">
-                    <p className="text-2xl font-black text-blue-600">
+                  <div className="text-center p-3 rounded-2xl bg-brand-accent/10 dark:bg-brand-accent/20">
+                    <p className="text-2xl font-black text-brand-secondary">
                       {appointments.filter(a => a.status === "completed").length}
                     </p>
                     <p className="text-slate-500 text-[10px] font-black uppercase">Atendidos</p>
                   </div>
-                  <div className="text-center p-3 rounded-2xl bg-amber-50/50 dark:bg-amber-900/10">
-                    <p className="text-2xl font-black text-amber-600">
+                  <div className="text-center p-3 rounded-2xl bg-warning/10 dark:bg-warning/20">
+                    <p className="text-2xl font-black text-warning">
                       {appointments.filter(a => a.status === "pending").length}
                     </p>
                     <p className="text-slate-500 text-[10px] font-black uppercase">Pendentes</p>
@@ -536,7 +536,7 @@ export default function AgendaPage() {
                 <div className="pt-4 border-t border-slate-100 dark:border-white/5">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">Taxa de Confirmação</span>
-                    <span className="text-lg font-black text-blue-600">
+                    <span className="text-lg font-black text-brand-secondary">
                       {appointments.length > 0 
                         ? Math.round((appointments.filter(a => a.status === "confirmed").length / appointments.length) * 100)
                         : 0}%
@@ -551,7 +551,7 @@ export default function AgendaPage() {
               <div className="relative z-10 flex flex-col gap-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-black uppercase tracking-[2px] text-slate-400">Meta do Mês</h3>
-                  <Target size={24} className="text-violet-400" />
+                  <Target size={24} className="text-brand-primary" />
                 </div>
                 <div>
                   <div className="flex justify-between items-end mb-3">
@@ -559,7 +559,7 @@ export default function AgendaPage() {
                     <span className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">R$ 12.500</span>
                   </div>
                   <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden shadow-inner">
-                    <div className="bg-linear-to-r from-violet-500 to-purple-600 h-full rounded-full transition-all duration-1000" style={{ width: '68%' }}></div>
+                    <div className="bg-linear-to-r from-brand-primary to-brand-secondary h-full rounded-full transition-all duration-1000" style={{ width: '68%' }}></div>
                   </div>
                 </div>
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Faltam R$ 3.800 para bater a meta</p>

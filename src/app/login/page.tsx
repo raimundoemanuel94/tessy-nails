@@ -351,7 +351,7 @@ function LoginPageContent() {
                       >
                         <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400 dark:text-slate-500">Nome Completo</Label>
                         <div className="relative group">
-                           <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-500 transition-colors" size={18} />
+                           <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={18} />
                            <Input 
                             id="name" 
                             type="text" 
@@ -359,7 +359,7 @@ function LoginPageContent() {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required 
-                            className="h-14 pl-12 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-white/5 font-bold text-sm focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all"
+                            className="h-14 pl-12 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-white/5 font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
                           />
                         </div>
                       </motion.div>
@@ -369,7 +369,7 @@ function LoginPageContent() {
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400 dark:text-slate-500">Endereço de E-mail</Label>
                     <div className="relative group">
-                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-500 transition-colors" size={18} />
+                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={18} />
                        <Input 
                         id="email" 
                         type="email" 
@@ -377,7 +377,7 @@ function LoginPageContent() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required 
-                        className="h-14 pl-12 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-white/5 font-bold text-sm focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all"
+                        className="h-14 pl-12 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-white/5 font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
                       />
                     </div>
                   </div>
@@ -385,7 +385,7 @@ function LoginPageContent() {
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400 dark:text-slate-500">Senha Segura</Label>
                     <div className="relative group">
-                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-500 transition-colors" size={18} />
+                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={18} />
                        <Input 
                         id="password" 
                         type="password" 
@@ -395,7 +395,7 @@ function LoginPageContent() {
                         required 
                         autoComplete="current-password"
                         minLength={6}
-                        className="h-14 pl-12 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-white/5 font-bold text-sm focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all"
+                        className="h-14 pl-12 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-white/5 font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
                       />
                     </div>
                   </div>

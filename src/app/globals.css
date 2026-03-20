@@ -32,6 +32,12 @@
   --color-blue-600: #6D4C41;
   --color-emerald-600: #4B2E2B;
   --color-emerald-400: #A1887F;
+
+  /* Status Palette */
+  --color-success: var(--status-success);
+  --color-warning: var(--status-warning);
+  --color-neutral-status: var(--status-neutral);
+  --color-highlight: var(--status-highlight);
   
   --color-slate-50: #FAF7F5;
   --color-slate-100: #F3EFEF;
@@ -106,6 +112,12 @@
   --brand-gradient: linear-gradient(135deg, #6D4C41, #4B2E2B);
   --text-main: #2D1F1B;
   --text-sub: #7B6F6A;
+
+  /* Status Specific */
+  --status-success: #7E9C76;
+  --status-warning: #C58B57;
+  --status-neutral: #8C7B75;
+  --status-highlight: #B08A7A;
 }
 
 .dark {

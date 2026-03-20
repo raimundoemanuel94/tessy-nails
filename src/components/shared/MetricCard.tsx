@@ -19,20 +19,20 @@ interface MetricCardProps {
 }
 
 const variants = {
-  default: "bg-white dark:bg-slate-900 border-slate-200/40 dark:border-white/5 shadow-slate-200/40 dark:shadow-none",
-  purple: "bg-linear-to-br from-brand-primary/5 to-brand-secondary/10 border-brand-primary/20 dark:border-brand-primary/10 shadow-brand-primary/5 dark:shadow-none",
-  blue: "bg-linear-to-br from-brand-accent/5 to-brand-accent/15 border-brand-accent/30 dark:border-brand-accent/10 shadow-brand-accent/5 dark:shadow-none",
-  green: "bg-linear-to-br from-emerald-500/5 to-teal-500/10 border-emerald-200/40 dark:border-emerald-800/20 shadow-emerald-500/10 dark:shadow-none",
-  orange: "bg-linear-to-br from-orange-500/5 to-amber-500/10 border-orange-200/40 dark:border-orange-800/20 shadow-orange-500/10 dark:shadow-none",
-  pink: "bg-linear-to-br from-brand-primary/10 to-brand-secondary/5 border-brand-secondary/20 dark:border-brand-secondary/10 shadow-brand-secondary/5 dark:shadow-none",
+  default: "bg-white dark:bg-slate-900 border-slate-200/60 dark:border-white/5 shadow-sm dark:shadow-none hover:shadow-md transition-shadow duration-300",
+  purple: "bg-brand-primary/10 dark:bg-brand-primary/20 border-brand-primary/20 dark:border-brand-primary/10 hover:bg-brand-primary/15 transition-colors duration-300",
+  blue: "bg-brand-accent/15 dark:bg-brand-accent/25 border-brand-accent/30 dark:border-brand-accent/10 hover:bg-brand-accent/20 transition-colors duration-300",
+  green: "bg-success/15 dark:bg-success/25 border-success/30 dark:border-success/20 hover:bg-success/20 transition-colors duration-300",
+  orange: "bg-warning/15 dark:bg-warning/25 border-warning/30 dark:border-warning/20 hover:bg-warning/20 transition-colors duration-300",
+  pink: "bg-brand-primary/15 dark:bg-brand-secondary/10 border-brand-secondary/20 dark:border-brand-secondary/10 hover:bg-brand-primary/20 transition-colors duration-300",
 };
 
 const iconColors = {
   default: "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800",
   purple: "text-brand-primary dark:text-brand-accent bg-brand-primary/10 dark:bg-brand-primary/40",
   blue: "text-brand-secondary dark:text-brand-accent bg-brand-secondary/10 dark:bg-brand-secondary/40",
-  green: "text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40",
-  orange: "text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/40",
+  green: "text-success dark:text-success/80 bg-success/10 dark:bg-success/20",
+  orange: "text-warning dark:text-warning/80 bg-warning/10 dark:bg-warning/20",
   pink: "text-brand-primary dark:text-brand-accent bg-brand-primary/10 dark:bg-brand-primary/90",
 };
 
@@ -69,8 +69,8 @@ export function MetricCard({
               <Badge className={cn(
                 "border-0 font-black text-[10px] px-2 py-1 rounded-lg uppercase tracking-wider",
                 trend.isPositive 
-                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400" 
-                  : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400"
+                   ? "bg-success/10 text-success dark:bg-success/20 dark:text-success/80" 
+                   : "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive/80"
               )}>
                 <div className="flex items-center gap-1">
                   {trend.isPositive ? <TrendingUp size={10} strokeWidth={3} /> : <TrendingDown size={10} strokeWidth={3} />}

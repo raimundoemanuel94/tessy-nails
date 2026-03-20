@@ -26,7 +26,7 @@ interface ServiceData {
   value: number;
 }
 
-const COLORS = ['#ec4899', '#f43f5e', '#d946ef', '#a855f7'];
+const COLORS = ['#4B2E2B', '#6D4C41', '#A1887F', '#B08A7A'];
 
 export function RevenueChart({ data }: { data: RevenueData[] }) {
   return (
@@ -36,7 +36,7 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
           <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Evolução Financeira</h3>
           <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Histórico de faturamento bruto</p>
         </div>
-        <div className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100 dark:border-emerald-500/20">
+        <div className="bg-success/10 text-success px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-success/20">
           +12.5% Crescimento
         </div>
       </div>
@@ -44,8 +44,8 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
         <AreaChart data={data}>
           <defs>
             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#6D4C41" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="#6D4C41" stopOpacity={0}/>
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -67,13 +67,13 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
               boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
               padding: '12px'
             }}
-            itemStyle={{ color: '#ec4899', fontWeight: 900, fontSize: '12px' }}
+            itemStyle={{ color: '#4B2E2B', fontWeight: 900, fontSize: '12px' }}
             labelStyle={{ color: '#64748b', fontWeight: 700, fontSize: '10px', marginBottom: '4px', textTransform: 'uppercase' }}
           />
           <Area 
             type="monotone" 
             dataKey="Revenue" 
-            stroke="#ec4899" 
+            stroke="#6D4C41" 
             strokeWidth={4}
             fillOpacity={1} 
             fill="url(#colorRevenue)" 

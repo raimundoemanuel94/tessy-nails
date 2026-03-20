@@ -219,7 +219,7 @@ export default function ClientesPage() {
               placeholder="Nome, email ou telefone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-12 rounded-2xl border-slate-200/40 dark:border-white/5 bg-slate-100/50 dark:bg-white/5 focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all font-bold text-sm shadow-inner"
+              className="pl-12 h-12 rounded-2xl border-slate-200/40 dark:border-white/5 bg-slate-100/50 dark:bg-white/5 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all font-bold text-sm shadow-inner"
             />
           </div>
         </div>
@@ -291,14 +291,14 @@ export default function ClientesPage() {
                   <TableCell>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 group/contact">
-                        <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover/contact:text-violet-500 transition-colors">
+                        <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover/contact:text-brand-primary transition-colors">
                           <Mail size={12} />
                         </div>
                         <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">{client.email}</span>
                       </div>
                       {client.phone && (
                         <div className="flex items-center gap-2 group/contact">
-                          <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover/contact:text-violet-500 transition-colors">
+                          <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover/contact:text-brand-primary transition-colors">
                             <Phone size={12} />
                           </div>
                           <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">{client.phone}</span>
@@ -347,7 +347,7 @@ export default function ClientesPage() {
                       />
                       <DropdownMenuContent align="end" className="rounded-2xl border-slate-200/40 dark:border-white/5 p-2 shadow-2xl">
                         <DropdownMenuItem onClick={() => handleEdit(client)} className="rounded-xl font-bold cursor-pointer">
-                          <Edit className="h-4 w-4 mr-2 text-violet-500" />
+                          <Edit className="h-4 w-4 mr-2 text-brand-primary" />
                           Editar
                         </DropdownMenuItem>
                         {client.isActive !== false ? (

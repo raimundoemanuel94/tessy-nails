@@ -385,7 +385,8 @@ export default function AgendamentosPage() {
             title="Receita"
             value={`R$ ${stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
             icon={DollarSign}
-            variant="pink"
+            variant="purple"
+            className="bg-brand-primary/5 border-brand-primary/10"
           />
         </div>
         
@@ -400,12 +401,12 @@ export default function AgendamentosPage() {
             <div className="flex flex-col gap-6">
               {/* Search Input */}
               <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-500 transition-colors" size={20} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={20} />
                 <Input 
                   id="search-appointments"
                   name="search-appointments"
                   placeholder="Pesquisar por cliente ou serviço..." 
-                  className="pl-12 h-12 rounded-xl border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all font-medium"
+                  className="pl-12 h-12 rounded-xl border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all font-medium"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -481,11 +482,11 @@ export default function AgendamentosPage() {
                           <TableCell className="px-6 py-4">
                             <Badge className={cn(
                               "text-[10px] font-black uppercase px-2 py-0.5 rounded-md border-0",
-                              app.status === "confirmed" && "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
-                              app.status === "pending" && "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
-                              app.status === "completed" && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
-                              app.status === "cancelled" && "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400",
-                              app.status === "no_show" && "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400"
+                              app.status === "confirmed" && "bg-brand-secondary/10 text-brand-secondary dark:bg-brand-secondary/20 dark:text-brand-accent",
+                              app.status === "pending" && "bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning/80",
+                              app.status === "completed" && "bg-success/10 text-success dark:bg-success/20 dark:text-success/80",
+                              app.status === "cancelled" && "bg-brand-primary/10 text-brand-primary dark:bg-brand-primary/20 dark:text-brand-accent",
+                              app.status === "no_show" && "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive/80"
                             )}>
                               {app.status === "confirmed" ? "Confirmado" : 
                                app.status === "pending" ? "Pendente" : 
@@ -509,16 +510,16 @@ export default function AgendamentosPage() {
                                 <DropdownMenuItem className="rounded-lg font-bold text-xs" disabled={app.status !== "pending"} onClick={() => handleConfirmar(app.id)}>
                                   <CheckCircle2 size={14} className="mr-2" /> Confirmar
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-lg font-bold text-xs text-emerald-600" disabled={app.status === "completed" || app.status === "cancelled"} onClick={() => handleConcluir(app.id)}>
+                                <DropdownMenuItem className="rounded-lg font-bold text-xs text-success" disabled={app.status === "completed" || app.status === "cancelled"} onClick={() => handleConcluir(app.id)}>
                                   <CheckCircle2 size={14} className="mr-2" /> Concluir
                                 </DropdownMenuItem>
                                 <DropdownMenuItem className="rounded-lg font-bold text-xs" onClick={() => openRemarcar(app)}>
                                   <Clock size={14} className="mr-2" /> Remarcar
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-lg font-bold text-xs text-amber-600" onClick={() => handleFalta(app.id)}>
+                                <DropdownMenuItem className="rounded-lg font-bold text-xs text-warning" onClick={() => handleFalta(app.id)}>
                                   <CalendarX2 size={14} className="mr-2" /> Marcar Falta
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-lg font-bold text-xs text-purple-600" onClick={() => handleCancelar(app.id)}>
+                                <DropdownMenuItem className="rounded-lg font-bold text-xs text-brand-primary" onClick={() => handleCancelar(app.id)}>
                                   <CalendarX2 size={14} className="mr-2" /> Cancelar
                                 </DropdownMenuItem>
                                 <DropdownMenuItem className="rounded-lg font-bold text-xs text-red-600" onClick={() => handleExcluir(app.id)}>
