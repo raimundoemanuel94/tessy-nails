@@ -69,7 +69,7 @@ export default function PerfilPage() {
           const transformedClientData: ClientData = {
             id: client.id || user.uid,
             name: client.name,
-            email: client.email,
+            email: client.email || "",
             phone: client.phone || "Não informado",
             status: "active",
             createdAt: client.createdAt
@@ -77,7 +77,7 @@ export default function PerfilPage() {
 
           const transformedPersonalInfo: PersonalInfo = {
             fullName: client.name,
-            email: client.email,
+            email: client.email || "",
             phone: client.phone || "Não informado",
             address: "Não informado",
             birthDate: new Date(),
