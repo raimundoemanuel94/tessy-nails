@@ -82,8 +82,8 @@ export default function ClientesPage() {
     if (!searchQuery.trim()) return list;
     
     return list.filter(client =>
-      client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (client.name && client.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (client.email && client.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (client.phone && client.phone.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   }, [clients, searchQuery, statusFilter]);
