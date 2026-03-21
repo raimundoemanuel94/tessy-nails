@@ -63,54 +63,44 @@ const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
       </div>
 
       <div className="relative flex flex-col items-center gap-10">
-        {/* Animated Brand Icon - Premium Sequence */}
+        {/* Animated Brand Identity - Premium Sequence */}
         <motion.div
-          initial={{ scale: 0.7, opacity: 0, rotate: -5 }}
+          initial={{ scale: 0.7, opacity: 0, y: 15 }}
           animate={{ 
             scale: [0.7, 1.05, 1],
             opacity: 1,
-            rotate: [5, -2, 0],
+            y: 0
           }}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="relative"
+          className="relative flex flex-col items-center justify-center"
         >
           <motion.div
             animate={{ 
               y: [0, -8, 0],
-              rotate: [0, 2, 0, -2, 0]
             }}
             transition={{ 
-              y: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-              rotate: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+              y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
             }}
-            className="w-28 h-28 rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-[0_20px_50px_rgba(75,46,43,0.2)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-center ring-1 ring-brand-primary/10 relative z-10"
+            className="relative z-10 flex justify-center mb-8"
           >
-            <Sparkles className="text-brand-primary drop-shadow-[0_0_15px_rgba(75,46,43,0.3)]" size={56} />
+            <img src="/images/logo/logo-full.svg" alt="Tessy Nails" className="h-[180px] w-auto drop-shadow-[0_20px_50px_rgba(75,46,43,0.3)] dark:drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]" />
           </motion.div>
           
           {/* Enhanced Pulsing Glow Rings */}
           <motion.div 
-            animate={{ scale: [1, 1.8, 2.2], opacity: [0.6, 0.2, 0] }}
+            animate={{ scale: [1, 1.5, 1.8], opacity: [0.4, 0.1, 0] }}
             transition={{ repeat: Infinity, duration: 2.5, ease: "easeOut" }}
-            className="absolute inset-0 rounded-[2.5rem] bg-brand-primary/40 blur-2xl"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full bg-brand-primary/40 blur-3xl z-0"
           />
           <motion.div 
-            animate={{ scale: [1, 1.4, 1.7], opacity: [0.4, 0.1, 0] }}
+            animate={{ scale: [1, 1.2, 1.4], opacity: [0.3, 0.05, 0] }}
             transition={{ repeat: Infinity, duration: 2.5, delay: 0.8, ease: "easeOut" }}
-            className="absolute inset-0 rounded-[2.5rem] bg-brand-accent/30 blur-xl"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-brand-accent/30 blur-2xl z-0"
           />
         </motion.div>
 
-        {/* Brand Name & Message - Staggered Entry */}
-        <div className="space-y-4 text-center">
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
-            className="flex justify-center"
-          >
-            <img src="/images/logo/logo-full.svg" alt="Tessy Nails" className="h-40 w-auto drop-shadow-md" />
-          </motion.div>
+        {/* Loading Message - Staggered Entry */}
+        <div className="space-y-4 text-center relative z-20">
           
           <motion.div
             initial={{ opacity: 0, y: 10 }}
