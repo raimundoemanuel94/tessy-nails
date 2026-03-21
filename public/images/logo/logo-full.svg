@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="800" height="800">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=Montserrat:wght@700&amp;display=swap');
+            .text-tessy { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700; fill: #2C2C2C; text-anchor: middle; }
+            .text-nails { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; fill: #C89B7B; letter-spacing: 0.6em; text-anchor: middle; }
+            .line { stroke: #E5E7EB; stroke-width: 1.5; }
+        </style>
+    </defs>
+    <!-- Top Icon -->
+    <g transform="translate(50, 10)">
+        <path d="M20 75 C25 60 35 30 50 30 C65 30 75 60 80 75" stroke="#C89B7B" stroke-width="1" stroke-dasharray="2 2" opacity="0.4" fill="none"/>
+        <path d="M50 22 C62 22 70 34 70 55 V82 C70 88 65 92 59 92 H41 C35 92 30 88 30 82 V55 C30 34 38 22 50 22Z" fill="white" stroke="#6F4E37" stroke-width="2.5"/>
+        <path d="M40 50 C40 42 44 34 50 34" stroke="#C89B7B" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <g>
+            <path d="M75 15 L75 27 M69 21 L81 21" stroke="#C89B7B" stroke-width="2" fill="none"/>
+            <circle cx="75" cy="21" r="1.5" fill="#C89B7B"/>
+        </g>
+    </g>
+    <!-- Bottom Text -->
+    <g transform="translate(100, 150)">
+        <text class="text-tessy" x="0" y="0">TESSY</text>
+        <g transform="translate(0, 25)">
+            <line x1="-70" y1="-3" x2="-45" y2="-3" class="line"/>
+            <text class="text-nails" x="5" y="0">NAILS</text>
+            <line x1="45" y1="-3" x2="70" y2="-3" class="line"/>
+        </g>
+    </g>
+</svg>
