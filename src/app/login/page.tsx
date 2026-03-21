@@ -24,7 +24,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
   useEffect(() => {
-    const timer = setTimeout(onComplete, 3000); // 3s for a truly immersive build-up
+    const timer = setTimeout(onComplete, 1200); // 1.2s for a quick, elegant build-up (reduced from 3s)
     return () => clearTimeout(timer);
   }, [onComplete]);
 

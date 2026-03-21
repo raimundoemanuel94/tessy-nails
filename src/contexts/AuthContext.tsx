@@ -47,12 +47,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           console.log('Fetching user and client documents from Firestore...');
           
-          // Buscar documento na coleção users (admin/profissional)
-          const userDoc = await getDoc(doc(db, "users", fUser.uid));
+          // Paralelizar requisições Firestore para reduzir latência de boot pela metade
+          const [userDoc, clientDoc] = await Promise.all([
+             getDoc(doc(db, "users", fUser.uid)),
+             getDoc(doc(db, "clients", fUser.uid))
+          ]);
           console.log('User document exists:', userDoc.exists());
-          
-          // Buscar documento na coleção clients (cliente)
-          const clientDoc = await getDoc(doc(db, "clients", fUser.uid));
           console.log('Client document exists:', clientDoc.exists());
           
           if (userDoc.exists()) {

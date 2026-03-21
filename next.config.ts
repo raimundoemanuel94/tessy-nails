@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// v1.0.1 - Force PWA update after Brand Migration
+// v1.0.3 - Agresive PWA Cache Buster + Optimization
 
 const withPWA = require("next-pwa")({
   dest: "public",
@@ -21,6 +21,8 @@ const withPWA = require("next-pwa")({
       },
     },
   ],
+  reloadOnOnline: true,
+  buildExcludes: [/middleware-manifest\.json$/]
 });
 
 const nextConfig: NextConfig = {
