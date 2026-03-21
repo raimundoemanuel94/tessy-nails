@@ -267,7 +267,7 @@ export default function DashboardPage() {
               </h3>
               <Button variant="ghost" size="sm" className="text-brand-secondary font-bold hover:bg-brand-accent/10 rounded-xl" onClick={() => router.push('/agenda')}>Agenda Completa</Button>
             </div>
-            <Card className="border-brand-accent/5 shadow-xl bg-white/40 backdrop-blur-sm rounded-[2.5rem] overflow-hidden">
+            <Card className="bg-white/40 backdrop-blur-sm">
               <CardContent className="p-4 sm:p-8">
                 {recentAppointments.length > 0 ? (
                   <div className="divide-y divide-brand-accent/5">
@@ -275,7 +275,7 @@ export default function DashboardPage() {
                       <motion.div 
                         key={apt.id} 
                         whileHover={{ x: 10 }}
-                        className="py-6 first:pt-0 last:pb-0 flex items-center justify-between group px-6 rounded-[2rem] transition-all hover:bg-brand-soft/10 cursor-pointer"
+                        className="py-4 first:pt-0 last:pb-0 flex items-center justify-between group px-4 rounded-xl transition-all hover:bg-brand-soft/10 cursor-pointer"
                       >
                         <div className="flex items-center gap-10">
                           <div className="text-3xl font-black text-brand-primary tabular-nums min-w-[80px]">{apt.time}</div>
@@ -303,7 +303,7 @@ export default function DashboardPage() {
             </Card>
 
             <motion.div variants={itemVariants}>
-              <Card className="border-brand-accent/5 shadow-xl bg-white/40 backdrop-blur-sm rounded-[2.5rem] overflow-hidden p-8">
+              <Card className="bg-white/40 backdrop-blur-sm h-full">
                 <CardHeader className="p-0 mb-8 border-b border-brand-accent/5 pb-6">
                   <CardTitle className="text-lg font-black text-brand-primary uppercase tracking-widest flex items-center gap-2">
                     <TrendingUp size={22} className="text-brand-secondary" />
@@ -317,7 +317,7 @@ export default function DashboardPage() {
 
           <div className="space-y-10">
             <motion.div variants={itemVariants}>
-              <Card className="shadow-premium border-brand-accent/5 bg-linear-to-br from-brand-primary to-brand-secondary text-white rounded-2xl overflow-hidden group">
+              <Card className="bg-linear-to-br from-brand-primary to-brand-secondary text-white group">
                 <CardContent className="p-10 space-y-8 relative">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16" />
                   <div className="flex items-center justify-between relative z-10">
@@ -348,7 +348,7 @@ export default function DashboardPage() {
             </motion.div>
 
             <motion.div variants={itemVariants}>
-              <Card className="border-brand-accent/5 shadow-xl bg-white/90 rounded-[2.5rem] overflow-hidden p-8 hover:shadow-2xl transition-all">
+              <Card className="bg-white/90">
                 <h4 className="text-sm font-black uppercase tracking-[0.15em] text-brand-primary mb-8 flex items-center gap-2 border-b border-brand-accent/5 pb-4">
                   <Sparkles size={16} className="text-brand-secondary" />
                   Top Serviços

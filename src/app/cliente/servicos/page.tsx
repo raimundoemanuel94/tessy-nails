@@ -119,6 +119,20 @@ export default function ServicosPage() {
           service.durationMinutes
         );
         
+        const getServiceImage = (serviceName: string) => {
+          const name = serviceName.toLowerCase();
+
+          // Detecção Automática "SaaS Level" - 1 segundo de compreensão
+          if (name.includes('combo') || name.includes('casadinha') || (name.includes('mão') && name.includes('pé'))) return '/images/services/mock_combo.png';
+          if (name.includes('gel') || name.includes('fibra') || name.includes('acrílico')) return '/images/services/mock_gel.png';
+          if (name.includes('pedicure') || name.includes('pé') || name.includes('spa dos pés')) return '/images/services/mock_pedicure.png';
+          if (name.includes('cutilagem') || name.includes('cutícula') || name.includes('spa') || name.includes('hidratação')) return '/images/services/mock_cutilagem.png';
+          if (name.includes('postiça') || name.includes('tips') || name.includes('press')) return '/images/services/mock_postica.png';
+          if (name.includes('manicure') || name.includes('esmaltação')) return '/images/services/mock_esmaltacao.png';
+
+          return '/images/services/mock_esmaltacao.png';
+        };
+        
         const transformedServices = validServices.map(service => ({
           id: service.id,
           name: service.name,
@@ -126,7 +140,7 @@ export default function ServicosPage() {
           price: `R$ ${service.price.toFixed(2)}`,
           duration: `${service.durationMinutes}min`,
           isActive: service.isActive !== false,
-          image: undefined,
+          imageUrl: (service as any).imageUrl || (service as any).image || getServiceImage(service.name),
           rating: undefined
         }));
         

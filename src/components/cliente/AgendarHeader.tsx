@@ -10,7 +10,7 @@ interface AgendarHeaderProps {
 
 export function AgendarHeader({ title = "Escolha a data", onBack }: AgendarHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-brand-primary/10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 pt-[env(safe-area-inset-top)] z-50 w-full border-b border-brand-primary/10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Back Button */}
         {onBack && (

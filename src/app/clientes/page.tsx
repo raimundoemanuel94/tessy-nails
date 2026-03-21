@@ -145,7 +145,7 @@ export default function ClientesPage() {
         }}>
           <DialogTrigger
             render={
-              <Button className="gap-2 bg-brand-primary hover:opacity-90 text-white rounded-xl font-bold shadow-lg shadow-brand-primary/20 px-6 h-11 transition-all hover:-translate-y-0.5">
+              <Button className="gap-2" size="lg">
                 <Plus size={20} className="stroke-3" /> Novo Cliente
               </Button>
             }
@@ -389,8 +389,8 @@ export default function ClientesPage() {
               }
             </div>
             {!searchQuery.trim() && (
-              <Button className="mt-6 bg-brand-primary hover:opacity-90 text-white font-bold rounded-xl px-8 h-12 shadow-lg shadow-brand-primary/20">
-                <Plus className="h-5 w-5 mr-2 stroke-3" />
+              <Button size="lg" className="mt-6 gap-2 font-bold">
+                <Plus className="h-5 w-5 stroke-3" />
                 Cadastrar Primeiro Cliente
               </Button>
             )}

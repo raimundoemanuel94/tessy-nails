@@ -56,7 +56,7 @@ export function Header() {
   ];
 
   return (
-    <header className="h-20 flex items-center justify-between px-6 sticky top-0 z-30 transition-all duration-300 border-b border-brand-border/40 bg-white/40 backdrop-blur-xl">
+    <header className="h-20 flex items-center justify-between px-6 sticky top-0 pt-[env(safe-area-inset-top)] z-30 transition-all duration-300 border-b border-brand-border/40 bg-white/40 backdrop-blur-xl">
       <div className="flex items-center gap-4">
         <div className="md:hidden">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>

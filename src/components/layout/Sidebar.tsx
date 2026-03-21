@@ -91,19 +91,19 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-4 rounded-2xl px-4 h-12 text-sm font-black tracking-wide transition-all duration-300",
+                  "group relative flex items-center gap-4 rounded-2xl px-4 h-12 text-sm font-semibold tracking-wide transition-all duration-300",
                   isActive
-                    ? "bg-linear-to-br from-brand-primary to-brand-secondary text-white shadow-premium border border-white/20"
-                    : "text-brand-text-sub hover:text-brand-primary hover:bg-brand-primary/5 hover:translate-x-1",
+                    ? "bg-brand-soft/50 text-brand-primary border border-brand-accent/20 shadow-sm"
+                    : "text-brand-text-sub hover:text-brand-primary hover:bg-brand-soft/30 hover:translate-x-1",
                   collapsed && "justify-center px-0 mx-auto w-12"
                 )}
               >
                 <item.icon
-                  size={20}
+                  size={22}
                   strokeWidth={isActive ? 2.5 : 2}
                   className={cn(
                     "transition-all duration-300",
-                    isActive ? "text-white" : "group-hover:scale-110"
+                    isActive ? "text-brand-accent" : "group-hover:scale-110 group-hover:text-brand-primary"
                   )}
                 />
                 {!collapsed && <span>{item.label}</span>}
@@ -128,19 +128,19 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-2xl px-3 h-12 text-sm font-bold transition-all duration-300",
+                  "group relative flex items-center gap-3 rounded-2xl px-3 h-12 text-sm font-semibold transition-all duration-300",
                   isActive
-                    ? "bg-linear-to-br from-brand-primary to-brand-secondary text-white shadow-xl shadow-brand-primary/30 border border-white/10"
-                    : "text-slate-500 dark:text-slate-400 hover:text-brand-primary dark:hover:text-brand-accent hover:bg-brand-primary/10 hover:translate-x-1",
+                    ? "bg-brand-soft/50 text-brand-primary border border-brand-accent/20 shadow-sm"
+                    : "text-brand-text-sub hover:text-brand-primary hover:bg-brand-soft/30 hover:translate-x-1",
                   collapsed && "justify-center px-0 mx-auto w-12"
                 )}
               >
                 <item.icon
-                  size={20}
+                  size={22}
                   strokeWidth={isActive ? 2.5 : 2}
                   className={cn(
                     "transition-all duration-300",
-                    isActive ? "text-white" : "group-hover:scale-110"
+                    isActive ? "text-brand-accent" : "group-hover:scale-110 group-hover:text-brand-primary"
                   )}
                 />
                 {!collapsed && <span>{item.label}</span>}
@@ -165,19 +165,19 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-2xl px-3 h-12 text-sm font-bold transition-all duration-300",
+                  "group relative flex items-center gap-3 rounded-2xl px-3 h-12 text-sm font-semibold transition-all duration-300",
                   isActive
-                    ? "bg-linear-to-br from-brand-primary to-brand-secondary text-white shadow-premium border border-white/20"
-                    : "text-brand-text-sub hover:text-brand-primary hover:bg-brand-primary/5 hover:translate-x-1",
+                    ? "bg-brand-soft/50 text-brand-primary border border-brand-accent/20 shadow-sm"
+                    : "text-brand-text-sub hover:text-brand-primary hover:bg-brand-soft/30 hover:translate-x-1",
                   collapsed && "justify-center px-0 mx-auto w-12"
                 )}
               >
                 <item.icon
-                  size={20}
+                  size={22}
                   strokeWidth={isActive ? 2.5 : 2}
                   className={cn(
                     "transition-all duration-300",
-                    isActive ? "text-white" : "group-hover:scale-110"
+                    isActive ? "text-brand-accent" : "group-hover:scale-110 group-hover:text-brand-primary"
                   )}
                 />
                 {!collapsed && <span>{item.label}</span>}

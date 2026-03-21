@@ -32,9 +32,9 @@ export default function ClienteLayout({
     <div className="relative min-h-screen bg-brand-background overflow-x-hidden selection:bg-brand-primary/20">
       {/* Premium Background Gradients */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-        <div className="absolute -top-[10%] -right-[10%] h-[40%] w-[40%] rounded-full bg-brand-primary/10 blur-[120px]" />
-        <div className="absolute top-[20%] -left-[10%] h-[30%] w-[30%] rounded-full bg-brand-accent/20 blur-[100px]" />
-        <div className="absolute -bottom-[10%] right-[20%] h-[25%] w-[25%] rounded-full bg-brand-secondary/15 blur-[80px]" />
+        <div className="absolute -top-[10%] -right-[10%] h-[40%] w-[40%] rounded-full bg-brand-primary/5 blur-[120px]" />
+        <div className="absolute top-[20%] -left-[10%] h-[30%] w-[30%] rounded-full bg-brand-accent/10 blur-[100px]" />
+        <div className="absolute -bottom-[10%] right-[20%] h-[25%] w-[25%] rounded-full bg-brand-secondary/5 blur-[80px]" />
       </div>
 
       {/* Main Content Shell */}

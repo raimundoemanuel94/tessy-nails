@@ -10,19 +10,19 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   
-  /* Official Global Design System Tokens */
-  --color-brand-primary: #4B2E2B;
-  --color-brand-secondary: #6D4C41;
-  --color-brand-accent: #A1887F;
-  --color-brand-soft: #D7CCC8;
-  --color-brand-background: #FAF7F5;
+  /* Official Global Design System Tokens - Luxury Beauty Palette */
+  --color-brand-primary: #6F4E37;
+  --color-brand-secondary: #A98B73;
+  --color-brand-accent: #C89B7B;
+  --color-brand-soft: #EFEAE4;
+  --color-brand-background: #F8F6F3;
   --color-brand-card: #FFFFFF;
-  --color-brand-text-main: #2D1F1B;
-  --color-brand-text-sub: #7B6F6A;
+  --color-brand-text-main: #2C2C2C;
+  --color-brand-text-sub: #6B6B6B;
 
   /* Status Tokens */
-  --color-success: #7E9C76;
-  --color-warning: #C58B57;
+  --color-success: #4CAF50;
+  --color-warning: #FFC107;
   --color-neutral-status: #8C7B75;
   --color-highlight: #B08A7A;
   
@@ -52,7 +52,7 @@
   --color-border: #E5E7EB;
   --color-input: #E5E7EB;
   --color-ring: #4B2E2B;
-  --color-destructive: #EF4444;
+  --color-destructive: #F44336;
   --color-popover: #FFFFFF;
   --color-popover-foreground: #2D1F1B;
   --color-card: #FFFFFF;
@@ -60,29 +60,29 @@
 }
 
 :root {
-  --background: #FAF7F5;
-  --foreground: #2D1F1B;
+  --background: #F8F6F3;
+  --foreground: #2C2C2C;
   --card: #FFFFFF;
-  --card-foreground: #2D1F1B;
+  --card-foreground: #2C2C2C;
   --popover: #FFFFFF;
-  --popover-foreground: #2D1F1B;
-  --primary: #4B2E2B;
+  --popover-foreground: #2C2C2C;
+  --primary: #6F4E37;
   --primary-foreground: #FFFFFF;
-  --secondary: #6D4C41;
+  --secondary: #A98B73;
   --secondary-foreground: #FFFFFF;
-  --muted: #F3EFEF;
-  --muted-foreground: #7B6F6A;
-  --accent: #A1887F;
-  --accent-foreground: #4B2E2B;
-  --destructive: #EF4444;
-  --border: #E5E7EB;
-  --input: #E5E7EB;
-  --ring: #4B2E2B;
+  --muted: #EFEAE4;
+  --muted-foreground: #6B6B6B;
+  --accent: #C89B7B;
+  --accent-foreground: #FFFFFF;
+  --destructive: #F44336;
+  --border: #EFEAE4;
+  --input: #EFEAE4;
+  --ring: #6F4E37;
   --radius: 1rem;
   
   /* Specific Tokens from Overhaul Request */
-  --success: #7E9C76;
-  --warning: #C58B57;
+  --success: #4CAF50;
+  --warning: #FFC107;
   --neutral-status: #8C7B75;
   --highlight: #B08A7A;
 }
@@ -90,12 +90,17 @@
 @layer base {
   * {
     @apply border-border/60 outline-ring/50;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     @apply bg-background text-foreground antialiased selection:bg-brand-primary/20 selection:text-brand-primary;
+    overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   html {
     @apply font-sans;
+    overscroll-behavior-y: none;
   }
 }
 

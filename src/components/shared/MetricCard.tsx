@@ -47,7 +47,7 @@ export function MetricCard({
 }: MetricCardProps) {
   return (
     <Card className={cn(
-      "rounded-[2rem] border transition-all duration-300 hover:scale-[1.02] hover:shadow-xl",
+      "border transition-all duration-300",
       variants[variant],
       className
     )}>

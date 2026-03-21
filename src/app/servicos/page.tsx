@@ -256,7 +256,8 @@ export default function ServicosPage() {
           </p>
           <Button 
             onClick={openCreate}
-            className="bg-brand-primary hover:opacity-90 text-white font-black rounded-xl px-10 h-14 text-base shadow-premium-xl transition-all hover:scale-105 active:scale-95 border-none"
+            size="lg"
+            className="h-14 px-10 text-base font-black"
           >
             <Plus className="h-5 w-5 mr-3 stroke-4" />
             CADASTRAR PRIMEIRO SERVIÇO
@@ -271,9 +272,10 @@ export default function ServicosPage() {
           >
             <Button 
               onClick={openCreate}
-              className="bg-brand-primary hover:opacity-90 text-white rounded-xl px-6 h-11 font-bold shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5"
+              size="lg"
+              className="gap-2"
             >
-              <Plus className="h-5 w-5 mr-2 stroke-3" />
+              <Plus className="h-5 w-5 stroke-3" />
               Novo Serviço
             </Button>
           </PageHeader>
@@ -367,7 +369,7 @@ export default function ServicosPage() {
                           <Scissors className="h-5 w-5" strokeWidth={3} />
                         </div>
                         <div className="min-w-0 pt-1">
-                          <CardTitle className="text-lg font-black text-brand-text-main tracking-tight truncate group-hover:text-brand-primary transition-colors">
+                          <CardTitle className="text-[1.05rem] font-bold text-brand-text-main tracking-tight line-clamp-2 leading-snug group-hover:text-brand-primary transition-colors pr-2">
                             {service.name}
                           </CardTitle>
                           {service.category && (

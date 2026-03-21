@@ -329,7 +329,7 @@ export default function AgendamentosPage() {
         <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
           <DialogTrigger
             render={
-              <Button className="gap-2 bg-brand-primary hover:opacity-90 text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all rounded-xl font-bold text-sm px-8 py-3">
+              <Button size="lg" className="gap-2 shadow-xl hover:shadow-2xl font-bold">
                 <Plus size={20} /> Novo Agendamento
               </Button>
             }
@@ -453,7 +453,7 @@ export default function AgendamentosPage() {
             </div>
 
             {/* Enhanced Table */}
-            <div className="rounded-2xl border border-brand-accent/5 overflow-hidden bg-brand-soft/5">
+            <div className="rounded-2xl border border-brand-soft overflow-hidden bg-brand-soft/5">
               {loading ? (
                 <div className="flex flex-col items-center justify-center p-20 gap-4">
                   <Loader2 className="h-10 w-10 animate-spin text-brand-primary/30" />
@@ -490,14 +490,11 @@ export default function AgendamentosPage() {
                             </Badge>
                           </TableCell>
                           <TableCell className="px-6 py-5">
-                            <Badge variant="neutral" className={cn(
-                              "text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border-0 shadow-sm",
-                              app.status === "confirmed" && "bg-brand-secondary/10 text-brand-secondary",
-                              app.status === "pending" && "bg-warning/10 text-warning",
-                              app.status === "completed" && "bg-success/10 text-success",
-                              app.status === "cancelled" && "bg-brand-primary/10 text-brand-primary",
-                              app.status === "no_show" && "bg-destructive/10 text-destructive"
-                            )}>
+                            <Badge variant={
+                              app.status === "confirmed" ? "success" :
+                              app.status === "pending" ? "warning" :
+                              app.status === "cancelled" || app.status === "no_show" ? "destructive" : "default"
+                            } className="text-[9px] font-bold uppercase px-2 py-0.5 border-0 shadow-sm">
                               {app.status === "confirmed" && "Confirmado"}
                               {app.status === "pending" && "Pendente"}
                               {app.status === "completed" && "Concluído"}

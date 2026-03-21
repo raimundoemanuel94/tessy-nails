@@ -16,7 +16,7 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
     <Button
       onClick={() => router.push("/agendamentos")}
       className={cn(
-        "fixed bottom-6 right-6 h-14 w-auto px-6 rounded-full shadow-[0_20px_50px_rgba(236,72,153,0.3)] z-50",
+        "fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-6 h-14 w-auto px-6 rounded-full shadow-[0_20px_50px_rgba(236,72,153,0.3)] z-50",
         "bg-primary hover:bg-primary/90 text-primary-foreground border-none",
         "flex items-center gap-2 group transition-all duration-500 hover:scale-105 active:scale-95",
         "md:bottom-10 md:right-10",

@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { 
   Loader2, 
   Sparkles, 
-  Star, 
   ArrowRight, 
   Mail, 
   Lock, 
@@ -20,7 +19,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 
 // --- Components ---
 
@@ -34,7 +32,7 @@ const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
     <motion.div 
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-slate-950 overflow-hidden"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white dark:bg-slate-950 overflow-hidden"
     >
       {/* Animated Background Gradient - Ultra Slow & Subtle */}
       <motion.div 
@@ -225,129 +223,59 @@ function LoginPageContent() {
         {showSplash && <SplashLoader onComplete={() => setShowSplash(false)} />}
       </AnimatePresence>
 
-      <div className="min-h-[100dvh] w-full flex overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans relative">
-        {/* Decorative Background for Desktop */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden hidden lg:block">
-           <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-brand-primary/10 dark:bg-brand-primary/5 rounded-full blur-[120px]" />
-           <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-brand-secondary/10 dark:bg-brand-secondary/5 rounded-full blur-[120px]" />
+      <div className="min-h-[100dvh] w-full flex items-center justify-center overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans relative p-4 sm:p-6 md:p-8">
+        
+        {/* Immersive Background Elements */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+           <div className="absolute top-[10%] -left-[10%] w-[40%] h-[40%] bg-brand-primary/10 dark:bg-brand-primary/5 rounded-full blur-[120px]" />
+           <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-brand-secondary/10 dark:bg-brand-secondary/5 rounded-full blur-[120px]" />
+           <div className="absolute -top-32 -right-32 w-96 h-96 bg-brand-primary/10 dark:bg-brand-primary/5 rounded-full blur-[100px] lg:hidden" />
+           <div className="absolute top-1/2 -left-32 w-[600px] h-[600px] bg-brand-secondary/5 dark:bg-brand-secondary/5 rounded-full blur-[120px] lg:hidden" />
         </div>
 
-        {/* Left Pane: Branding & Motivation (Visible only on Desktop) */}
-        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-          <div className="relative z-10 w-full flex flex-col justify-between p-16">
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={!showSplash ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="flex items-center gap-4"
-            >
-              <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-900 shadow-xl flex items-center justify-center ring-1 ring-brand-primary/10">
-                <Sparkles className="text-brand-primary" size={28} />
-              </div>
-              <span className="text-3xl font-black text-brand-text dark:text-white tracking-[0.2em] uppercase italic">TESSY<span className="text-brand-primary">NAILS</span></span>
-            </motion.div>
-
-            <div className="flex-1 flex flex-col justify-center max-w-lg space-y-8">
-               <motion.div
-                 initial={{ opacity: 0, y: 30 }}
-                 animate={!showSplash ? { opacity: 1, y: 0 } : {}}
-                 transition={{ delay: 0.2, duration: 1 }}
-               >
-                 <h2 className="text-6xl font-black text-brand-text dark:text-white leading-[1.1] tracking-tight">
-                    Sua beleza, <br />
-                    <span className="text-brand-primary">sua agenda,</span> <br />
-                    seu momento.
-                 </h2>
-                 <p className="mt-6 text-xl text-slate-400 dark:text-slate-500 font-medium leading-relaxed">
-                    Entre e descubra por que centenas de mulheres escolhem a Tessy Nails para seus momentos de cuidado.
-                 </p>
-               </motion.div>
-
-               {/* Social Proof */}
-               <motion.div 
-                 initial={{ opacity: 0 }}
-                 animate={!showSplash ? { opacity: 1 } : {}}
-                 transition={{ delay: 0.5, duration: 1 }}
-                 className="flex flex-col gap-4"
-               >
-                 <div className="flex -space-x-4">
-                    {[1, 2, 3, 4, 5].map(i => (
-                      <div key={i} className="w-12 h-12 rounded-full border-4 border-white dark:border-slate-950 bg-slate-200 overflow-hidden ring-1 ring-slate-100 dark:ring-white/5">
-                        <img src={`https://i.pravatar.cc/100?img=${i + 20}`} alt="Satisfied Customer" />
-                      </div>
-                    ))}
-                    <div className="w-12 h-12 rounded-full border-4 border-white dark:border-slate-950 bg-brand-primary flex items-center justify-center font-bold text-xs text-white">
-                      +500
-                    </div>
-                 </div>
-                 <div className="flex items-center gap-2">
-                    <div className="flex gap-0.5">
-                      {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 text-brand-accent fill-brand-accent" />)}
-                    </div>
-                    <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">
-                      Nota máxima das clientes
-                    </span>
-                 </div>
-               </motion.div>
-            </div>
-
-            <motion.p 
-              initial={{ opacity: 0 }}
-              animate={!showSplash ? { opacity: 1 } : {}}
-              className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-[0.4em]"
-            >
-              © 2024 Tessy Nails Studio. Todos os direitos reservados.
-            </motion.p>
-          </div>
-        </div>
-
-        {/* Right Pane: Login Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 md:p-12 relative">
-          {/* Immersive Mobile Background Elements */}
-          <div className="absolute inset-0 overflow-hidden lg:hidden pointer-events-none">
-            <div className="absolute -top-32 -right-32 w-96 h-96 bg-brand-primary/10 dark:bg-brand-primary/5 rounded-full blur-[100px]" />
-            <div className="absolute top-1/2 -left-32 w-[600px] h-[600px] bg-brand-secondary/5 dark:bg-brand-secondary/5 rounded-full blur-[120px]" />
-          </div>
-
+        {/* Centered Login Card Container */}
+        <div className="w-full flex items-center justify-center relative z-10 lg:w-[420px]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={!showSplash ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-md z-10"
+            className="w-full max-w-[420px]"
           >
-            {/* Mobile Brand Identity */}
-            <div className="text-center mb-10 lg:hidden flex flex-col items-center">
-               <motion.div 
-                 initial={{ scale: 0.9, opacity: 0 }}
-                 animate={{ scale: 1, opacity: 1 }}
-                 className="w-16 h-16 rounded-[1.5rem] bg-white dark:bg-slate-900 shadow-xl flex items-center justify-center mb-4 ring-1 ring-brand-primary/10"
-               >
-                 <Sparkles className="text-brand-primary" size={32} />
-               </motion.div>
-               <h2 className="text-2xl font-black text-brand-text dark:text-white tracking-[0.2em] uppercase italic">TESSY<span className="text-brand-primary">NAILS</span></h2>
-               <p className="mt-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest italic opacity-60">Sua beleza, sua agenda, seu momento.</p>
-            </div>
-
-            <Card className="border-brand-primary/20 dark:border-white/5 bg-white/70 dark:bg-slate-900/60 backdrop-blur-3xl shadow-[0_20px_50px_rgba(75,46,43,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[3rem] overflow-hidden transition-all duration-500">
-              <CardHeader className="space-y-2 text-center pt-12 pb-8 px-8 relative">
+            <Card className="w-full border-[#EFEAE4]/60 dark:border-white/5 bg-[#F8F6F3] dark:bg-slate-900/60 backdrop-blur-3xl shadow-[8px_8px_16px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.8)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[2.5rem] overflow-hidden transition-all duration-500">
+              <CardHeader className="space-y-4 text-center pt-8 pb-4 px-6 relative">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-1.5 bg-linear-to-r from-transparent via-brand-primary/30 to-transparent rounded-full" />
-                <CardTitle className="text-4xl font-black text-brand-text dark:text-white tracking-tighter">
-                  {isRegisterMode ? "Bem-vinda" : "Boas-vindas"}
-                </CardTitle>
-                <CardDescription className="text-xs font-black text-textSub dark:text-slate-500 uppercase tracking-[0.2em]">
-                  {isRegisterMode ? "Crie sua conta de beleza hoje" : "Continue sua jornada luxuosa"}
-                </CardDescription>
+                
+                {/* Brand Identity Inside Card */}
+                <div className="flex flex-col items-center justify-center space-y-3">
+                  <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="w-12 h-12 rounded-[1rem] bg-white dark:bg-slate-900 shadow-xl flex items-center justify-center ring-1 ring-brand-primary/10"
+                  >
+                    <Sparkles className="text-brand-primary" size={24} />
+                  </motion.div>
+                  <h2 className="text-xl font-black text-brand-text dark:text-white tracking-[0.2em] uppercase italic leading-none">TESSY<span className="text-brand-primary">NAILS</span></h2>
+                </div>
+
+                <div className="pt-2">
+                  <CardTitle className="text-2xl font-black text-brand-text dark:text-white tracking-tighter">
+                    {isRegisterMode ? "Bem-vinda" : "Boas-vindas"}
+                  </CardTitle>
+                  <CardDescription className="text-[10px] font-black text-textSub dark:text-slate-500 uppercase tracking-[0.15em] mt-1.5 leading-relaxed">
+                    {isRegisterMode ? "Crie sua conta de beleza hoje" : "Continue sua jornada luxuosa"}
+                  </CardDescription>
+                </div>
               </CardHeader>
 
               <form onSubmit={isRegisterMode ? handleEmailRegister : handleEmailLogin}>
-                <CardContent className="space-y-6 px-4 sm:px-10">
+                <CardContent className="space-y-3.5 px-6 sm:px-8">
                   <AnimatePresence mode="wait">
                     {isRegisterMode && (
                       <motion.div 
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="space-y-2"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-1.5"
                       >
                         <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400 dark:text-slate-500">Nome Completo</Label>
                         <div className="relative group">
@@ -359,14 +287,14 @@ function LoginPageContent() {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required 
-                            className="h-14 pl-12 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-white/5 font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
+                            className="h-14 pl-12 rounded-xl bg-[#F8F6F3] dark:bg-slate-950/30 border-white/80 dark:border-white/5 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.04),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] dark:shadow-none font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
                           />
                         </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400 dark:text-slate-500">Endereço de E-mail</Label>
                     <div className="relative group">
                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={18} />
@@ -377,12 +305,12 @@ function LoginPageContent() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required 
-                        className="h-14 pl-12 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-white/5 font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
+                        className="h-14 pl-12 rounded-xl bg-[#F8F6F3] dark:bg-slate-950/30 border-white/80 dark:border-white/5 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.04),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] dark:shadow-none font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
                       />
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400 dark:text-slate-500">Senha Segura</Label>
                     <div className="relative group">
                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={18} />
@@ -395,16 +323,16 @@ function LoginPageContent() {
                         required 
                         autoComplete="current-password"
                         minLength={6}
-                        className="h-14 pl-12 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 border-slate-200/50 dark:border-white/5 font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
+                        className="h-14 pl-12 rounded-xl bg-[#F8F6F3] dark:bg-slate-950/30 border-white/80 dark:border-white/5 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.04),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] dark:shadow-none font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
                       />
                     </div>
                   </div>
                 </CardContent>
                 
-                <CardFooter className="flex flex-col space-y-6 px-4 sm:px-10 pb-12 pt-6">
+                <CardFooter className="flex flex-col space-y-4 px-6 sm:px-8 pb-8 pt-3">
                   <Button 
                     type="submit" 
-                    className="w-full h-15 rounded-2xl bg-linear-to-br from-brand-primary to-brand-secondary hover:opacity-90 text-white font-black uppercase tracking-[0.2em] shadow-xl shadow-brand-primary/25 transition-all duration-300 hover:shadow-brand-primary/40 hover:-translate-y-1 active:scale-95 py-0" 
+                    className="w-full h-15 rounded-2xl bg-linear-to-br from-[#6F4E37] to-[#8C6246] text-white font-black uppercase tracking-[0.2em] shadow-[6px_6px_14px_rgba(111,78,55,0.25),-4px_-4px_10px_rgba(255,255,255,0.8)] transition-all duration-300 hover:opacity-90 hover:shadow-[8px_8px_20px_rgba(111,78,55,0.35),-6px_-6px_15px_rgba(255,255,255,0.9)] hover:-translate-y-0.5 active:scale-[0.97] active:shadow-[inset_3px_3px_8px_rgba(0,0,0,0.2)] py-0" 
                     disabled={loading}
                   >
                     {loading ? (
@@ -414,28 +342,28 @@ function LoginPageContent() {
                       </div>
                     ) : (
                       <span className="flex items-center gap-2">
-                        {isRegisterMode ? "Confirmar Cadastro" : "Entrar Agora"}
+                        {isRegisterMode ? "Confirmar" : "Entrar Agora"}
                         <ArrowRight size={20} className="ml-1" />
                       </span>
                     )}
                   </Button>
                   
-                  <div className="flex flex-col items-center gap-4">
+                  <div className="flex flex-col items-center w-full gap-3">
                     <button
                       type="button"
                       onClick={() => router.push(isRegisterMode ? '/login' : '/login?mode=register')}
                       className="text-[11px] font-black text-slate-400 dark:text-slate-500 hover:text-brand-primary dark:hover:text-brand-accent transition-colors uppercase tracking-[0.25em]"
                     >
                       {isRegisterMode 
-                        ? "Já tem uma conta? Clique para entrar" 
-                        : "Não tem conta? Crie em segundos"
+                        ? "Já tem conta? Entrar" 
+                        : "Não tem conta? Crie agora"
                       }
                     </button>
 
-                    <div className="relative w-full flex items-center gap-4 py-2">
-                      <div className="h-px bg-slate-100 dark:bg-white/5 grow" />
+                    <div className="relative w-full flex items-center gap-3 py-1">
+                      <div className="h-px bg-slate-200 dark:bg-white/5 grow" />
                       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 dark:text-slate-600">Ou</span>
-                      <div className="h-px bg-slate-100 dark:bg-white/5 grow" />
+                      <div className="h-px bg-slate-200 dark:bg-white/5 grow" />
                     </div>
                     
                     <Button
@@ -446,7 +374,7 @@ function LoginPageContent() {
                       disabled={loading}
                     >
                       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                      Entrar com Google
+                      <span>Entrar com Google</span>
                     </Button>
                   </div>
                 </CardFooter>
@@ -456,9 +384,9 @@ function LoginPageContent() {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={!showSplash ? { opacity: 1 } : {}}
-              className="mt-8 flex items-center justify-center gap-4 opacity-40 lg:hidden"
+              className="mt-6 flex items-center justify-center gap-3 opacity-40"
             >
-               <Fingerprint size={20} className="text-slate-400" />
+               <Fingerprint size={16} className="text-slate-400" />
                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-[0.4em]">
                  Acesso Seguro & Criptografado
                </p>

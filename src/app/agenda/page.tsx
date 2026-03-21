@@ -228,8 +228,8 @@ export default function AgendaPage() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger
                 render={
-                  <Button className="h-16 px-10 bg-white text-brand-primary hover:bg-brand-primary/5 font-black text-lg rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:-translate-y-1">
-                    <Plus size={28} className="mr-4" />
+                  <Button size="lg" className="h-14 px-8 bg-white text-brand-primary hover:bg-white/90 font-black shadow-premium">
+                    <Plus size={24} className="mr-3" />
                     Novo Agendamento
                   </Button>
                 }
@@ -335,7 +335,8 @@ export default function AgendaPage() {
                         render={
                           <Button 
                             onClick={() => setIsDialogOpen(true)}
-                            className="h-14 px-8 rounded-xl bg-brand-primary hover:opacity-90 text-white font-bold shadow-lg shadow-brand-primary/20"
+                            size="lg"
+                            className="h-14 px-8 font-bold"
                           >
                             <Plus size={20} className="mr-2" />
                             Agendar Cliente
@@ -395,21 +396,14 @@ export default function AgendaPage() {
                             }}
                           >
                             <div className="flex items-center justify-between mb-1">
-                              <h4 className="text-lg font-black text-slate-900 dark:text-white truncate group-hover:text-brand-primary transition-colors pr-2">
+                              <h4 className="text-[1.05rem] font-bold text-brand-text-main dark:text-white line-clamp-2 leading-snug group-hover:text-brand-primary transition-colors pr-2">
                                 {app.client?.name || clientUsers.find((user) => user.uid === app.clientId)?.name || "Cliente não encontrada"}
                               </h4>
                               <Badge variant={
-                                app.status === "completed" ? "secondary" : 
-                                app.status === "confirmed" ? "default" : 
-                                app.status === "cancelled" ? "destructive" : "outline"
-                              } className={cn(
-                                "capitalize font-black text-[10px] px-3 h-6 rounded-lg",
-                                app.status === "confirmed" && "bg-brand-secondary/10 text-brand-secondary dark:bg-brand-secondary/20 dark:text-brand-accent border-0",
-                                app.status === "pending" && "bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning/80 border-0",
-                                app.status === "completed" && "bg-success/10 text-success dark:bg-success/20 dark:text-success/80 border-0",
-                                app.status === "cancelled" && "bg-brand-primary/10 text-brand-primary dark:bg-brand-primary/20 dark:text-brand-accent border-0",
-                                app.status === "no_show" && "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive/80 border-0"
-                              )}>
+                                app.status === "confirmed" ? "success" : 
+                                app.status === "pending" ? "warning" : 
+                                app.status === "cancelled" || app.status === "no_show" ? "destructive" : "default"
+                              } className="text-[9px] font-bold uppercase px-2 py-0.5 border-0 shadow-sm">
                                 {app.status === "confirmed" ? "Confirmado" : 
                                  app.status === "pending" ? "Pendente" : 
                                  app.status === "completed" ? "Concluído" : 
@@ -417,7 +411,7 @@ export default function AgendaPage() {
                               </Badge>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-bold text-brand-text-sub opacity-70 truncate">{app.service?.name || "Serviço"}</span>
+                              <span className="text-[13px] font-bold text-brand-text-sub opacity-80 line-clamp-1">{app.service?.name || "Serviço"}</span>
                               <span className="text-brand-accent/40 text-xs">•</span>
                               <span className="text-sm font-black text-brand-text-main">R$ {app.service?.price || 0}</span>
                             </div>

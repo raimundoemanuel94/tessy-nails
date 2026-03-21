@@ -35,7 +35,7 @@ export function ServiceSearch({
     <div className="mb-8 space-y-4 px-2">
       {/* Search Bar */}
       <div className="relative group">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-primary text-brand-text-muted">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-brand-primary text-brand-text-sub">
           <Search size={20} strokeWidth={2.5} />
         </div>
         <input
@@ -43,7 +43,7 @@ export function ServiceSearch({
           value={searchQuery}
           onChange={handleSearchChange}
           placeholder={placeholder}
-          className="w-full h-14 rounded-2xl border border-brand-border bg-white py-3 pl-12 pr-4 text-brand-text font-bold placeholder:text-brand-text-muted/60 focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-sm"
+          className="w-full h-14 rounded-2xl border border-brand-soft bg-white py-3 pl-12 pr-4 text-brand-text-main font-bold placeholder:text-brand-text-sub/60 focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-sm"
         />
       </div>
 
@@ -57,7 +57,7 @@ export function ServiceSearch({
             "h-10 rounded-xl font-bold transition-all",
             showOnlyActive 
               ? "bg-brand-primary text-white hover:bg-brand-secondary border-none shadow-lg shadow-brand-primary/20" 
-              : "border-brand-border text-brand-text-muted hover:bg-brand-primary/5"
+              : "border-brand-soft text-brand-text-sub hover:bg-brand-primary/5"
           )}
         >
           <Filter className="mr-2 h-4 w-4" />

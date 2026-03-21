@@ -76,7 +76,7 @@ export function ClientProfileCard({
         </div>
 
         <div className="min-w-0 flex-1">
-          <h4 className="truncate text-xl font-black tracking-tight text-slate-900">{client.name}</h4>
+          <h4 className="line-clamp-2 text-xl font-black tracking-tight text-brand-text-main leading-snug">{client.name}</h4>
           <div className={`mt-2 inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold ${statusConfig.className}`}>
             <Shield className="h-3.5 w-3.5" />
             Conta {statusConfig.label}

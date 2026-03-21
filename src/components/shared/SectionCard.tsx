@@ -15,11 +15,8 @@ interface SectionCardProps {
 
 export function SectionCard({ title, description, children, actions, icon: Icon, className }: SectionCardProps) {
   return (
-    <Card className={cn(
-      "rounded-2xl border border-brand-accent/10 bg-white shadow-premium transition-all duration-300",
-      className
-    )}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-8 pb-4">
+    <Card className={cn("transition-all duration-300", className)}>
+      <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-4">
           {Icon && (
             <div className="p-3 rounded-2xl bg-linear-to-br from-brand-primary/10 to-brand-secondary/10 border border-brand-primary/20 dark:border-brand-primary/20 shadow-inner">
@@ -39,7 +36,7 @@ export function SectionCard({ title, description, children, actions, icon: Icon,
         </div>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </CardHeader>
-      <CardContent className="p-8 pt-4">
+      <CardContent>
         {children}
       </CardContent>
     </Card>

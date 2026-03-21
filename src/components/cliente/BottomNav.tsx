@@ -26,22 +26,19 @@ export function BottomNav() {
     : navItems;
 
   return (
-    <div className="fixed inset-x-0 bottom-6 z-50 px-6 pointer-events-none sm:hidden max-w-lg mx-auto">
-      <nav className="flex h-20 items-center justify-around gap-1 rounded-[2.5rem] border border-white/40 bg-white/70 px-2 shadow-premium-xl backdrop-blur-2xl pointer-events-auto">
+    <div className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pointer-events-none sm:hidden max-w-lg mx-auto">
+      <nav className="flex h-16 items-center justify-around gap-1 rounded-full border border-[#EFEAE4]/50 bg-white/80 px-2 shadow-lg backdrop-blur-xl pointer-events-auto">
         {items.map((item) => {
           if ('isSpecial' in item && item.isSpecial) {
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="relative -top-6 flex flex-col items-center"
+                className="relative -top-5 flex flex-col items-center"
               >
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-brand-primary to-brand-secondary p-1 shadow-premium-xl ring-4 ring-white transition-all duration-300 hover:scale-110 active:scale-95">
-                  <Plus className="h-8 w-8 text-white" strokeWidth={4} />
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#C89B7B] p-1 shadow-lg ring-4 ring-white transition-all duration-300 hover:scale-110 active:scale-95">
+                  <Plus className="h-7 w-7 text-white" strokeWidth={3} />
                 </div>
-                <span className="mt-1 text-[10px] font-black uppercase tracking-widest text-brand-primary">
-                  {item.label}
-                </span>
               </Link>
             );
           }
@@ -52,22 +49,22 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-1 flex-col items-center justify-center gap-1.5 transition-all duration-300"
+              className="flex flex-1 flex-col items-center justify-center gap-1 transition-all duration-300"
             >
               <div
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-2xl transition-all duration-300",
+                  "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
                   isActive 
-                    ? "bg-brand-primary/10 text-brand-primary shadow-inner" 
-                    : "text-brand-text-muted hover:bg-brand-primary/5 hover:text-brand-primary"
+                    ? "text-[#C89B7B]" 
+                    : "text-[#6B6B6B] hover:text-[#C89B7B]"
                 )}
               >
-                <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
               </div>
               <span
                 className={cn(
-                  "text-[9px] font-bold uppercase tracking-wider transition-colors duration-300",
-                  isActive ? "text-brand-primary font-black scale-105" : "text-brand-text-muted opacity-80"
+                  "text-[9px] font-medium transition-colors duration-300",
+                  isActive ? "text-[#C89B7B] font-semibold" : "text-[#6B6B6B]"
                 )}
               >
                 {item.label}

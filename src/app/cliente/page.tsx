@@ -118,140 +118,171 @@ export default function ClientePage() {
   ];
 
   return (
-    <div className="px-5 pt-8 max-w-2xl mx-auto space-y-10">
-      {/* Premium Hero Section */}
-      <section className="relative overflow-hidden rounded-[3rem] bg-linear-to-br from-brand-primary to-brand-secondary p-8 text-white shadow-2xl shadow-brand-primary/30">
-        <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -left-12 -bottom-12 h-48 w-48 rounded-full bg-brand-accent/20 blur-3xl" />
+    <div className="px-5 pt-6 max-w-2xl mx-auto space-y-8 pb-10">
+      {/* Premium HEADER (Hero Card) */}
+      <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#6F4E37] to-[#A98B73] p-6 text-white shadow-premium-xl">
+        <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-[#C89B7B]/20 blur-3xl" />
         
-        <div className="relative z-10 space-y-4">
-          <div className="flex items-center gap-3">
-             <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
-               <Sparkles className="text-white" size={24} />
-             </div>
-             <div>
-               <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/80">{getGreeting()}</p>
-               <h1 className="text-3xl font-black tracking-tight">{firstName}</h1>
-             </div>
+        <div className="relative z-10 flex flex-col space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+               <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20">
+                 <UserIcon className="text-white" size={24} />
+               </div>
+               <div>
+                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70">{getGreeting()}</p>
+                 <h1 className="text-xl font-semibold tracking-tight">{firstName}</h1>
+                 <p className="text-[10px] text-white/60 mt-0.5">
+                   {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
+                 </p>
+               </div>
+            </div>
           </div>
           
-          <p className="text-sm leading-relaxed text-white/90 font-medium max-w-[280px]">
-            Seu momento de beleza está apenas a alguns toques de distância.
-          </p>
+          <div className="space-y-4">
+            <p className="text-sm font-light text-white/90 leading-relaxed max-w-[240px]">
+              Sua beleza e bem-estar em um só lugar. Reserve seu momento hoje.
+            </p>
 
-          <Button 
-            className="w-full h-14 rounded-2xl bg-white text-brand-primary font-black text-base shadow-premium-xl hover:bg-white/90 active:scale-95 transition-all mt-4 border-none"
-            onClick={() => router.push("/cliente/agendar")}
-          >
-            <Plus className="mr-3" size={24} strokeWidth={4} />
-            AGENDAR AGORA
-          </Button>
+            <Button 
+              className="w-full h-12 rounded-full bg-[#C89B7B] text-white font-semibold text-sm shadow-lg hover:bg-[#B07A5A] active:scale-95 transition-all border-none"
+              onClick={() => router.push("/cliente/agendar")}
+            >
+              <Plus className="mr-2" size={18} strokeWidth={3} />
+              Agendar agora
+            </Button>
+          </div>
         </div>
       </section>
 
-      {/* Next Appointment Card */}
+      {/* NEXT APPOINTMENT CARD */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between px-2">
-          <h2 className="text-xl font-black text-brand-text tracking-tight">Próximo Horário</h2>
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-lg font-semibold text-[#2C2C2C]">Seu próximo horário</h2>
           {nextAppointment && (
-            <button onClick={() => router.push("/cliente/agendamentos")} className="text-xs font-bold text-brand-primary uppercase tracking-widest">Ver Todos</button>
+            <button 
+              onClick={() => router.push("/cliente/agendamentos")} 
+              className="text-xs font-medium text-[#6F4E37] underline underline-offset-4"
+            >
+              Ver todos
+            </button>
           )}
         </div>
 
         {nextAppointment ? (
-          <div className="group relative overflow-hidden rounded-[2.5rem] border border-brand-border bg-white p-6 shadow-xl shadow-brand-primary/5 transition-all hover:shadow-2xl hover:shadow-brand-primary/10">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-text-sub opacity-50">Próxima Visita</span>
-                <h3 className="text-xl font-black text-brand-text-main tracking-tight">{nextAppointment.service.name}</h3>
+          <Card className="rounded-2xl border-[#EFEAE4] bg-white shadow-sm overflow-hidden hover:shadow-md transition-all group">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B]">Serviço</span>
+                  <h3 className="text-base font-semibold text-[#2C2C2C]">{nextAppointment.service.name}</h3>
+                </div>
+                <Badge 
+                  className={cn(
+                    "status-badge",
+                    nextAppointment.status === 'confirmed' ? "bg-[#4CAF50]/10 text-[#4CAF50]" :
+                    nextAppointment.status === 'pending' ? "bg-[#FFC107]/10 text-[#FFC107]" :
+                    "bg-[#F44336]/10 text-[#F44336]"
+                  )}
+                >
+                  {nextAppointment.status === 'confirmed' ? 'Confirmado' : 
+                   nextAppointment.status === 'pending' ? 'Pendente' : 'Cancelado'}
+                </Badge>
               </div>
-              <Badge variant={nextStatus?.variant || "default"} size="xs" className="border-none shadow-none">
-                {nextAppointment.status}
-              </Badge>
-            </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-brand-background border border-brand-border/40">
-                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-brand-primary">
-                  <Calendar size={18} />
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#F8F6F3]">
+                  <Calendar size={16} className="text-[#6F4E37]" />
+                  <span className="text-xs font-semibold text-[#2C2C2C] tabular-nums">
+                    {format(nextAppointment.date, "dd/MM")}
+                  </span>
                 </div>
-                <div>
-                  <p className="text-[9px] font-bold text-brand-text-muted uppercase tracking-wider">Data</p>
-                  <p className="text-sm font-black text-brand-text">{format(nextAppointment.date, "dd 'de' MMMM", { locale: ptBR })}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-brand-background border border-brand-border/40">
-                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-brand-secondary">
-                  <Clock size={18} />
-                </div>
-                <div>
-                  <p className="text-[9px] font-bold text-brand-text-muted uppercase tracking-wider">Horário</p>
-                  <p className="text-sm font-black text-brand-text font-mono tracking-wider">{nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}</p>
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#F8F6F3]">
+                  <Clock size={16} className="text-[#6F4E37]" />
+                  <span className="text-xs font-semibold text-[#2C2C2C] tabular-nums">
+                    {nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}
+                  </span>
                 </div>
               </div>
-            </div>
-            
-            <Button 
-              variant="outline"
-              className="w-full mt-6 h-12 rounded-2xl border-brand-border text-brand-text font-bold hover:bg-brand-background hover:text-brand-primary transition-all"
-              onClick={() => router.push("/cliente/agendamentos")}
-            >
-              Ver Detalhes
-            </Button>
-          </div>
+
+              <Button 
+                variant="ghost"
+                className="w-full text-xs font-semibold text-[#6F4E37] hover:bg-[#6F4E37]/5 rounded-xl h-10"
+                onClick={() => router.push("/cliente/agendamentos")}
+              >
+                Ver detalhes
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
-          <div className="flex flex-col items-center justify-center p-10 rounded-[2.5rem] border border-dashed border-brand-border bg-white/50 text-center space-y-4">
-             <div className="h-16 w-16 rounded-full bg-brand-primary/5 flex items-center justify-center text-brand-primary/40">
-               <Calendar size={32} />
+          <div className="flex flex-col items-center justify-center p-8 rounded-2xl border border-dashed border-[#EFEAE4] bg-white text-center space-y-4">
+             <div className="h-14 w-14 rounded-full bg-[#F8F6F3] flex items-center justify-center text-[#A98B73]">
+               <Calendar size={28} />
              </div>
              <div className="space-y-1">
-               <p className="font-black text-brand-text">Nenhum agendamento ativo</p>
-               <p className="text-xs text-brand-text-muted max-w-[200px] mx-auto">Sua próxima experiência está esperando por você.</p>
+               <p className="text-sm font-semibold text-[#2C2C2C]">Nenhum agendamento ativo</p>
+               <p className="text-[11px] text-[#6B6B6B]">Reserve seu horário em poucos segundos</p>
              </div>
              <Button 
-               variant="link" 
-               className="text-brand-primary font-bold decoration-2 underline-offset-4"
+               className="bg-[#C89B7B] hover:bg-[#B07A5A] text-white rounded-full text-xs px-6 h-9"
                onClick={() => router.push("/cliente/agendar")}
              >
-               Reservar meu horário
+               Agendar agora
              </Button>
           </div>
         )}
       </section>
 
-      {/* Quick Access Grid */}
+      {/* QUICK ACTIONS GRID (2x2) */}
       <section className="space-y-4">
-        <h2 className="text-xl font-black text-brand-text tracking-tight px-2">Acesso Rápido</h2>
+        <h2 className="text-lg font-semibold text-[#2C2C2C] px-1">Atalhos rápidos</h2>
         <div className="grid grid-cols-2 gap-4">
           {quickActions.map((action) => (
             <button
               key={action.id}
               onClick={() => router.push(action.href)}
-              className={cn(
-                "group relative overflow-hidden rounded-[2rem] border border-brand-border bg-white p-5 text-left transition-all hover:scale-[1.02] hover:shadow-xl active:scale-95",
-              )}
+              className="flex flex-col p-4 rounded-xl bg-white border border-[#EFEAE4] shadow-sm text-left transition-all hover:scale-[1.02] hover:shadow-md active:scale-95 group"
             >
-              <div className={cn(
-                "mb-4 flex h-12 w-12 items-center justify-center rounded-2xl transition-transform group-hover:scale-110",
-                "bg-linear-to-br", action.gradient
-              )}>
-                <action.icon className={action.iconColor} size={22} strokeWidth={2.5} />
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[#F8F6F3] text-[#6F4E37] transition-transform group-hover:scale-110">
+                <action.icon size={20} strokeWidth={2} />
               </div>
-              <p className="text-sm font-black text-brand-text tracking-tight">{action.title}</p>
-              <p className="text-[10px] font-medium text-brand-text-muted leading-relaxed mt-1">{action.description}</p>
+              <p className="text-sm font-semibold text-[#2C2C2C] leading-none mb-1">{action.title}</p>
+              <p className="text-[10px] text-[#6B6B6B]">{action.description}</p>
             </button>
           ))}
         </div>
       </section>
 
+      {/* OPTIONAL SECTION (SMART UX) */}
+      {services.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-[#2C2C2C] px-1">Sugestões para você</h2>
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-1 px-1 scrollbar-hide">
+            {services.map((service) => (
+              <div 
+                key={service.id}
+                className="min-w-[140px] p-3 rounded-xl bg-white border border-[#EFEAE4] shadow-sm space-y-2 flex-shrink-0"
+              >
+                <div className="h-20 w-full rounded-lg bg-[#F8F6F3] flex items-center justify-center text-[#A98B73]">
+                  <Sparkles size={24} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-[#2C2C2C] line-clamp-1">{service.name}</p>
+                  <p className="text-[10px] text-[#6B6B6B]">Explorar serviço</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Footer Branding */}
-      <footer className="pt-10 flex flex-col items-center justify-center gap-4 text-center pb-8 opacity-50">
+      <footer className="pt-6 flex flex-col items-center justify-center gap-3 text-center opacity-40">
         <div className="flex items-center gap-2">
-          <Sparkle className="text-brand-primary" size={12} />
-          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-text">Tessy Nails</span>
+          <Sparkle className="text-[#6F4E37]" size={10} />
+          <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#2C2C2C]">Tessy Nails</span>
         </div>
-        <p className="text-[10px] font-bold text-brand-text-muted">A experiência premium que você merece.</p>
       </footer>
     </div>
   );
