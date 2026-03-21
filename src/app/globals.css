@@ -97,14 +97,38 @@
     overscroll-behavior-y: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Evitar pull-to-refresh em navegadores mobile */
+    touch-action: pan-x pan-y;
   }
   html {
     @apply font-sans;
     overscroll-behavior-y: none;
+    /* Garantir que o app ocupe a viewport inteira sem saltos */
+    height: 100%;
+    height: 100dvh;
   }
 }
 
 @layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .min-h-dvh {
+    min-height: 100dvh;
+  }
+  .h-dvh {
+    height: 100dvh;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
   .glass {
     @apply bg-white/70 backdrop-blur-xl border border-white/20;
   }

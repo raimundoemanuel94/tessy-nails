@@ -213,7 +213,7 @@ function LoginPageContent() {
         {showSplash && <SplashLoader onComplete={() => setShowSplash(false)} />}
       </AnimatePresence>
 
-      <div className="h-dvh w-full flex items-center justify-center overflow-hidden bg-[#FAF9F6] dark:bg-slate-950 font-sans relative px-4 sm:p-6 md:p-8">
+      <div className="h-dvh w-full flex flex-col items-center justify-start pt-10 sm:justify-center sm:pt-0 overflow-hidden bg-[#FAF9F6] dark:bg-slate-950 font-sans relative px-2 sm:px-6 md:px-8">
         
         {/* Immersive Background Elements */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -242,7 +242,7 @@ function LoginPageContent() {
                     animate={{ scale: 1, opacity: 1 }}
                     className="flex items-center justify-center"
                   >
-                    <img src="/images/logo/logo-full.svg" alt="Tessy Nails" className="h-[90px] sm:h-[110px] w-auto drop-shadow-sm" />
+                    <img src="/images/logo/logo-full.svg" alt="Tessy Nails" className="h-[80px] sm:h-[110px] w-auto drop-shadow-sm" />
                   </motion.div>
                 </div>
 
@@ -318,7 +318,7 @@ function LoginPageContent() {
                   </div>
                 </CardContent>
                 
-                <CardFooter className="flex flex-col space-y-3 px-2 sm:px-8 pb-4 sm:pb-8 pt-2">
+                <CardFooter className="flex flex-col space-y-2.5 px-2 sm:px-8 pb-4 sm:pb-8 pt-1">
                   <Button 
                     type="submit" 
                     className="w-full h-12 sm:h-14 rounded-2xl bg-linear-to-br from-[#6F4E37] to-[#8C6246] text-white font-black uppercase tracking-[0.2em] shadow-[4px_4px_10px_rgba(111,78,55,0.25)] sm:shadow-[6px_6px_14px_rgba(111,78,55,0.25),-4px_-4px_10px_rgba(255,255,255,0.8)] transition-all duration-300 hover:opacity-90 hover:shadow-[8px_8px_20px_rgba(111,78,55,0.35)] active:scale-[0.97] py-0" 
@@ -359,11 +359,11 @@ function LoginPageContent() {
                       type="button"
                       variant="outline"
                       onClick={handleGoogleLogin}
-                      className="w-full h-12 sm:h-14 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-slate-800/50 font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-md flex items-center justify-center gap-3"
+                      className="w-full h-11 sm:h-14 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-slate-800/50 font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-md flex items-center justify-center gap-3"
                       disabled={loading}
                     >
                       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                      <span>Entrar com Google</span>
+                      <span>Google</span>
                     </Button>
                   </div>
                 </CardFooter>

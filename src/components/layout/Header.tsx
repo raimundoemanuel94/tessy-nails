@@ -56,14 +56,14 @@ export function Header() {
   ];
 
   return (
-    <header className="h-20 flex items-center justify-between px-6 sticky top-0 pt-[env(safe-area-inset-top)] z-30 transition-all duration-300 border-b border-brand-border/40 bg-white/40 backdrop-blur-xl">
+    <header className="h-16 md:h-20 flex items-center justify-between px-4 md:px-6 sticky top-0 pt-[env(safe-area-inset-top)] z-30 transition-all duration-300 bg-brand-primary text-white shadow-lg">
       <div className="flex items-center gap-4">
         <div className="md:hidden">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger
               render={
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu size={24} />
+               <Button variant="ghost" size="icon" className="md:hidden text-white hover:bg-white/10">
+                  <Menu size={20} />
                 </Button>
               }
             />
@@ -119,7 +119,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-          <img src="/images/logo/logo-compact.svg" alt="Tessy Nails" className="h-8 w-auto drop-shadow-sm transition-transform hover:scale-105" />
+          <img src="/images/logo/logo-compact.svg" alt="Tessy Nails" className="h-7 w-auto drop-shadow-md brightness-0 invert" />
         </div>
       </div>
 
@@ -133,9 +133,9 @@ export function Header() {
           </div>
         </div>
 
-        <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-xl bg-white/60 border border-brand-border/50 text-brand-text-muted hover:text-brand-primary hover:bg-brand-primary/5 transition-all shadow-sm">
-          <Bell size={20} strokeWidth={2} />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-brand-primary rounded-full border-2 border-white animate-pulse" />
+        <Button variant="ghost" size="icon" className="relative h-9 w-9 md:h-10 md:w-10 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all shadow-sm border-none">
+          <Bell size={18} strokeWidth={2} />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full border-2 border-brand-primary animate-pulse" />
         </Button>
 
         <DropdownMenu>
@@ -149,8 +149,8 @@ export function Header() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden lg:flex flex-col items-start leading-tight">
-                  <span className="text-sm font-bold text-brand-text">{String(user?.name || "")}</span>
-                  <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-tighter">Administrador</span>
+                  <span className="text-sm font-bold text-white">{String(user?.name || "")}</span>
+                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-tighter">Administrador</span>
                 </div>
               </Button>
             }

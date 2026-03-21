@@ -118,22 +118,22 @@ export default function ClientePage() {
   ];
 
   return (
-    <div className="px-5 pt-6 max-w-2xl mx-auto space-y-8 pb-10">
-      {/* Premium HEADER (Hero Card) */}
-      <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#6F4E37] to-[#A98B73] p-6 text-white shadow-premium-xl">
+    <div className="w-full mx-auto pb-32">
+      {/* Premium HEADER (Hero Card Full Bleed) */}
+      <section className="relative overflow-hidden rounded-b-[2.5rem] bg-linear-to-br from-[#6F4E37] to-[#A98B73] px-6 pb-8 pt-[env(safe-area-inset-top)] text-white shadow-[0_12px_40px_rgba(111,78,55,0.15)]">
         <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
         <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-[#C89B7B]/20 blur-3xl" />
         
-        <div className="relative z-10 flex flex-col space-y-6">
+        <div className="relative z-10 flex flex-col space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-               <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20">
-                 <UserIcon className="text-white" size={24} />
+               <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20">
+                 <UserIcon className="text-white" size={20} />
                </div>
                <div>
-                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70">{getGreeting()}</p>
-                 <h1 className="text-xl font-semibold tracking-tight">{firstName}</h1>
-                 <p className="text-[10px] text-white/60 mt-0.5">
+                 <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-white/70">{getGreeting()}</p>
+                 <h1 className="text-lg font-bold tracking-tight leading-none">{firstName}</h1>
+                 <p className="text-[9px] text-white/60 mt-0.5">
                    {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
                  </p>
                </div>
@@ -141,25 +141,26 @@ export default function ClientePage() {
           </div>
           
           <div className="space-y-4">
-            <p className="text-sm font-light text-white/90 leading-relaxed max-w-[240px]">
+            <p className="text-xs font-light text-white/90 leading-relaxed max-w-[260px]">
               Sua beleza e bem-estar em um só lugar. Reserve seu momento hoje.
             </p>
 
             <Button 
-              className="w-full h-12 rounded-full bg-[#C89B7B] text-white font-semibold text-sm shadow-lg hover:bg-[#B07A5A] active:scale-95 transition-all border-none"
+              className="w-full h-11 rounded-xl bg-white text-brand-primary font-bold text-xs shadow-lg hover:bg-white/90 active:scale-95 transition-all border-none"
               onClick={() => router.push("/cliente/agendar")}
             >
-              <Plus className="mr-2" size={18} strokeWidth={3} />
+              <Plus className="mr-2" size={16} strokeWidth={3} />
               Agendar agora
             </Button>
           </div>
         </div>
       </section>
 
-      {/* NEXT APPOINTMENT CARD */}
-      <section className="space-y-4">
+      <div className="px-5 mt-6 space-y-8 max-w-2xl mx-auto">
+        {/* NEXT APPOINTMENT CARD */}
+        <section className="space-y-3">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-lg font-semibold text-[#2C2C2C]">Seu próximo horário</h2>
+          <h2 className="text-base font-bold text-brand-text-main tracking-tight">Seu próximo horário</h2>
           {nextAppointment && (
             <button 
               onClick={() => router.push("/cliente/agendamentos")} 
@@ -235,20 +236,20 @@ export default function ClientePage() {
       </section>
 
       {/* QUICK ACTIONS GRID (2x2) */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-[#2C2C2C] px-1">Atalhos rápidos</h2>
-        <div className="grid grid-cols-2 gap-4">
+      <section className="space-y-3">
+        <h2 className="text-base font-bold text-brand-text-main tracking-tight px-1">Atalhos rápidos</h2>
+        <div className="grid grid-cols-2 gap-3">
           {quickActions.map((action) => (
             <button
               key={action.id}
               onClick={() => router.push(action.href)}
-              className="flex flex-col p-4 rounded-xl bg-white border border-[#EFEAE4] shadow-sm text-left transition-all hover:scale-[1.02] hover:shadow-md active:scale-95 group"
+              className="flex flex-col p-3.5 rounded-2xl bg-white border border-brand-soft shadow-sm text-left transition-all active:scale-95 group"
             >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[#F8F6F3] text-[#6F4E37] transition-transform group-hover:scale-110">
-                <action.icon size={20} strokeWidth={2} />
+              <div className="mb-2.5 flex h-9 w-9 items-center justify-center rounded-xl bg-brand-background text-brand-primary transition-transform group-hover:scale-110">
+                <action.icon size={18} strokeWidth={2.5} />
               </div>
-              <p className="text-sm font-semibold text-[#2C2C2C] leading-none mb-1">{action.title}</p>
-              <p className="text-[10px] text-[#6B6B6B]">{action.description}</p>
+              <p className="text-xs font-bold text-brand-text-main leading-none mb-1">{action.title}</p>
+              <p className="text-[9px] font-medium text-brand-text-sub">{action.description}</p>
             </button>
           ))}
         </div>
@@ -262,10 +263,10 @@ export default function ClientePage() {
             {services.map((service) => (
               <div 
                 key={service.id}
-                className="min-w-[140px] p-3 rounded-xl bg-white border border-[#EFEAE4] shadow-sm space-y-2 flex-shrink-0"
+                className="min-w-[130px] p-2.5 rounded-2xl bg-white border border-brand-soft shadow-sm space-y-2 flex-shrink-0"
               >
-                <div className="h-20 w-full rounded-lg bg-[#F8F6F3] flex items-center justify-center text-[#A98B73]">
-                  <Sparkles size={24} />
+                <div className="h-16 w-full rounded-xl bg-brand-background flex items-center justify-center text-brand-secondary">
+                  <Sparkles size={20} />
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-[#2C2C2C] line-clamp-1">{service.name}</p>
@@ -283,7 +284,8 @@ export default function ClientePage() {
           <Sparkle className="text-[#6F4E37]" size={10} />
           <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#2C2C2C]">Tessy Nails</span>
         </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }

@@ -29,7 +29,7 @@ export default function ClienteLayout({
   }
 
   return (
-    <div className="relative min-h-screen bg-brand-background overflow-x-hidden selection:bg-brand-primary/20">
+    <div className="relative h-dvh flex flex-col bg-brand-background overflow-hidden selection:bg-brand-primary/20">
       {/* Premium Background Gradients */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
         <div className="absolute -top-[10%] -right-[10%] h-[40%] w-[40%] rounded-full bg-brand-primary/5 blur-[120px]" />
@@ -37,8 +37,8 @@ export default function ClienteLayout({
         <div className="absolute -bottom-[10%] right-[20%] h-[25%] w-[25%] rounded-full bg-brand-secondary/5 blur-[80px]" />
       </div>
 
-      {/* Main Content Shell */}
-      <main className="relative z-10 mx-auto min-h-screen pb-32">
+      {/* Main Content Shell - Scrollable with hide scrollbar */}
+      <main className="relative z-10 flex-1 overflow-y-auto scrollbar-hide pb-24">
         {children}
       </main>
 

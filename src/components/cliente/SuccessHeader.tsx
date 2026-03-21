@@ -9,7 +9,7 @@ interface SuccessHeaderProps {
 
 export function SuccessHeader({ showBackButton = false, onBack }: SuccessHeaderProps) {
   return (
-    <header className="sticky top-0 pt-[env(safe-area-inset-top)] z-50 w-full border-b border-brand-primary/10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 pt-[env(safe-area-inset-top)] z-50 w-full bg-brand-primary text-white shadow-md">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Back Button - Optional */}
         {showBackButton && onBack && (
@@ -17,7 +17,7 @@ export function SuccessHeader({ showBackButton = false, onBack }: SuccessHeaderP
             variant="ghost"
             size="sm"
             onClick={onBack}
-            className="text-brand-primary hover:bg-brand-primary/5"
+            className="text-white hover:bg-white/10"
           >
             ← Voltar
           </Button>
@@ -28,10 +28,10 @@ export function SuccessHeader({ showBackButton = false, onBack }: SuccessHeaderP
 
         {/* Logo/Brand */}
         <div className="flex items-center">
-          <div className="h-8 w-8 rounded-full bg-linear-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
-            <span className="text-white font-bold text-sm">T</span>
+          <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center">
+            <span className="text-brand-primary font-bold text-sm">T</span>
           </div>
-          <img src="/images/logo/logo-compact.svg" alt="Tessy Nails" className="h-8 w-auto drop-shadow-sm ml-2" />
+          <img src="/images/logo/logo-compact.svg" alt="Tessy Nails" className="h-8 w-auto drop-shadow-sm ml-2 brightness-0 invert" />
         </div>
 
         {/* Spacer */}
