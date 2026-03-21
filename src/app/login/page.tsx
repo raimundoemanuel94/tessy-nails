@@ -213,7 +213,7 @@ function LoginPageContent() {
         {showSplash && <SplashLoader onComplete={() => setShowSplash(false)} />}
       </AnimatePresence>
 
-      <div className="min-h-[100dvh] w-full flex items-center justify-center overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans relative p-4 sm:p-6 md:p-8">
+      <div className="h-dvh w-full flex items-center justify-center overflow-hidden bg-[#FAF9F6] dark:bg-slate-950 font-sans relative px-4 sm:p-6 md:p-8">
         
         {/* Immersive Background Elements */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -231,8 +231,8 @@ function LoginPageContent() {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             className="w-full max-w-[420px]"
           >
-            <Card className="w-full border-[#EFEAE4]/60 dark:border-white/5 bg-[#F8F6F3] dark:bg-slate-900/60 backdrop-blur-3xl shadow-[8px_8px_16px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.8)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[2.5rem] overflow-hidden transition-all duration-500">
-              <CardHeader className="space-y-4 text-center pt-8 pb-4 px-6 relative">
+            <Card className="w-full border-none sm:border-solid sm:border border-brand-soft/60 dark:border-white/5 bg-transparent sm:bg-brand-background dark:bg-slate-900/60 backdrop-blur-3xl shadow-none sm:shadow-[8px_8px_16px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.8)] dark:shadow-none sm:dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-none sm:rounded-2xl overflow-hidden transition-all duration-500">
+              <CardHeader className="space-y-2 sm:space-y-4 text-center pt-2 sm:pt-8 pb-2 sm:pb-4 px-2 sm:px-6 relative">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-1.5 bg-linear-to-r from-transparent via-brand-primary/30 to-transparent rounded-full" />
                 
                 {/* Brand Identity Inside Card */}
@@ -242,7 +242,7 @@ function LoginPageContent() {
                     animate={{ scale: 1, opacity: 1 }}
                     className="flex items-center justify-center"
                   >
-                    <img src="/images/logo/logo-full.svg" alt="Tessy Nails" className="h-[120px] w-auto drop-shadow-sm" />
+                    <img src="/images/logo/logo-full.svg" alt="Tessy Nails" className="h-[90px] sm:h-[110px] w-auto drop-shadow-sm" />
                   </motion.div>
                 </div>
 
@@ -257,7 +257,7 @@ function LoginPageContent() {
               </CardHeader>
 
               <form onSubmit={isRegisterMode ? handleEmailRegister : handleEmailLogin}>
-                <CardContent className="space-y-3.5 px-6 sm:px-8">
+                <CardContent className="space-y-2.5 px-2 sm:px-8">
                   <AnimatePresence mode="wait">
                     {isRegisterMode && (
                       <motion.div 
@@ -276,7 +276,7 @@ function LoginPageContent() {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required 
-                            className="h-14 pl-12 rounded-xl bg-[#F8F6F3] dark:bg-slate-950/30 border-white/80 dark:border-white/5 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.04),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] dark:shadow-none font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
+                            className="h-12 sm:h-14 pl-12 rounded-xl bg-white/50 sm:bg-brand-background dark:bg-slate-950/30 border-white/80 dark:border-white/5 sm:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.04),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] shadow-sm dark:shadow-none font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
                           />
                         </div>
                       </motion.div>
@@ -294,7 +294,7 @@ function LoginPageContent() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required 
-                        className="h-14 pl-12 rounded-xl bg-[#F8F6F3] dark:bg-slate-950/30 border-white/80 dark:border-white/5 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.04),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] dark:shadow-none font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
+                        className="h-12 sm:h-14 pl-12 rounded-xl bg-white/50 sm:bg-brand-background dark:bg-slate-950/30 border-white/80 dark:border-white/5 sm:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.04),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] shadow-sm dark:shadow-none font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
                       />
                     </div>
                   </div>
@@ -312,16 +312,16 @@ function LoginPageContent() {
                         required 
                         autoComplete="current-password"
                         minLength={6}
-                        className="h-14 pl-12 rounded-xl bg-[#F8F6F3] dark:bg-slate-950/30 border-white/80 dark:border-white/5 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.04),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] dark:shadow-none font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
+                        className="h-12 sm:h-14 pl-12 rounded-xl bg-white/50 sm:bg-brand-background dark:bg-slate-950/30 border-white/80 dark:border-white/5 sm:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.04),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] shadow-sm dark:shadow-none font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
                       />
                     </div>
                   </div>
                 </CardContent>
                 
-                <CardFooter className="flex flex-col space-y-4 px-6 sm:px-8 pb-8 pt-3">
+                <CardFooter className="flex flex-col space-y-3 px-2 sm:px-8 pb-4 sm:pb-8 pt-2">
                   <Button 
                     type="submit" 
-                    className="w-full h-15 rounded-2xl bg-linear-to-br from-[#6F4E37] to-[#8C6246] text-white font-black uppercase tracking-[0.2em] shadow-[6px_6px_14px_rgba(111,78,55,0.25),-4px_-4px_10px_rgba(255,255,255,0.8)] transition-all duration-300 hover:opacity-90 hover:shadow-[8px_8px_20px_rgba(111,78,55,0.35),-6px_-6px_15px_rgba(255,255,255,0.9)] hover:-translate-y-0.5 active:scale-[0.97] active:shadow-[inset_3px_3px_8px_rgba(0,0,0,0.2)] py-0" 
+                    className="w-full h-12 sm:h-14 rounded-2xl bg-linear-to-br from-[#6F4E37] to-[#8C6246] text-white font-black uppercase tracking-[0.2em] shadow-[4px_4px_10px_rgba(111,78,55,0.25)] sm:shadow-[6px_6px_14px_rgba(111,78,55,0.25),-4px_-4px_10px_rgba(255,255,255,0.8)] transition-all duration-300 hover:opacity-90 hover:shadow-[8px_8px_20px_rgba(111,78,55,0.35)] active:scale-[0.97] py-0" 
                     disabled={loading}
                   >
                     {loading ? (
@@ -359,7 +359,7 @@ function LoginPageContent() {
                       type="button"
                       variant="outline"
                       onClick={handleGoogleLogin}
-                      className="w-full h-14 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-slate-800/50 font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-md flex items-center justify-center gap-3"
+                      className="w-full h-12 sm:h-14 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-slate-800/50 font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-md flex items-center justify-center gap-3"
                       disabled={loading}
                     >
                       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
@@ -373,7 +373,7 @@ function LoginPageContent() {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={!showSplash ? { opacity: 1 } : {}}
-              className="mt-6 flex items-center justify-center gap-3 opacity-40"
+              className="mt-4 flex items-center justify-center gap-2 opacity-40 pb-4"
             >
                <Fingerprint size={16} className="text-slate-400" />
                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-[0.4em]">
