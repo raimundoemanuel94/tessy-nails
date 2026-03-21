@@ -13,7 +13,7 @@ export function ClientFooter() {
               <div className="h-8 w-8 rounded-full bg-linear-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
                 <span className="text-white font-bold text-sm">T</span>
               </div>
-              <span className="text-xl font-bold">Tessy Nails</span>
+              <img src="/images/logo/logo-compact.svg" alt="Tessy Nails" className="h-10 w-auto opacity-70 grayscale contrast-200" />
             </div>
             <p className="mb-4 max-w-md text-gray-400">
               Transformando unhas com arte, cuidado e profissionalismo. 

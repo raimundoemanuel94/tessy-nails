@@ -103,14 +103,14 @@ const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
 
         {/* Brand Name & Message - Staggered Entry */}
         <div className="space-y-4 text-center">
-          <motion.h1 
+          <motion.div 
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
-            className="text-3xl font-black text-slate-900 dark:text-white tracking-[0.4em] uppercase italic"
+            className="flex justify-center"
           >
-            TESSY<span className="text-brand-primary">NAILS</span>
-          </motion.h1>
+            <img src="/images/logo/logo-full.svg" alt="Tessy Nails" className="h-40 w-auto drop-shadow-md" />
+          </motion.div>
           
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -246,15 +246,14 @@ function LoginPageContent() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-1.5 bg-linear-to-r from-transparent via-brand-primary/30 to-transparent rounded-full" />
                 
                 {/* Brand Identity Inside Card */}
-                <div className="flex flex-col items-center justify-center space-y-3">
+                <div className="flex flex-col items-center justify-center space-y-3 pb-2">
                   <motion.div 
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="w-12 h-12 rounded-[1rem] bg-white dark:bg-slate-900 shadow-xl flex items-center justify-center ring-1 ring-brand-primary/10"
+                    className="flex items-center justify-center"
                   >
-                    <Sparkles className="text-brand-primary" size={24} />
+                    <img src="/images/logo/logo-full.svg" alt="Tessy Nails" className="h-[120px] w-auto drop-shadow-sm" />
                   </motion.div>
-                  <h2 className="text-xl font-black text-brand-text dark:text-white tracking-[0.2em] uppercase italic leading-none">TESSY<span className="text-brand-primary">NAILS</span></h2>
                 </div>
 
                 <div className="pt-2">

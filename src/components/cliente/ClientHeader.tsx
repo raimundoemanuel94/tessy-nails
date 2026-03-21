@@ -44,13 +44,8 @@ export function ClientHeader() {
     <header className="sticky top-0 pt-[env(safe-area-inset-top)] z-50 w-full border-b border-brand-primary/10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
-        <div className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-full bg-linear-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
-            <span className="text-white font-bold text-sm">T</span>
-          </div>
-          <span className="text-xl font-bold bg-linear-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
-            Tessy Nails
-          </span>
+        <div className="flex items-center cursor-pointer" onClick={() => router.push('/')}>
+          <img src="/images/logo/logo-compact.svg" alt="Tessy Nails" className="h-9 w-auto drop-shadow-sm hover:scale-105 transition-transform" />
         </div>
 
         {/* Desktop Navigation */}

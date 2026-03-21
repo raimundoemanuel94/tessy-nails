@@ -69,12 +69,7 @@ export function Header() {
             />
             <SheetContent side="left" className="w-80 p-0 bg-white border-r border-brand-accent/10">
               <SheetHeader className="p-6 h-20 border-b border-brand-accent/5 flex flex-row items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-linear-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20">
-                  <Sparkle className="text-white" size={18} strokeWidth={2.5} />
-                </div>
-                <SheetTitle className="text-lg font-black tracking-tight text-brand-text dark:text-white uppercase m-0">
-                  Tessy<span className="text-brand-primary">Nails</span>
-                </SheetTitle>
+                <img src="/images/logo/logo-compact.svg" alt="Tessy Nails" className="h-8 w-auto drop-shadow-sm" />
               </SheetHeader>
               
               <nav className="p-3 space-y-1.5 mt-4">
@@ -124,12 +119,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-linear-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-md shadow-brand-primary/10 transition-transform hover:scale-110">
-            <Sparkle className="text-white" size={16} />
-          </div>
-          <span className="text-lg font-black tracking-[0.3em] text-brand-text uppercase ml-1">
-            Tessy<span className="text-brand-primary">Nails</span>
-          </span>
+          <img src="/images/logo/logo-compact.svg" alt="Tessy Nails" className="h-8 w-auto drop-shadow-sm transition-transform hover:scale-105" />
         </div>
       </div>
 

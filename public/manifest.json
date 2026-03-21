@@ -4,8 +4,8 @@
   "description": "Sistema Premium de Agendamento e Gestão para Nail Designers",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FAF7F5",
-  "theme_color": "#4B2E2B",
+  "background_color": "#FAF9F6",
+  "theme_color": "#6F4E37",
   "orientation": "portrait",
   "scope": "/",
   "icons": [
