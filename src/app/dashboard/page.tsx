@@ -32,7 +32,6 @@ import { authService } from "@/services/auth";
 import { clientService } from "@/services/clients";
 import { salonService } from "@/services/salon";
 import { format, isToday, isPast, startOfDay, subDays, endOfDay } from "date-fns";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import nextDynamic from "next/dynamic";
 import { globalStore } from "@/store/globalStore";
 
