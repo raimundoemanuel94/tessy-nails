@@ -35,6 +35,14 @@ interface AppointmentData {
   month: Date;
 }
 
+export default function HorariosPage() {
+  const router = useRouter();
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const appointmentData = AppointmentStorage.loadAppointmentData();
     if (!appointmentData || !appointmentData.service || !appointmentData.date) {
