@@ -7,19 +7,31 @@ const withPWA = require("next-pwa")({
   disable: process.env.NODE_ENV === "development",
   register: true,
   skipWaiting: true,
-  // ✅ Forçar atualização imediata do service worker
+  // ✅ Usando StaleWhileRevalidate para balancear cache rápido e conteúdo atualizado
   runtimeCaching: [
     {
       urlPattern: /^https?.*/,
-      handler: "NetworkFirst",
+      handler: "StaleWhileRevalidate",
       options: {
-        cacheName: "http-cache",
+        cacheName: "tessy-pwa-cache",
         expiration: {
-          maxEntries: 50,
-          maxAgeSeconds: 0, // ✅ Sem cache para forçar atualização
+          maxEntries: 100,
+          maxAgeSeconds: 24 * 60 * 60, // 24 horas de cache
         },
       },
     },
+    {
+      urlPattern: /\/api\/.*/i,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "tessy-api-cache",
+        networkTimeoutSeconds: 5,
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 60 * 5, // 5 min para APIs
+        },
+      },
+    }
   ],
   reloadOnOnline: true,
   buildExcludes: [/middleware-manifest\.json$/]
@@ -31,28 +43,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   turbopack: {},
-  // ✅ Headers para evitar cache agressivo
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "no-cache, no-store, must-revalidate",
-          },
-          {
-            key: "Pragma",
-            value: "no-cache",
-          },
-          {
-            key: "Expires",
-            value: "0",
-          },
-        ],
-      },
-    ];
-  },
+  // Removidos os headers agressivos de no-cache para permitir funcionamento offline e carregamento ultra-rápido no Mobile.
 };
 
 export default withPWA(nextConfig);

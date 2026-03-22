@@ -102,55 +102,7 @@ export const appointmentService = new FirestoreService<Appointment>('appointment
 export const saleService = new FirestoreService<Sale>('sales');
 export const reportService = new FirestoreService<Report>('reports');
 
-// Legacy services for compatibility
-export const salonService = {
-  getAll: async () => {
-    // ✅ Remover query que precisa de index - buscar todos e filtrar no client
-    const snapshot = await getDocs(collection(db, "services"));
-    const allServices = snapshot.docs.map(mapDoc) as Service[];
-    // ✅ Filtrar apenas serviços ativos no client side
-    return allServices.filter(service => service.isActive);
-  },
-  getById: async (id: string) => {
-    const d = await getDoc(doc(db, "services", id));
-    return d.exists() ? mapDoc(d) as Service : null;
-  },
-  create: async (data: Omit<Service, "id" | "createdAt">) => {
-    return addDoc(collection(db, "services"), {
-      ...data,
-      createdAt: Timestamp.now(),
-    });
-  },
-};
-
-export const appointmentServiceLegacy = {
-  getAll: async () => {
-    // ✅ Remover query que precisa de index - buscar todos e filtrar no client
-    const snapshot = await getDocs(collection(db, "appointments"));
-    const allAppointments = snapshot.docs.map(mapDoc) as Appointment[];
-    // ✅ Filtrar apenas ativos no client side
-    return allAppointments;
-  },
-  getByDateRange: async (start: Date, end: Date) => {
-    const q = query(
-      collection(db, "appointments"),
-      where("appointmentDate", ">=", Timestamp.fromDate(start)),
-      where("appointmentDate", "<=", Timestamp.fromDate(end))
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(mapDoc) as Appointment[];
-  },
-  create: async (data: Omit<Appointment, "id" | "createdAt">) => {
-    return addDoc(collection(db, "appointments"), {
-      ...data,
-      appointmentDate: Timestamp.fromDate(new Date(data.appointmentDate)),
-      createdAt: Timestamp.now(),
-    });
-  },
-  updateStatus: async (id: string, status: Appointment["status"]) => {
-    return updateDoc(doc(db, "appointments", id), { status });
-  },
-};
+// Legacy services removed to prevent code duplication
 
 // Specialized queries
 export const clientQueries = {
@@ -243,8 +195,6 @@ export default {
   appointmentService,
   saleService,
   reportService,
-  salonService,
-  appointmentServiceLegacy,
   clientQueries,
   appointmentQueries,
   serviceQueries,

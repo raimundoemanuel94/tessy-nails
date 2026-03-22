@@ -60,8 +60,9 @@ import {
 } from "@/components/ui/dialog";
 import { format, startOfDay, endOfDay, isSameDay, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { appointmentService, authService, clientService, salonService } from "@/services";
+import { appointmentService, authService } from "@/services";
 import { Appointment, Client, Service, AppointmentWithDetails } from "@/types";
+import { globalStore } from "@/store/globalStore";
 import { AppointmentForm } from "@/features/appointments/components/AppointmentForm";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, ensureDate } from "@/lib/utils";
@@ -86,8 +87,8 @@ export default function AgendaPage() {
       
       const [apps, clients, services] = await Promise.all([
         appointmentService.getByDateRange(start, end),
-        clientService.getAll(),
-        salonService.getAllWithInactive()
+        globalStore.fetchRecentClients(false),
+        globalStore.fetchServices(false)
       ]);
 
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);

@@ -31,7 +31,7 @@ export const authService = {
       const user = result.user;
       
       // ✅ Criar documentos no Firestore se não existirem
-      await this.syncUserProfile(user, "professional");
+      await this.syncUserProfile(user, "client");
       
       // ✅ Criar documento na coleção clients
       const clientRef = doc(db, "clients", user.uid);
@@ -100,7 +100,7 @@ export const authService = {
   /**
    * Cria ou atualiza o perfil do usuário no Firestore
    */
-  async syncUserProfile(fUser: FirebaseUser, role: User["role"] = "professional"): Promise<User> {
+  async syncUserProfile(fUser: FirebaseUser, role: User["role"] = "client"): Promise<User> {
     const userRef = doc(db, "users", fUser.uid);
     const userDoc = await getDoc(userRef);
 

@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AppointmentSchema, Appointment, Client, Service, User, AppointmentStatusEnum, PaymentStatusEnum } from "@/types";
-import { clientService, salonService, appointmentService, authService } from "@/services";
+import { clientService, appointmentService } from "@/services";
+import { globalStore } from "@/store/globalStore";
 import { notificationService } from "@/services/notifications";
 import { 
   Form, 
@@ -30,7 +31,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, Loader2, Clock } from "lucide-react";
+import { CalendarIcon, Loader2, Clock, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -67,6 +68,12 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
+  // Estados para busca Debounced de Clientes
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchingClient, setIsSearchingClient] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [clientsPopoverOpen, setClientsPopoverOpen] = useState(false);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -84,15 +91,74 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
   const selectedClient = clients.find((client) => client.id === form.watch("clientId"));
   const selectedService = services.find((service) => service.id === form.watch("serviceId"));
 
+  // Debounce effect
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // Client Search Effect
+  useEffect(() => {
+    async function searchClients() {
+      if (debouncedSearch.length < 2) {
+        // Se a busca for vazia, usamos o cache rápido do globalStore
+        const recent = await globalStore.fetchRecentClients(false);
+        setClients(recent);
+        return;
+      }
+      
+      try {
+        setIsSearchingClient(true);
+        const results = await clientService.searchByName(debouncedSearch, 10);
+        
+        // Mantém o cliente selecionado na lista mesmo que a busca o exclua
+        setClients((prev) => {
+          const currentVal = form.getValues("clientId");
+          const hasSelectedClient = results.find(c => c.id === currentVal);
+          const selectedInPrev = prev.find(c => c.id === currentVal);
+          
+          if (currentVal && !hasSelectedClient && selectedInPrev) {
+            return [selectedInPrev, ...results];
+          }
+          return results;
+        });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSearchingClient(false);
+      }
+    }
+    
+    // Só disparar se não for a carga inicial (que é tratada no loadData)
+    if (!fetching) {
+      searchClients();
+    }
+  }, [debouncedSearch, fetching, form]);
+
+  // Initial Load (Serviços e Cliente Atual)
   useEffect(() => {
     async function loadData() {
       try {
         setFetching(true);
-        const [loadedClients, loadedServices] = await Promise.all([
-          clientService.getAll(),
-          appointment ? salonService.getAllWithInactive() : salonService.getAll()
+        // ✅ OTIMIZAÇÃO: Usa o cache do in-memory store invés de getAll() no Firebase
+        const [recentClients, loadedServices] = await Promise.all([
+          globalStore.fetchRecentClients(false),
+          globalStore.fetchServices(false)
         ]);
-        setClients(loadedClients || []);
+        
+        // Garante que o cliente do agendamento editado está na lista
+        let finalClients = recentClients || [];
+        if (appointment && appointment.clientId) {
+          const existing = finalClients.find(c => c.id === appointment.clientId);
+          if (!existing) {
+            const specificClient = await clientService.getById(appointment.clientId);
+            if (specificClient) finalClients = [specificClient, ...finalClients];
+          }
+        }
+        
+        setClients(finalClients);
         setServices(loadedServices || []);
       } catch (error) {
         console.error("Erro ao carregar dados do formulário:", error);
@@ -162,35 +228,70 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Cliente */}
+        {/* Cliente com Busca Inteligente */}
         <FormField
           control={form.control}
           name="clientId"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col">
               <FormLabel>Cliente</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Popover open={clientsPopoverOpen} onOpenChange={setClientsPopoverOpen}>
                 <FormControl>
-                  <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50/50">
-                    <SelectValue placeholder="Selecione uma cliente">
-                      {selectedClient ? selectedClient.name : undefined}
-                    </SelectValue>
-                  </SelectTrigger>
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-full justify-between h-11 rounded-xl border-slate-200 bg-slate-50/50",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value && selectedClient
+                          ? selectedClient.name
+                          : "Selecione ou busque uma cliente"}
+                        <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    }
+                  />
                 </FormControl>
-                <SelectContent>
-                  {clients.length > 0 ? (
-                    clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id!}>
-                        {client.name || `ID: ${client.id.slice(0, 8)}`}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="none" disabled>
-                      Nenhuma cliente cadastrada
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <div className="flex items-center border-b border-slate-100 px-3 py-2 bg-slate-50/50">
+                    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50 text-slate-500" />
+                    <Input 
+                      placeholder="Buscar por nome..." 
+                      className="border-0 focus-visible:ring-0 shadow-none h-8 px-0 bg-transparent"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    {isSearchingClient && <Loader2 className="h-4 w-4 animate-spin opacity-50 ml-2" />}
+                  </div>
+                  <div className="max-h-[200px] overflow-y-auto p-1">
+                    {clients.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-slate-500 font-medium">
+                        {searchQuery.length > 0 ? "Nenhuma cliente encontrada." : "Digite para buscar."}
+                      </div>
+                    ) : (
+                      clients.map((client) => (
+                        <div
+                          key={client.id}
+                          className={cn(
+                            "relative flex w-full cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none transition-colors hover:bg-brand-primary/10 hover:text-brand-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+                            field.value === client.id ? "bg-brand-primary/10 text-brand-primary font-bold" : "text-slate-700"
+                          )}
+                          onClick={() => {
+                            form.setValue("clientId", client.id!);
+                            setClientsPopoverOpen(false);
+                            setSearchQuery("");
+                          }}
+                        >
+                          {client.name || `ID: ${client.id?.slice(0, 8)}`}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}

@@ -11,11 +11,15 @@ import {
   orderBy,
   Timestamp,
   startAt,
-  endAt
+  endAt,
+  limit,
+  startAfter,
+  DocumentData,
+  QueryDocumentSnapshot
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Appointment, AppointmentSchema, AppointmentStatus, PaymentStatus } from "@/types";
-import { salonService } from "@/services/salon";
+import { globalStore } from "@/store/globalStore";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { z } from "zod";
@@ -36,6 +40,7 @@ const mapAppointmentData = (doc: any) => {
 export const appointmentService = {
   /**
    * Lista todos os agendamentos ordenados por data (mais recente primeiro)
+   * ⚠️ AVISO: Uso restrito. Prefira getPaginated ou getByDateRange para de evitar estouro de memória e reads.
    */
   async getAll(): Promise<Appointment[]> {
     try {
@@ -47,6 +52,37 @@ export const appointmentService = {
       if (error.code === 'permission-denied') {
         console.warn("⚠️ Firestore Permission Denied. Check rules for collection 'appointments'.");
       }
+      throw error;
+    }
+  },
+
+  /**
+   * ✅ OTIMIZAÇÃO: Busca paginada para listas grandes (Mobile Native Feel)
+   */
+  async getPaginated(pageSize: number = 20, lastDoc?: QueryDocumentSnapshot<DocumentData>): Promise<{ appointments: Appointment[], lastVisible: QueryDocumentSnapshot<DocumentData> | null }> {
+    try {
+      let q = query(
+        collection(db, COLLECTION_NAME),
+        orderBy("appointmentDate", "desc"),
+        limit(pageSize)
+      );
+
+      if (lastDoc) {
+        q = query(
+          collection(db, COLLECTION_NAME),
+          orderBy("appointmentDate", "desc"),
+          startAfter(lastDoc),
+          limit(pageSize)
+        );
+      }
+
+      const snapshot = await getDocs(q);
+      const appointments = snapshot.docs.map(mapAppointmentData) as Appointment[];
+      const lastVisible = snapshot.docs[snapshot.docs.length - 1] || null;
+
+      return { appointments, lastVisible };
+    } catch (error) {
+      console.error("🔥 Error in getPaginated:", error);
       throw error;
     }
   },
@@ -84,74 +120,51 @@ export const appointmentService = {
   async getByClientIdWithServices(clientId: string): Promise<any[]> {
     const appointments = await this.getByClientId(clientId);
     
-    // Buscar detalhes de todos os serviços
-    const appointmentsWithServices = await Promise.all(
-      appointments.map(async (apt) => {
-        try {
-          console.log(`🔍 Buscando serviço: ${apt.serviceId}`);
-          const service = await salonService.getById(apt.serviceId);
-          
-          if (service) {
-            console.log(`✅ Serviço encontrado: ${service.name}`);
-            return {
-              id: apt.id || '',
-              service: {
-                id: apt.serviceId,
-                name: service.name,
-                price: service.price,
-                durationMinutes: service.durationMinutes
-              },
-              date: apt.appointmentDate,
-              time: { 
-                id: apt.id || '', 
-                time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
-              },
-              status: apt.status,
-              observation: apt.notes || undefined,
-              createdAt: apt.createdAt || new Date()
-            };
-          } else {
-            console.log(`❌ Serviço NÃO encontrado: ${apt.serviceId}`);
-            return {
-              id: apt.id || '',
-              service: {
-                id: apt.serviceId,
-                name: `Serviço ${apt.serviceId}`,
-                price: 0,
-                durationMinutes: 60
-              },
-              date: apt.appointmentDate,
-              time: { 
-                id: apt.id || '', 
-                time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
-              },
-              status: apt.status,
-              observation: apt.notes || undefined,
-              createdAt: apt.createdAt || new Date()
-            };
-          }
-    } catch (error: any) {
-      console.error(`❌ ERRO PROFUNDO ao buscar serviço ${apt.serviceId}:`, error);
-      return {
-        id: apt.id || '',
-        service: {
-          id: apt.serviceId,
-          name: `Serviço ${apt.serviceId}`,
-          price: 0,
-          durationMinutes: 60
-        },
-        date: apt.appointmentDate,
-        time: { 
-          id: apt.id || '', 
-          time: apt.appointmentDate ? format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR }) : "00:00"
-        },
-        status: apt.status,
-        observation: apt.notes || undefined,
-        createdAt: apt.createdAt || new Date()
-      };
-    }
-      })
-    );
+    // Buscar todos os serviços via Cache
+    const allServices = await globalStore.fetchServices(false);
+    
+    // Mapear detalhes
+    const appointmentsWithServices = appointments.map((apt) => {
+      const service = allServices.find(s => s.id === apt.serviceId);
+      
+      if (service) {
+        return {
+          id: apt.id || '',
+          service: {
+            id: apt.serviceId,
+            name: service.name,
+            price: service.price,
+            durationMinutes: service.durationMinutes
+          },
+          date: apt.appointmentDate,
+          time: { 
+            id: apt.id || '', 
+            time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
+          },
+          status: apt.status,
+          observation: apt.notes || undefined,
+          createdAt: apt.createdAt || new Date()
+        };
+      } else {
+        return {
+          id: apt.id || '',
+          service: {
+            id: apt.serviceId,
+            name: `Serviço ${apt.serviceId}`,
+            price: 0,
+            durationMinutes: 60
+          },
+          date: apt.appointmentDate,
+          time: { 
+            id: apt.id || '', 
+            time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
+          },
+          status: apt.status,
+          observation: apt.notes || undefined,
+          createdAt: apt.createdAt || new Date()
+        };
+      }
+    });
     
     return appointmentsWithServices;
   },

@@ -3,10 +3,11 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { appointmentService, authService, clientService, salonService } from "@/services";
-import { format, startOfDay, endOfDay, isSameDay, addDays, addWeeks } from "date-fns";
+import { appointmentService, authService } from "@/services";
+import { format, startOfDay, endOfDay, isSameDay, addDays, addWeeks, startOfYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Appointment, Client, Service } from "@/types";
+import { globalStore } from "@/store/globalStore";
 
 import { PageShell } from "@/components/shared/PageShell";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -89,19 +90,21 @@ export default function AgendamentosPage() {
       let clientUsersData: any[] = [];
 
       try {
-        apps = await appointmentService.getAll();
+        const start = startOfYear(new Date());
+        const end = addDays(startOfDay(new Date()), 30); // Até 30 dias no futuro
+        apps = await appointmentService.getByDateRange(start, end);
       } catch (e) {
         console.error("❌ Erro ao buscar APPOINTMENTS:", e);
       }
 
       try {
-        clientsData = await clientService.getAll();
+        clientsData = await globalStore.fetchRecentClients(false);
       } catch (e) {
         console.error("❌ Erro ao buscar CLIENTS:", e);
       }
 
       try {
-        servicesData = await salonService.getAllWithInactive(); // Buscar todos para garantir nomes em registros antigos
+        servicesData = await globalStore.fetchServices(false);
       } catch (e) {
         console.error("❌ Erro ao buscar SERVICES:", e);
       }

@@ -11,7 +11,7 @@ import { ServicesHeader } from "@/components/cliente/ServicesHeader";
 import { ServiceSearch } from "@/components/cliente/ServiceSearch";
 import { ServiceList } from "@/components/cliente/ServiceList";
 import { EmptyState } from "@/components/cliente/EmptyState";
-import { salonService } from "@/services/salon";
+import { globalStore } from "@/store/globalStore";
 import { Service as ServiceType } from "@/types";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
 
@@ -105,7 +105,7 @@ export default function ServicosPage() {
           return;
         }
         
-        const servicesData = await salonService.getAll();
+        const servicesData = await globalStore.fetchServices(false);
         
         if (!servicesData || servicesData.length === 0) {
           setError('Nenhum serviço disponível no momento.');

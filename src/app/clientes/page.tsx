@@ -52,18 +52,48 @@ export default function ClientesPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("active");
 
-  const loadClients = useCallback(async () => {
+  // ✅ State para Paginação via Cursor do Firestore
+  const PAGE_SIZE = 12;
+  const [pageHistory, setPageHistory] = useState<any[]>([null]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+
+  const loadClients = useCallback(async (direction: 'init' | 'next' | 'prev' = 'init') => {
     try {
       setLoading(true);
-      const clientsData = await clientService.getAll();
+      let targetDoc = null;
+      let newPage = currentPage;
+
+      if (direction === 'init') {
+        setPageHistory([null]);
+        newPage = 0;
+      } else if (direction === 'next') {
+        targetDoc = pageHistory[currentPage + 1] || null;
+        newPage = currentPage + 1;
+      } else if (direction === 'prev') {
+        targetDoc = pageHistory[currentPage - 1];
+        newPage = currentPage - 1;
+      }
+
+      // ✅ Busca paginada bloqueia crashs de memória
+      const { clients: clientsData, lastVisible } = await clientService.getPaginated(PAGE_SIZE, targetDoc);
       setClients(clientsData || []);
+      setCurrentPage(newPage);
+
+      if (direction === 'init' || direction === 'next') {
+        const newHistory = [...pageHistory];
+        newHistory[newPage + 1] = lastVisible;
+        setPageHistory(newHistory);
+      }
+
+      setHasNextPage(clientsData.length === PAGE_SIZE && lastVisible !== null);
     } catch (error) {
       console.error('Error loading clients:', error);
       toast.error("Erro ao carregar clientes");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentPage, pageHistory]);
 
   useEffect(() => {
     loadClients();
@@ -159,7 +189,7 @@ export default function ClientesPage() {
               onSuccess={() => {
                 setIsDialogOpen(false);
                 setEditingClient(null);
-                loadClients();
+                loadClients('init');
               }}
               onCancel={() => {
                 setIsDialogOpen(false);
@@ -174,13 +204,9 @@ export default function ClientesPage() {
         title="Sua Comunidade"
         subtitle="Acompanhe o crescimento, atividade e fidelidade da sua base de clientes em um só lugar."
         metrics={[
-          { label: "Total", value: clients.length, icon: Users },
-          { label: "Ativos", value: clients.filter(c => c.isActive !== false).length, icon: UserCheck },
-          { label: "Novos", value: clients.filter(c => {
-            const createdAt = ensureDate(c.createdAt);
-            const now = new Date();
-            return createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear();
-          }).length, icon: UserPlus },
+          { label: "Qtd. Atual", value: clients.length, icon: Users },
+          { label: "Ativos (View)", value: clients.filter(c => c.isActive !== false).length, icon: UserCheck },
+          { label: "Total pág.", value: PAGE_SIZE, icon: Search },
         ]}
       />
 
@@ -227,25 +253,25 @@ export default function ClientesPage() {
 
       <div className="grid gap-6 md:grid-cols-3">
         <MetricCard 
-          title="Total Geral" 
+          title="Na Visão Atual" 
           value={clients.length} 
           icon={Users} 
-          description="Clientes registrados"
+          description="Clientes sendo exibidos"
           variant="primary"
         />
         <MetricCard 
-          title="Status Ativo" 
+          title="Status Ativo (Lista)" 
           value={clients.filter(c => c.isActive !== false).length} 
           icon={UserCheck} 
-          description="Clientes Recorrentes"
+          description="Clientes Recorrentes na página"
           variant="success"
           trend={{ value: 12, isPositive: true }}
         />
         <MetricCard 
-          title="Inativas" 
+          title="Inativas (Lista)" 
           value={clients.filter(c => c.isActive === false).length} 
           icon={UserMinus} 
-          description="Clientes perdidos"
+          description="Clientes na página atual"
           variant="warning"
         />
       </div>
@@ -358,7 +384,7 @@ export default function ClientesPage() {
                             className="rounded-xl font-bold text-emerald-600 focus:text-emerald-600 cursor-pointer" 
                             onClick={() => client.id && clientService.update(client.id, { isActive: true }).then(() => {
                               toast.success("Cliente reativado.");
-                              loadClients();
+                              loadClients('init');
                             })}
                           >
                             <UserPlus className="h-4 w-4 mr-2" />
@@ -396,6 +422,29 @@ export default function ClientesPage() {
             )}
           </div>
         )}
+        
+        {/* ✅ Botões de Paginação */}
+        <div className="flex items-center justify-between p-6 border-t border-brand-accent/5">
+          <Button 
+            variant="outline" 
+            onClick={() => loadClients('prev')} 
+            disabled={currentPage === 0 || loading}
+            className="rounded-xl px-6 font-bold shadow-sm"
+          >
+            Anterior
+          </Button>
+          <div className="text-sm font-black text-brand-text-sub opacity-50 uppercase tracking-widest">
+            Página {currentPage + 1}
+          </div>
+          <Button 
+            variant="default" 
+            onClick={() => loadClients('next')} 
+            disabled={!hasNextPage || loading}
+            className="rounded-xl px-6 font-bold bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 shadow-none border-0"
+          >
+            Próxima
+          </Button>
+        </div>
       </SectionCard>
     </PageShell>
   );

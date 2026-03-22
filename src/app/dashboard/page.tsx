@@ -31,8 +31,20 @@ import { appointmentService } from "@/services/appointments";
 import { authService } from "@/services/auth";
 import { clientService } from "@/services/clients";
 import { salonService } from "@/services/salon";
-import { format, isToday, isPast, startOfDay } from "date-fns";
-import { RevenueChart } from "@/components/dashboard/DashboardCharts";
+import { format, isToday, isPast, startOfDay, subDays, endOfDay } from "date-fns";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import nextDynamic from "next/dynamic";
+import { globalStore } from "@/store/globalStore";
+
+// ✅ Lazy load dos charts para não bloquear o First Paint no Mobile
+const RevenueChart = nextDynamic(() => import("@/components/dashboard/DashboardCharts").then(m => m.RevenueChart), { 
+  ssr: false, 
+  loading: () => <div className="h-[350px] w-full animate-pulse bg-brand-soft/20 rounded-2xl" /> 
+});
+const ServicesDonut = nextDynamic(() => import("@/components/dashboard/DashboardCharts").then(m => m.ServicesDonut), { 
+  ssr: false, 
+  loading: () => <div className="h-64 w-full animate-pulse bg-brand-soft/20 rounded-2xl" /> 
+});
 import { toast } from "sonner";
 import { MetricCard } from "@/components/shared/MetricCard";
 import { AppointmentForm } from "@/features/appointments/components/AppointmentForm";
@@ -82,10 +94,15 @@ export default function DashboardPage() {
     if (loading || !user || (user.role !== 'admin' && user.role !== 'professional')) return;
     try {
       setDataLoading(true);
+      
+      // ✅ OTIMIZAÇÃO: Limitar leitura aos últimos 30 dias corridos
+      const rangeStart = startOfDay(subDays(new Date(), 30));
+      const rangeEnd = endOfDay(new Date());
+      
       const [appointments, clients, services] = await Promise.all([
-        appointmentService.getAll(),
-        clientService.getAll(),
-        salonService.getAllWithInactive()
+        appointmentService.getByDateRange(rangeStart, rangeEnd), // Últimos 30 dias apenas
+        globalStore.fetchRecentClients(false),
+        globalStore.fetchServices(false)
       ]);
 
       const unresolvedClientIds = appointments

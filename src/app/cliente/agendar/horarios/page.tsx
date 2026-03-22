@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { format, addDays, isToday, isBefore, isAfter, setHours, setMinutes } from "date-fns";
+import { format, addDays, isToday, isBefore, isAfter, setHours, setMinutes, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { appointmentService } from "@/services/appointments";
 import { Button } from "@/components/ui/button";
 import { 
   Loader2, 
@@ -34,38 +35,6 @@ interface AppointmentData {
   month: Date;
 }
 
-// Mock data para horários disponíveis
-const generateMockTimeSlots = (): TimeSlot[] => {
-  return [
-    { id: "1", time: "08:00", available: true },
-    { id: "2", time: "08:30", available: false }, // Indisponível
-    { id: "3", time: "09:00", available: true },
-    { id: "4", time: "09:30", available: true },
-    { id: "5", time: "10:00", available: true, label: "Popular" },
-    { id: "6", time: "10:30", available: false }, // Indisponível
-    { id: "7", time: "11:00", available: true },
-    { id: "8", time: "13:00", available: true },
-    { id: "9", time: "13:30", available: true },
-    { id: "10", time: "14:00", available: true, label: "Popular" },
-    { id: "11", time: "14:30", available: false }, // Indisponível
-    { id: "12", time: "15:00", available: true },
-    { id: "13", time: "15:30", available: true },
-    { id: "14", time: "16:00", available: true },
-    { id: "15", time: "16:30", available: true },
-    { id: "16", time: "17:00", available: true },
-    { id: "17", time: "17:30", available: false }, // Indisponível
-    { id: "18", time: "18:00", available: false }, // Indisponível
-  ];
-};
-
-export default function HorariosPage() {
-  const router = useRouter();
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const appointmentData = AppointmentStorage.loadAppointmentData();
     if (!appointmentData || !appointmentData.service || !appointmentData.date) {
@@ -75,8 +44,61 @@ export default function HorariosPage() {
 
     setSelectedService(appointmentData.service);
     setSelectedDate(appointmentData.date);
-    setTimeSlots(generateMockTimeSlots());
-    setLoading(false);
+    
+    // Fetch Real Slots based on existing appointments
+    const fetchSlots = async () => {
+      try {
+        const targetDate = new Date(appointmentData.date);
+        const startOfDayTime = startOfDay(targetDate);
+        const endOfDayTime = addDays(startOfDayTime, 1);
+        
+        const appointments = await appointmentService.getByDateRange(startOfDayTime, endOfDayTime);
+        const activeAppointments = appointments.filter(a => 
+          ['pending', 'confirmed', 'completed'].includes(a.status)
+        );
+
+        const durationMinutes = 60; // Considera base de 1h para bloqueio por simplificação
+        
+        const slots: TimeSlot[] = [];
+        let currentTime = setMinutes(setHours(targetDate, 8), 0); // Inicio: 08:00
+        const endTime = setMinutes(setHours(targetDate, 18), 0); // Fim: 18:00
+        const now = new Date();
+
+        while (isBefore(currentTime, endTime)) {
+          const slotStart = currentTime;
+          const slotEnd = new Date(currentTime.getTime() + durationMinutes * 60000);
+          
+          const isPastSlot = isToday(targetDate) && isBefore(slotStart, now);
+          
+          const hasOverlap = activeAppointments.some(apt => {
+            const aptStart = new Date(apt.appointmentDate);
+            const aptEnd = new Date(aptStart.getTime() + 60 * 60000); // Assumindo bloqueio de 1h
+            return (
+              (slotStart < aptEnd && slotEnd > aptStart) ||
+              (slotStart.getTime() === aptStart.getTime())
+            );
+          });
+
+          slots.push({
+            id: format(slotStart, 'HH:mm'),
+            time: format(slotStart, 'HH:mm'),
+            available: !hasOverlap && !isPastSlot,
+            label: ['10:00', '14:00', '16:00'].includes(format(slotStart, 'HH:mm')) && !hasOverlap && !isPastSlot ? 'Popular' : undefined
+          });
+
+          currentTime = new Date(currentTime.getTime() + 30 * 60000); // 30 min por slot
+        }
+        
+        setTimeSlots(slots);
+      } catch (error) {
+        console.error("Erro ao buscar horários", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchSlots();
+
   }, [router]);
 
   const handleContinue = () => {

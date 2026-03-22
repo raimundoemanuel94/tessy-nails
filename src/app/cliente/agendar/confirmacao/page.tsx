@@ -76,7 +76,7 @@ export default function ConfirmacaoPage() {
       const appointmentId = await appointmentService.create({
         clientId: user.uid,
         serviceId: appointmentData.service.id,
-        specialistId: user.uid,
+        specialistId: "unassigned",
         appointmentDate: appointmentDateTime,
         status: "pending",
         paymentStatus: "unpaid",

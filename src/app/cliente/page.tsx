@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/cliente/BottomNav";
 import { appointmentService } from "@/services/appointments";
-import { salonService } from "@/services/salon";
+import { globalStore } from "@/store/globalStore";
 import { format, isFuture, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Service } from "@/types";
@@ -41,7 +41,7 @@ export default function ClientePage() {
         setDataLoading(true);
         const [appointments, allServices] = await Promise.all([
           appointmentService.getByClientIdWithServices(user.uid),
-          salonService.getAll()
+          globalStore.fetchServices(false)
         ]);
 
         const upcoming = appointments

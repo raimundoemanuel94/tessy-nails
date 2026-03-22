@@ -25,9 +25,8 @@ import {
 import { RevenueChart, ServicesDonut } from "@/components/dashboard/DashboardCharts";
 import { useEffect, useState } from "react";
 import { appointmentService } from "@/services/appointments";
-import { salonService } from "@/services/salon";
-import { clientService } from "@/services/clients";
 import { Appointment, Client, Service } from "@/types";
+import { globalStore } from "@/store/globalStore";
 import { ensureDate, cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isWithinInterval, parseISO, isToday, isThisWeek, isThisMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -55,11 +54,14 @@ export default function RelatoriosPage() {
       try {
         setLoading(true);
         
-        // Buscar dados reais
+        // ✅ Otimização: Relatórios usam no máximo 6 meses retroativos para o gráfico
+        const today = new Date();
+        const sixMonthsAgo = startOfMonth(new Date(today.getFullYear(), today.getMonth() - 5, 1));
+        
         const [appointmentsData, clientsData, servicesData] = await Promise.all([
-          appointmentService.getAll(),
-          clientService.getAll(),
-          salonService.getAll()
+          appointmentService.getByDateRange(sixMonthsAgo, endOfMonth(today)),
+          globalStore.fetchRecentClients(false),
+          globalStore.fetchServices(false)
         ]);
         
         setAppointments(appointmentsData);

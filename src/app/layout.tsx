@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Tessy Nails - Studio de Beleza Premium",
   description: "Plataforma exclusiva de agendamento e gestão para Tessy Nails.",
-  manifest: "/manifest.json",
+  manifest: "/manifest.json?v=2",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#6F4E37",
+  themeColor: "#1A120D",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
