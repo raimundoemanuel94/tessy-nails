@@ -45,6 +45,7 @@ export default function AgendarPage() {
     if (savedDate) {
       setSelectedDate(savedDate);
       setCurrentMonth(savedDate);
+      fetchSlots(savedDate);
     }
   }, [router]);
 
@@ -275,12 +276,17 @@ export default function AgendarPage() {
               <div className="flex justify-center py-10">
                 <Loader2 className="h-8 w-8 animate-spin text-brand-primary/40" />
               </div>
-            ) : (
+            ) : timeSlots.length > 0 ? (
               <TimeSlotGrid 
                 timeSlots={timeSlots}
                 selectedTime={selectedTime || undefined}
                 onTimeSelect={setSelectedTime}
               />
+            ) : (
+              <div className="text-center py-10 bg-brand-primary/5 rounded-3xl border border-brand-primary/10">
+                <p className="text-xs font-black text-brand-primary uppercase tracking-widest">Não há horários para este dia</p>
+                <p className="text-[10px] text-brand-text-muted mt-1">Por favor, selecione outra data no calendário</p>
+              </div>
             )}
           </div>
         )}
