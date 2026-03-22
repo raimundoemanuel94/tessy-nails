@@ -42,7 +42,7 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
       onClick={handleSelect}
     >
       {/* Service Image / Banner Section */}
-      <div className="relative h-40 w-full overflow-hidden rounded-[1.5rem] bg-[#EFEAE4] mb-4 group-hover:shadow-md transition-all duration-500">
+      <div className="relative h-40 w-full overflow-hidden rounded-[1.5rem] bg-brand-soft/20 mb-4 group-hover:shadow-md transition-all duration-500">
         {(service.imageUrl || service.image) && !imageError ? (
           <img 
             src={service.imageUrl || service.image} 
@@ -51,8 +51,8 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#EFEAE4]">
-            <div className="h-16 w-16 rounded-2xl bg-white/70 backdrop-blur-sm shadow-[0_4px_20px_-4px_rgba(111,78,55,0.08)] flex items-center justify-center text-3xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+          <div className="absolute inset-0 flex items-center justify-center bg-brand-soft/30">
+            <div className="h-16 w-16 rounded-2xl bg-white/70 backdrop-blur-sm shadow-[0_4px_20px_-4px_rgba(238,66,143,0.08)] flex items-center justify-center text-3xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
                💅
             </div>
           </div>
@@ -63,12 +63,12 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
 
         {/* Top-Left Badge: Only show if popular/promo to avoid clutter */}
         {isHighlyRated ? (
-          <div className="absolute top-3 left-3 rounded-full bg-white/95 backdrop-blur-md px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#6F4E37] shadow-sm z-10 flex items-center gap-1">
-             <Star className="h-3 w-3 fill-[#C89B7B] text-[#C89B7B]" />
+          <div className="absolute top-3 left-3 rounded-full bg-white/95 backdrop-blur-md px-3 py-1 text-[10px] font-black uppercase tracking-widest text-brand-primary shadow-sm z-10 flex items-center gap-1">
+             <Star className="h-3 w-3 fill-brand-secondary text-brand-secondary" />
              Mais Pedido
           </div>
         ) : service.name.toLowerCase().includes('combo') ? (
-          <div className="absolute top-3 left-3 rounded-full bg-[#C89B7B]/95 backdrop-blur-md px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white shadow-sm z-10">
+          <div className="absolute top-3 left-3 rounded-full bg-brand-secondary/95 backdrop-blur-md px-3 py-1 text-[10px] font-black uppercase tracking-widest text-brand-primary shadow-sm z-10">
              Promo
           </div>
         ) : null}
@@ -93,7 +93,7 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
 
         {/* Price Area: Separated for emphasis and breathing room */}
         <div className="mb-2">
-          <span className="text-[1.25rem] font-black text-[#6F4E37] tracking-tight">
+          <span className="text-[1.25rem] font-black text-brand-primary tracking-tight">
             {service.price}
           </span>
         </div>
@@ -110,13 +110,13 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
         <div className="pt-3 flex items-center justify-between border-t border-brand-soft/40 mt-auto">
           
           {/* Duration Badge */}
-          <div className="flex items-center gap-1.5 bg-[#F8F6F3] px-3 py-1.5 rounded-full border border-[#EFEAE4]">
-            <Clock size={13} className="text-[#6F4E37]" />
-            <span className="text-[10px] font-bold text-[#6B6B6B] uppercase tracking-widest">{service.duration}</span>
+          <div className="flex items-center gap-1.5 bg-brand-soft/20 px-3 py-1.5 rounded-full border border-brand-soft/40">
+            <Clock size={13} className="text-brand-primary" />
+            <span className="text-[10px] font-bold text-brand-text-sub uppercase tracking-widest">{service.duration}</span>
           </div>
 
           <Button 
-            className="rounded-full h-10 px-6 bg-[#C89B7B] hover:bg-[#B07A5A] text-white font-bold text-[11px] uppercase tracking-[0.15em] shadow-md shadow-[#C89B7B]/20 hover:shadow-lg hover:shadow-[#C89B7B]/30 transition-all hover:scale-105 active:scale-95"
+            className="rounded-full h-10 px-6 bg-brand-primary hover:bg-[#D43B7B] text-white font-bold text-[11px] uppercase tracking-[0.15em] shadow-md shadow-brand-primary/20 hover:shadow-lg hover:shadow-brand-primary/30 transition-all hover:scale-105 active:scale-95"
             disabled={!service.isActive}
           >
             {service.isActive ? "Reservar" : "Pausado"}

@@ -36,7 +36,7 @@ export function BottomNav() {
                 href={item.href}
                 className="relative -top-5 flex flex-col items-center"
               >
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#C89B7B] p-1 shadow-lg ring-4 ring-white transition-all duration-300 hover:scale-110 active:scale-95">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-primary p-1 shadow-lg ring-4 ring-white transition-all duration-300 hover:scale-110 active:scale-95">
                   <Plus className="h-7 w-7 text-white" strokeWidth={3} />
                 </div>
               </Link>
@@ -55,8 +55,8 @@ export function BottomNav() {
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
                   isActive 
-                    ? "text-[#C89B7B]" 
-                    : "text-[#6B6B6B] hover:text-[#C89B7B]"
+                    ? "text-brand-primary" 
+                    : "text-[#6B6B6B] hover:text-brand-primary"
                 )}
               >
                 <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
@@ -64,7 +64,7 @@ export function BottomNav() {
               <span
                 className={cn(
                   "text-[9px] font-medium transition-colors duration-300",
-                  isActive ? "text-[#C89B7B] font-semibold" : "text-[#6B6B6B]"
+                  isActive ? "text-brand-primary font-semibold" : "text-[#6B6B6B]"
                 )}
               >
                 {item.label}

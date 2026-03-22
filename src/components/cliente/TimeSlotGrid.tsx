@@ -25,9 +25,9 @@ export function TimeSlotGrid({ timeSlots, selectedTime, onTimeSelect }: TimeSlot
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Time Slots Grid */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 sm:grid-cols-4 gap-3">
         {timeSlots.map((slot) => {
           const isSelected = selectedTime === slot.id;
           const isAvailable = slot.available;
@@ -38,18 +38,20 @@ export function TimeSlotGrid({ timeSlots, selectedTime, onTimeSelect }: TimeSlot
               onClick={() => handleTimeSelect(slot.id)}
               disabled={!isAvailable}
               className={cn(
-                "relative h-16 rounded-2xl text-sm font-black transition-all duration-300 active:scale-95 shadow-sm border",
+                "relative h-12 rounded-full text-xs font-black transition-all duration-300 active:scale-95 shadow-sm",
                 isSelected
-                  ? 'bg-linear-to-br from-brand-primary to-brand-secondary text-white border-transparent shadow-xl shadow-brand-primary/30 scale-105'
+                  ? 'bg-[#EE428F] text-white shadow-xl shadow-[#EE428F]/30 scale-105'
                   : isAvailable
-                  ? 'bg-white text-brand-text border-brand-border hover:border-brand-primary hover:bg-brand-primary/5'
-                  : 'bg-brand-background text-brand-text-muted border-brand-border/50 opacity-40 cursor-not-allowed'
+                  ? 'bg-white text-brand-text border border-brand-soft hover:border-[#EE428F] hover:bg-[#EE428F]/5'
+                  : 'bg-gray-50 text-gray-300 border border-transparent opacity-50 cursor-not-allowed'
               )}
             >
-              <div className="flex flex-col items-center justify-center gap-1">
+              <div className="flex flex-col items-center justify-center">
                 <span>{slot.time}</span>
                 {slot.label && !isSelected && (
-                  <span className="text-[8px] uppercase tracking-tighter text-brand-primary">{slot.label}</span>
+                  <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full bg-[#FBC9C3] text-[7px] font-black text-[#EE428F] shadow-sm transform rotate-12">
+                     {slot.label}
+                  </span>
                 )}
               </div>
             </button>
@@ -58,14 +60,14 @@ export function TimeSlotGrid({ timeSlots, selectedTime, onTimeSelect }: TimeSlot
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-6 px-4 py-4 rounded-3xl bg-white border border-brand-border shadow-sm">
+      <div className="flex items-center justify-center gap-8 py-4 px-6 rounded-3xl bg-white border border-brand-soft/50 shadow-premium-sm">
         <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-brand-primary" />
-          <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest">Livre</span>
+          <div className="h-2 w-2 rounded-full bg-[#EE428F]" />
+          <span className="text-[10px] font-black text-brand-text-sub uppercase tracking-widest">Livre</span>
         </div>
-        <div className="flex items-center gap-2 opacity-40">
-          <div className="h-2 w-2 rounded-full bg-brand-text-muted" />
-          <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest">Ocupado</span>
+        <div className="flex items-center gap-2 opacity-30">
+          <div className="h-2 w-2 rounded-full bg-gray-400" />
+          <span className="text-[10px] font-black text-brand-text-sub uppercase tracking-widest">Ocupado</span>
         </div>
       </div>
     </div>

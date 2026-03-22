@@ -7,9 +7,11 @@ import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar as CalendarIcon, Clock } from "lucide-react";
+import { cn, ensureDate } from "@/lib/utils";
+import { appointmentService } from "@/services/appointments";
+import { TimeSlotGrid, TimeSlot } from "@/components/cliente/TimeSlotGrid";
+import { Loader2, Sparkles, CheckCircle, ChevronRight, ArrowLeft, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
-import { cn } from "@/lib/utils";
 
 // Interface Service local
 interface Service {
@@ -22,19 +24,14 @@ interface Service {
   rating?: number;
 }
 
-// Interface TimeSlot local
-interface TimeSlot {
-  id: string;
-  time: string;
-  available: boolean;
-  label?: string;
-}
-
 export default function AgendarPage() {
   const router = useRouter();
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   useEffect(() => {
     const service = AppointmentStorage.loadSelectedService();
@@ -53,22 +50,81 @@ export default function AgendarPage() {
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
+    setSelectedTime(null); // Reset time when date changes
     AppointmentStorage.saveSelectedDate(date);
+    fetchSlots(date);
+  };
+
+  const fetchSlots = async (date: Date) => {
+    try {
+      setLoadingSlots(true);
+      const startOfDayTime = new Date(date);
+      startOfDayTime.setHours(0, 0, 0, 0);
+      const endOfDayTime = new Date(date);
+      endOfDayTime.setHours(23, 59, 59, 999);
+      
+      const appointments = await appointmentService.getByDateRange(startOfDayTime, endOfDayTime);
+      const activeAppointments = appointments.filter(a => 
+        ['pending', 'confirmed', 'completed'].includes(a.status)
+      );
+
+      const durationMinutes = 60; 
+      const slots: TimeSlot[] = [];
+      let currentTime = new Date(date);
+      currentTime.setHours(8, 0, 0, 0);
+      const endTime = new Date(date);
+      endTime.setHours(19, 0, 0, 0);
+      const now = new Date();
+
+      while (currentTime < endTime) {
+        const slotStart = new Date(currentTime);
+        const slotEnd = new Date(currentTime.getTime() + durationMinutes * 60000);
+        
+        const isPastSlot = isToday(date) && slotStart < now;
+        
+        const hasOverlap = activeAppointments.some(apt => {
+          const aptStart = ensureDate(apt.appointmentDate);
+          const aptEnd = new Date(aptStart.getTime() + 60 * 60000);
+          return (
+            (slotStart < aptEnd && slotEnd > aptStart) ||
+            (slotStart.getTime() === aptStart.getTime())
+          );
+        });
+
+        slots.push({
+          id: format(slotStart, 'HH:mm'),
+          time: format(slotStart, 'HH:mm'),
+          available: !hasOverlap && !isPastSlot,
+          label: ['10:00', '11:00', '15:00', '16:00'].includes(format(slotStart, 'HH:mm')) && !hasOverlap && !isPastSlot ? 'Popular' : undefined
+        });
+
+        currentTime = new Date(currentTime.getTime() + 30 * 60000);
+      }
+      
+      setTimeSlots(slots);
+    } catch (error) {
+      console.error("Erro ao buscar horários", error);
+    } finally {
+      setLoadingSlots(false);
+    }
   };
 
   const handleContinue = () => {
-    if (!selectedDate || !selectedService) return;
+    if (!selectedDate || !selectedService || !selectedTime) return;
+
+    const selectedTimeSlot = timeSlots.find(slot => slot.id === selectedTime);
+    if (!selectedTimeSlot) return;
 
     const appointmentData = {
       service: selectedService,
       date: selectedDate,
-      time: { id: 'temp', time: '00:00', available: true },
-      timeSlots: [],
+      time: selectedTimeSlot,
+      timeSlots: timeSlots,
       observation: undefined
     };
 
     AppointmentStorage.saveAppointmentData(appointmentData);
-    router.push('/cliente/agendar/horarios');
+    router.push('/cliente/agendar/confirmacao');
   };
 
   if (!selectedService) {
@@ -201,37 +257,61 @@ export default function AgendarPage() {
         </div>
       </section>
 
-      {/* Selected Info & CTA */}
-      <section className="space-y-6 pt-4">
-        {selectedDate ? (
-           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
-              <div className="flex items-center gap-3 px-2">
-                <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
-                  <CalendarIcon size={18} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-brand-text-muted uppercase tracking-widest leading-none mb-1">Data Escolhida</p>
-                  <p className="text-base font-black text-brand-text capitalize">
-                    {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
-                  </p>
-                </div>
+      {/* Selected Info & Time Grid */}
+      <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {selectedDate && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between px-2">
+              <div>
+                <h2 className="text-xl font-black text-brand-text uppercase tracking-tight">Horários Disponíveis</h2>
+                <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">Toque para selecionar</p>
               </div>
+              <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
+                <Sparkles size={18} />
+              </div>
+            </div>
 
-              <Button 
-                onClick={handleContinue}
-                className="w-full h-16 rounded-[2rem] bg-linear-to-br from-brand-primary to-brand-secondary text-white font-black text-base shadow-2xl shadow-brand-primary/20 hover:opacity-90 active:scale-[0.98] transition-all"
-              >
-                Continuar para os horários
-              </Button>
-           </div>
-        ) : (
-          <div className="text-center py-6">
-            <p className="text-[10px] font-black text-brand-text-muted uppercase tracking-[0.3em] animate-pulse">
-              Toque em uma data para prosseguir
-            </p>
+            {loadingSlots ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-brand-primary/40" />
+              </div>
+            ) : (
+              <TimeSlotGrid 
+                timeSlots={timeSlots}
+                selectedTime={selectedTime || undefined}
+                onTimeSelect={setSelectedTime}
+              />
+            )}
           </div>
         )}
       </section>
+
+      {/* Floating Sticky Bottom Action */}
+      {selectedTime && (
+        <div className="fixed bottom-0 inset-x-0 p-6 bg-linear-to-t from-white via-white to-transparent pt-12 z-50 animate-in slide-in-from-bottom-full duration-500">
+          <div className="max-w-2xl mx-auto">
+            <Button 
+              onClick={handleContinue}
+              className="w-full h-16 rounded-2xl bg-[#EE428F] text-white font-black text-base shadow-2xl shadow-[#EE428F]/30 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-between px-8"
+            >
+              <div className="text-left">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/70 leading-none mb-1">Total a pagar</p>
+                <p className="text-lg leading-none">{selectedService.price}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm border-l border-white/20 pl-4 py-1">Continuar</span>
+                <ChevronRight size={20} />
+              </div>
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {!selectedDate && (
+        <div className="text-center py-10 opacity-30">
+          <p className="text-[10px] font-black uppercase tracking-[0.4em]">Selecione uma data acima</p>
+        </div>
+      )}
     </div>
   );
 }

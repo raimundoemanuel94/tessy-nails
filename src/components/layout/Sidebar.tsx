@@ -50,14 +50,13 @@ export function Sidebar() {
     )}>
       {/* Brand Section */}
       <div className="flex h-20 items-center px-6 mb-2">
-        {!collapsed && (
+        {!collapsed ? (
           <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500">
-            <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/30">
-              <Sparkle className="text-white" size={20} strokeWidth={2.5} />
-            </div>
-            <span className="text-xl font-black tracking-[0.3em] text-brand-text-main uppercase ml-1">
-              Tessy<span className="text-brand-primary">Nails</span>
-            </span>
+            <img src="/brand/logo/horizontal.png" alt="Tessy Nails" className="h-10 w-auto" />
+          </div>
+        ) : (
+          <div className="mx-auto flex items-center justify-center animate-in zoom-in duration-500">
+            <img src="/brand/icons/icon-app.png" alt="T" className="w-10 h-10 rounded-xl shadow-md" />
           </div>
         )}
         <Button 
@@ -103,7 +102,7 @@ export function Sidebar() {
                   strokeWidth={isActive ? 2.5 : 2}
                   className={cn(
                     "transition-all duration-300",
-                    isActive ? "text-brand-accent" : "group-hover:scale-110 group-hover:text-brand-primary"
+                    isActive ? "text-[#EE428F]" : "group-hover:scale-110 group-hover:text-[#EE428F]"
                   )}
                 />
                 {!collapsed && <span>{item.label}</span>}
@@ -140,7 +139,7 @@ export function Sidebar() {
                   strokeWidth={isActive ? 2.5 : 2}
                   className={cn(
                     "transition-all duration-300",
-                    isActive ? "text-brand-accent" : "group-hover:scale-110 group-hover:text-brand-primary"
+                    isActive ? "text-[#EE428F]" : "group-hover:scale-110 group-hover:text-[#EE428F]"
                   )}
                 />
                 {!collapsed && <span>{item.label}</span>}
@@ -195,7 +194,7 @@ export function Sidebar() {
         )}>
           {!collapsed ? (
             <>
-              <div className="w-10 h-10 rounded-xl bg-brand-primary/10 dark:bg-brand-primary/20 flex items-center justify-center text-brand-primary dark:text-brand-accent font-bold overflow-hidden shadow-inner">
+              <div className="w-10 h-10 rounded-xl bg-[#EE428F]/10 dark:bg-[#EE428F]/20 flex items-center justify-center text-[#EE428F] font-bold overflow-hidden shadow-inner">
                 {user?.photoURL ? (
                   <img src={user.photoURL} alt={user.name} className="w-full h-full object-cover" />
                 ) : (

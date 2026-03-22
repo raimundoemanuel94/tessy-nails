@@ -120,9 +120,9 @@ export default function ClientePage() {
   return (
     <div className="w-full mx-auto pb-32">
       {/* Premium HEADER (Hero Card Full Bleed) */}
-      <section className="relative overflow-hidden rounded-b-[2.5rem] bg-linear-to-br from-[#6F4E37] to-[#A98B73] px-6 pb-8 pt-[env(safe-area-inset-top)] text-white shadow-[0_12px_40px_rgba(111,78,55,0.15)]">
+      <section className="relative overflow-hidden rounded-b-[2.5rem] bg-linear-to-br from-[#EE428F] to-[#FBC9C3] px-6 pb-8 pt-[env(safe-area-inset-top)] text-white shadow-[0_12px_40px_rgba(238,66,143,0.15)]">
         <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-[#C89B7B]/20 blur-3xl" />
+        <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-[#FBC9C3]/20 blur-3xl" />
         
         <div className="relative z-10 flex flex-col space-y-4">
           <div className="flex items-center justify-between">
@@ -164,7 +164,7 @@ export default function ClientePage() {
           {nextAppointment && (
             <button 
               onClick={() => router.push("/cliente/agendamentos")} 
-              className="text-xs font-medium text-[#6F4E37] underline underline-offset-4"
+              className="text-xs font-medium text-[#EE428F] underline underline-offset-4"
             >
               Ver todos
             </button>
@@ -177,7 +177,7 @@ export default function ClientePage() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B]">Serviço</span>
-                  <h3 className="text-base font-semibold text-[#2C2C2C]">{nextAppointment.service.name}</h3>
+                  <h3 className="text-base font-semibold text-brand-text-main">{nextAppointment.service.name}</h3>
                 </div>
                 <Badge 
                   className={cn(
@@ -194,13 +194,13 @@ export default function ClientePage() {
 
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#F8F6F3]">
-                  <Calendar size={16} className="text-[#6F4E37]" />
+                  <Calendar size={16} className="text-[#EE428F]" />
                   <span className="text-xs font-semibold text-[#2C2C2C] tabular-nums">
                     {format(nextAppointment.date, "dd/MM")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#F8F6F3]">
-                  <Clock size={16} className="text-[#6F4E37]" />
+                  <Clock size={16} className="text-[#EE428F]" />
                   <span className="text-xs font-semibold text-[#2C2C2C] tabular-nums">
                     {nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}
                   </span>
@@ -209,7 +209,7 @@ export default function ClientePage() {
 
               <Button 
                 variant="ghost"
-                className="w-full text-xs font-semibold text-[#6F4E37] hover:bg-[#6F4E37]/5 rounded-xl h-10"
+                className="w-full text-xs font-semibold text-[#EE428F] hover:bg-[#EE428F]/5 rounded-xl h-10"
                 onClick={() => router.push("/cliente/agendamentos")}
               >
                 Ver detalhes
@@ -226,7 +226,7 @@ export default function ClientePage() {
                <p className="text-[11px] text-[#6B6B6B]">Reserve seu horário em poucos segundos</p>
              </div>
              <Button 
-               className="bg-[#C89B7B] hover:bg-[#B07A5A] text-white rounded-full text-xs px-6 h-9"
+               className="bg-brand-primary hover:bg-[#D43B7B] text-white rounded-full text-xs px-6 h-9"
                onClick={() => router.push("/cliente/agendar")}
              >
                Agendar agora
@@ -281,8 +281,8 @@ export default function ClientePage() {
       {/* Footer Branding */}
       <footer className="pt-6 flex flex-col items-center justify-center gap-3 text-center opacity-40">
         <div className="flex items-center gap-2">
-          <Sparkle className="text-[#6F4E37]" size={10} />
-          <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#2C2C2C]">Tessy Nails</span>
+          <Sparkle className="text-[#EE428F]" size={10} />
+          <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#EE428F]">Tessy Nails</span>
         </div>
         </footer>
       </div>

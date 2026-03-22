@@ -10,15 +10,15 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   
-  /* Official Global Design System Tokens - Luxury Beauty Palette */
-  --color-brand-primary: #6F4E37;
-  --color-brand-secondary: #A98B73;
-  --color-brand-accent: #C89B7B;
-  --color-brand-soft: #EFEAE4;
-  --color-brand-background: #F8F6F3;
+  /* Official Global Design System Tokens - Tessy Nails Official Palette */
+  --color-brand-primary: #EE428F;
+  --color-brand-secondary: #FBC9C3;
+  --color-brand-accent: #EE428F;
+  --color-brand-soft: rgba(251, 201, 195, 0.2);
+  --color-brand-background: #FFFFFF;
   --color-brand-card: #FFFFFF;
-  --color-brand-text-main: #2C2C2C;
-  --color-brand-text-sub: #6B6B6B;
+  --color-brand-text-main: #121212;
+  --color-brand-text-sub: #4B5563;
 
   /* Status Tokens */
   --color-success: #4CAF50;
@@ -60,24 +60,24 @@
 }
 
 :root {
-  --background: #F8F6F3;
-  --foreground: #2C2C2C;
+  --background: #FFFFFF;
+  --foreground: #121212;
   --card: #FFFFFF;
-  --card-foreground: #2C2C2C;
+  --card-foreground: #121212;
   --popover: #FFFFFF;
-  --popover-foreground: #2C2C2C;
-  --primary: #6F4E37;
+  --popover-foreground: #121212;
+  --primary: #EE428F;
   --primary-foreground: #FFFFFF;
-  --secondary: #A98B73;
-  --secondary-foreground: #FFFFFF;
-  --muted: #EFEAE4;
-  --muted-foreground: #6B6B6B;
-  --accent: #C89B7B;
+  --secondary: #FBC9C3;
+  --secondary-foreground: #121212;
+  --muted: rgba(251, 201, 195, 0.1);
+  --muted-foreground: #6B7280;
+  --accent: #EE428F;
   --accent-foreground: #FFFFFF;
-  --destructive: #F44336;
-  --border: #EFEAE4;
-  --input: #EFEAE4;
-  --ring: #6F4E37;
+  --destructive: #EF4444;
+  --border: #F3F4F6;
+  --input: #F3F4F6;
+  --ring: #EE428F;
   --radius: 1rem;
   
   /* Specific Tokens from Overhaul Request */

@@ -128,7 +128,7 @@ export default function ConfirmacaoPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push('/cliente/agendar/horarios')}
+          onClick={() => router.push('/cliente/agendar')}
           className="h-12 w-12 rounded-2xl bg-white border border-brand-border text-brand-text hover:text-brand-primary shadow-sm active:scale-95 transition-all"
         >
           <ArrowLeft size={20} strokeWidth={2.5} />
