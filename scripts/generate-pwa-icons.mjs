@@ -46,12 +46,12 @@ async function run() {
     process.exit(1);
   }
   
-  console.log('Gerando ícones PWA...');
-  // Para 192x192, vamos deixar uns 32px de respiro (padding total)
-  await generateIcon(192, 32);
+  console.log('Gerando ícones PWA com maior ocupação (80%)...');
+  // Para 192x192, 10% de margem lateral (~19px) = 38px de padding total
+  await generateIcon(192, 38);
   
-  // Para 512x512, vamos deixar uns 84px de respiro (padding total)
-  await generateIcon(512, 84);
+  // Para 512x512, 10% de margem lateral (~51px) = 102px de padding total
+  await generateIcon(512, 102);
   
   console.log('🎯 Concluído!');
 }
