@@ -24,109 +24,124 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
   useEffect(() => {
-    const timer = setTimeout(onComplete, 1200); // 1.2s for a quick, elegant build-up (reduced from 3s)
+    const timer = setTimeout(onComplete, 2800); // 2.8s for a more luxurious experience
     return () => clearTimeout(timer);
   }, [onComplete]);
 
   return (
     <motion.div 
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white dark:bg-slate-950 overflow-hidden"
+      exit={{ 
+        opacity: 0, 
+        transition: { duration: 1, ease: [0.22, 1, 0.36, 1] } 
+      }}
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#FAF9F6] dark:bg-slate-950 overflow-hidden"
     >
-      {/* Animated Background Gradient - Ultra Slow & Subtle */}
-      <motion.div 
-        animate={{ 
-          backgroundColor: ["rgba(255, 255, 255, 0.5)", "rgba(251, 201, 195, 0.2)", "rgba(255, 255, 255, 0.5)"],
-        }}
-        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-        className="absolute inset-0 dark:hidden"
-      />
-      <motion.div 
-        animate={{ 
-          backgroundColor: ["rgba(30, 27, 75, 0.2)", "rgba(46, 16, 101, 0.2)", "rgba(30, 27, 75, 0.2)"],
-        }}
-        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-        className="absolute inset-0 hidden dark:block"
-      />
-
-      {/* Stronger Glow Behind Icon */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Animated Immersive Ambient Background */}
+      <div className="absolute inset-0 z-0">
         <motion.div 
           animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.4, 0.6, 0.4]
+            scale: [1, 1.2, 1.1, 1.3, 1],
+            opacity: [0.3, 0.5, 0.4, 0.6, 0.3]
           }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#4B2E2B]/10 dark:bg-[#4B2E2B]/5 rounded-full blur-[140px]" 
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-brand-primary/10 rounded-full blur-[140px]" 
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.3, 1.2, 1.4, 1],
+            opacity: [0.2, 0.4, 0.3, 0.5, 0.2]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-brand-secondary/10 rounded-full blur-[140px]" 
         />
       </div>
 
-      <div className="relative flex flex-col items-center gap-10">
-        {/* Animated Brand Identity - Premium Sequence */}
-        <motion.div
-          initial={{ scale: 0.7, opacity: 0, y: 15 }}
-          animate={{ 
-            scale: [0.7, 1.05, 1],
-            opacity: 1,
-            y: 0
-          }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="relative flex flex-col items-center justify-center"
-        >
-          <motion.div
+      <div className="relative z-10 flex flex-col items-center gap-12">
+        {/* Animated Brand Container */}
+        <div className="relative">
+          {/* Outer Magnetic Glow */}
+          <motion.div 
             animate={{ 
-              y: [0, -8, 0],
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3]
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute inset-0 bg-brand-primary/20 blur-[60px] rounded-full"
+          />
+          
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0, y: 30, rotate: -5 }}
+            animate={{ 
+              scale: 1,
+              opacity: 1,
+              y: 0,
+              rotate: 0
             }}
             transition={{ 
-              y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+              duration: 1.5, 
+              ease: [0.16, 1, 0.3, 1] 
             }}
-            className="relative z-10 flex justify-center mb-8"
+            className="relative"
           >
-            <img src="/brand/logo/logo.svg" alt="Tessy Nails" className="h-[180px] w-auto drop-shadow-[0_20px_50px_rgba(75,46,43,0.3)] dark:drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]" />
+            <motion.div
+              animate={{ 
+                y: [0, -12, 0],
+                rotate: [0, -2, 2, 0]
+              }}
+              transition={{ 
+                duration: 5, 
+                repeat: Infinity, 
+                ease: "easeInOut" 
+              }}
+              className="flex flex-col items-center"
+            >
+              <img 
+                src="/brand/logo/logo.svg" 
+                alt="Tessy Nails" 
+                className="h-[180px] w-auto drop-shadow-[0_30px_60px_rgba(75,46,43,0.4)]"
+              />
+            </motion.div>
           </motion.div>
-          
-          {/* Enhanced Pulsing Glow Rings */}
-          <motion.div 
-            animate={{ scale: [1, 1.5, 1.8], opacity: [0.4, 0.1, 0] }}
-            transition={{ repeat: Infinity, duration: 2.5, ease: "easeOut" }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full bg-brand-primary/40 blur-3xl z-0"
-          />
-          <motion.div 
-            animate={{ scale: [1, 1.2, 1.4], opacity: [0.3, 0.05, 0] }}
-            transition={{ repeat: Infinity, duration: 2.5, delay: 0.8, ease: "easeOut" }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-brand-accent/30 blur-2xl z-0"
-          />
-        </motion.div>
+        </div>
 
-        {/* Loading Message - Staggered Entry */}
-        <div className="space-y-4 text-center relative z-20">
-          
+        {/* Dynamic Loading Message */}
+        <div className="flex flex-col items-center gap-6">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.8 }}
-            className="flex flex-col items-center gap-4"
+            transition={{ delay: 1, duration: 1 }}
+            className="flex flex-col items-center gap-3"
           >
-             <p className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">
-              Preparando sua experiência...
+             <p className="text-[12px] font-black text-[#4B2E2B] dark:text-brand-accent uppercase tracking-[0.4em] text-center">
+              Luxo &amp; Elegância
             </p>
             
-            {/* Shimmer Loading Bar */}
-            <div className="w-48 h-1 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden relative">
+            {/* Premium Progress Bar */}
+            <div className="w-56 h-[2px] bg-brand-primary/5 rounded-full overflow-hidden relative">
               <motion.div 
-                animate={{ 
-                  x: ["-100%", "100%"] 
-                }}
+                initial={{ x: "-100%" }}
+                animate={{ x: "100%" }}
                 transition={{ 
-                  repeat: Infinity, 
-                  duration: 2, 
+                  duration: 2.8, 
                   ease: [0.44, 0, 0.56, 1] 
                 }}
-                className="absolute inset-0 bg-linear-to-r from-transparent via-[#4B2E2B] to-transparent w-full"
+                className="absolute inset-0 bg-linear-to-r from-transparent via-brand-primary to-transparent w-full"
               />
             </div>
           </motion.div>
+
+          {/* Staggered Subtext */}
+          <div className="overflow-hidden">
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 0.5 }}
+              transition={{ delay: 1.8, duration: 0.8 }}
+              className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]"
+            >
+              Studio de Beleza Premium
+            </motion.p>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -217,18 +232,18 @@ function LoginPageContent() {
         
         {/* Immersive Background Elements */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-           <div className="absolute top-[10%] -left-[10%] w-[40%] h-[40%] bg-[#4B2E2B]/10 dark:bg-[#4B2E2B]/5 rounded-full blur-[120px]" />
-           <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-[#6D4C41]/10 dark:bg-[#6D4C41]/5 rounded-full blur-[120px]" />
-           <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#4B2E2B]/10 dark:bg-[#4B2E2B]/5 rounded-full blur-[100px] lg:hidden" />
-           <div className="absolute top-1/2 -left-32 w-[600px] h-[600px] bg-[#6D4C41]/5 dark:bg-[#6D4C41]/5 rounded-full blur-[120px] lg:hidden" />
+           <div className="absolute top-[10%] -left-[10%] w-[40%] h-[40%] bg-brand-primary/10 dark:bg-brand-primary/5 rounded-full blur-[120px]" />
+           <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-brand-secondary/10 dark:bg-brand-secondary/5 rounded-full blur-[120px]" />
+           <div className="absolute -top-32 -right-32 w-96 h-96 bg-brand-primary/10 dark:bg-brand-primary/5 rounded-full blur-[100px] lg:hidden" />
+           <div className="absolute top-1/2 -left-32 w-[600px] h-[600px] bg-brand-secondary/5 dark:bg-brand-secondary/5 rounded-full blur-[120px] lg:hidden" />
         </div>
 
         {/* Centered Login Card Container */}
         <div className="w-full flex items-center justify-center relative z-10 lg:w-[420px]">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={!showSplash ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={!showSplash ? { opacity: 1, y: 0, scale: 1 } : {}}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
             className="w-full max-w-[420px]"
           >
             <Card className="w-full border-none sm:border-solid sm:border border-brand-soft/60 dark:border-white/5 bg-transparent sm:bg-brand-background dark:bg-slate-900/60 backdrop-blur-3xl shadow-none sm:shadow-[8px_8px_16px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.8)] dark:shadow-none sm:dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-none sm:rounded-2xl overflow-hidden transition-all duration-500">
@@ -321,7 +336,7 @@ function LoginPageContent() {
                 <CardFooter className="flex flex-col space-y-2.5 px-2 sm:px-8 pb-4 sm:pb-8 pt-1">
                   <Button 
                     type="submit" 
-                    className="w-full h-12 sm:h-14 rounded-2xl bg-linear-to-br from-[#4B2E2B] to-[#6D4C41] text-white font-black uppercase tracking-[0.2em] shadow-[4px_4px_10px_rgba(75,46,43,0.25)] sm:shadow-[6px_6px_14px_rgba(75,46,43,0.25),-4px_-4px_10px_rgba(255,255,255,0.8)] transition-all duration-300 hover:opacity-90 hover:shadow-[8px_8px_20px_rgba(75,46,43,0.35)] active:scale-[0.97] py-0" 
+                    className="w-full h-12 sm:h-14 rounded-2xl bg-linear-to-br from-brand-primary to-brand-secondary text-white font-black uppercase tracking-[0.2em] shadow-[4px_4px_10px_rgba(75,46,43,0.25)] sm:shadow-[6px_6px_14px_rgba(75,46,43,0.25),-4px_-4px_10px_rgba(255,255,255,0.8)] transition-all duration-300 hover:opacity-90 hover:shadow-[8px_8px_20px_rgba(75,46,43,0.35)] active:scale-[0.97] py-0" 
                     disabled={loading}
                   >
                     {loading ? (
