@@ -251,22 +251,29 @@ function LoginPageContent() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-1.5 bg-linear-to-r from-transparent via-[#4B2E2B]/30 to-transparent rounded-full" />
                 
                 {/* Brand Identity Inside Card */}
-                <div className="flex flex-col items-center justify-center space-y-3 pb-2">
+                <div className="flex flex-col items-center justify-center space-y-4 pb-2">
                   <motion.div 
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="flex items-center justify-center"
                   >
-                    <img src="/brand/logo/logo.svg" alt="Tessy Nails" className="h-[80px] sm:h-[110px] w-auto drop-shadow-sm" />
+                    <img src="/brand/logo/logo.svg" alt="Tessy Nails" className="h-[90px] sm:h-[120px] w-auto drop-shadow-sm" />
                   </motion.div>
+                  
+                  {/* Decorative Sparkle Divider */}
+                  <div className="flex items-center gap-4 w-full justify-center opacity-20">
+                    <div className="h-px w-8 bg-brand-primary" />
+                    <Sparkles className="h-3 w-3 text-brand-primary fill-brand-primary" />
+                    <div className="h-px w-8 bg-brand-primary" />
+                  </div>
                 </div>
 
-                <div className="pt-2">
-                  <CardTitle className="text-2xl font-black text-brand-text dark:text-white tracking-tighter">
+                <div className="pt-1">
+                  <CardTitle className="text-3xl font-serif font-bold text-brand-primary tracking-tight">
                     {isRegisterMode ? "Bem-vinda" : "Boas-vindas"}
                   </CardTitle>
-                  <CardDescription className="text-[10px] font-black text-textSub dark:text-slate-500 uppercase tracking-[0.15em] mt-1.5 leading-relaxed">
-                    {isRegisterMode ? "Crie sua conta de beleza hoje" : "Continue sua jornada luxuosa"}
+                  <CardDescription className="text-[10px] font-bold text-brand-text-sub dark:text-slate-500 uppercase tracking-[0.2em] mt-2 leading-relaxed">
+                    {isRegisterMode ? "Sua experiência de beleza começa aqui" : "Sua jornada luxuosa continua"}
                   </CardDescription>
                 </div>
               </CardHeader>
