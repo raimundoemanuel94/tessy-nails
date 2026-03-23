@@ -20,8 +20,8 @@ export const BRAND = {
   // Caminhos dos Assets
   assets: {
     logo: {
-      principal: "/brand/logo/principal.png",
-      horizontal: "/brand/logo/horizontal.png",
+      principal: "/brand/logo/logo.svg",
+      horizontal: "/brand/logo/logo.svg",
     },
     icons: {
       app: "/brand/icons/icon-app.png",

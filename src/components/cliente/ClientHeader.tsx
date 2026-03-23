@@ -45,7 +45,7 @@ export function ClientHeader() {
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <div className="flex items-center cursor-pointer" onClick={() => router.push('/')}>
-          <img src="/images/logo/logo-compact.svg" alt="Tessy Nails" className="h-9 w-auto drop-shadow-sm hover:scale-105 transition-transform" />
+          <img src="/brand/logo/logo.svg" alt="Tessy Nails" className="h-9 w-auto drop-shadow-sm hover:scale-105 transition-transform" />
         </div>
 
         {/* Desktop Navigation */}

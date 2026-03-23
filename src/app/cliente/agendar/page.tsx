@@ -64,10 +64,8 @@ export default function AgendarPage() {
       const endOfDayTime = new Date(date);
       endOfDayTime.setHours(23, 59, 59, 999);
       
-      const appointments = await appointmentService.getByDateRange(startOfDayTime, endOfDayTime);
-      const activeAppointments = appointments.filter(a => 
-        ['pending', 'confirmed', 'completed'].includes(a.status)
-      );
+      // ✅ Usa a nova API segura que ignora restrições do Firestore para clientes
+      const activeAppointments = await appointmentService.getBusySlots(startOfDayTime, endOfDayTime);
 
       const durationMinutes = 60; 
       const slots: TimeSlot[] = [];
@@ -298,7 +296,7 @@ export default function AgendarPage() {
           <div className="max-w-2xl mx-auto">
             <Button 
               onClick={handleContinue}
-              className="w-full h-16 rounded-2xl bg-[#EE428F] text-white font-black text-base shadow-2xl shadow-[#EE428F]/30 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-between px-8"
+              className="w-full h-16 rounded-2xl bg-brand-primary text-white font-black text-base shadow-2xl shadow-brand-primary/30 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-between px-8"
             >
               <div className="text-left">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-white/70 leading-none mb-1">Total a pagar</p>

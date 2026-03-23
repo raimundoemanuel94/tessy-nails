@@ -69,7 +69,7 @@ export function Header() {
             />
             <SheetContent side="left" className="w-80 p-0 bg-white border-r border-brand-accent/10">
               <SheetHeader className="p-6 h-20 border-b border-brand-accent/5 flex flex-row items-center gap-3">
-                <img src="/images/logo/logo-compact.svg" alt="Tessy Nails" className="h-8 w-auto drop-shadow-sm" />
+                <img src="/brand/logo/logo.svg" alt="Tessy Nails" className="h-8 w-auto drop-shadow-sm" />
               </SheetHeader>
               
               <nav className="p-3 space-y-1.5 mt-4">
@@ -119,7 +119,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-          <img src="/images/logo/logo-compact.svg" alt="Tessy Nails" className="h-7 w-auto drop-shadow-md brightness-0 invert" />
+          <img src="/brand/logo/logo.svg" alt="Tessy Nails" className="h-7 w-auto drop-shadow-md brightness-0 invert" />
         </div>
       </div>
 

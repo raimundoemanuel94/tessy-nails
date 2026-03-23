@@ -31,7 +31,7 @@ export function SuccessHeader({ showBackButton = false, onBack }: SuccessHeaderP
           <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center">
             <span className="text-brand-primary font-bold text-sm">T</span>
           </div>
-          <img src="/images/logo/logo-compact.svg" alt="Tessy Nails" className="h-8 w-auto drop-shadow-sm ml-2 brightness-0 invert" />
+          <img src="/brand/logo/logo.svg" alt="Tessy Nails" className="h-8 w-auto drop-shadow-sm ml-2 brightness-0 invert" />
         </div>
 
         {/* Spacer */}

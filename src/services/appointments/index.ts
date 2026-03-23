@@ -102,6 +102,21 @@ export const appointmentService = {
   },
 
   /**
+   * ✅ NOVO: Busca slots ocupados via API Server-Side (Ignora regras de segurança do Firestore)
+   */
+  async getBusySlots(start: Date, end: Date): Promise<any[]> {
+    try {
+      const response = await fetch(`/api/appointments/availability?start=${start.toISOString()}&end=${end.toISOString()}`);
+      if (!response.ok) throw new Error('Falha ao buscar disponibilidade');
+      const data = await response.json();
+      return data.busySlots || [];
+    } catch (error) {
+      console.error("🔥 Error in getBusySlots:", error);
+      return [];
+    }
+  },
+
+  /**
    * Busca agendamentos de um cliente específico
    */
   async getByClientId(clientId: string): Promise<Appointment[]> {

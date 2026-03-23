@@ -83,7 +83,7 @@ const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
             }}
             className="relative z-10 flex justify-center mb-8"
           >
-            <img src="/brand/logo/principal.png" alt="Tessy Nails" className="h-[180px] w-auto drop-shadow-[0_20px_50px_rgba(238,66,143,0.3)] dark:drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]" />
+            <img src="/brand/logo/logo.svg" alt="Tessy Nails" className="h-[180px] w-auto drop-shadow-[0_20px_50px_rgba(75,46,43,0.3)] dark:drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]" />
           </motion.div>
           
           {/* Enhanced Pulsing Glow Rings */}
@@ -242,7 +242,7 @@ function LoginPageContent() {
                     animate={{ scale: 1, opacity: 1 }}
                     className="flex items-center justify-center"
                   >
-                    <img src="/brand/logo/principal.png" alt="Tessy Nails" className="h-[80px] sm:h-[110px] w-auto drop-shadow-sm" />
+                    <img src="/brand/logo/logo.svg" alt="Tessy Nails" className="h-[80px] sm:h-[110px] w-auto drop-shadow-sm" />
                   </motion.div>
                 </div>
 
