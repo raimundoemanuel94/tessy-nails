@@ -62,28 +62,45 @@ export default function ClientesPage() {
     try {
       setLoading(true);
       let targetDoc = null;
-      let newPage = currentPage;
+      let newPage = 0;
 
-      if (direction === 'init') {
-        setPageHistory([null]);
-        newPage = 0;
-      } else if (direction === 'next') {
-        targetDoc = pageHistory[currentPage + 1] || null;
-        newPage = currentPage + 1;
-      } else if (direction === 'prev') {
-        targetDoc = pageHistory[currentPage - 1];
-        newPage = currentPage - 1;
-      }
+      // Usamos uma técnica de closure para evitar depender dos estados viciados
+      setCurrentPage(prevPage => {
+        if (direction === 'init') {
+          setPageHistory([null]);
+          newPage = 0;
+        } else if (direction === 'next') {
+          // Access pageHistory using a functional update or ensure it's fresh
+          // For this specific case, we need the *current* pageHistory to get targetDoc
+          // This means pageHistory must be a dependency of useCallback, or we fetch it
+          // inside the functional update if it were possible (it's not for targetDoc directly)
+          // The instruction's approach of recalculating targetDoc later is safer.
+          newPage = prevPage + 1;
+        } else if (direction === 'prev') {
+          newPage = prevPage - 1;
+        }
+        return newPage;
+      });
 
       // ✅ Busca paginada bloqueia crashs de memória
-      const { clients: clientsData, lastVisible } = await clientService.getPaginated(PAGE_SIZE, targetDoc);
+      // Note: targetDoc precisa ser capturado fora do setter se quisermos usá-lo aqui de forma limpa, 
+      // ou calculamos ele antes.
+      
+      // Recalculando targetDoc de forma segura
+      let currentTargetDoc = null;
+      if (direction === 'next') currentTargetDoc = pageHistory[currentPage + 1];
+      if (direction === 'prev') currentTargetDoc = pageHistory[currentPage - 1];
+
+      const { clients: clientsData, lastVisible } = await clientService.getPaginated(PAGE_SIZE, currentTargetDoc);
+      
       setClients(clientsData || []);
-      setCurrentPage(newPage);
 
       if (direction === 'init' || direction === 'next') {
-        const newHistory = [...pageHistory];
-        newHistory[newPage + 1] = lastVisible;
-        setPageHistory(newHistory);
+        setPageHistory(prev => {
+          const newHistory = [...prev];
+          newHistory[newPage + 1] = lastVisible;
+          return newHistory;
+        });
       }
 
       setHasNextPage(clientsData.length === PAGE_SIZE && lastVisible !== null);
@@ -93,11 +110,14 @@ export default function ClientesPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageHistory]);
+  }, [PAGE_SIZE, pageHistory, currentPage]); // Ainda temos dependencias, mas vamos ajustar o useEffect
 
   useEffect(() => {
-    loadClients();
-  }, [loadClients]);
+    // SÓ disparar o carregamento inicial se não tivermos nada
+    if (pageHistory.length === 1 && pageHistory[0] === null && clients.length === 0) {
+      loadClients('init');
+    }
+  }, [loadClients, pageHistory.length, clients.length]);
 
   const filteredClientsList = useMemo(() => {
     let list = clients;
