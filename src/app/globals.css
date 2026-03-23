@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -9,6 +10,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: "Playfair Display", serif;
   
   /* Official Global Design System Tokens - Tessy Nails Official Palette */
   --color-brand-primary: #4B2E2B;
