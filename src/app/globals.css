@@ -11,18 +11,18 @@
   --font-mono: var(--font-geist-mono);
   
   /* Official Global Design System Tokens - Tessy Nails Official Palette */
-  --color-brand-primary: #EE428F;
-  --color-brand-secondary: #FBC9C3;
-  --color-brand-accent: #EE428F;
-  --color-brand-soft: rgba(251, 201, 195, 0.2);
-  --color-brand-background: #FFFFFF;
+  --color-brand-primary: #4B2E2B;
+  --color-brand-secondary: #6D4C41;
+  --color-brand-accent: #A1887F;
+  --color-brand-soft: rgba(215, 204, 200, 0.2);
+  --color-brand-background: #FAF7F5;
   --color-brand-card: #FFFFFF;
-  --color-brand-text-main: #121212;
-  --color-brand-text-sub: #4B5563;
+  --color-brand-text-main: #2D1F1B;
+  --color-brand-text-sub: #7B6F6A;
 
   /* Status Tokens */
-  --color-success: #4CAF50;
-  --color-warning: #FFC107;
+  --color-success: #7E9C76;
+  --color-warning: #C58B57;
   --color-neutral-status: #8C7B75;
   --color-highlight: #B08A7A;
   
@@ -60,29 +60,29 @@
 }
 
 :root {
-  --background: #FFFFFF;
-  --foreground: #121212;
+  --background: #FAF7F5;
+  --foreground: #2D1F1B;
   --card: #FFFFFF;
-  --card-foreground: #121212;
+  --card-foreground: #2D1F1B;
   --popover: #FFFFFF;
-  --popover-foreground: #121212;
-  --primary: #EE428F;
+  --popover-foreground: #2D1F1B;
+  --primary: #4B2E2B;
   --primary-foreground: #FFFFFF;
-  --secondary: #FBC9C3;
-  --secondary-foreground: #121212;
-  --muted: rgba(251, 201, 195, 0.1);
-  --muted-foreground: #6B7280;
-  --accent: #EE428F;
+  --secondary: #6D4C41;
+  --secondary-foreground: #FFFFFF;
+  --muted: rgba(215, 204, 200, 0.1);
+  --muted-foreground: #7B6F6A;
+  --accent: #A1887F;
   --accent-foreground: #FFFFFF;
   --destructive: #EF4444;
-  --border: #F3F4F6;
-  --input: #F3F4F6;
-  --ring: #EE428F;
-  --radius: 1rem;
+  --border: #E8E5E3;
+  --input: #E8E5E3;
+  --ring: #4B2E2B;
+  --radius: 1.25rem;
   
   /* Specific Tokens from Overhaul Request */
-  --success: #4CAF50;
-  --warning: #FFC107;
+  --success: #7E9C76;
+  --warning: #C58B57;
   --neutral-status: #8C7B75;
   --highlight: #B08A7A;
 }

@@ -40,16 +40,16 @@ export function TimeSlotGrid({ timeSlots, selectedTime, onTimeSelect }: TimeSlot
               className={cn(
                 "relative h-12 rounded-full text-xs font-black transition-all duration-300 active:scale-95 shadow-sm",
                 isSelected
-                  ? 'bg-[#EE428F] text-white shadow-xl shadow-[#EE428F]/30 scale-105'
+                  ? 'bg-[#4B2E2B] text-white shadow-xl shadow-[#4B2E2B]/30 scale-105'
                   : isAvailable
-                  ? 'bg-white text-brand-text border border-brand-soft hover:border-[#EE428F] hover:bg-[#EE428F]/5'
+                  ? 'bg-white text-brand-text border border-brand-soft hover:border-[#4B2E2B] hover:bg-[#4B2E2B]/5'
                   : 'bg-gray-50 text-gray-300 border border-transparent opacity-50 cursor-not-allowed'
               )}
             >
               <div className="flex flex-col items-center justify-center">
                 <span>{slot.time}</span>
                 {slot.label && !isSelected && (
-                  <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full bg-[#FBC9C3] text-[7px] font-black text-[#EE428F] shadow-sm transform rotate-12">
+                  <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full bg-[#6D4C41] text-[7px] font-black text-[#A1887F] shadow-sm transform rotate-12">
                      {slot.label}
                   </span>
                 )}
@@ -62,7 +62,7 @@ export function TimeSlotGrid({ timeSlots, selectedTime, onTimeSelect }: TimeSlot
       {/* Legend */}
       <div className="flex items-center justify-center gap-8 py-4 px-6 rounded-3xl bg-white border border-brand-soft/50 shadow-premium-sm">
         <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-[#EE428F]" />
+          <div className="h-2 w-2 rounded-full bg-[#4B2E2B]" />
           <span className="text-[10px] font-black text-brand-text-sub uppercase tracking-widest">Livre</span>
         </div>
         <div className="flex items-center gap-2 opacity-30">

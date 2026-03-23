@@ -76,7 +76,6 @@ export default function ClientePage() {
   }
 
   const firstName = user?.name?.split(" ")[0] || "Cliente";
-  const nextStatus = nextAppointment ? (statusConfig[nextAppointment.status] || statusConfig.pending) : null;
   
   const quickActions = [
     {
@@ -120,9 +119,9 @@ export default function ClientePage() {
   return (
     <div className="w-full mx-auto pb-32">
       {/* Premium HEADER (Hero Card Full Bleed) */}
-      <section className="relative overflow-hidden rounded-b-[2.5rem] bg-linear-to-br from-[#EE428F] to-[#FBC9C3] px-6 pb-8 pt-[env(safe-area-inset-top)] text-white shadow-[0_12px_40px_rgba(238,66,143,0.15)]">
+      <section className="relative overflow-hidden rounded-b-[2.5rem] bg-linear-to-br from-[#4B2E2B] to-[#6D4C41] px-6 pb-8 pt-[env(safe-area-inset-top)] text-white shadow-[0_12px_40px_rgba(75, 46, 43, 0.15)]">
         <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-[#FBC9C3]/20 blur-3xl" />
+        <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-[#6D4C41]/20 blur-3xl" />
         
         <div className="relative z-10 flex flex-col space-y-4">
           <div className="flex items-center justify-between">
@@ -164,7 +163,7 @@ export default function ClientePage() {
           {nextAppointment && (
             <button 
               onClick={() => router.push("/cliente/agendamentos")} 
-              className="text-xs font-medium text-[#EE428F] underline underline-offset-4"
+              className="text-xs font-medium text-[#4B2E2B] underline underline-offset-4"
             >
               Ver todos
             </button>
@@ -194,13 +193,13 @@ export default function ClientePage() {
 
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#F8F6F3]">
-                  <Calendar size={16} className="text-[#EE428F]" />
+                  <Calendar size={16} className="text-[#4B2E2B]" />
                   <span className="text-xs font-semibold text-[#2C2C2C] tabular-nums">
                     {format(nextAppointment.date, "dd/MM")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#F8F6F3]">
-                  <Clock size={16} className="text-[#EE428F]" />
+                  <Clock size={16} className="text-[#4B2E2B]" />
                   <span className="text-xs font-semibold text-[#2C2C2C] tabular-nums">
                     {nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}
                   </span>
@@ -209,7 +208,7 @@ export default function ClientePage() {
 
               <Button 
                 variant="ghost"
-                className="w-full text-xs font-semibold text-[#EE428F] hover:bg-[#EE428F]/5 rounded-xl h-10"
+                className="w-full text-xs font-semibold text-[#4B2E2B] hover:bg-[#4B2E2B]/5 rounded-xl h-10"
                 onClick={() => router.push("/cliente/agendamentos")}
               >
                 Ver detalhes
@@ -263,7 +262,7 @@ export default function ClientePage() {
             {services.map((service) => (
               <div 
                 key={service.id}
-                className="min-w-[130px] p-2.5 rounded-2xl bg-white border border-brand-soft shadow-sm space-y-2 flex-shrink-0"
+                className="min-w-[130px] p-2.5 rounded-2xl bg-white border border-brand-soft shadow-sm space-y-2 shrink-0"
               >
                 <div className="h-16 w-full rounded-xl bg-brand-background flex items-center justify-center text-brand-secondary">
                   <Sparkles size={20} />
@@ -281,8 +280,8 @@ export default function ClientePage() {
       {/* Footer Branding */}
       <footer className="pt-6 flex flex-col items-center justify-center gap-3 text-center opacity-40">
         <div className="flex items-center gap-2">
-          <Sparkle className="text-[#EE428F]" size={10} />
-          <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#EE428F]">Tessy Nails</span>
+          <Sparkle className="text-[#4B2E2B]" size={10} />
+          <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#4B2E2B]">Tessy Nails</span>
         </div>
         </footer>
       </div>

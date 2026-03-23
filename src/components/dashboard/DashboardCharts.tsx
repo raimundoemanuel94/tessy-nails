@@ -130,7 +130,7 @@ export function ServicesDonut({ data }: { data: ServiceData[] }) {
               </div>
               <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                 <div 
-                  className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(236,72,153,0.3)]"
+                  className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(75,46,43,0.3)]"
                   style={{ 
                     width: `${item.value}%`, 
                     backgroundColor: COLORS[idx % COLORS.length] 

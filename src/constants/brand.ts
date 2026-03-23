@@ -10,11 +10,11 @@ export const BRAND = {
   
   // Paleta de Cores extraída da marca aprovada
   colors: {
-    primary: "#EE428F",    // Rosa Vibrante (Logo e Destaques)
-    secondary: "#FBC9C3",  // Rosa Suave (Apoio e Detalhes)
-    dark: "#121212",       // Preto Carbono (Contraste e Dark Mode)
+    primary: "#4B2E2B",    // Marrom Café (Logo e Destaques)
+    secondary: "#6D4C41",  // Marrom Chocolate (Apoio e Detalhes)
+    dark: "#2D1F1B",       // Marrom Escuro (Contraste e Dark Mode)
     light: "#FFFFFF",      // Branco (Fundo e Pureza)
-    muted: "#94a3b8",      // Cinza para textos secundários
+    muted: "#7B6F6A",      // Cinza acastanhado para textos secundários
   },
   
   // Caminhos dos Assets

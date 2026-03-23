@@ -102,7 +102,7 @@ export function Sidebar() {
                   strokeWidth={isActive ? 2.5 : 2}
                   className={cn(
                     "transition-all duration-300",
-                    isActive ? "text-[#EE428F]" : "group-hover:scale-110 group-hover:text-[#EE428F]"
+                    isActive ? "text-[#4B2E2B]" : "group-hover:scale-110 group-hover:text-[#4B2E2B]"
                   )}
                 />
                 {!collapsed && <span>{item.label}</span>}
@@ -139,7 +139,7 @@ export function Sidebar() {
                   strokeWidth={isActive ? 2.5 : 2}
                   className={cn(
                     "transition-all duration-300",
-                    isActive ? "text-[#EE428F]" : "group-hover:scale-110 group-hover:text-[#EE428F]"
+                    isActive ? "text-[#4B2E2B]" : "group-hover:scale-110 group-hover:text-[#4B2E2B]"
                   )}
                 />
                 {!collapsed && <span>{item.label}</span>}
@@ -194,7 +194,7 @@ export function Sidebar() {
         )}>
           {!collapsed ? (
             <>
-              <div className="w-10 h-10 rounded-xl bg-[#EE428F]/10 dark:bg-[#EE428F]/20 flex items-center justify-center text-[#EE428F] font-bold overflow-hidden shadow-inner">
+              <div className="w-10 h-10 rounded-xl bg-[#4B2E2B]/10 dark:bg-[#4B2E2B]/20 flex items-center justify-center text-[#4B2E2B] font-bold overflow-hidden shadow-inner">
                 {user?.photoURL ? (
                   <img src={user.photoURL} alt={user.name} className="w-full h-full object-cover" />
                 ) : (

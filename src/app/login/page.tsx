@@ -58,7 +58,7 @@ const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
             opacity: [0.4, 0.6, 0.4]
           }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#EE428F]/10 dark:bg-[#EE428F]/5 rounded-full blur-[140px]" 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#4B2E2B]/10 dark:bg-[#4B2E2B]/5 rounded-full blur-[140px]" 
         />
       </div>
 
@@ -123,7 +123,7 @@ const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
                   duration: 2, 
                   ease: [0.44, 0, 0.56, 1] 
                 }}
-                className="absolute inset-0 bg-linear-to-r from-transparent via-[#EE428F] to-transparent w-full"
+                className="absolute inset-0 bg-linear-to-r from-transparent via-[#4B2E2B] to-transparent w-full"
               />
             </div>
           </motion.div>
@@ -217,10 +217,10 @@ function LoginPageContent() {
         
         {/* Immersive Background Elements */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-           <div className="absolute top-[10%] -left-[10%] w-[40%] h-[40%] bg-[#EE428F]/10 dark:bg-[#EE428F]/5 rounded-full blur-[120px]" />
-           <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-[#FBC9C3]/10 dark:bg-[#FBC9C3]/5 rounded-full blur-[120px]" />
-           <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#EE428F]/10 dark:bg-[#EE428F]/5 rounded-full blur-[100px] lg:hidden" />
-           <div className="absolute top-1/2 -left-32 w-[600px] h-[600px] bg-[#FBC9C3]/5 dark:bg-[#FBC9C3]/5 rounded-full blur-[120px] lg:hidden" />
+           <div className="absolute top-[10%] -left-[10%] w-[40%] h-[40%] bg-[#4B2E2B]/10 dark:bg-[#4B2E2B]/5 rounded-full blur-[120px]" />
+           <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-[#6D4C41]/10 dark:bg-[#6D4C41]/5 rounded-full blur-[120px]" />
+           <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#4B2E2B]/10 dark:bg-[#4B2E2B]/5 rounded-full blur-[100px] lg:hidden" />
+           <div className="absolute top-1/2 -left-32 w-[600px] h-[600px] bg-[#6D4C41]/5 dark:bg-[#6D4C41]/5 rounded-full blur-[120px] lg:hidden" />
         </div>
 
         {/* Centered Login Card Container */}
@@ -233,7 +233,7 @@ function LoginPageContent() {
           >
             <Card className="w-full border-none sm:border-solid sm:border border-brand-soft/60 dark:border-white/5 bg-transparent sm:bg-brand-background dark:bg-slate-900/60 backdrop-blur-3xl shadow-none sm:shadow-[8px_8px_16px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.8)] dark:shadow-none sm:dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-none sm:rounded-2xl overflow-hidden transition-all duration-500">
               <CardHeader className="space-y-2 sm:space-y-4 text-center pt-2 sm:pt-8 pb-2 sm:pb-4 px-2 sm:px-6 relative">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-1.5 bg-linear-to-r from-transparent via-[#EE428F]/30 to-transparent rounded-full" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-1.5 bg-linear-to-r from-transparent via-[#4B2E2B]/30 to-transparent rounded-full" />
                 
                 {/* Brand Identity Inside Card */}
                 <div className="flex flex-col items-center justify-center space-y-3 pb-2">
@@ -321,7 +321,7 @@ function LoginPageContent() {
                 <CardFooter className="flex flex-col space-y-2.5 px-2 sm:px-8 pb-4 sm:pb-8 pt-1">
                   <Button 
                     type="submit" 
-                    className="w-full h-12 sm:h-14 rounded-2xl bg-linear-to-br from-[#EE428F] to-[#FBC9C3] text-white font-black uppercase tracking-[0.2em] shadow-[4px_4px_10px_rgba(238,66,143,0.25)] sm:shadow-[6px_6px_14px_rgba(238,66,143,0.25),-4px_-4px_10px_rgba(255,255,255,0.8)] transition-all duration-300 hover:opacity-90 hover:shadow-[8px_8px_20px_rgba(238,66,143,0.35)] active:scale-[0.97] py-0" 
+                    className="w-full h-12 sm:h-14 rounded-2xl bg-linear-to-br from-[#4B2E2B] to-[#6D4C41] text-white font-black uppercase tracking-[0.2em] shadow-[4px_4px_10px_rgba(75,46,43,0.25)] sm:shadow-[6px_6px_14px_rgba(75,46,43,0.25),-4px_-4px_10px_rgba(255,255,255,0.8)] transition-all duration-300 hover:opacity-90 hover:shadow-[8px_8px_20px_rgba(75,46,43,0.35)] active:scale-[0.97] py-0" 
                     disabled={loading}
                   >
                     {loading ? (
