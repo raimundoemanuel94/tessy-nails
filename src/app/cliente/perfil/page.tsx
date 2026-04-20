@@ -197,10 +197,10 @@ export default function PerfilPage() {
   // Estados de loading
   if (loading || authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-brand-background flex items-center justify-center">
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
-          <p className="mt-4 text-gray-600">Carregando perfil...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-primary border-t-transparent" />
+          <p className="mt-4 text-brand-text-sub">Carregando perfil...</p>
         </div>
       </div>
     );
@@ -209,25 +209,25 @@ export default function PerfilPage() {
   // Estado de erro
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-brand-background flex items-center justify-center">
         <div className="text-center p-8">
           <div className="mb-4">
-            <svg className="h-12 w-12 text-red-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-12 w-12 text-destructive mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Erro no Perfil</h3>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <h3 className="text-lg font-medium text-brand-text-main mb-2">Erro no Perfil</h3>
+          <p className="text-brand-text-sub mb-6">{error}</p>
           <div className="space-x-4">
-            <button 
+            <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600"
+              className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors"
             >
               Tentar Novamente
             </button>
-            <button 
+            <button
               onClick={() => router.push('/cliente')}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 border border-brand-accent/30 rounded-lg hover:bg-brand-soft/30 transition-colors"
             >
               Voltar ao Início
             </button>

@@ -334,17 +334,17 @@ export default function RelatoriosPage() {
           className="lg:col-span-2"
           icon={TrendingUp}
         >
-          <div className="h-full min-h-[300px] flex items-center justify-center">
+          <div className="w-full h-[300px]">
             <RevenueChart data={monthsData} />
           </div>
         </SectionCard>
 
-        <SectionCard 
-          title="Distribuição" 
+        <SectionCard
+          title="Distribuição"
           description="Serviços mais realizados"
           icon={BarChart3}
         >
-          <div className="h-full min-h-[300px] flex items-center justify-center">
+          <div className="w-full h-[300px]">
             <ServicesDonut data={serviceDistribution} />
           </div>
         </SectionCard>

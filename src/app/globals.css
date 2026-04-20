@@ -16,7 +16,7 @@
   --color-brand-primary: #4B2E2B;
   --color-brand-secondary: #6D4C41;
   --color-brand-accent: #A1887F;
-  --color-brand-soft: rgba(215, 204, 200, 0.2);
+  --color-brand-soft: rgba(215, 204, 200, 0.4);
   --color-brand-background: #FAF7F5;
   --color-brand-card: #FFFFFF;
   --color-brand-text-main: #2D1F1B;
@@ -103,7 +103,6 @@
     touch-action: pan-x pan-y;
   }
   html {
-    @apply font-sans;
     overscroll-behavior-y: none;
     /* Garantir que o app ocupe a viewport inteira sem saltos */
     height: 100%;

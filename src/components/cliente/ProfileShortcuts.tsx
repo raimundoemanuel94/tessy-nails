@@ -1,13 +1,12 @@
 "use client";
 
-import { 
-  Calendar, 
-  Clock, 
-  Settings, 
-  HelpCircle, 
+import {
+  Calendar,
+  Clock,
+  Settings,
+  HelpCircle,
   LogOut,
   Home,
-  User
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -20,7 +19,7 @@ interface ProfileShortcutsProps {
   onBackToHome?: () => void;
 }
 
-export function ProfileShortcuts({ 
+export function ProfileShortcuts({
   onMyAppointments,
   onNewAppointment,
   onSettings,
@@ -35,7 +34,7 @@ export function ProfileShortcuts({
       description: 'Ver todos os seus horários agendados',
       icon: Calendar,
       color: 'text-brand-primary',
-      bgColor: 'bg-violet-50',
+      bgColor: 'bg-brand-primary/10',
       action: onMyAppointments
     },
     {
@@ -43,8 +42,8 @@ export function ProfileShortcuts({
       title: 'Agendar novo horário',
       description: 'Marcar um novo atendimento',
       icon: Clock,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      color: 'text-success',
+      bgColor: 'bg-success/10',
       action: onNewAppointment
     },
     {
@@ -52,8 +51,8 @@ export function ProfileShortcuts({
       title: 'Configurações da conta',
       description: 'Gerenciar suas preferências',
       icon: Settings,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
+      color: 'text-brand-secondary',
+      bgColor: 'bg-brand-secondary/10',
       action: onSettings
     },
     {
@@ -61,43 +60,36 @@ export function ProfileShortcuts({
       title: 'Ajuda e suporte',
       description: 'Tirar dúvidas e obter ajuda',
       icon: HelpCircle,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
+      color: 'text-brand-accent',
+      bgColor: 'bg-brand-accent/10',
       action: onHelp
     }
   ];
 
   return (
     <div className="space-y-6">
-      {/* Quick Actions */}
       <div>
-        <h3 className="text-lg font-bold text-gray-900 mb-4">
+        <h3 className="text-lg font-serif font-bold text-brand-text-main mb-4">
           Acesso rápido
         </h3>
-        
+
         <div className="grid gap-4 sm:grid-cols-2">
           {shortcuts.map((shortcut) => (
             <button
               key={shortcut.id}
               onClick={shortcut.action}
-              className={`
-                group rounded-xl border border-gray-200 bg-white p-4 text-left transition-all
-                hover:shadow-md hover:border-violet-200 hover:scale-[1.02]
-              `}
+              className="group rounded-xl border border-brand-accent/15 bg-white p-4 text-left transition-all hover:shadow-premium hover:border-brand-accent/30 hover:scale-[1.02]"
             >
               <div className="flex items-center space-x-3">
-                <div className={`
-                  h-12 w-12 rounded-full flex items-center justify-center
-                  ${shortcut.bgColor}
-                `}>
+                <div className={`h-12 w-12 rounded-full flex items-center justify-center ${shortcut.bgColor}`}>
                   <shortcut.icon className={`h-6 w-6 ${shortcut.color}`} />
                 </div>
-                
+
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 group-hover:text-brand-primary">
+                  <h4 className="font-semibold text-brand-text-main group-hover:text-brand-primary">
                     {shortcut.title}
                   </h4>
-                  <p className="text-sm text-gray-600 group-hover:text-gray-700">
+                  <p className="text-sm text-brand-text-sub">
                     {shortcut.description}
                   </p>
                 </div>
@@ -107,17 +99,16 @@ export function ProfileShortcuts({
         </div>
       </div>
 
-      {/* Account Actions */}
       <div>
-        <h3 className="text-lg font-bold text-gray-900 mb-4">
+        <h3 className="text-lg font-serif font-bold text-brand-text-main mb-4">
           Conta
         </h3>
-        
+
         <div className="space-y-3">
           <Button
             variant="outline"
             onClick={onBackToHome}
-            className="w-full justify-start border-violet-200 text-violet-700 hover:bg-violet-50"
+            className="w-full justify-start border-brand-accent/30 text-brand-primary hover:bg-brand-soft/30"
           >
             <Home className="mr-2 h-4 w-4" />
             Voltar para o início
@@ -134,9 +125,8 @@ export function ProfileShortcuts({
         </div>
       </div>
 
-      {/* Help Text */}
       <div className="text-center">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-brand-text-sub opacity-70">
           Precisa de ajuda? Entre em contato conosco através do suporte.
         </p>
       </div>

@@ -36,17 +36,17 @@ export const authService = {
       // ✅ Criar documento na coleção clients
       const clientRef = doc(db, "clients", user.uid);
       const clientDoc = await getDoc(clientRef);
-      
+
       if (!clientDoc.exists()) {
         const newClient = {
           id: user.uid,
           name: user.displayName || "Usuário",
           email: user.email || "",
-          phone: undefined,
+          phone: "", // ✅ String vazia, não undefined
           totalAppointments: 0,
           createdAt: new Date(),
           isActive: true,
-          notes: undefined
+          notes: "" // ✅ String vazia, não undefined
         };
         await setDoc(clientRef, newClient);
       }

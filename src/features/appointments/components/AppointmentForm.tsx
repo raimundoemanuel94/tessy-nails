@@ -384,7 +384,7 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Horário</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Horário" />

@@ -18,10 +18,10 @@ interface PersonalInfoSectionProps {
   showEditButton?: boolean;
 }
 
-export function PersonalInfoSection({ 
-  info, 
-  onEdit, 
-  showEditButton = true 
+export function PersonalInfoSection({
+  info,
+  onEdit,
+  showEditButton = true
 }: PersonalInfoSectionProps) {
   const items = [
     { label: "Nome completo", value: info.fullName, icon: User },
@@ -42,18 +42,18 @@ export function PersonalInfoSection({
   ].filter((item) => item.value);
 
   return (
-    <div className="rounded-[30px] border border-violet-100/70 bg-white/95 p-5 shadow-sm shadow-violet-100/40">
+    <div className="rounded-[30px] border border-brand-accent/20 bg-white/95 p-5 shadow-premium">
       <div className="mb-5 flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-violet-500">Informações</p>
-          <h3 className="text-xl font-black tracking-tight text-slate-900">Detalhes pessoais</h3>
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-text-sub">Informações</p>
+          <h3 className="text-xl font-serif font-bold tracking-tight text-brand-text-main">Detalhes pessoais</h3>
         </div>
         {showEditButton && onEdit && (
           <Button
             variant="outline"
             size="sm"
             onClick={onEdit}
-            className="rounded-2xl border-violet-200 text-violet-700 hover:bg-violet-50"
+            className="rounded-2xl border-brand-accent/30 text-brand-primary hover:bg-brand-soft/30"
           >
             <Edit className="mr-1 h-4 w-4" />
             Editar
@@ -63,22 +63,22 @@ export function PersonalInfoSection({
 
       <div className="space-y-3">
         {items.map((item) => (
-          <div key={item.label} className="flex items-start gap-3 rounded-2xl bg-slate-50/80 px-4 py-3">
-            <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
+          <div key={item.label} className="flex items-start gap-3 rounded-2xl bg-brand-soft/20 px-4 py-3">
+            <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-brand-primary/10 text-brand-primary">
               <item.icon className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{item.label}</p>
-              <p className="wrap-break-word text-sm font-semibold text-slate-800">{item.value}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-brand-text-sub">{item.label}</p>
+              <p className="wrap-break-word text-sm font-semibold text-brand-text-main">{item.value}</p>
             </div>
           </div>
         ))}
       </div>
 
       {info.observations && (
-        <div className="mt-4 rounded-2xl border border-violet-100 bg-violet-50/60 p-4">
-          <p className="mb-1 text-[11px] font-black uppercase tracking-[0.18em] text-violet-500">Observações</p>
-          <p className="text-sm leading-6 text-slate-600">{info.observations}</p>
+        <div className="mt-4 rounded-2xl border border-brand-accent/20 bg-brand-soft/20 p-4">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-brand-text-sub">Observações</p>
+          <p className="text-sm leading-6 text-brand-text-main">{info.observations}</p>
         </div>
       )}
     </div>

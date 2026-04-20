@@ -226,7 +226,7 @@ export default function AgendaPage() {
               ? "1 agendamento hoje" 
               : `${appointments.length} agendamentos hoje`}
           actions={
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) (document.activeElement as HTMLElement)?.blur(); setIsDialogOpen(open); }}>
               <DialogTrigger
                 render={
                   <Button size="lg" className="h-14 px-8 bg-white text-brand-primary hover:bg-white/90 font-black shadow-premium">
@@ -331,7 +331,7 @@ export default function AgendaPage() {
                     <p className="text-brand-text-sub font-bold max-w-xs mb-8">
                       Aproveite para organizar seu espaço ou descansar um pouco.
                     </p>
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) (document.activeElement as HTMLElement)?.blur(); setIsDialogOpen(open); }}>
                       <DialogTrigger
                         render={
                           <Button 
@@ -564,7 +564,7 @@ export default function AgendaPage() {
         </div>
 
       {/* DIALOG */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) (document.activeElement as HTMLElement)?.blur(); setIsDialogOpen(open); }}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Novo Agendamento</DialogTitle>
