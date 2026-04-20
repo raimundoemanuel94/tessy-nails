@@ -57,7 +57,7 @@ export function useNotifications() {
           if (payload.notification) {
             new Notification(payload.notification.title || 'Nova notificação', {
               body: payload.notification.body,
-              icon: '/icon-192x192.png',
+              icon: '/brand/icons/icon-192.png',
               tag: payload.data?.tag || 'default'
             });
           }

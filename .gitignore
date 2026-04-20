@@ -16,6 +16,9 @@
 # next.js
 /.next/
 /out/
+/public/sw.js
+/public/workbox-*.js
+/public/sw-clear.js
 
 # production
 /build
@@ -29,6 +32,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+build_log.txt
+git_status.txt
+manicure.json
 
 # env files (can opt-in for committing if needed)
 .env
@@ -50,3 +56,9 @@ next-env.d.ts
 tessy-nails-firebase-adminsdk-fbsvc-8ebe8667af.json
 tessy-nails-firebase-key.json
 .env*.local
+
+# local/editor and accidental nested project artifacts
+.windsurf/
+.repo-audit/
+/Tessy Nails
+/tessy-nails/
