@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { admin, getFirebaseAdminApp } from "@/lib/firebaseAdmin";
 import { z } from "zod";
+import {
+  authGuardErrorResponse,
+  isAuthGuardError,
+  requireAuth,
+} from "@/lib/server/route-guards";
 
 // ✅ Validar datas ISO
 const AvailabilityQuerySchema = z.object({
@@ -10,6 +15,8 @@ const AvailabilityQuerySchema = z.object({
 
 export async function GET(req: Request) {
   try {
+    await requireAuth(req);
+
     const { searchParams } = new URL(req.url);
     const start = searchParams.get("start");
     const end = searchParams.get("end");
@@ -79,6 +86,10 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ busySlots });
   } catch (error) {
+    if (isAuthGuardError(error)) {
+      return authGuardErrorResponse(error);
+    }
+
     const message = error instanceof Error ? error.message : "Erro ao buscar disponibilidade";
     console.error("Error fetching availability:", error);
     return NextResponse.json({ error: message }, { status: 500 });

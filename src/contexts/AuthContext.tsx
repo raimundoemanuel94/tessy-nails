@@ -33,8 +33,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const syncServerSession = async (fUser: FirebaseUser | null) => {
+    try {
+      if (!fUser) {
+        await fetch("/api/auth/session", { method: "DELETE" });
+        return;
+      }
+
+      const idToken = await fUser.getIdToken();
+      await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+    } catch (error) {
+      console.error("Session sync error:", error);
+    }
+  };
+
   useEffect(() => {
     if (!isFirebaseConfigured() || !auth) {
+      void syncServerSession(null);
       setLoading(false);
       return;
     }
@@ -42,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth!, async (fUser) => {
       console.log('Auth state changed:', { fUser: fUser?.email, uid: fUser?.uid });
       setFirebaseUser(fUser);
+      await syncServerSession(fUser);
       
       if (fUser) {
         try {
