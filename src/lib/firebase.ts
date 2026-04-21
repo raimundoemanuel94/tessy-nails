@@ -1,8 +1,6 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getFunctions } from "firebase/functions";
-import { getMessaging, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -15,60 +13,22 @@ const firebaseConfig = {
 };
 
 export const isFirebaseConfigured = () =>
-  !!(
+  Boolean(
     firebaseConfig.apiKey &&
-    firebaseConfig.authDomain &&
-    firebaseConfig.projectId &&
-    firebaseConfig.appId
+      firebaseConfig.authDomain &&
+      firebaseConfig.projectId &&
+      firebaseConfig.appId
   );
 
-if (!isFirebaseConfigured()) {
-  console.error("Firebase não configurado corretamente. Verifique as variáveis de ambiente.");
-  console.warn("App funcionará em modo limitado sem Firebase.");
+if (!isFirebaseConfigured() && process.env.NODE_ENV !== "production") {
+  console.warn("Firebase nao configurado corretamente. Verifique as variaveis de ambiente.");
 }
 
-const app =
-  getApps().length > 0
-    ? getApp()
-    : initializeApp(firebaseConfig);
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth =
-  typeof window !== "undefined" && isFirebaseConfigured()
-    ? getAuth(app)
-    : null;
+  typeof window !== "undefined" && isFirebaseConfigured() ? getAuth(app) : null;
 
 export const db = getFirestore(app);
-export const functions = getFunctions(app);
-
-export const storage =
-  typeof window !== "undefined"
-    ? (() => {
-        try {
-          const { getStorage } = require("firebase/storage");
-          return getStorage(app);
-        } catch {
-          return null;
-        }
-      })()
-    : null;
-
-export const messaging = async () => {
-  if (typeof window === "undefined") return null;
-  const supported = await isSupported();
-  return supported ? getMessaging(app) : null;
-};
-
-export const analytics =
-  typeof window !== "undefined"
-    ? (() => {
-        try {
-          const { getAnalytics } = require("firebase/analytics");
-          return getAnalytics(app);
-        } catch {
-          return null;
-        }
-      })()
-    : null;
 
 export { app };
-export default app;
