@@ -20,7 +20,7 @@ export function AppointmentTabs({ activeTab, onTabChange, counts }: AppointmentT
   ];
 
   return (
-    <div className="mb-5 rounded-[26px] border border-violet-100/70 bg-white/90 p-2 shadow-sm">
+    <div className="mb-5 rounded-[26px] border border-brand-accent/20 bg-white/90 p-2 shadow-sm">
       <div className="grid grid-cols-3 gap-2">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -34,7 +34,7 @@ export function AppointmentTabs({ activeTab, onTabChange, counts }: AppointmentT
                 "rounded-[20px] px-3 py-3 text-center transition-all",
                 isActive
                   ? "bg-linear-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/20"
-                  : "bg-transparent text-slate-500 hover:bg-violet-50"
+                  : "bg-transparent text-brand-text-sub hover:bg-brand-soft/30"
               )}
             >
               <div className="text-xs font-black uppercase tracking-[0.16em] md:hidden">{tab.short}</div>

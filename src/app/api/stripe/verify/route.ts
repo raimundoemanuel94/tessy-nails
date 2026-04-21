@@ -1,75 +1,73 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
-import admin from 'firebase-admin';
-
-// Reusa a mesma inicialização admin do Firebase para não crashear
-if (!admin.apps.length) {
-  try {
-    if (process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL || "dummy@example.com",
-          privateKey: (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, '\n')
-        })
-      });
-    }
-  } catch (error) {
-    console.error('Erro ao inicializar Firebase Admin na Verificação de Pagamento:', error);
-  }
-}
+import { admin, getFirebaseAdminApp } from "@/lib/firebaseAdmin";
 
 export async function POST(req: Request) {
   try {
     const { sessionId } = await req.json();
 
     if (!sessionId) {
-      return NextResponse.json({ error: "O ID da sessão é obrigatório" }, { status: 400 });
+      return NextResponse.json({ error: "O ID da sessao e obrigatorio" }, { status: 400 });
     }
 
-    // Busca os dados da sessão no Stripe
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (!session) {
-      return NextResponse.json({ error: "Sessão não encontrada" }, { status: 404 });
+      return NextResponse.json({ error: "Sessao nao encontrada" }, { status: 404 });
     }
 
-    // Se o pagamento foi concluído com sucesso
     if (session.payment_status === "paid") {
       const appointmentId = session.metadata?.appointmentId;
-      
-      if (appointmentId && appointmentId !== "N/A" && admin.apps.length > 0) {
-        
-        try {
-          // Atualiza no Firestore diretamente pelo lado seguro do Servidor Vercel
-          const db = admin.firestore();
-          await db.collection('appointments').doc(appointmentId).update({
-            status: 'confirmed',
-            paymentStatus: session.metadata?.paymentType === 'deposit' ? 'deposit_paid' : 'fully_paid',
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      const app = getFirebaseAdminApp();
+
+      if (appointmentId && appointmentId !== "N/A") {
+        if (!app) {
+          console.warn("⚠️ Firebase Admin não configurado - agendamento não será atualizado");
+          return NextResponse.json({
+            success: true,
+            message: "Pagamento validado no Stripe, mas Firebase Admin não está configurado para atualizar agendamento.",
+            warning: "appointment_not_updated",
           });
-          
-          return NextResponse.json({ success: true, message: "Pagamento validado e Agendamento Confirmado!" });
-        } catch (firebaseError: any) {
-          console.error("Erro fatal ao escrever no Firebase Admin", firebaseError);
-          return NextResponse.json({ 
-            success: false, 
-            message: "Pagamento do Stripe CAIU na Conta, mas Firebase FALHOU em marcar como pago.",
-            firebaseError: firebaseError?.message,
-            firebaseStack: firebaseError?.stack
-          }, { status: 200 }); // Status 200 pra forçar o React a ler o Body JSON.
+        }
+
+        try {
+          await admin.firestore(app).collection("appointments").doc(appointmentId).update({
+            status: "confirmed",
+            paymentStatus:
+              session.metadata?.paymentType === "deposit" ? "deposit_paid" : "fully_paid",
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          console.log(`✅ Agendamento ${appointmentId} confirmado após pagamento`);
+          return NextResponse.json({
+            success: true,
+            message: "Pagamento validado e agendamento confirmado.",
+          });
+        } catch (firebaseError) {
+          console.error("❌ Erro ao escrever no Firebase Admin", firebaseError);
+          const firebaseMessage =
+            firebaseError instanceof Error ? firebaseError.message : String(firebaseError);
+
+          return NextResponse.json({
+            success: false,
+            message: "Pagamento aprovado no Stripe, mas falha ao atualizar agendamento.",
+            firebaseError: firebaseMessage,
+          }, { status: 202 }); // 202 Accepted - pagamento confirmado mas não processado
         }
       }
-      
-      return NextResponse.json({ success: true, message: "Pagamento validado, mas sem ID de agendamento atrelado ou Firebase não iniciou." });
+
+      return NextResponse.json({
+        success: true,
+        message: "Pagamento validado, mas sem ID de agendamento para atualizar.",
+      });
     }
 
     return NextResponse.json({ success: false, message: "Pagamento ainda pendente." });
-  } catch (error: any) {
-    console.error("Erro na verificação do Stripe:", error);
-    return NextResponse.json(
-      { error: error?.message || error?.toString() || "Falha interna ao verificar o pagamento no Stripe", stack: error?.stack },
-      { status: 200 } // Trocado 500 pra 200 temporario só para o Next.JS nao mascarar o fetch
-    );
+  } catch (error) {
+    console.error("Erro na verificacao do Stripe:", error);
+    const message =
+      error instanceof Error ? error.message : "Falha interna ao verificar o pagamento no Stripe";
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

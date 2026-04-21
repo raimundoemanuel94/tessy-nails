@@ -210,18 +210,18 @@ export default function ServiceDetailPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-violet-600 mb-2">
+                  <div className="text-3xl font-bold text-brand-primary mb-2">
                     R$ {service.price.toFixed(2)}
                   </div>
-                  <div className="flex items-center justify-center text-gray-600 mb-4">
+                  <div className="flex items-center justify-center text-brand-text-sub mb-4">
                     <Clock className="h-4 w-4 mr-2" />
                     <span>{service.durationMinutes} minutos</span>
                   </div>
                 </div>
 
-                <Button 
+                <Button
                   onClick={handleScheduleClick}
-                  className="w-full bg-linear-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600"
+                  className="w-full bg-linear-to-r from-brand-primary to-brand-secondary hover:opacity-90"
                   size="lg"
                 >
                   <Calendar className="mr-2 h-5 w-5" />

@@ -1,54 +1,54 @@
-# 🔔 Firebase Cloud Messaging (FCM) - Guia de Implementação
+﻿# ðŸ”” Firebase Cloud Messaging (FCM) - Guia de ImplementaÃ§Ã£o
 
-## 📋 Visão Geral
+## ðŸ“‹ VisÃ£o Geral
 
-Este guia explica como implementar notificações push usando Firebase Cloud Messaging (FCM) no sistema Tessy Nails.
+Este guia explica como implementar notificaÃ§Ãµes push usando Firebase Cloud Messaging (FCM) no sistema Tessy Nails.
 
-## 🎯 Funcionalidades Planejadas
+## ðŸŽ¯ Funcionalidades Planejadas
 
-### Notificações para Admin
-- ✅ **Novo Agendamento**: Quando um cliente faz um agendamento
-- ✅ **Cancelamento**: Quando um agendamento é cancelado
-- ✅ **Pagamento Recebido**: Confirmação de pagamentos
-- ✅ **Lembrete**: 1 hora antes do atendimento
+### NotificaÃ§Ãµes para Admin
+- âœ… **Novo Agendamento**: Quando um cliente faz um agendamento
+- âœ… **Cancelamento**: Quando um agendamento Ã© cancelado
+- âœ… **Pagamento Recebido**: ConfirmaÃ§Ã£o de pagamentos
+- âœ… **Lembrete**: 1 hora antes do atendimento
 
-### Notificações para Cliente
-- ✅ **Confirmação de Agendamento**: Após criar agendamento
-- ✅ **Lembrete**: 1 hora antes do horário marcado
-- ✅ **Status Atualizado**: Mudanças no status do agendamento
-- ✅ **Promoções**: Ofertas especiais (opcional)
+### NotificaÃ§Ãµes para Cliente
+- âœ… **ConfirmaÃ§Ã£o de Agendamento**: ApÃ³s criar agendamento
+- âœ… **Lembrete**: 1 hora antes do horÃ¡rio marcado
+- âœ… **Status Atualizado**: MudanÃ§as no status do agendamento
+- âœ… **PromoÃ§Ãµes**: Ofertas especiais (opcional)
 
-## 🔧 Configuração Inicial
+## ðŸ”§ ConfiguraÃ§Ã£o Inicial
 
 ### 1. Habilitar Firebase Cloud Messaging
 
 No Firebase Console:
 1. Acesse: https://console.firebase.google.com/
 2. Selecione o projeto **tessy-nails-b7c9d**
-3. Vá em **Build** → **Cloud Messaging**
-4. Clique em **Get Started** se ainda não estiver habilitado
+3. VÃ¡ em **Build** â†’ **Cloud Messaging**
+4. Clique em **Get Started** se ainda nÃ£o estiver habilitado
 
 ### 2. Gerar Chave de Servidor (Server Key)
 
-1. No Firebase Console, vá em **Project Settings** (⚙️)
+1. No Firebase Console, vÃ¡ em **Project Settings** (âš™ï¸)
 2. Aba **Cloud Messaging**
-3. Copie a **Server Key** (será usada no backend)
-4. Copie o **Sender ID** (será usado no frontend)
+3. Copie a **Server Key** (serÃ¡ usada no backend)
+4. Copie o **Sender ID** (serÃ¡ usado no frontend)
 
 ### 3. Gerar Certificado Web Push
 
 1. Ainda em **Cloud Messaging**
-2. Seção **Web Push certificates**
+2. SeÃ§Ã£o **Web Push certificates**
 3. Clique em **Generate key pair**
 4. Copie o **Key pair** (VAPID key)
 
-## 📦 Instalação de Dependências
+## ðŸ“¦ InstalaÃ§Ã£o de DependÃªncias
 
 ```bash
 npm install firebase-admin
 ```
 
-## 🔨 Implementação
+## ðŸ”¨ ImplementaÃ§Ã£o
 
 ### 1. Criar Service Worker para PWA
 
@@ -75,8 +75,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/icon-192x192.png',
-    badge: '/icon-192x192.png',
+    icon: '/brand/icons/icon-192.png',
+    badge: '/brand/icons/icon-192.png',
     tag: payload.data?.tag || 'default',
     requireInteraction: true,
     data: payload.data
@@ -106,7 +106,7 @@ self.addEventListener('notificationclick', (event) => {
 });
 ```
 
-### 2. Criar Hook para Gerenciar Notificações
+### 2. Criar Hook para Gerenciar NotificaÃ§Ãµes
 
 Crie `src/hooks/useNotifications.ts`:
 
@@ -165,11 +165,11 @@ export function useNotifications() {
       const unsubscribe = onMessage(messaging, (payload) => {
         console.log('Foreground message:', payload);
         
-        // Mostrar notificação customizada quando app está aberto
+        // Mostrar notificaÃ§Ã£o customizada quando app estÃ¡ aberto
         if (payload.notification) {
-          new Notification(payload.notification.title || 'Nova notificação', {
+          new Notification(payload.notification.title || 'Nova notificaÃ§Ã£o', {
             body: payload.notification.body,
-            icon: '/icon-192x192.png',
+            icon: '/brand/icons/icon-192.png',
             tag: payload.data?.tag || 'default'
           });
         }
@@ -188,7 +188,7 @@ export function useNotifications() {
 }
 ```
 
-### 3. Criar Serviço de Notificações no Backend
+### 3. Criar ServiÃ§o de NotificaÃ§Ãµes no Backend
 
 Crie `src/services/notifications/index.ts`:
 
@@ -205,10 +205,10 @@ export interface NotificationPayload {
 }
 
 export const notificationService = {
-  // Enviar notificação para um usuário específico
+  // Enviar notificaÃ§Ã£o para um usuÃ¡rio especÃ­fico
   async sendToUser(userId: string, payload: NotificationPayload) {
     try {
-      // Buscar token FCM do usuário
+      // Buscar token FCM do usuÃ¡rio
       const tokensRef = collection(db, 'fcmTokens');
       const q = query(tokensRef, where('userId', '==', userId));
       const snapshot = await getDocs(q);
@@ -229,7 +229,7 @@ export const notificationService = {
           notification: {
             title: payload.title,
             body: payload.body,
-            icon: payload.icon || '/icon-192x192.png'
+            icon: payload.icon || '/brand/icons/icon-192.png'
           },
           data: {
             url: payload.url || '/dashboard',
@@ -252,7 +252,7 @@ export const notificationService = {
     
     for (const admin of admins) {
       await this.sendToUser(admin.uid, {
-        title: '📅 Novo Agendamento',
+        title: 'ðŸ“… Novo Agendamento',
         body: `${appointmentData.clientName} agendou ${appointmentData.serviceName}`,
         url: '/agendamentos',
         tag: 'new-appointment'
@@ -260,10 +260,10 @@ export const notificationService = {
     }
   },
 
-  // Notificar cliente sobre confirmação
+  // Notificar cliente sobre confirmaÃ§Ã£o
   async notifyAppointmentConfirmed(clientId: string, appointmentData: any) {
     await this.sendToUser(clientId, {
-      title: '✅ Agendamento Confirmado',
+      title: 'âœ… Agendamento Confirmado',
       body: `Seu agendamento para ${appointmentData.serviceName} foi confirmado!`,
       url: '/cliente/agendamentos',
       tag: 'appointment-confirmed'
@@ -273,14 +273,14 @@ export const notificationService = {
   // Lembrete de agendamento (1 hora antes)
   async sendAppointmentReminder(clientId: string, appointmentData: any) {
     await this.sendToUser(clientId, {
-      title: '⏰ Lembrete de Agendamento',
-      body: `Seu atendimento de ${appointmentData.serviceName} é em 1 hora!`,
+      title: 'â° Lembrete de Agendamento',
+      body: `Seu atendimento de ${appointmentData.serviceName} Ã© em 1 hora!`,
       url: '/cliente/agendamentos',
       tag: 'appointment-reminder'
     });
   },
 
-  // Helper: Buscar usuários admin
+  // Helper: Buscar usuÃ¡rios admin
   async getAdminUsers() {
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('role', '==', 'admin'));
@@ -290,7 +290,7 @@ export const notificationService = {
 };
 ```
 
-### 4. Criar API Route para Enviar Notificações
+### 4. Criar API Route para Enviar NotificaÃ§Ãµes
 
 Crie `src/app/api/notifications/send/route.ts`:
 
@@ -298,7 +298,7 @@ Crie `src/app/api/notifications/send/route.ts`:
 import { NextRequest, NextResponse } from 'next/server';
 import admin from 'firebase-admin';
 
-// Inicializar Firebase Admin (se ainda não estiver)
+// Inicializar Firebase Admin (se ainda nÃ£o estiver)
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -324,7 +324,7 @@ export async function POST(request: NextRequest) {
       notification: {
         title: notification.title,
         body: notification.body,
-        icon: notification.icon || '/icon-192x192.png'
+        icon: notification.icon || '/brand/icons/icon-192.png'
       },
       data: data || {},
       tokens: tokens
@@ -350,7 +350,7 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-### 5. Integrar no Componente de Configurações
+### 5. Integrar no Componente de ConfiguraÃ§Ãµes
 
 Adicione ao `src/app/configuracoes/page.tsx`:
 
@@ -360,22 +360,22 @@ import { useNotifications } from '@/hooks/useNotifications';
 export default function ConfiguracoesPage() {
   const { permission, requestPermission, isSupported } = useNotifications();
   
-  // ... resto do código
+  // ... resto do cÃ³digo
   
-  // Na aba de Notificações, adicione:
+  // Na aba de NotificaÃ§Ãµes, adicione:
   {isSupported && permission === 'default' && (
     <Button onClick={requestPermission} className="w-full">
-      Ativar Notificações Push
+      Ativar NotificaÃ§Ãµes Push
     </Button>
   )}
   
   {permission === 'granted' && (
-    <Badge variant="success">Notificações Ativadas ✓</Badge>
+    <Badge variant="success">NotificaÃ§Ãµes Ativadas âœ“</Badge>
   )}
 }
 ```
 
-## 🚀 Uso Prático
+## ðŸš€ Uso PrÃ¡tico
 
 ### Exemplo: Notificar ao Criar Agendamento
 
@@ -401,14 +401,14 @@ const handleCreateAppointment = async (data: any) => {
       { serviceName: data.serviceName }
     );
     
-    toast.success('Agendamento criado e notificações enviadas!');
+    toast.success('Agendamento criado e notificaÃ§Ãµes enviadas!');
   } catch (error) {
     console.error(error);
   }
 };
 ```
 
-## 📝 Variáveis de Ambiente
+## ðŸ“ VariÃ¡veis de Ambiente
 
 Adicione ao `.env.local`:
 
@@ -422,16 +422,16 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY----
 NEXT_PUBLIC_FIREBASE_VAPID_KEY=YOUR_VAPID_KEY_HERE
 ```
 
-## 🎨 Melhorias Futuras
+## ðŸŽ¨ Melhorias Futuras
 
-- [ ] **Agendamento de Notificações**: Usar Firebase Cloud Functions para lembretes automáticos
-- [ ] **Notificações por Email**: Integrar com SendGrid ou similar
+- [ ] **Agendamento de NotificaÃ§Ãµes**: Usar Firebase Cloud Functions para lembretes automÃ¡ticos
+- [ ] **NotificaÃ§Ãµes por Email**: Integrar com SendGrid ou similar
 - [ ] **SMS**: Integrar com Twilio para SMS
-- [ ] **Histórico de Notificações**: Salvar no Firestore para consulta
-- [ ] **Preferências Granulares**: Permitir usuário escolher tipos específicos
-- [ ] **Rich Notifications**: Adicionar imagens, ações (Confirmar/Cancelar)
+- [ ] **HistÃ³rico de NotificaÃ§Ãµes**: Salvar no Firestore para consulta
+- [ ] **PreferÃªncias Granulares**: Permitir usuÃ¡rio escolher tipos especÃ­ficos
+- [ ] **Rich Notifications**: Adicionar imagens, aÃ§Ãµes (Confirmar/Cancelar)
 
-## 📚 Recursos
+## ðŸ“š Recursos
 
 - [Firebase Cloud Messaging Docs](https://firebase.google.com/docs/cloud-messaging)
 - [Web Push Notifications](https://web.dev/push-notifications-overview/)
@@ -439,5 +439,6 @@ NEXT_PUBLIC_FIREBASE_VAPID_KEY=YOUR_VAPID_KEY_HERE
 
 ---
 
-**Status**: ✅ Configurações preparadas | 🔄 Implementação pendente
-**Última atualização**: 16 de março de 2026
+**Status**: âœ… ConfiguraÃ§Ãµes preparadas | ðŸ”„ ImplementaÃ§Ã£o pendente
+**Ãšltima atualizaÃ§Ã£o**: 16 de marÃ§o de 2026
+

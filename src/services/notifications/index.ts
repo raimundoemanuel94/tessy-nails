@@ -34,7 +34,7 @@ export const notificationService = {
           notification: {
             title: payload.title,
             body: payload.body,
-            icon: payload.icon || '/icon-192x192.png'
+            icon: payload.icon || '/brand/icons/icon-192.png'
           },
           data: {
             url: payload.url || '/dashboard',
@@ -59,7 +59,7 @@ export const notificationService = {
       await this.sendToUser(admin.uid, {
         title: '📅 Novo Agendamento',
         body: `${appointmentData.clientName} agendou ${appointmentData.serviceName}`,
-        url: '/admin/agendamentos',
+        url: '/agendamentos',
         tag: 'new-appointment'
       });
     }

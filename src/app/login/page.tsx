@@ -24,7 +24,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
   useEffect(() => {
-    const timer = setTimeout(onComplete, 2800); // 2.8s for a more luxurious experience
+    const timer = setTimeout(onComplete, 1400);
     return () => clearTimeout(timer);
   }, [onComplete]);
 
@@ -153,24 +153,25 @@ function LoginPageContent() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
-  
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn, signUp, signInWithGoogle, user } = useAuth();
-  
+  const { signIn, signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
+
   const mode = searchParams.get('mode') || 'login';
   const isRegisterMode = mode === 'login' ? false : true;
 
+  // Se já há sessão ativa, pular splash e redirecionar imediatamente
+  const [showSplash, setShowSplash] = useState(!user);
+
   useEffect(() => {
-    if (user && !showSplash) {
+    if (user && !authLoading) {
       if (user.role === 'admin' || user.role === 'professional') {
         router.push('/dashboard');
       } else {
         router.push('/cliente');
       }
     }
-  }, [user, router, showSplash]);
+  }, [user, authLoading, router]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -288,7 +289,7 @@ function LoginPageContent() {
                         exit={{ opacity: 0, height: 0 }}
                         className="space-y-1.5"
                       >
-                        <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400 dark:text-slate-500">Nome Completo</Label>
+                        <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-widest ml-1 text-slate-500 dark:text-slate-400">Nome Completo</Label>
                         <div className="relative group">
                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={18} />
                            <Input 
@@ -306,7 +307,7 @@ function LoginPageContent() {
                   </AnimatePresence>
                   
                   <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400 dark:text-slate-500">Endereço de E-mail</Label>
+                    <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-widest ml-1 text-slate-500 dark:text-slate-400">Endereço de E-mail</Label>
                     <div className="relative group">
                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={18} />
                        <Input 
@@ -322,7 +323,7 @@ function LoginPageContent() {
                   </div>
                   
                   <div className="space-y-1.5">
-                    <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400 dark:text-slate-500">Senha Segura</Label>
+                    <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-widest ml-1 text-slate-500 dark:text-slate-400">Senha Segura</Label>
                     <div className="relative group">
                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={18} />
                        <Input 

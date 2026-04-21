@@ -30,8 +30,8 @@ const COLORS = ['#4B2E2B', '#6D4C41', '#A1887F', '#B08A7A'];
 
 export function RevenueChart({ data }: { data: RevenueData[] }) {
   return (
-    <div className="h-[350px] w-full">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="w-full space-y-4">
+      <div className="flex items-center justify-between">
         <div>
           <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Evolução Financeira</h3>
           <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Histórico de faturamento bruto</p>
@@ -40,7 +40,8 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
           +12.5% Crescimento
         </div>
       </div>
-      <ResponsiveContainer width="100%" height="80%">
+      <div style={{ width: '100%', height: 280 }}>
+        <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data}>
           <defs>
             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -81,16 +82,17 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
           />
         </AreaChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }
 
 export function ServicesDonut({ data }: { data: ServiceData[] }) {
   return (
-    <div className="w-full">
-      <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-6">Popularidade</h3>
+    <div className="w-full space-y-6">
+      <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Popularidade</h3>
       <div className="flex flex-col items-center">
-        <div className="h-48 w-full relative">
+        <div style={{ width: '100%', height: 220 }} className="relative">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie

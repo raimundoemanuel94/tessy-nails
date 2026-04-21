@@ -27,13 +27,13 @@ export function EmptyState({
       className
     )}>
       <div className="relative mb-8">
-        <div className="absolute inset-0 bg-violet-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="relative flex items-center justify-center w-24 h-24 rounded-3xl bg-white dark:bg-slate-900 border border-violet-100 dark:border-violet-500/20 shadow-2xl shadow-violet-500/10 transition-transform hover:scale-110 duration-500">
+        <div className="absolute inset-0 bg-brand-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="relative flex items-center justify-center w-24 h-24 rounded-3xl bg-white dark:bg-slate-900 border border-brand-accent/20 shadow-premium transition-transform hover:scale-110 duration-500">
           <Icon size={40} className="text-brand-primary" strokeWidth={1.5} />
         </div>
-        <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/10 flex items-center justify-center shadow-lg">
-          <div className="w-4 h-4 rounded-full bg-violet-500/20 animate-ping" />
-          <div className="absolute w-2 h-2 rounded-full bg-violet-500" />
+        <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-white border border-brand-accent/10 flex items-center justify-center shadow-lg">
+          <div className="w-4 h-4 rounded-full bg-brand-primary/20 animate-ping" />
+          <div className="absolute w-2 h-2 rounded-full bg-brand-primary" />
         </div>
       </div>
       

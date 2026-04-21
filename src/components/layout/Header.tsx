@@ -14,13 +14,12 @@ import {
   DropdownMenuGroup 
 } from "@/components/ui/dropdown-menu";
 import { 
-  Bell, 
-  User, 
-  Settings, 
-  LogOut, 
-  Scissors, 
-  Search, 
-  Menu, 
+  Bell,
+  User,
+  Settings,
+  LogOut,
+  Scissors,
+  Menu,
   LayoutDashboard, 
   Calendar, 
   Clock, 
@@ -56,13 +55,13 @@ export function Header() {
   ];
 
   return (
-    <header className="h-16 md:h-20 flex items-center justify-between px-4 md:px-6 sticky top-0 pt-[env(safe-area-inset-top)] z-30 transition-all duration-300 bg-brand-primary text-white shadow-lg">
+    <header className="h-16 md:h-20 flex items-center justify-between px-4 md:px-6 sticky top-0 pt-[env(safe-area-inset-top)] z-30 transition-all duration-300 bg-white/80 backdrop-blur-xl border-b border-brand-accent/10 shadow-sm">
       <div className="flex items-center gap-4">
         <div className="md:hidden">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger
               render={
-               <Button variant="ghost" size="icon" className="md:hidden text-white hover:bg-white/10">
+               <Button variant="ghost" size="icon" className="md:hidden text-brand-primary hover:bg-brand-primary/10">
                   <Menu size={20} />
                 </Button>
               }
@@ -119,23 +118,14 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-          <img src="/brand/logo/logo.svg" alt="Tessy Nails" className="h-7 w-auto drop-shadow-md brightness-0 invert" />
+          <img src="/brand/logo/logo.svg" alt="Tessy Nails" className="h-7 w-auto drop-shadow-sm" />
         </div>
       </div>
 
       <div className="flex items-center gap-4 lg:gap-6">
-        <div className="hidden sm:flex items-center bg-white/60 border border-brand-border/50 rounded-xl px-4 py-2 w-64 group focus-within:w-80 transition-all duration-500 cursor-text shadow-sm">
-          <Search size={16} className="text-brand-text-muted group-focus-within:text-brand-primary transition-colors" />
-          <span className="ml-3 text-xs text-brand-text-muted font-bold tracking-tight">Pesquisar...</span>
-          <div className="ml-auto flex gap-1">
-            <kbd className="h-5 min-w-5 px-1.5 flex items-center justify-center rounded-md bg-white border border-brand-border text-[10px] font-black text-brand-text-muted shadow-xs">⌘</kbd>
-            <kbd className="h-5 min-w-5 px-1.5 flex items-center justify-center rounded-md bg-white border border-brand-border text-[10px] font-black text-brand-text-muted shadow-xs">K</kbd>
-          </div>
-        </div>
-
-        <Button variant="ghost" size="icon" className="relative h-9 w-9 md:h-10 md:w-10 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all shadow-sm border-none">
+<Button variant="ghost" size="icon" className="relative h-9 w-9 md:h-10 md:w-10 rounded-xl bg-brand-primary/5 text-brand-primary hover:bg-brand-primary/10 transition-all shadow-sm border-none">
           <Bell size={18} strokeWidth={2} />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full border-2 border-brand-primary animate-pulse" />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-brand-primary rounded-full border-2 border-white animate-pulse" />
         </Button>
 
         <DropdownMenu>
@@ -149,8 +139,8 @@ export function Header() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden lg:flex flex-col items-start leading-tight">
-                  <span className="text-sm font-bold text-white">{String(user?.name || "")}</span>
-                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-tighter">Administrador</span>
+                  <span className="text-sm font-bold text-brand-text-main">{String(user?.name || "")}</span>
+                  <span className="text-xs font-semibold text-brand-text-sub uppercase tracking-tighter">Administrador</span>
                 </div>
               </Button>
             }

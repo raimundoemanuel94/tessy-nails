@@ -139,10 +139,10 @@ export default function AgendamentosPage() {
   // Estados de loading
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-brand-background flex items-center justify-center">
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
-          <p className="mt-4 text-gray-600">Carregando agendamentos...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-primary border-t-transparent" />
+          <p className="mt-4 text-brand-text-sub">Carregando agendamentos...</p>
         </div>
       </div>
     );
@@ -159,7 +159,7 @@ export default function AgendamentosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-brand-background pb-24">
       <AgendamentosHeader 
         title="Meus agendamentos"
         subtitle="Gerencie seus horários e tratamentos"
@@ -192,10 +192,10 @@ export default function AgendamentosPage() {
             <div className="mb-4 h-16 w-16 rounded-full bg-brand-primary/5 flex items-center justify-center mx-auto">
               <span className="text-2xl">📅</span>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-brand-text-main mb-2">
               Nenhum agendamento encontrado
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-brand-text-sub mb-6">
               {activeTab === 'upcoming' 
                 ? "Você não possui agendamentos futuros." 
                 : "Você não possui agendamentos no histórico."

@@ -24,13 +24,52 @@ export interface TimeSlot {
 }
 
 export class AppointmentStorage {
+  // ✅ FALLBACK EM MEMÓRIA (localStorage pode não estar disponível)
+  private static memoryCache = {
+    appointmentData: null as AppointmentData | null,
+    selectedDate: null as Date | null,
+    selectedService: null as Service | null,
+  };
+
   private static readonly APPOINTMENT_DATA_KEY = 'appointmentData';
   private static readonly SELECTED_DATE_KEY = 'selectedDate';
   private static readonly SELECTED_SERVICE_KEY = 'selectedService';
 
-  // ✅ Verificar se está no browser
+  // ✅ Verificar se está no browser E localStorage disponível
   private static isBrowser(): boolean {
     return typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+  }
+
+  // ✅ Tentar localStorage, fallback para memória
+  private static setStorage(key: string, value: string): void {
+    try {
+      if (this.isBrowser()) {
+        localStorage.setItem(key, value);
+      }
+    } catch (e) {
+      console.warn('localStorage indisponível, usando memória:', key);
+    }
+  }
+
+  private static getStorage(key: string): string | null {
+    try {
+      if (this.isBrowser()) {
+        return localStorage.getItem(key);
+      }
+    } catch (e) {
+      console.warn('localStorage indisponível, usando memória:', key);
+    }
+    return null;
+  }
+
+  private static removeStorage(key: string): void {
+    try {
+      if (this.isBrowser()) {
+        localStorage.removeItem(key);
+      }
+    } catch (e) {
+      console.warn('localStorage indisponível ao remover:', key);
+    }
   }
 
   // Validação de dados
@@ -62,23 +101,22 @@ export class AppointmentStorage {
   // Salvar dados com validação
   static saveAppointmentData(data: AppointmentData): boolean {
     try {
-      if (!this.isBrowser()) {
-        console.warn('localStorage not available - skipping save');
-        return false;
-      }
-
       if (!this.validateAppointmentData(data)) {
         console.error('Invalid appointment data:', data);
         return false;
       }
 
+      // Salvar em memória sempre
+      this.memoryCache.appointmentData = data;
+
+      // Tentar localStorage se disponível
       const serializedData = JSON.stringify({
         ...data,
         date: data.date.toISOString(),
         savedAt: new Date().toISOString()
       });
+      this.setStorage(this.APPOINTMENT_DATA_KEY, serializedData);
 
-      localStorage.setItem(this.APPOINTMENT_DATA_KEY, serializedData);
       return true;
     } catch (error) {
       console.error('Error saving appointment data:', error);
@@ -89,27 +127,31 @@ export class AppointmentStorage {
   // Carregar dados com validação
   static loadAppointmentData(): AppointmentData | null {
     try {
-      if (!this.isBrowser()) {
-        console.warn('localStorage not available - returning null');
-        return null;
+      // 1. Tentar memória primeiro
+      if (this.memoryCache.appointmentData) {
+        return this.memoryCache.appointmentData;
       }
 
-      const savedData = localStorage.getItem(this.APPOINTMENT_DATA_KEY);
+      // 2. Tentar localStorage
+      const savedData = this.getStorage(this.APPOINTMENT_DATA_KEY);
       if (!savedData) return null;
 
       const parsedData = JSON.parse(savedData);
-      
+
       if (!this.validateAppointmentData(parsedData)) {
         console.error('Invalid appointment data in localStorage:', parsedData);
         this.clearAppointmentData();
         return null;
       }
 
-      // Converter string de data para Date
-      return {
+      // Salvar em memória para próximas tentativas
+      const appointmentData = {
         ...parsedData,
         date: new Date(parsedData.date)
       };
+      this.memoryCache.appointmentData = appointmentData;
+
+      return appointmentData;
     } catch (error) {
       console.error('Error loading appointment data:', error);
       this.clearAppointmentData();
@@ -125,7 +167,11 @@ export class AppointmentStorage {
         return false;
       }
 
-      localStorage.setItem(this.SELECTED_DATE_KEY, date.toISOString());
+      // Salvar em memória
+      this.memoryCache.selectedDate = date;
+
+      // Tentar localStorage
+      this.setStorage(this.SELECTED_DATE_KEY, date.toISOString());
       return true;
     } catch (error) {
       console.error('Error saving selected date:', error);
@@ -136,7 +182,13 @@ export class AppointmentStorage {
   // Carregar data selecionada
   static loadSelectedDate(): Date | null {
     try {
-      const savedDate = localStorage.getItem(this.SELECTED_DATE_KEY);
+      // 1. Tentar memória primeiro
+      if (this.memoryCache.selectedDate) {
+        return this.memoryCache.selectedDate;
+      }
+
+      // 2. Tentar localStorage
+      const savedDate = this.getStorage(this.SELECTED_DATE_KEY);
       if (!savedDate) return null;
 
       const date = new Date(savedDate);
@@ -146,6 +198,8 @@ export class AppointmentStorage {
         return null;
       }
 
+      // Salvar em memória
+      this.memoryCache.selectedDate = date;
       return date;
     } catch (error) {
       console.error('Error loading selected date:', error);
@@ -162,7 +216,11 @@ export class AppointmentStorage {
         return false;
       }
 
-      localStorage.setItem(this.SELECTED_SERVICE_KEY, JSON.stringify(service));
+      // Salvar em memória
+      this.memoryCache.selectedService = service;
+
+      // Tentar localStorage
+      this.setStorage(this.SELECTED_SERVICE_KEY, JSON.stringify(service));
       return true;
     } catch (error) {
       console.error('Error saving selected service:', error);
@@ -173,17 +231,25 @@ export class AppointmentStorage {
   // Carregar serviço selecionado
   static loadSelectedService(): Service | null {
     try {
-      const savedService = localStorage.getItem(this.SELECTED_SERVICE_KEY);
+      // 1. Tentar memória primeiro
+      if (this.memoryCache.selectedService) {
+        return this.memoryCache.selectedService;
+      }
+
+      // 2. Tentar localStorage
+      const savedService = this.getStorage(this.SELECTED_SERVICE_KEY);
       if (!savedService) return null;
 
       const parsedService = JSON.parse(savedService);
-      
+
       if (!this.validateService(parsedService)) {
         console.error('Invalid service in localStorage:', parsedService);
         this.clearSelectedService();
         return null;
       }
 
+      // Salvar em memória
+      this.memoryCache.selectedService = parsedService;
       return parsedService;
     } catch (error) {
       console.error('Error loading selected service:', error);
@@ -195,7 +261,8 @@ export class AppointmentStorage {
   // Limpar métodos
   static clearAppointmentData(): void {
     try {
-      localStorage.removeItem(this.APPOINTMENT_DATA_KEY);
+      this.memoryCache.appointmentData = null;
+      this.removeStorage(this.APPOINTMENT_DATA_KEY);
     } catch (error) {
       console.error('Error clearing appointment data:', error);
     }
@@ -203,7 +270,8 @@ export class AppointmentStorage {
 
   static clearSelectedDate(): void {
     try {
-      localStorage.removeItem(this.SELECTED_DATE_KEY);
+      this.memoryCache.selectedDate = null;
+      this.removeStorage(this.SELECTED_DATE_KEY);
     } catch (error) {
       console.error('Error clearing selected date:', error);
     }
@@ -211,7 +279,8 @@ export class AppointmentStorage {
 
   static clearSelectedService(): void {
     try {
-      localStorage.removeItem(this.SELECTED_SERVICE_KEY);
+      this.memoryCache.selectedService = null;
+      this.removeStorage(this.SELECTED_SERVICE_KEY);
     } catch (error) {
       console.error('Error clearing selected service:', error);
     }
