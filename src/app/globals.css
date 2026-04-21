@@ -1,0 +1,148 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: "Playfair Display", serif;
+  
+  /* Official Global Design System Tokens - Tessy Nails Official Palette */
+  --color-brand-primary: #4B2E2B;
+  --color-brand-secondary: #6D4C41;
+  --color-brand-accent: #A1887F;
+  --color-brand-soft: rgba(215, 204, 200, 0.4);
+  --color-brand-background: #FAF7F5;
+  --color-brand-card: #FFFFFF;
+  --color-brand-text-main: #2D1F1B;
+  --color-brand-text-sub: #7B6F6A;
+
+  /* Status Tokens */
+  --color-success: #7E9C76;
+  --color-warning: #C58B57;
+  --color-neutral-status: #8C7B75;
+  --color-highlight: #B08A7A;
+  
+  /* Semantic Aliasing */
+  --color-primary: var(--brand-primary);
+  --color-secondary: var(--brand-secondary);
+  --color-accent: var(--brand-accent);
+  --color-muted: var(--brand-soft);
+  --color-muted-foreground: var(--brand-text-sub);
+  
+  /* Shadow Elevation */
+  --shadow-premium: 0 10px 30px -5px rgba(75, 46, 43, 0.1), 0 4px 12px -4px rgba(75, 46, 43, 0.05);
+  --shadow-premium-hover: 0 20px 40px -10px rgba(75, 46, 43, 0.2), 0 8px 16px -6px rgba(75, 46, 43, 0.1);
+  --shadow-premium-xl: 0 30px 60px -12px rgba(75, 46, 43, 0.25);
+
+  /* Radius Standardization */
+  --radius-xs: 0.5rem;   /* 8px */
+  --radius-sm: 0.75rem;  /* 12px */
+  --radius-md: 1rem;     /* 16px */
+  --radius-lg: 1.5rem;   /* 24px */
+  --radius-xl: 2rem;     /* 32px */
+  --radius-2xl: 2.5rem;  /* 40px */
+  --radius-3xl: 3rem;    /* 48px */
+  --radius-full: 9999px;
+
+  /* Basic Shadcn Mappings */
+  --color-border: #E5E7EB;
+  --color-input: #E5E7EB;
+  --color-ring: #4B2E2B;
+  --color-destructive: #F44336;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #2D1F1B;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #2D1F1B;
+}
+
+:root {
+  --background: #FAF7F5;
+  --foreground: #2D1F1B;
+  --card: #FFFFFF;
+  --card-foreground: #2D1F1B;
+  --popover: #FFFFFF;
+  --popover-foreground: #2D1F1B;
+  --primary: #4B2E2B;
+  --primary-foreground: #FFFFFF;
+  --secondary: #6D4C41;
+  --secondary-foreground: #FFFFFF;
+  --muted: rgba(215, 204, 200, 0.1);
+  --muted-foreground: #7B6F6A;
+  --accent: #A1887F;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --border: #E8E5E3;
+  --input: #E8E5E3;
+  --ring: #4B2E2B;
+  --radius: 1.25rem;
+  
+  /* Specific Tokens from Overhaul Request */
+  --success: #7E9C76;
+  --warning: #C58B57;
+  --neutral-status: #8C7B75;
+  --highlight: #B08A7A;
+}
+
+@layer base {
+  * {
+    @apply border-border/60 outline-ring/50;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-brand-primary/20 selection:text-brand-primary;
+    overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Evitar pull-to-refresh em navegadores mobile */
+    touch-action: pan-x pan-y;
+  }
+  html {
+    overscroll-behavior-y: none;
+    /* Garantir que o app ocupe a viewport inteira sem saltos */
+    height: 100%;
+    height: 100dvh;
+  }
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .min-h-dvh {
+    min-height: 100dvh;
+  }
+  .h-dvh {
+    height: 100dvh;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl border border-white/20;
+  }
+  .glass-card {
+    @apply bg-white/40 backdrop-blur-md border border-white/30 shadow-premium transition-all duration-300;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-linear-to-r from-brand-secondary to-brand-primary;
+  }
+  .premium-card {
+    @apply bg-white rounded-2xl border border-brand-accent/5 shadow-premium hover:shadow-premium-hover transition-all duration-500;
+  }
+  .status-badge {
+    @apply px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border-none;
+  }
+}
