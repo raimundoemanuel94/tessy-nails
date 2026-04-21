@@ -9,41 +9,33 @@ interface AgendamentosHeaderProps {
   onBack?: () => void;
 }
 
-export function AgendamentosHeader({ 
-  title = "Meus agendamentos", 
+export function AgendamentosHeader({
+  title = "Meus agendamentos",
   subtitle,
-  onBack 
+  onBack,
 }: AgendamentosHeaderProps) {
   return (
     <header className="sticky top-0 pt-[env(safe-area-inset-top)] z-50 w-full bg-brand-primary text-white shadow-md">
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        {/* Back Button */}
+      <div className="flex h-16 items-center gap-3 px-5 max-w-2xl mx-auto">
         {onBack && (
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={onBack}
-            className="text-white hover:bg-white/10"
+            className="h-10 w-10 rounded-xl text-white hover:bg-white/10 active:scale-95 transition-all shrink-0"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-5 w-5" strokeWidth={2.5} />
           </Button>
         )}
-
-        {/* Title */}
-        <div className="flex-1 text-center">
-          <h1 className="text-xl font-bold text-white md:text-2xl flex items-center">
-            <Calendar className="mr-2 h-5 w-5 text-white/90" />
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="text-sm text-white/80 mt-1">
-              {subtitle}
-            </p>
-          )}
+        <div className="flex items-center gap-2 min-w-0">
+          <Calendar className="h-5 w-5 text-white/80 shrink-0" />
+          <div className="min-w-0">
+            <h1 className="text-base font-bold text-white leading-none truncate">{title}</h1>
+            {subtitle && (
+              <p className="text-[9px] font-medium text-white/70 uppercase tracking-[0.15em] mt-0.5 truncate">{subtitle}</p>
+            )}
+          </div>
         </div>
-
-        {/* Spacer */}
-        <div className="w-20 md:w-24" />
       </div>
     </header>
   );

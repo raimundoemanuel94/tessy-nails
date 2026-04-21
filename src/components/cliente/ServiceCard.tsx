@@ -116,7 +116,7 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
           </div>
 
           <Button 
-            className="rounded-full h-10 px-6 bg-brand-primary hover:bg-[#D43B7B] text-white font-bold text-[11px] uppercase tracking-[0.15em] shadow-md shadow-brand-primary/20 hover:shadow-lg hover:shadow-brand-primary/30 transition-all hover:scale-105 active:scale-95"
+            className="rounded-full h-10 px-6 bg-brand-primary hover:bg-brand-secondary text-white font-bold text-[11px] uppercase tracking-[0.15em] shadow-md shadow-brand-primary/20 hover:shadow-lg hover:shadow-brand-primary/30 transition-all hover:scale-105 active:scale-95"
             disabled={!service.isActive}
           >
             {service.isActive ? "Reservar" : "Pausado"}
@@ -124,5 +124,5 @@ export function ServiceCard({ service, onSelect }: ServiceCardProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

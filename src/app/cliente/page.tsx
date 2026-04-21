@@ -3,287 +3,291 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { 
-  Calendar, 
-  Clock, 
-  History,
-  User as UserIcon, 
-  Plus, 
-  ChevronRight,
+import {
+  Calendar,
+  Clock,
+  User as UserIcon,
+  Plus,
   Loader2,
   Sparkles,
-  Sparkle
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { BottomNav } from "@/components/cliente/BottomNav";
 import { appointmentService } from "@/services/appointments";
+import { AppointmentStorage } from "@/lib/appointmentStorage";
 import { globalStore } from "@/store/globalStore";
 import { format, isFuture, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Service } from "@/types";
-import { Badge } from "@/components/ui/badge";
 import { getGreeting, cn } from "@/lib/utils";
 
 export default function ClientePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  
+
   const [nextAppointment, setNextAppointment] = useState<any>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
-
     const loadData = async () => {
       try {
         setDataLoading(true);
         const [appointments, allServices] = await Promise.all([
           appointmentService.getByClientIdWithServices(user.uid),
-          globalStore.fetchServices(false)
+          globalStore.fetchServices(false),
         ]);
-
         const upcoming = appointments
-          .filter(apt => (isFuture(apt.date) || isToday(apt.date)) && apt.status !== 'cancelled')
+          .filter(
+            (apt) =>
+              (isFuture(apt.date) || isToday(apt.date)) &&
+              apt.status !== "cancelled"
+          )
           .sort((a, b) => a.date.getTime() - b.date.getTime())[0];
-        
         setNextAppointment(upcoming);
-        setServices(allServices.slice(0, 4));
+        setServices(allServices.slice(0, 6));
       } catch (error) {
         console.error("Erro ao carregar dados do cliente:", error);
       } finally {
         setDataLoading(false);
       }
     };
-
     loadData();
   }, [user]);
-
-  const statusConfig: Record<string, { variant: "warning" | "success" | "default" | "destructive" }> = {
-    pending: { variant: "warning" },
-    confirmed: { variant: "success" },
-    completed: { variant: "default" },
-    cancelled: { variant: "destructive" },
-  };
 
   if (loading || dataLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-brand-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-brand-primary/40" />
       </div>
     );
   }
 
   const firstName = user?.name?.split(" ")[0] || "Cliente";
-  
+
   const quickActions = [
-    {
-      id: "agenda",
-      title: "Minha agenda",
-      description: "Próximos horários",
-      icon: Calendar,
-      gradient: "from-brand-primary/10 to-brand-primary/5",
-      iconColor: "text-brand-primary",
-      href: "/cliente/agendamentos",
-    },
-    {
-      id: "services",
-      title: "Serviços",
-      description: "Tabela de preços",
-      icon: Sparkles,
-      gradient: "from-brand-secondary/10 to-brand-secondary/5",
-      iconColor: "text-brand-secondary",
-      href: "/cliente/servicos",
-    },
-    {
-      id: "history",
-      title: "Histórico",
-      description: "Seus atendimentos",
-      icon: History,
-      gradient: "from-brand-accent/20 to-brand-accent/10",
-      iconColor: "text-brand-primary",
-      href: "/cliente/agendamentos",
-    },
-    {
-      id: "profile",
-      title: "Meu Perfil",
-      description: "Dados da conta",
-      icon: UserIcon,
-      gradient: "from-brand-soft/20 to-brand-soft/10",
-      iconColor: "text-brand-text-main",
-      href: "/cliente/perfil",
-    },
+    { id: "agenda",   label: "Agenda",    sub: "Meus horários",  icon: Calendar,  href: "/cliente/agendamentos" },
+    { id: "services", label: "Serviços",  sub: "Ver catálogo",   icon: Sparkles,  href: "/cliente/servicos"     },
+    { id: "new",      label: "Agendar",   sub: "Novo horário",   icon: Plus,      href: "/cliente/servicos"     },
+    { id: "profile",  label: "Perfil",    sub: "Minha conta",    icon: UserIcon,  href: "/cliente/perfil"       },
   ];
 
+  const statusLabel: Record<string, string> = {
+    confirmed: "Confirmado",
+    pending: "Pendente",
+    cancelled: "Cancelado",
+  };
+  const statusColor: Record<string, string> = {
+    confirmed: "bg-emerald-500/10 text-emerald-600",
+    pending: "bg-amber-500/10 text-amber-600",
+    cancelled: "bg-red-500/10 text-red-500",
+  };
+
   return (
-    <div className="w-full mx-auto pb-32">
-      {/* Premium HEADER (Hero Card Full Bleed) */}
-      <section className="relative overflow-hidden rounded-b-3xl bg-linear-to-br from-brand-primary to-brand-secondary px-6 pb-8 pt-[env(safe-area-inset-top)] text-white shadow-[0_12px_40px_rgba(75, 46, 43, 0.15)]">
-        <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-brand-secondary/20 blur-3xl" />
-        
-        <div className="relative z-10 flex flex-col space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-               <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20">
-                 <UserIcon className="text-white" size={20} />
-               </div>
-               <div>
-                 <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-white/70">{getGreeting()}</p>
-                 <h1 className="text-lg font-bold tracking-tight leading-none">{firstName}</h1>
-                 <p className="text-[9px] text-white/60 mt-0.5">
-                   {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
-                 </p>
-               </div>
+    <div className="min-h-screen bg-brand-background pb-32">
+      {/* ── HERO ──────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-brand-primary px-6 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-10">
+        {/* decorative blobs */}
+        <div className="pointer-events-none absolute -top-10 -right-10 h-52 w-52 rounded-full bg-white/5 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-0 h-32 w-64 rounded-full bg-brand-secondary/30 blur-2xl" />
+
+        <div className="relative z-10 max-w-2xl mx-auto">
+          {/* greeting row */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/50 mb-0.5">
+                {getGreeting()}
+              </p>
+              <h1 className="text-2xl font-black text-white tracking-tight leading-none">
+                {firstName}
+              </h1>
+              <p className="text-[11px] text-white/40 mt-1 capitalize">
+                {format(new Date(), "EEEE',' d 'de' MMMM", { locale: ptBR })}
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center backdrop-blur-sm">
+              <UserIcon size={22} className="text-white/80" />
             </div>
           </div>
-          
-          <div className="space-y-4">
-            <p className="text-xs font-light text-white/90 leading-relaxed max-w-[260px]">
-              Sua beleza e bem-estar em um só lugar. Reserve seu momento hoje.
-            </p>
 
-            <Button 
-              className="w-full h-11 rounded-xl bg-white text-brand-primary font-bold text-xs shadow-lg hover:bg-white/90 active:scale-95 transition-all border-none"
-              onClick={() => router.push("/cliente/agendar")}
-            >
-              <Plus className="mr-2" size={16} strokeWidth={3} />
-              Agendar agora
-            </Button>
-          </div>
+          {/* CTA */}
+          <button
+            onClick={() => router.push("/cliente/servicos")}
+            className="w-full flex items-center justify-between bg-white rounded-2xl px-5 h-14 shadow-xl shadow-black/10 active:scale-[0.98] transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-xl bg-brand-primary/10 flex items-center justify-center">
+                <Plus size={16} className="text-brand-primary" strokeWidth={3} />
+              </div>
+              <div className="text-left">
+                <p className="text-[11px] font-bold text-brand-primary uppercase tracking-widest leading-none">
+                  Agendar agora
+                </p>
+                <p className="text-[10px] text-brand-text-muted mt-0.5">Escolha seu serviço</p>
+              </div>
+            </div>
+            <ChevronRight size={16} className="text-brand-primary/40 group-hover:translate-x-0.5 transition-transform" />
+          </button>
         </div>
       </section>
 
       <div className="px-5 mt-6 space-y-8 max-w-2xl mx-auto">
-        {/* NEXT APPOINTMENT CARD */}
+
+        {/* ── PRÓXIMO AGENDAMENTO ───────────────────────────────── */}
         <section className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-base font-bold text-brand-text-main tracking-tight">Seu próximo horário</h2>
-          {nextAppointment && (
-            <button 
-              onClick={() => router.push("/cliente/agendamentos")} 
-              className="text-xs font-medium text-brand-primary underline underline-offset-4"
-            >
-              Ver todos
-            </button>
-          )}
-        </div>
-
-        {nextAppointment ? (
-          <Card className="rounded-2xl border-[#EFEAE4] bg-white shadow-sm overflow-hidden hover:shadow-md transition-all group">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B]">Serviço</span>
-                  <h3 className="text-base font-semibold text-brand-text-main">{nextAppointment.service.name}</h3>
-                </div>
-                <Badge 
-                  className={cn(
-                    "status-badge",
-                    nextAppointment.status === 'confirmed' ? "bg-[#4CAF50]/10 text-[#4CAF50]" :
-                    nextAppointment.status === 'pending' ? "bg-warning/10 text-warning" :
-                    "bg-destructive/10 text-destructive"
-                  )}
-                >
-                  {nextAppointment.status === 'confirmed' ? 'Confirmado' : 
-                   nextAppointment.status === 'pending' ? 'Pendente' : 'Cancelado'}
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#F8F6F3]">
-                  <Calendar size={16} className="text-brand-primary" />
-                  <span className="text-xs font-semibold text-[#2C2C2C] tabular-nums">
-                    {format(nextAppointment.date, "dd/MM")}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#F8F6F3]">
-                  <Clock size={16} className="text-brand-primary" />
-                  <span className="text-xs font-semibold text-[#2C2C2C] tabular-nums">
-                    {nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}
-                  </span>
-                </div>
-              </div>
-
-              <Button 
-                variant="ghost"
-                className="w-full text-xs font-semibold text-brand-primary hover:bg-brand-primary/5 rounded-xl h-10"
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-black text-brand-text-main uppercase tracking-wider">
+              Próximo horário
+            </h2>
+            {nextAppointment && (
+              <button
                 onClick={() => router.push("/cliente/agendamentos")}
+                className="text-[11px] font-semibold text-brand-primary flex items-center gap-1"
               >
-                Ver detalhes
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="flex flex-col items-center justify-center p-8 rounded-2xl border border-dashed border-[#EFEAE4] bg-white text-center space-y-4">
-             <div className="h-14 w-14 rounded-full bg-[#F8F6F3] flex items-center justify-center text-[#A98B73]">
-               <Calendar size={28} />
-             </div>
-             <div className="space-y-1">
-               <p className="text-sm font-semibold text-[#2C2C2C]">Nenhum agendamento ativo</p>
-               <p className="text-[11px] text-[#6B6B6B]">Reserve seu horário em poucos segundos</p>
-             </div>
-             <Button 
-               className="bg-brand-primary hover:bg-[#D43B7B] text-white rounded-full text-xs px-6 h-9"
-               onClick={() => router.push("/cliente/agendar")}
-             >
-               Agendar agora
-             </Button>
+                Ver todos <ChevronRight size={12} />
+              </button>
+            )}
           </div>
-        )}
-      </section>
 
-      {/* QUICK ACTIONS GRID (2x2) */}
-      <section className="space-y-3">
-        <h2 className="text-base font-bold text-brand-text-main tracking-tight px-1">Atalhos rápidos</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {quickActions.map((action) => (
-            <button
-              key={action.id}
-              onClick={() => router.push(action.href)}
-              className="flex flex-col p-3.5 rounded-2xl bg-white border border-brand-soft shadow-sm text-left transition-all active:scale-95 group"
+          {nextAppointment ? (
+            <div
+              onClick={() => router.push("/cliente/agendamentos")}
+              className="cursor-pointer rounded-2xl bg-white border border-brand-soft shadow-sm overflow-hidden active:scale-[0.99] transition-all"
             >
-              <div className="mb-2.5 flex h-9 w-9 items-center justify-center rounded-xl bg-brand-background text-brand-primary transition-transform group-hover:scale-110">
-                <action.icon size={18} strokeWidth={2.5} />
+              {/* colored top strip */}
+              <div className="h-1 w-full bg-gradient-to-r from-brand-primary to-brand-secondary" />
+              <div className="p-5">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-brand-text-muted mb-0.5">
+                      Serviço
+                    </p>
+                    <h3 className="text-base font-black text-brand-text-main leading-tight">
+                      {nextAppointment.service.name}
+                    </h3>
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full",
+                      statusColor[nextAppointment.status] ?? "bg-gray-100 text-gray-500"
+                    )}
+                  >
+                    {statusLabel[nextAppointment.status] ?? nextAppointment.status}
+                  </span>
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex items-center gap-2 flex-1 rounded-xl bg-brand-background px-3 py-2.5">
+                    <Calendar size={14} className="text-brand-primary shrink-0" />
+                    <span className="text-xs font-bold text-brand-text-main tabular-nums">
+                      {format(nextAppointment.date, "dd/MM/yyyy")}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-1 rounded-xl bg-brand-background px-3 py-2.5">
+                    <Clock size={14} className="text-brand-primary shrink-0" />
+                    <span className="text-xs font-bold text-brand-text-main tabular-nums">
+                      {nextAppointment.time?.time || format(nextAppointment.date, "HH:mm")}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs font-bold text-brand-text-main leading-none mb-1">{action.title}</p>
-              <p className="text-[9px] font-medium text-brand-text-sub">{action.description}</p>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* OPTIONAL SECTION (SMART UX) */}
-      {services.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-[#2C2C2C] px-1">Sugestões para você</h2>
-          <div className="flex gap-4 overflow-x-auto pb-4 -mx-1 px-1 scrollbar-hide">
-            {services.map((service) => (
-              <div 
-                key={service.id}
-                className="min-w-[130px] p-2.5 rounded-2xl bg-white border border-brand-soft shadow-sm space-y-2 shrink-0"
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-10 px-6 rounded-2xl border border-dashed border-brand-soft bg-white text-center space-y-4">
+              <div className="h-14 w-14 rounded-2xl bg-brand-background flex items-center justify-center">
+                <Calendar size={24} className="text-brand-primary/40" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-brand-text-main">Nenhum agendamento ativo</p>
+                <p className="text-[11px] text-brand-text-muted mt-0.5">Reserve seu horário em poucos segundos</p>
+              </div>
+              <Button
+                className="h-10 px-6 rounded-full bg-brand-primary hover:bg-brand-secondary text-white text-xs font-bold shadow-md"
+                onClick={() => router.push("/cliente/servicos")}
               >
-                <div className="h-16 w-full rounded-xl bg-brand-background flex items-center justify-center text-brand-secondary">
-                  <Sparkles size={20} />
+                Agendar agora
+              </Button>
+            </div>
+          )}
+        </section>
+
+        {/* ── ATALHOS ───────────────────────────────────────────── */}
+        <section className="space-y-3">
+          <h2 className="text-sm font-black text-brand-text-main uppercase tracking-wider">
+            Atalhos rápidos
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            {quickActions.map((action) => (
+              <button
+                key={action.id}
+                onClick={() => router.push(action.href)}
+                className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-brand-soft shadow-sm text-left active:scale-95 transition-all group"
+              >
+                <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl bg-brand-background text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all duration-200">
+                  <action.icon size={18} strokeWidth={2} />
                 </div>
-                <div>
-                  <p className="text-xs font-semibold text-[#2C2C2C] line-clamp-1">{service.name}</p>
-                  <p className="text-[10px] text-[#6B6B6B]">Explorar serviço</p>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-brand-text-main leading-none truncate">{action.label}</p>
+                  <p className="text-[10px] text-brand-text-muted mt-0.5 truncate">{action.sub}</p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </section>
-      )}
 
-      {/* Footer Branding */}
-      <footer className="pt-6 flex flex-col items-center justify-center gap-3 text-center opacity-40">
-        <div className="flex items-center gap-2">
-          <Sparkle className="text-[#4B2E2B]" size={10} />
-          <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-brand-primary">Tessy Nails</span>
-        </div>
+        {/* ── SUGESTÕES ─────────────────────────────────────────── */}
+        {services.length > 0 && (
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-black text-brand-text-main uppercase tracking-wider">
+                Para você
+              </h2>
+              <button
+                onClick={() => router.push("/cliente/servicos")}
+                className="text-[11px] font-semibold text-brand-primary flex items-center gap-1"
+              >
+                Ver todos <ChevronRight size={12} />
+              </button>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+              {services.map((service) => (
+                <button
+                  key={service.id}
+                  onClick={() => {
+                    AppointmentStorage.saveSelectedService(service as any);
+                    AppointmentStorage.clearAppointmentData();
+                    AppointmentStorage.clearSelectedDate();
+                    router.push("/cliente/agendar");
+                  }}
+                  className="shrink-0 w-[148px] rounded-2xl bg-white border border-brand-soft shadow-sm overflow-hidden text-left active:scale-95 transition-all group"
+                >
+                  <div className="h-20 w-full bg-brand-background flex items-center justify-center group-hover:bg-brand-primary/5 transition-colors">
+                    <span className="text-3xl">💅</span>
+                  </div>
+                  <div className="p-3 space-y-1">
+                    <p className="text-xs font-bold text-brand-text-main line-clamp-2 leading-tight">
+                      {service.name}
+                    </p>
+                    <p className="text-[11px] font-black text-brand-primary">
+                      {typeof (service as any).price === "number"
+                        ? `R$ ${((service as any).price as number).toFixed(2)}`
+                        : (service as any).price || ""}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── FOOTER ────────────────────────────────────────────── */}
+        <footer className="pt-4 pb-2 flex items-center justify-center gap-2 opacity-30">
+          <Sparkles size={10} className="text-brand-primary" />
+          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-brand-primary">
+            Tessy Nails
+          </span>
         </footer>
+
       </div>
     </div>
   );

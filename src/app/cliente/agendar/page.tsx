@@ -2,18 +2,33 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, addMonths, subMonths } from "date-fns";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  isToday,
+  addMonths,
+  subMonths,
+  isBefore,
+  startOfDay,
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { cn, ensureDate } from "@/lib/utils";
 import { appointmentService } from "@/services/appointments";
 import { TimeSlotGrid, TimeSlot } from "@/components/cliente/TimeSlotGrid";
-import { Loader2, Sparkles, CheckCircle, ChevronRight, ArrowLeft, Calendar as CalendarIcon, Clock } from "lucide-react";
+import {
+  Loader2,
+  Sparkles,
+  ChevronRight,
+  ArrowLeft,
+  Calendar as CalendarIcon,
+} from "lucide-react";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
 
-// Interface Service local
 interface Service {
   id: string;
   name: string;
@@ -36,11 +51,10 @@ export default function AgendarPage() {
   useEffect(() => {
     const service = AppointmentStorage.loadSelectedService();
     if (!service) {
-      router.push('/cliente/servicos');
+      router.push("/cliente/servicos");
       return;
     }
     setSelectedService(service);
-
     const savedDate = AppointmentStorage.loadSelectedDate();
     if (savedDate) {
       setSelectedDate(savedDate);
@@ -51,7 +65,7 @@ export default function AgendarPage() {
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
-    setSelectedTime(null); // Reset time when date changes
+    setSelectedTime(null);
     AppointmentStorage.saveSelectedDate(date);
     fetchSlots(date);
   };
@@ -63,11 +77,13 @@ export default function AgendarPage() {
       startOfDayTime.setHours(0, 0, 0, 0);
       const endOfDayTime = new Date(date);
       endOfDayTime.setHours(23, 59, 59, 999);
-      
-      // ✅ Usa a nova API segura que ignora restrições do Firestore para clientes
-      const activeAppointments = await appointmentService.getBusySlots(startOfDayTime, endOfDayTime);
 
-      const durationMinutes = 60; 
+      const activeAppointments = await appointmentService.getBusySlots(
+        startOfDayTime,
+        endOfDayTime
+      );
+
+      const durationMinutes = 60;
       const slots: TimeSlot[] = [];
       let currentTime = new Date(date);
       currentTime.setHours(8, 0, 0, 0);
@@ -77,29 +93,33 @@ export default function AgendarPage() {
 
       while (currentTime < endTime) {
         const slotStart = new Date(currentTime);
-        const slotEnd = new Date(currentTime.getTime() + durationMinutes * 60000);
-        
+        const slotEnd = new Date(
+          currentTime.getTime() + durationMinutes * 60000
+        );
         const isPastSlot = isToday(date) && slotStart < now;
-        
-        const hasOverlap = activeAppointments.some(apt => {
+        const hasOverlap = activeAppointments.some((apt) => {
           const aptStart = ensureDate(apt.appointmentDate);
           const aptEnd = new Date(aptStart.getTime() + 60 * 60000);
           return (
             (slotStart < aptEnd && slotEnd > aptStart) ||
-            (slotStart.getTime() === aptStart.getTime())
+            slotStart.getTime() === aptStart.getTime()
           );
         });
-
         slots.push({
-          id: format(slotStart, 'HH:mm'),
-          time: format(slotStart, 'HH:mm'),
+          id: format(slotStart, "HH:mm"),
+          time: format(slotStart, "HH:mm"),
           available: !hasOverlap && !isPastSlot,
-          label: ['10:00', '11:00', '15:00', '16:00'].includes(format(slotStart, 'HH:mm')) && !hasOverlap && !isPastSlot ? 'Popular' : undefined
+          label:
+            ["10:00", "11:00", "15:00", "16:00"].includes(
+              format(slotStart, "HH:mm")
+            ) &&
+            !hasOverlap &&
+            !isPastSlot
+              ? "Popular"
+              : undefined,
         });
-
         currentTime = new Date(currentTime.getTime() + 30 * 60000);
       }
-      
       setTimeSlots(slots);
     } catch (error) {
       console.error("Erro ao buscar horários", error);
@@ -110,20 +130,16 @@ export default function AgendarPage() {
 
   const handleContinue = () => {
     if (!selectedDate || !selectedService || !selectedTime) return;
-
-    const selectedTimeSlot = timeSlots.find(slot => slot.id === selectedTime);
+    const selectedTimeSlot = timeSlots.find((slot) => slot.id === selectedTime);
     if (!selectedTimeSlot) return;
-
-    const appointmentData = {
+    AppointmentStorage.saveAppointmentData({
       service: selectedService,
       date: selectedDate,
       time: selectedTimeSlot,
       timeSlots: timeSlots,
-      observation: undefined
-    };
-
-    AppointmentStorage.saveAppointmentData(appointmentData);
-    router.push('/cliente/agendar/confirmacao');
+      observation: undefined,
+    });
+    router.push("/cliente/agendar/confirmacao");
   };
 
   if (!selectedService) {
@@ -134,10 +150,12 @@ export default function AgendarPage() {
         </div>
         <div className="space-y-1">
           <h2 className="text-xl font-black text-brand-text">Ops!</h2>
-          <p className="text-sm text-brand-text-muted">Selecione um serviço primeiro para continuar seu agendamento.</p>
+          <p className="text-sm text-brand-text-muted">
+            Selecione um serviço primeiro para continuar seu agendamento.
+          </p>
         </div>
-        <Button 
-          onClick={() => router.push('/cliente/servicos')}
+        <Button
+          onClick={() => router.push("/cliente/servicos")}
           className="h-12 px-8 rounded-2xl bg-brand-primary hover:bg-brand-secondary font-black uppercase tracking-widest text-[10px]"
         >
           Ver Serviços
@@ -148,60 +166,72 @@ export default function AgendarPage() {
 
   const days = eachDayOfInterval({
     start: startOfMonth(currentMonth),
-    end: endOfMonth(currentMonth)
+    end: endOfMonth(currentMonth),
   });
 
   return (
-    <div className="px-5 pt-4 max-w-2xl mx-auto space-y-8">
-      {/* Header Area */}
+    <div className="px-5 pt-4 pb-48 max-w-2xl mx-auto space-y-8">
+      {/* Header */}
       <div className="flex items-center gap-4 py-4">
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push('/cliente/servicos')}
-          className="h-12 w-12 rounded-2xl bg-white border border-brand-border text-brand-text hover:text-brand-primary shadow-sm active:scale-95 transition-all"
+          onClick={() => router.push("/cliente/servicos")}
+          className="h-12 w-12 rounded-2xl bg-white border border-brand-soft text-brand-text-main hover:text-brand-primary shadow-sm active:scale-95 transition-all"
         >
           <ArrowLeft size={20} strokeWidth={2.5} />
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-black text-brand-text tracking-tight uppercase">Escolha o dia</h1>
-          <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">Sua experiência começa aqui</p>
+          <h1 className="text-2xl font-black text-brand-text-main tracking-tight uppercase">
+            Escolha o dia
+          </h1>
+          <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">
+            Sua experiência começa aqui
+          </p>
         </div>
       </div>
 
       {/* Mini Service Card */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-brand-border bg-white p-5 shadow-xl shadow-brand-primary/5">
+      <section className="relative overflow-hidden rounded-[2rem] border border-brand-soft bg-white p-5 shadow-xl shadow-brand-primary/5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl bg-brand-primary/10 flex items-center justify-center text-2xl">
               💅
             </div>
             <div>
-              <p className="text-[10px] font-black text-brand-primary uppercase tracking-[0.2em] mb-0.5">Serviço Selecionado</p>
-              <h3 className="text-lg font-black text-brand-text">{selectedService.name}</h3>
+              <p className="text-[10px] font-black text-brand-primary uppercase tracking-[0.2em] mb-0.5">
+                Serviço Selecionado
+              </p>
+              <h3 className="text-lg font-black text-brand-text-main">
+                {selectedService.name}
+              </h3>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-sm font-black text-brand-primary">{selectedService.price}</p>
-            <p className="text-[10px] font-bold text-brand-text-muted uppercase">{selectedService.duration}</p>
+            <p className="text-sm font-black text-brand-primary">
+              {selectedService.price}
+            </p>
+            <p className="text-[10px] font-bold text-brand-text-muted uppercase">
+              {selectedService.duration}
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Calendar Section */}
+      {/* Calendar */}
       <section className="space-y-4">
-        <div className="rounded-[2.5rem] border border-brand-border bg-white p-6 shadow-xl shadow-brand-primary/5">
-          {/* Calendar Header */}
+        <div className="rounded-[2.5rem] border border-brand-soft bg-white p-6 shadow-xl shadow-brand-primary/5">
+          {/* Month header */}
           <div className="flex items-center justify-between mb-8 px-2">
-            <h3 className="text-lg font-black text-brand-text uppercase tracking-tight">
+            <h3 className="text-lg font-black text-brand-text-main uppercase tracking-tight">
               {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
             </h3>
-            <div className="flex gap-2">
-               <Button
+            <div className="flex gap-1">
+              <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                className="h-10 w-10 rounded-xl hover:bg-brand-primary/5 text-brand-text-muted"
+                className="h-10 w-10 rounded-xl hover:bg-brand-primary/5 text-brand-text-muted transition-all active:scale-90"
               >
                 <ArrowLeft size={18} />
               </Button>
@@ -209,45 +239,62 @@ export default function AgendarPage() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                className="h-10 w-10 rounded-xl hover:bg-brand-primary/5 text-brand-text-muted rotate-180"
+                className="h-10 w-10 rounded-xl hover:bg-brand-primary/5 text-brand-text-muted transition-all active:scale-90"
               >
-                <ArrowLeft size={18} />
+                <ChevronRight size={18} />
               </Button>
             </div>
           </div>
-          
-          {/* Days Week Labels */}
+
+          {/* Week labels */}
           <div className="grid grid-cols-7 gap-1 mb-4">
-            {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, idx) => (
-              <div key={idx} className="text-center text-[10px] font-black text-brand-text-muted uppercase tracking-widest py-2">
-                {day}
-              </div>
-            ))}
+            {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map(
+              (day, idx) => (
+                <div
+                  key={idx}
+                  className="text-center text-[9px] font-black text-brand-text-muted uppercase tracking-wide py-2"
+                >
+                  {day}
+                </div>
+              )
+            )}
           </div>
 
-          {/* Days Grid */}
+          {/* Days grid */}
           <div className="grid grid-cols-7 gap-2">
-            {days.map(day => {
+            {days.map((day) => {
               const active = selectedDate && isSameDay(day, selectedDate);
               const today = isToday(day);
               const isCurrentMonth = isSameMonth(day, currentMonth);
+              const isPastDay = isBefore(
+                startOfDay(day),
+                startOfDay(new Date())
+              );
+              const isDisabled = !isCurrentMonth || isPastDay;
 
               return (
                 <button
                   key={day.toString()}
-                  onClick={() => handleDateSelect(day)}
-                  disabled={!isCurrentMonth}
+                  onClick={() => !isDisabled && handleDateSelect(day)}
+                  disabled={isDisabled}
                   className={cn(
-                    "relative aspect-square rounded-2xl text-sm font-black transition-all duration-300 active:scale-90 flex items-center justify-center",
-                    !isCurrentMonth && "opacity-20 cursor-default",
-                    isCurrentMonth && !active && !today && "text-brand-text hover:bg-brand-primary/5",
-                    today && !active && "text-brand-primary bg-brand-primary/5",
-                    active && "bg-linear-to-br from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30 scale-105"
+                    "relative aspect-square rounded-2xl text-sm font-black transition-all duration-300 flex items-center justify-center",
+                    isDisabled && "opacity-20 cursor-not-allowed",
+                    !isDisabled &&
+                      !active &&
+                      !today &&
+                      "text-brand-text-main hover:bg-brand-primary/5 active:scale-90",
+                    !isDisabled &&
+                      today &&
+                      !active &&
+                      "text-brand-primary bg-brand-primary/5 active:scale-90",
+                    active &&
+                      "bg-gradient-to-br from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30 scale-105"
                   )}
                 >
-                  {format(day, 'd')}
+                  {format(day, "d")}
                   {today && !active && (
-                    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand-primary" />
+                    <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand-primary" />
                   )}
                 </button>
               );
@@ -256,64 +303,76 @@ export default function AgendarPage() {
         </div>
       </section>
 
-      {/* Selected Info & Time Grid */}
-      <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        {selectedDate && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between px-2">
-              <div>
-                <h2 className="text-xl font-black text-brand-text uppercase tracking-tight">Horários Disponíveis</h2>
-                <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">Toque para selecionar</p>
-              </div>
-              <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
-                <Sparkles size={18} />
-              </div>
+      {/* Time slots */}
+      {selectedDate && (
+        <section className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="flex items-center justify-between px-2">
+            <div>
+              <h2 className="text-xl font-black text-brand-text-main uppercase tracking-tight">
+                Horários Disponíveis
+              </h2>
+              <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">
+                Toque para selecionar
+              </p>
             </div>
-
-            {loadingSlots ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-8 w-8 animate-spin text-brand-primary/40" />
-              </div>
-            ) : timeSlots.length > 0 ? (
-              <TimeSlotGrid 
-                timeSlots={timeSlots}
-                selectedTime={selectedTime || undefined}
-                onTimeSelect={setSelectedTime}
-              />
-            ) : (
-              <div className="text-center py-10 bg-brand-primary/5 rounded-3xl border border-brand-primary/10">
-                <p className="text-xs font-black text-brand-primary uppercase tracking-widest">Não há horários para este dia</p>
-                <p className="text-[10px] text-brand-text-muted mt-1">Por favor, selecione outra data no calendário</p>
-              </div>
-            )}
+            <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
+              <Sparkles size={18} />
+            </div>
           </div>
-        )}
-      </section>
 
-      {/* Floating Sticky Bottom Action */}
+          {loadingSlots ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-brand-primary/40" />
+            </div>
+          ) : timeSlots.length > 0 ? (
+            <TimeSlotGrid
+              timeSlots={timeSlots}
+              selectedTime={selectedTime || undefined}
+              onTimeSelect={setSelectedTime}
+            />
+          ) : (
+            <div className="text-center py-10 bg-brand-primary/5 rounded-3xl border border-brand-primary/10">
+              <p className="text-xs font-black text-brand-primary uppercase tracking-widest">
+                Não há horários para este dia
+              </p>
+              <p className="text-[10px] text-brand-text-muted mt-1">
+                Por favor, selecione outra data no calendário
+              </p>
+            </div>
+          )}
+        </section>
+      )}
+
+      {!selectedDate && (
+        <div className="text-center py-10 opacity-30">
+          <p className="text-[10px] font-black uppercase tracking-[0.4em]">
+            Selecione uma data acima
+          </p>
+        </div>
+      )}
+
+      {/* CTA flutuante -- acima do BottomNav */}
       {selectedTime && (
-        <div className="fixed bottom-0 inset-x-0 p-6 bg-linear-to-t from-white via-white to-transparent pt-12 z-50 animate-in slide-in-from-bottom-full duration-500">
+        <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] inset-x-0 px-5 z-40 animate-in slide-in-from-bottom-4 duration-300">
           <div className="max-w-2xl mx-auto">
-            <Button 
+            <Button
               onClick={handleContinue}
-              className="w-full h-16 rounded-2xl bg-brand-primary text-white font-black text-base shadow-2xl shadow-brand-primary/30 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-between px-8"
+              className="w-full h-16 rounded-2xl bg-brand-primary text-white font-black shadow-2xl shadow-brand-primary/40 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-between px-8"
             >
               <div className="text-left">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-white/70 leading-none mb-1">Total a pagar</p>
-                <p className="text-lg leading-none">{selectedService.price}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/70 leading-none mb-1">
+                  Serviço
+                </p>
+                <p className="text-base leading-none">{selectedService.price}</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm border-l border-white/20 pl-4 py-1">Continuar</span>
-                <ChevronRight size={20} />
+                <span className="text-sm font-black border-l border-white/20 pl-4 py-1">
+                  Continuar
+                </span>
+                <ChevronRight size={20} strokeWidth={2.5} />
               </div>
             </Button>
           </div>
-        </div>
-      )}
-      
-      {!selectedDate && (
-        <div className="text-center py-10 opacity-30">
-          <p className="text-[10px] font-black uppercase tracking-[0.4em]">Selecione uma data acima</p>
         </div>
       )}
     </div>

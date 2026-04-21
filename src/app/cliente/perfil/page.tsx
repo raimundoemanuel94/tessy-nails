@@ -10,7 +10,6 @@ import { NoProfileDataState } from "@/components/cliente/NoProfileDataState";
 import { useAuth } from "@/contexts/AuthContext";
 import { clientService } from "@/services/clients";
 import { Client } from "@/types";
-import { BottomNav } from "@/components/cliente/BottomNav";
 
 // Mock data para perfil da cliente
 const generateMockClientData = (): ClientData => {
@@ -80,7 +79,7 @@ export default function PerfilPage() {
             email: client.email || "",
             phone: client.phone || "Não informado",
             address: "Não informado",
-            birthDate: new Date(),
+            birthDate: undefined,
             observations: client.notes || undefined
           };
 
@@ -121,7 +120,7 @@ export default function PerfilPage() {
               email: newClientData.email,
               phone: newClientData.phone || "Não informado",
               address: "Não informado",
-              birthDate: new Date(),
+              birthDate: undefined,
               observations: newClientData.notes || undefined
             };
 
@@ -248,14 +247,14 @@ export default function PerfilPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <PerfilHeader 
+    <div className="min-h-screen bg-brand-background pb-28">
+      <PerfilHeader
         title="Meu perfil"
         subtitle="Gerencie seus dados e preferências"
         onBack={handleBack}
       />
 
-      <main className="container px-4 py-8">
+      <main className="px-5 py-6 max-w-2xl mx-auto">
         <div className="space-y-6">
           {/* Client Profile Card */}
           <ClientProfileCard 
@@ -282,7 +281,6 @@ export default function PerfilPage() {
           />
         </div>
       </main>
-      <BottomNav />
     </div>
   );
 }

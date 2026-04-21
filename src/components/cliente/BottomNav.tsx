@@ -15,7 +15,7 @@ export function BottomNav() {
   const navItems = [
     { label: "Home", icon: Home, href: "/cliente", active: pathname === "/cliente" },
     { label: "Agenda", icon: Calendar, href: "/cliente/agendamentos", active: pathname === "/cliente/agendamentos" },
-    { label: "Agendar", icon: Plus, href: "/cliente/agendar", isSpecial: true },
+    { label: "Agendar", icon: Plus, href: "/cliente/servicos", isSpecial: true },
     { label: "Serviços", icon: Sparkles, href: "/cliente/servicos", active: pathname === "/cliente/servicos" },
     { label: "Perfil", icon: User, href: "/cliente/perfil", active: pathname === "/cliente/perfil" },
   ];
@@ -32,7 +32,7 @@ export function BottomNav() {
           if ('isSpecial' in item && item.isSpecial) {
             return (
               <Link
-                key={item.href}
+                key={item.label}
                 href={item.href}
                 className="relative -top-5 flex flex-col items-center"
               >
@@ -47,7 +47,7 @@ export function BottomNav() {
 
           return (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
               className="flex flex-1 flex-col items-center justify-center gap-1 transition-all duration-300"
             >

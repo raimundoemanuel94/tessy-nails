@@ -1,6 +1,7 @@
 "use client";
 
-import { Clock, Calendar, Eye, RotateCcw, X } from "lucide-react";
+import { useState } from "react";
+import { Clock, Calendar, RotateCcw, X, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -25,7 +26,7 @@ export interface Appointment {
   service: Service;
   date: Date;
   time: TimeSlot;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  status: "pending" | "confirmed" | "completed" | "cancelled";
   observation?: string;
   createdAt: Date;
 }
@@ -37,129 +38,212 @@ interface AppointmentCardProps {
   onCancel?: (appointment: Appointment) => void;
 }
 
-export function AppointmentCard({ 
-  appointment, 
-  onViewDetails, 
-  onReschedule, 
-  onCancel 
+const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+  pending:   { label: "Pendente",   className: "bg-amber-50 text-amber-700 border-amber-200"   },
+  confirmed: { label: "Confirmado", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  completed: { label: "Concluído",  className: "bg-sky-50 text-sky-700 border-sky-200"         },
+  cancelled: { label: "Cancelado",  className: "bg-rose-50 text-rose-700 border-rose-200"      },
+};
+
+export function AppointmentCard({
+  appointment,
+  onViewDetails,
+  onReschedule,
+  onCancel,
 }: AppointmentCardProps) {
-  const getStatusConfig = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return { label: 'Pendente', className: 'bg-amber-50 text-amber-700 border-amber-200' };
-      case 'confirmed':
-        return { label: 'Confirmado', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
-      case 'completed':
-        return { label: 'Concluído', className: 'bg-sky-50 text-sky-700 border-sky-200' };
-      case 'cancelled':
-        return { label: 'Cancelado', className: 'bg-rose-50 text-rose-700 border-rose-200' };
-      default:
-        return { label: status, className: 'bg-slate-50 text-slate-700 border-slate-200' };
-    }
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
+  const statusConfig = STATUS_CONFIG[appointment.status] ?? {
+    label: appointment.status,
+    className: "bg-slate-50 text-slate-700 border-slate-200",
   };
 
-  const statusConfig = getStatusConfig(appointment.status);
   const isPast = appointment.date < new Date();
-  const canReschedule = appointment.status === 'confirmed' && !isPast;
-  const canCancel = appointment.status === 'confirmed' && !isPast;
+  const canReschedule = appointment.status === "confirmed" && !isPast;
+  const canCancel = (appointment.status === "confirmed" || appointment.status === "pending") && !isPast;
+
+  const handleConfirmCancel = () => {
+    setShowCancelModal(false);
+    onCancel?.(appointment);
+  };
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-brand-primary/10 bg-white/95 p-5 shadow-sm shadow-brand-primary/5">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="mb-1 text-[11px] font-black uppercase tracking-[0.18em] text-brand-primary">Agendamento</p>
-          <h3 className="line-clamp-2 text-lg font-black tracking-tight text-brand-text-main leading-snug pr-2">{appointment.service.name}</h3>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-            <span className="inline-flex items-center gap-1 rounded-full bg-brand-primary/5 px-2.5 py-1">
-              <Calendar className="h-3.5 w-3.5 text-brand-primary" />
-              {format(appointment.date, "dd 'de' MMM", { locale: ptBR })}
+    <>
+      {/* ── Modal de confirmação de cancelamento ─────────────────── */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
+          {/* backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowCancelModal(false)}
+          />
+          <div className="relative z-10 w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="h-14 w-14 rounded-2xl bg-red-50 flex items-center justify-center">
+                <AlertTriangle size={24} className="text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-brand-text-main mb-1">
+                  Cancelar agendamento?
+                </h3>
+                <p className="text-xs text-brand-text-muted leading-relaxed">
+                  Você está cancelando{" "}
+                  <span className="font-bold text-brand-text-main">
+                    {appointment.service.name}
+                  </span>{" "}
+                  do dia{" "}
+                  <span className="font-bold text-brand-text-main">
+                    {format(appointment.date, "dd/MM")}
+                  </span>{" "}
+                  às{" "}
+                  <span className="font-bold text-brand-text-main">
+                    {appointment.time.time}
+                  </span>
+                  . Esta ação não pode ser desfeita.
+                </p>
+              </div>
+              <div className="flex gap-3 w-full">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCancelModal(false)}
+                  className="flex-1 h-11 rounded-2xl border-brand-soft text-brand-text-main font-bold"
+                >
+                  Manter
+                </Button>
+                <Button
+                  onClick={handleConfirmCancel}
+                  className="flex-1 h-11 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold shadow-md"
+                >
+                  Cancelar sim
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Card ─────────────────────────────────────────────────── */}
+      <div className="overflow-hidden rounded-[24px] border border-brand-soft bg-white shadow-sm">
+        {/* top color strip */}
+        <div
+          className={cn(
+            "h-1 w-full",
+            appointment.status === "confirmed" ? "bg-gradient-to-r from-brand-primary to-brand-secondary" :
+            appointment.status === "pending"   ? "bg-amber-400" :
+            appointment.status === "completed" ? "bg-sky-400" :
+            "bg-rose-400"
+          )}
+        />
+        <div className="p-5">
+          {/* header */}
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary mb-0.5">
+                Serviço
+              </p>
+              <h3 className="text-base font-black text-brand-text-main leading-tight pr-2 line-clamp-2">
+                {appointment.service.name}
+              </h3>
+            </div>
+            <span
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wide",
+                statusConfig.className
+              )}
+            >
+              {statusConfig.label}
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1">
-              <Clock className="h-3.5 w-3.5 text-slate-500" />
-              {appointment.time.time}
-            </span>
+          </div>
+
+          {/* date/time chips */}
+          <div className="flex gap-2 mb-4">
+            <div className="flex items-center gap-1.5 rounded-xl bg-brand-background px-3 py-2 flex-1">
+              <Calendar size={13} className="text-brand-primary shrink-0" />
+              <span className="text-xs font-bold text-brand-text-main tabular-nums">
+                {format(appointment.date, "dd 'de' MMM", { locale: ptBR })}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-xl bg-brand-background px-3 py-2 flex-1">
+              <Clock size={13} className="text-brand-primary shrink-0" />
+              <span className="text-xs font-bold text-brand-text-main tabular-nums">
+                {appointment.time.time}
+              </span>
+            </div>
             {appointment.service.duration && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-brand-accent/10 px-2.5 py-1 text-brand-primary">
-                <Clock className="h-3.5 w-3.5" />
-                {appointment.service.duration}
+              <div className="flex items-center gap-1.5 rounded-xl bg-brand-background px-3 py-2">
+                <Clock size={13} className="text-brand-primary/50 shrink-0" />
+                <span className="text-xs font-bold text-brand-text-muted">
+                  {appointment.service.duration}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* price row */}
+          <div className="flex items-center justify-between rounded-2xl bg-brand-background px-4 py-3 mb-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-brand-text-muted">Valor</p>
+              <p className="text-base font-black text-brand-primary">
+                {appointment.service.price || "A confirmar"}
+              </p>
+            </div>
+            {appointment.status === "confirmed" && (
+              <span className="rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1 text-[10px] font-bold text-emerald-700">
+                Sinal pago ✓
               </span>
             )}
           </div>
-        </div>
 
-        <div className={cn("rounded-full border px-3 py-1 text-[11px] font-bold", statusConfig.className)}>
-          {statusConfig.label}
-        </div>
-      </div>
-
-      {appointment.service.description && (
-        <p className="mb-4 text-sm leading-6 text-slate-500">{appointment.service.description}</p>
-      )}
-
-      <div className="mb-4 flex items-center justify-between rounded-2xl bg-slate-50/80 px-4 py-3">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Valor</p>
-          <p className="text-base font-black text-brand-primary">{appointment.service.price || "A confirmar"}</p>
-        </div>
-        {appointment.status === 'confirmed' && (
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700">
-            Sinal pago
-          </span>
-        )}
-      </div>
-
-      {appointment.observation && (
-        <div className="mb-4 rounded-2xl border border-brand-primary/10 bg-brand-primary/5 p-3">
-          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-primary">Observação</p>
-          <p className="text-sm text-slate-600">{appointment.observation}</p>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-2">
-        <Button
-          variant="ghost"
-          onClick={() => onViewDetails?.(appointment)}
-          className="h-11 justify-center rounded-2xl bg-brand-primary/5 text-brand-primary hover:bg-brand-primary/10"
-        >
-          <Eye className="mr-2 h-4 w-4" />
-          Ver detalhes
-        </Button>
-
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {appointment.status === 'pending' && !isPast && (
-            <PaymentButton
-              serviceName={appointment.service.name}
-              price={10}
-              appointmentId={appointment.id}
-              isDeposit={true}
-              title="Pagar agora"
-              className="h-11 rounded-2xl bg-brand-primary text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-brand-primary/20"
-            />
+          {/* observation */}
+          {appointment.observation && (
+            <div className="mb-4 rounded-2xl border border-brand-soft bg-brand-background p-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-brand-primary mb-1">
+                Observação
+              </p>
+              <p className="text-xs text-brand-text-muted leading-relaxed">
+                {appointment.observation}
+              </p>
+            </div>
           )}
 
-          {canReschedule && (
-            <Button
-              variant="outline"
-              onClick={() => onReschedule?.(appointment)}
-              className="h-11 rounded-2xl border-brand-primary/20 text-brand-primary hover:bg-brand-primary/5"
-            >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Remarcar
-            </Button>
-          )}
+          {/* actions */}
+          <div className="flex flex-col gap-2">
+            {appointment.status === "pending" && !isPast && (
+              <PaymentButton
+                serviceName={appointment.service.name}
+                price={10}
+                appointmentId={appointment.id}
+                isDeposit={true}
+                title="Pagar sinal agora"
+                className="h-11 rounded-2xl bg-brand-primary text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-brand-primary/20"
+              />
+            )}
 
-          {canCancel && (
-            <Button
-              variant="outline"
-              onClick={() => onCancel?.(appointment)}
-              className="h-11 rounded-2xl border-red-200 text-red-700 hover:bg-red-50"
-            >
-              <X className="mr-2 h-4 w-4" />
-              Cancelar
-            </Button>
-          )}
+            <div className={cn("grid gap-2", canReschedule && canCancel ? "grid-cols-2" : "grid-cols-1")}>
+              {canReschedule && (
+                <Button
+                  variant="outline"
+                  onClick={() => onReschedule?.(appointment)}
+                  className="h-11 rounded-2xl border-brand-soft text-brand-primary hover:bg-brand-primary/5 font-bold text-xs"
+                >
+                  <RotateCcw size={14} className="mr-1.5" />
+                  Remarcar
+                </Button>
+              )}
+              {canCancel && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCancelModal(true)}
+                  className="h-11 rounded-2xl border-red-100 text-red-500 hover:bg-red-50 font-bold text-xs"
+                >
+                  <X size={14} className="mr-1.5" />
+                  Cancelar
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

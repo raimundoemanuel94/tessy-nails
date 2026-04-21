@@ -4,150 +4,117 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { 
-  Loader2, 
-  Sparkles, 
-  ArrowRight, 
-  Mail, 
-  Lock, 
-  User, 
-  CheckCircle2, 
-  Fingerprint
+import {
+  Loader2,
+  ArrowRight,
+  Mail,
+  Lock,
+  User,
+  CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
-// --- Components ---
-
+// ── Splash ─────────────────────────────────────────────────────────────
 const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
   useEffect(() => {
-    const timer = setTimeout(onComplete, 1400);
-    return () => clearTimeout(timer);
+    const t = setTimeout(onComplete, 2000);
+    return () => clearTimeout(t);
   }, [onComplete]);
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 1 }}
-      exit={{ 
-        opacity: 0, 
-        transition: { duration: 1, ease: [0.22, 1, 0.36, 1] } 
-      }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#FAF9F6] dark:bg-slate-950 overflow-hidden"
+      exit={{ opacity: 0, scale: 1.05, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }}
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden"
+      style={{ background: "linear-gradient(160deg, #2a1a18 0%, #3d2420 50%, #1e1210 100%)" }}
     >
-      {/* Animated Immersive Ambient Background */}
-      <div className="absolute inset-0 z-0">
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1.1, 1.3, 1],
-            opacity: [0.3, 0.5, 0.4, 0.6, 0.3]
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-brand-primary/10 rounded-full blur-[140px]" 
-        />
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.3, 1.2, 1.4, 1],
-            opacity: [0.2, 0.4, 0.3, 0.5, 0.2]
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-brand-secondary/10 rounded-full blur-[140px]" 
-        />
-      </div>
+      {/* Animated orbs */}
+      <motion.div
+        animate={{ scale: [1, 1.3, 1], opacity: [0.15, 0.35, 0.15] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute top-[-15%] left-[-15%] h-[50vh] w-[50vh] rounded-full"
+        style={{ background: "radial-gradient(circle, #6D4C41 0%, transparent 70%)" }}
+      />
+      <motion.div
+        animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.25, 0.1] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+        className="pointer-events-none absolute bottom-[-10%] right-[-10%] h-[45vh] w-[45vh] rounded-full"
+        style={{ background: "radial-gradient(circle, #A1887F 0%, transparent 70%)" }}
+      />
 
       <div className="relative z-10 flex flex-col items-center gap-12">
-        {/* Animated Brand Container */}
-        <div className="relative">
-          {/* Outer Magnetic Glow */}
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.6, 0.3]
-            }}
+        {/* Logo */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+          className="relative"
+        >
+          {/* glow ring behind logo */}
+          <motion.div
+            animate={{ opacity: [0.2, 0.5, 0.2], scale: [0.9, 1.1, 0.9] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-0 bg-brand-primary/20 blur-[60px] rounded-full"
+            className="absolute inset-[-24px] rounded-full blur-2xl"
+            style={{ background: "radial-gradient(circle, rgba(161,136,127,0.4) 0%, transparent 70%)" }}
           />
-          
           <motion.div
-            initial={{ scale: 0.8, opacity: 0, y: 30, rotate: -5 }}
-            animate={{ 
-              scale: 1,
-              opacity: 1,
-              y: 0,
-              rotate: 0
-            }}
-            transition={{ 
-              duration: 1.5, 
-              ease: [0.16, 1, 0.3, 1] 
-            }}
-            className="relative"
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
           >
+            <img
+              src="/brand/logo/logo.svg"
+              alt="Tessy Nails"
+              className="h-[160px] w-auto"
+              style={{ filter: "brightness(0) invert(1) opacity(0.92)" }}
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* text + bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9, duration: 0.9 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <p className="text-[11px] font-black uppercase tracking-[0.45em] text-white/50">
+            Manicure & Pedicure
+          </p>
+          <div className="relative h-[1px] w-40 overflow-hidden rounded-full bg-white/10">
             <motion.div
-              animate={{ 
-                y: [0, -12, 0],
-                rotate: [0, -2, 2, 0]
-              }}
-              transition={{ 
-                duration: 5, 
-                repeat: Infinity, 
-                ease: "easeInOut" 
-              }}
-              className="flex flex-col items-center"
-            >
-              <img 
-                src="/brand/logo/logo.svg" 
-                alt="Tessy Nails" 
-                className="h-[180px] w-auto drop-shadow-[0_30px_60px_rgba(75,46,43,0.4)]"
-              />
-            </motion.div>
-          </motion.div>
-        </div>
-
-        {/* Dynamic Loading Message */}
-        <div className="flex flex-col items-center gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 1 }}
-            className="flex flex-col items-center gap-3"
-          >
-             <p className="text-[12px] font-black text-[#4B2E2B] dark:text-brand-accent uppercase tracking-[0.4em] text-center">
-              Luxo &amp; Elegância
-            </p>
-            
-            {/* Premium Progress Bar */}
-            <div className="w-56 h-[2px] bg-brand-primary/5 rounded-full overflow-hidden relative">
-              <motion.div 
-                initial={{ x: "-100%" }}
-                animate={{ x: "100%" }}
-                transition={{ 
-                  duration: 2.8, 
-                  ease: [0.44, 0, 0.56, 1] 
-                }}
-                className="absolute inset-0 bg-linear-to-r from-transparent via-brand-primary to-transparent w-full"
-              />
-            </div>
-          </motion.div>
-
-          {/* Staggered Subtext */}
-          <div className="overflow-hidden">
-            <motion.p
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 0.5 }}
-              transition={{ delay: 1.8, duration: 0.8 }}
-              className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]"
-            >
-              Studio de Beleza Premium
-            </motion.p>
+              initial={{ x: "-100%" }}
+              animate={{ x: "100%" }}
+              transition={{ duration: 2.6, ease: [0.44, 0, 0.56, 1] }}
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)" }}
+            />
           </div>
-        </div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.35 }}
+            transition={{ delay: 1.6, duration: 0.8 }}
+            className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/40"
+          >
+            Studio de Beleza Premium
+          </motion.p>
+        </motion.div>
       </div>
     </motion.div>
   );
 };
 
+// ── stagger helper ──────────────────────────────────────────────────────
+function fadeUp(i: number, visible: boolean) {
+  return {
+    initial: { opacity: 0, y: 18 },
+    animate: visible ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 },
+    transition: { delay: i * 0.09, duration: 0.55, ease: "easeOut" as const },
+  };
+}
+
+// ── Login form ──────────────────────────────────────────────────────────
 function LoginPageContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -157,19 +124,12 @@ function LoginPageContent() {
   const searchParams = useSearchParams();
   const { signIn, signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
 
-  const mode = searchParams.get('mode') || 'login';
-  const isRegisterMode = mode === 'login' ? false : true;
-
-  // Se já há sessão ativa, pular splash e redirecionar imediatamente
+  const isRegisterMode = searchParams.get("mode") === "register";
   const [showSplash, setShowSplash] = useState(!user);
 
   useEffect(() => {
     if (user && !authLoading) {
-      if (user.role === 'admin' || user.role === 'professional') {
-        router.push('/dashboard');
-      } else {
-        router.push('/cliente');
-      }
+      router.push(user.role === "admin" || user.role === "professional" ? "/dashboard" : "/cliente");
     }
   }, [user, authLoading, router]);
 
@@ -177,232 +137,285 @@ function LoginPageContent() {
     e.preventDefault();
     setLoading(true);
     try {
-      const success = await signIn(email, password);
-      if (success) {
-        toast.success("Bem-vinda de volta!", {
-          icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-        });
-      } else {
-        toast.error("Login falhou. Verifique suas credenciais.");
-      }
-    } catch (error: any) {
-      toast.error("Erro ao fazer login. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
+      const ok = await signIn(email, password);
+      if (ok) toast.success("Bem-vinda de volta!", { icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" /> });
+      else toast.error("Credenciais inválidas.");
+    } catch { toast.error("Erro ao entrar. Tente novamente."); }
+    finally { setLoading(false); }
   };
 
   const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const success = await signUp(email, password, name);
-      if (success) {
-        toast.success("Conta criada! Boas-vindas à Tessy Nails.");
-      } else {
-        toast.error("Falha ao criar conta. Verifique os dados.");
-      }
-    } catch (error: any) {
-      toast.error("Erro ao criar conta.");
-    } finally {
-      setLoading(false);
-    }
+      const ok = await signUp(email, password, name);
+      if (ok) toast.success("Conta criada! Boas-vindas.");
+      else toast.error("Falha ao criar conta.");
+    } catch { toast.error("Erro ao criar conta."); }
+    finally { setLoading(false); }
   };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const success = await signInWithGoogle();
-      if (success) {
-        toast.success("Acesso com Google realizado!");
-      }
-    } catch (error: any) {
-      toast.error("Erro inesperado no login com Google.");
-    } finally {
-      setLoading(false);
-    }
+      const ok = await signInWithGoogle();
+      if (ok) toast.success("Acesso realizado!");
+    } catch { toast.error("Erro no login com Google."); }
+    finally { setLoading(false); }
   };
+
+  const visible = !showSplash;
 
   return (
     <>
-      <AnimatePresence>
-        {showSplash && <SplashLoader onComplete={() => setShowSplash(false)} />}
-      </AnimatePresence>
+      <AnimatePresence>{showSplash && <SplashLoader onComplete={() => setShowSplash(false)} />}</AnimatePresence>
 
-      <div className="h-dvh w-full flex flex-col items-center justify-start pt-10 sm:justify-center sm:pt-0 overflow-hidden bg-[#FAF9F6] dark:bg-slate-950 font-sans relative px-2 sm:px-6 md:px-8">
-        
-        {/* Immersive Background Elements */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-           <div className="absolute top-[10%] -left-[10%] w-[40%] h-[40%] bg-brand-primary/10 dark:bg-brand-primary/5 rounded-full blur-[120px]" />
-           <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-brand-secondary/10 dark:bg-brand-secondary/5 rounded-full blur-[120px]" />
-           <div className="absolute -top-32 -right-32 w-96 h-96 bg-brand-primary/10 dark:bg-brand-primary/5 rounded-full blur-[100px] lg:hidden" />
-           <div className="absolute top-1/2 -left-32 w-[600px] h-[600px] bg-brand-secondary/5 dark:bg-brand-secondary/5 rounded-full blur-[120px] lg:hidden" />
+      {/* ── Page ── */}
+      <div
+        className="relative min-h-dvh w-full flex flex-col items-center justify-center px-5 py-10 overflow-hidden"
+        style={{ background: "linear-gradient(170deg, #FAF7F5 0%, #F2EDE9 50%, #EDE4DE 100%)" }}
+      >
+        {/* decorative orbs */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div
+            className="absolute -top-32 -left-20 h-80 w-80 rounded-full opacity-40"
+            style={{ background: "radial-gradient(circle, rgba(75,46,43,0.12) 0%, transparent 70%)", filter: "blur(60px)" }}
+          />
+          <div
+            className="absolute -bottom-20 -right-20 h-72 w-72 rounded-full opacity-30"
+            style={{ background: "radial-gradient(circle, rgba(109,76,65,0.1) 0%, transparent 70%)", filter: "blur(60px)" }}
+          />
+          {/* subtle texture lines */}
+          <div className="absolute inset-0 opacity-[0.015]"
+            style={{ backgroundImage: "repeating-linear-gradient(0deg, #4B2E2B 0px, #4B2E2B 1px, transparent 1px, transparent 40px)" }}
+          />
         </div>
 
-        {/* Centered Login Card Container */}
-        <div className="w-full flex items-center justify-center relative z-10 lg:w-[420px]">
+        <div className="relative z-10 w-full max-w-[380px] flex flex-col items-center gap-7">
+
+          {/* ── Brand mark ── */}
           <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            animate={!showSplash ? { opacity: 1, y: 0, scale: 1 } : {}}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-[420px]"
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={visible ? { opacity: 1, y: 0, scale: 1 } : {}}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center gap-3"
           >
-            <Card className="w-full border-none sm:border-solid sm:border border-brand-soft/60 dark:border-white/5 bg-transparent sm:bg-brand-background dark:bg-slate-900/60 backdrop-blur-3xl shadow-none sm:shadow-[8px_8px_16px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.8)] dark:shadow-none sm:dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-none sm:rounded-2xl overflow-hidden transition-all duration-500">
-              <CardHeader className="space-y-2 sm:space-y-4 text-center pt-2 sm:pt-8 pb-2 sm:pb-4 px-2 sm:px-6 relative">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-1.5 bg-linear-to-r from-transparent via-[#4B2E2B]/30 to-transparent rounded-full" />
-                
-                {/* Brand Identity Inside Card */}
-                <div className="flex flex-col items-center justify-center space-y-4 pb-2">
-                  <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="flex items-center justify-center"
-                  >
-                    <img src="/brand/logo/logo.svg" alt="Tessy Nails" className="h-[90px] sm:h-[120px] w-auto drop-shadow-sm" />
-                  </motion.div>
-                  
-                  {/* Decorative Sparkle Divider */}
-                  <div className="flex items-center gap-4 w-full justify-center opacity-20">
-                    <div className="h-px w-8 bg-brand-primary" />
-                    <Sparkles className="h-3 w-3 text-brand-primary fill-brand-primary" />
-                    <div className="h-px w-8 bg-brand-primary" />
-                  </div>
-                </div>
+            <div className="relative">
+              {/* soft shadow behind logo */}
+              <div
+                className="absolute inset-0 rounded-full blur-2xl opacity-30"
+                style={{ background: "radial-gradient(circle, #6D4C41 0%, transparent 70%)", transform: "scale(1.4)" }}
+              />
+              <img
+                src="/brand/logo/logo.svg"
+                alt="Tessy Nails"
+                className="relative h-20 w-auto drop-shadow-md"
+              />
+            </div>
 
-                <div className="pt-1">
-                  <CardTitle className="text-3xl font-serif font-bold text-brand-primary tracking-tight">
-                    {isRegisterMode ? "Bem-vinda" : "Boas-vindas"}
-                  </CardTitle>
-                  <CardDescription className="text-[10px] font-bold text-brand-text-sub dark:text-slate-500 uppercase tracking-[0.2em] mt-2 leading-relaxed">
-                    {isRegisterMode ? "Sua experiência de beleza começa aqui" : "Sua jornada luxuosa continua"}
-                  </CardDescription>
-                </div>
-              </CardHeader>
+            {/* divider */}
+            <div className="flex items-center gap-3 w-full justify-center">
+              <div className="h-px flex-1 max-w-[40px]" style={{ background: "linear-gradient(90deg, transparent, #4B2E2B)" }} />
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M5 0L5.8 3.8L9.5 5L5.8 6.2L5 10L4.2 6.2L0.5 5L4.2 3.8L5 0Z" fill="#A1887F" />
+              </svg>
+              <div className="h-px flex-1 max-w-[40px]" style={{ background: "linear-gradient(90deg, #4B2E2B, transparent)" }} />
+            </div>
+          </motion.div>
 
-              <form onSubmit={isRegisterMode ? handleEmailRegister : handleEmailLogin}>
-                <CardContent className="space-y-2.5 px-2 sm:px-8">
-                  <AnimatePresence mode="wait">
-                    {isRegisterMode && (
-                      <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="space-y-1.5"
-                      >
-                        <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-widest ml-1 text-slate-500 dark:text-slate-400">Nome Completo</Label>
-                        <div className="relative group">
-                           <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={18} />
-                           <Input 
-                            id="name" 
-                            type="text" 
-                            placeholder="Como podemos te chamar?" 
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required 
-                            className="h-12 sm:h-14 pl-12 rounded-xl bg-white/50 sm:bg-brand-background dark:bg-slate-950/30 border-white/80 dark:border-white/5 sm:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.04),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] shadow-sm dark:shadow-none font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
-                          />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  
-                  <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-widest ml-1 text-slate-500 dark:text-slate-400">Endereço de E-mail</Label>
-                    <div className="relative group">
-                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={18} />
-                       <Input 
-                        id="email" 
-                        type="email" 
-                        placeholder="seu@melhor-email.com" 
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required 
-                        className="h-12 sm:h-14 pl-12 rounded-xl bg-white/50 sm:bg-brand-background dark:bg-slate-950/30 border-white/80 dark:border-white/5 sm:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.04),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] shadow-sm dark:shadow-none font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
-                      />
-                    </div>
+          {/* ── Headline ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={visible ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.1, duration: 0.7 }}
+            className="text-center space-y-1"
+          >
+            <h1 className="text-[2rem] font-black tracking-tight leading-none" style={{ color: "#2a1a18" }}>
+              {isRegisterMode ? "Bem-vinda" : "Boas-vindas"}
+            </h1>
+            <p className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "#9a7060" }}>
+              {isRegisterMode ? "Crie sua conta exclusiva" : "Sua jornada de beleza continua"}
+            </p>
+          </motion.div>
+
+          {/* ── Form card ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={visible ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.18, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full"
+          >
+            <div
+              className="w-full rounded-[28px] overflow-hidden"
+              style={{
+                background: "rgba(255,255,255,0.75)",
+                backdropFilter: "blur(24px)",
+                border: "1px solid rgba(75,46,43,0.08)",
+                boxShadow: "0 8px 40px rgba(75,46,43,0.10), 0 1px 0 rgba(255,255,255,0.9) inset",
+              }}
+            >
+              <form onSubmit={isRegisterMode ? handleEmailRegister : handleEmailLogin} className="p-6 space-y-3.5">
+                {/* name */}
+                <AnimatePresence mode="wait">
+                  {isRegisterMode && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-1.5"
+                    >
+                      <label className="text-[9px] font-black uppercase tracking-[0.22em] pl-1" style={{ color: "#9a7060" }}>
+                        Nome Completo
+                      </label>
+                      <div className="relative">
+                        <User size={14} className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40" style={{ color: "#4B2E2B" }} />
+                        <Input
+                          type="text"
+                          placeholder="Como podemos te chamar?"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                          className="h-12 pl-10 rounded-2xl text-sm font-semibold transition-all"
+                          style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(75,46,43,0.12)" }}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* email */}
+                <motion.div {...fadeUp(0, visible)} className="space-y-1.5">
+                  <label className="text-[9px] font-black uppercase tracking-[0.22em] pl-1" style={{ color: "#9a7060" }}>
+                    Endereço de E-mail
+                  </label>
+                  <div className="relative">
+                    <Mail size={14} className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40" style={{ color: "#4B2E2B" }} />
+                    <Input
+                      type="email"
+                      placeholder="seu@melhor-email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="h-12 pl-10 rounded-2xl text-sm font-semibold transition-all"
+                      style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(75,46,43,0.12)" }}
+                    />
                   </div>
-                  
-                  <div className="space-y-1.5">
-                    <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-widest ml-1 text-slate-500 dark:text-slate-400">Senha Segura</Label>
-                    <div className="relative group">
-                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors" size={18} />
-                       <Input 
-                        id="password" 
-                        type="password" 
-                        placeholder="Sua senha secreta" 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required 
-                        autoComplete="current-password"
-                        minLength={6}
-                        className="h-12 sm:h-14 pl-12 rounded-xl bg-white/50 sm:bg-brand-background dark:bg-slate-950/30 border-white/80 dark:border-white/5 sm:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.04),inset_-4px_-4px_8px_rgba(255,255,255,0.8)] shadow-sm dark:shadow-none font-bold text-sm focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all"
-                      />
-                    </div>
+                </motion.div>
+
+                {/* password */}
+                <motion.div {...fadeUp(1, visible)} className="space-y-1.5">
+                  <label className="text-[9px] font-black uppercase tracking-[0.22em] pl-1" style={{ color: "#9a7060" }}>
+                    Senha Segura
+                  </label>
+                  <div className="relative">
+                    <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40" style={{ color: "#4B2E2B" }} />
+                    <Input
+                      type="password"
+                      placeholder="Mínimo 6 caracteres"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                      minLength={6}
+                      className="h-12 pl-10 rounded-2xl text-sm font-semibold transition-all"
+                      style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(75,46,43,0.12)" }}
+                    />
                   </div>
-                </CardContent>
-                
-                <CardFooter className="flex flex-col space-y-2.5 px-2 sm:px-8 pb-4 sm:pb-8 pt-1">
-                  <Button 
-                    type="submit" 
-                    className="w-full h-12 sm:h-14 rounded-2xl bg-linear-to-br from-brand-primary to-brand-secondary text-white font-black uppercase tracking-[0.2em] shadow-[4px_4px_10px_rgba(75,46,43,0.25)] sm:shadow-[6px_6px_14px_rgba(75,46,43,0.25),-4px_-4px_10px_rgba(255,255,255,0.8)] transition-all duration-300 hover:opacity-90 hover:shadow-[8px_8px_20px_rgba(75,46,43,0.35)] active:scale-[0.97] py-0" 
+                </motion.div>
+
+                {/* CTA */}
+                <motion.div {...fadeUp(2, visible)}>
+                  <Button
+                    type="submit"
                     disabled={loading}
+                    className="w-full h-13 rounded-2xl font-black uppercase tracking-[0.18em] text-xs text-white transition-all active:scale-[0.98] mt-1 border-0"
+                    style={{
+                      background: "linear-gradient(135deg, #4B2E2B 0%, #6D4C41 100%)",
+                      boxShadow: "0 4px 20px rgba(75,46,43,0.35), 0 1px 0 rgba(255,255,255,0.1) inset",
+                    }}
                   >
                     {loading ? (
-                      <div className="flex items-center gap-3">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        <span>Entrando...</span>
+                      <div className="flex items-center gap-2">
+                        <Loader2 size={16} className="animate-spin" />
+                        <span>Aguarde...</span>
                       </div>
                     ) : (
                       <span className="flex items-center gap-2">
-                        {isRegisterMode ? "Confirmar" : "Entrar Agora"}
-                        <ArrowRight size={20} className="ml-1" />
+                        {isRegisterMode ? "Criar minha conta" : "Entrar Agora"}
+                        <ArrowRight size={15} />
                       </span>
                     )}
                   </Button>
-                  
-                  <div className="flex flex-col items-center w-full gap-3">
-                    <button
-                      type="button"
-                      onClick={() => router.push(isRegisterMode ? '/login' : '/login?mode=register')}
-                      className="text-[11px] font-black text-slate-400 dark:text-slate-500 hover:text-brand-primary dark:hover:text-brand-accent transition-colors uppercase tracking-[0.25em]"
-                    >
-                      {isRegisterMode 
-                        ? "Já tem conta? Entrar" 
-                        : "Não tem conta? Crie agora"
-                      }
-                    </button>
-
-                    <div className="relative w-full flex items-center gap-3 py-1">
-                      <div className="h-px bg-slate-200 dark:bg-white/5 grow" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 dark:text-slate-600">Ou</span>
-                      <div className="h-px bg-slate-200 dark:bg-white/5 grow" />
-                    </div>
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleGoogleLogin}
-                      className="w-full h-11 sm:h-14 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-slate-800/50 font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-md flex items-center justify-center gap-3"
-                      disabled={loading}
-                    >
-                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                      <span>Google</span>
-                    </Button>
-                  </div>
-                </CardFooter>
+                </motion.div>
               </form>
-            </Card>
 
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={!showSplash ? { opacity: 1 } : {}}
-              className="mt-4 flex items-center justify-center gap-2 opacity-40 pb-4"
+              {/* divider + google */}
+              <div className="px-6 pb-6 space-y-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1" style={{ background: "rgba(75,46,43,0.08)" }} />
+                  <span className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: "#c4a99a" }}>ou</span>
+                  <div className="h-px flex-1" style={{ background: "rgba(75,46,43,0.08)" }} />
+                </div>
+
+                <motion.div {...fadeUp(3, visible)}>
+                  <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    disabled={loading}
+                    className="w-full h-12 rounded-2xl flex items-center justify-center gap-3 font-bold text-xs uppercase tracking-widest transition-all active:scale-[0.98]"
+                    style={{
+                      background: "rgba(255,255,255,0.9)",
+                      border: "1px solid rgba(75,46,43,0.10)",
+                      boxShadow: "0 2px 8px rgba(75,46,43,0.06)",
+                      color: "#4B2E2B",
+                    }}
+                  >
+                    <img
+                      src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                      alt="Google"
+                      className="h-4 w-4"
+                    />
+                    Continuar com Google
+                  </button>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* toggle mode */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={visible ? { opacity: 1 } : {}}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="text-center"
+          >
+            <button
+              type="button"
+              onClick={() => router.push(isRegisterMode ? "/login" : "/login?mode=register")}
+              className="text-[10px] font-black uppercase tracking-[0.22em] transition-colors"
+              style={{ color: "#9a7060" }}
             >
-               <Fingerprint size={16} className="text-slate-400" />
-               <p className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-[0.4em]">
-                 Acesso Seguro & Criptografado
-               </p>
-            </motion.div>
+              {isRegisterMode ? "Já tem conta? Entrar" : "Não tem conta? Crie agora"}
+            </button>
+          </motion.div>
+
+          {/* security tag */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={visible ? { opacity: 1 } : {}}
+            transition={{ delay: 0.65, duration: 0.6 }}
+            className="flex items-center gap-2 pb-2"
+            style={{ opacity: 0.3 }}
+          >
+            {/* lock icon inline svg */}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4B2E2B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <p className="text-[9px] font-black uppercase tracking-[0.35em]" style={{ color: "#4B2E2B" }}>
+              Acesso Seguro & Criptografado
+            </p>
           </motion.div>
         </div>
       </div>

@@ -135,7 +135,7 @@ export default function ConfirmacaoPage() {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-black text-brand-text tracking-tight uppercase">Confirmar</h1>
-          <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">Revise sua reserva</p>
+          <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.2em]">Confirme e pague o sinal</p>
         </div>
       </div>
 
@@ -151,14 +151,20 @@ export default function ConfirmacaoPage() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-bl-[5rem] -mr-8 -mt-8" />
           
           <div className="relative space-y-6">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                 <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest leading-none">Procedimento</p>
-                 <h4 className="text-2xl font-black text-brand-text tracking-tight leading-none">{appointmentData.service.name}</h4>
+            <div className="space-y-2">
+              <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest leading-none">Procedimento</p>
+              <h4 className="text-2xl font-black text-brand-text tracking-tight leading-tight">{appointmentData.service.name}</h4>
+            </div>
+
+            {/* Resumo financeiro */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl bg-brand-primary/5 border border-brand-primary/10 p-3 text-center">
+                <p className="text-[9px] font-black text-brand-primary uppercase tracking-widest leading-none mb-1">Sinal (agora)</p>
+                <p className="text-lg font-black text-brand-primary">R$ 10,00</p>
               </div>
-              <div className="text-right">
-                 <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest leading-none">Sinal</p>
-                 <p className="text-xl font-black text-brand-text">R$ 10,00</p>
+              <div className="rounded-2xl bg-brand-soft/30 border border-brand-soft p-3 text-center">
+                <p className="text-[9px] font-black text-brand-text-muted uppercase tracking-widest leading-none mb-1">Restante (no salão)</p>
+                <p className="text-lg font-black text-brand-text-main">{appointmentData.service.price}</p>
               </div>
             </div>
 
@@ -200,11 +206,11 @@ export default function ConfirmacaoPage() {
              />
           </div>
 
-          <div className="relative rounded-2xl bg-brand-primary/5 p-4 border border-brand-primary/10 text-center">
-             <p className="text-[10px] text-brand-primary font-black uppercase tracking-[0.2em] leading-relaxed">
-               Garantia de horário: sinal de R$ 10,00 (Stripe)<br/>
-               <span className="opacity-60">O restante será pago no estabelecimento</span>
-             </p>
+          <div className="relative rounded-2xl bg-brand-primary/5 p-4 border border-brand-primary/10 flex items-center gap-3">
+            <CheckCircle className="text-brand-primary shrink-0" size={18} />
+            <p className="text-[10px] text-brand-primary font-bold leading-relaxed">
+              O sinal de <strong>R$ 10,00</strong> garante seu horário via Stripe. O restante é pago no estabelecimento.
+            </p>
           </div>
         </div>
 
