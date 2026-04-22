@@ -89,7 +89,7 @@ export function ClientForm({ client, onSuccess, onCancel }: ClientFormProps) {
         ...data,
         name: normalizeName(data.name),
         phone: sanitizePhone(data.phone),
-        email: data.email || null, // Ensure empty string becomes null for Firebase consistency
+        email: data.email || undefined, // Ensure empty string becomes undefined for Zod optional schema
       };
 
       // Check for duplicate phone (only if it's a new client or the phone has changed)
