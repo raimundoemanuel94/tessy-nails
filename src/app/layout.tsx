@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
+import { PwaUpdatePrompt } from "@/components/pwa/PwaUpdatePrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,7 +20,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Tessy Nails - Studio de Beleza Premium",
   description: "Plataforma exclusiva de agendamento e gestão para Tessy Nails.",
-  manifest: "/manifest.json?v=5",
+  manifest: "/manifest.json?v=6",
   icons: {
     icon: "/brand/icons/favicon.png",
     apple: "/brand/icons/apple-touch-icon.png",
@@ -53,6 +54,7 @@ export default function RootLayout({
           <AuthProvider>
             <TooltipProvider>
               {children}
+              <PwaUpdatePrompt />
               <Toaster position="top-right" richColors closeButton />
             </TooltipProvider>
           </AuthProvider>

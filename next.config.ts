@@ -6,7 +6,8 @@ const withPWA = require("next-pwa")({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
-  skipWaiting: true,
+  // Mantém o novo SW em waiting para permitir prompt de atualização no app.
+  skipWaiting: false,
   // ✅ Usando StaleWhileRevalidate para balancear cache rápido e conteúdo atualizado
   runtimeCaching: [
     {
