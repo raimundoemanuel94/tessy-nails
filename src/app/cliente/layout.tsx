@@ -11,14 +11,14 @@ export default function ClienteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
+  const { user, loading, needsPhoneLink } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
-  }, [user, loading, router]);
+    if (loading) return;
+    if (!user) { router.push("/login"); return; }
+    if (needsPhoneLink) { router.push("/cliente/vincular-telefone"); return; }
+  }, [user, loading, needsPhoneLink, router]);
 
   if (loading) {
     return (
