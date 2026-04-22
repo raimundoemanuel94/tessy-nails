@@ -125,7 +125,10 @@ function LoginPageContent() {
   const { signIn, signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
 
   const isRegisterMode = searchParams.get("mode") === "register";
-  const [showSplash, setShowSplash] = useState(!user);
+  // Pula o splash se já foi exibido nesta sessão (PWA / visita repetida)
+  const [showSplash, setShowSplash] = useState(
+    () => !user && typeof sessionStorage !== "undefined" && !sessionStorage.getItem("splashShown")
+  );
 
   useEffect(() => {
     if (user && !authLoading) {
@@ -168,7 +171,7 @@ function LoginPageContent() {
 
   return (
     <>
-      <AnimatePresence>{showSplash && <SplashLoader onComplete={() => setShowSplash(false)} />}</AnimatePresence>
+      <AnimatePresence>{showSplash && <SplashLoader onComplete={() => { sessionStorage.setItem("splashShown", "1"); setShowSplash(false); }} />}</AnimatePresence>
 
       {/* ── Page ── */}
       <div
@@ -272,6 +275,7 @@ function LoginPageContent() {
                         <User size={14} className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40" style={{ color: "#4B2E2B" }} />
                         <Input
                           type="text"
+                          autoComplete="name"
                           placeholder="Como podemos te chamar?"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
@@ -316,7 +320,7 @@ function LoginPageContent() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      autoComplete="current-password"
+                      autoComplete={isRegisterMode ? "new-password" : "current-password"}
                       minLength={6}
                       className="h-12 pl-10 rounded-2xl text-sm font-semibold transition-all"
                       style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(75,46,43,0.12)" }}

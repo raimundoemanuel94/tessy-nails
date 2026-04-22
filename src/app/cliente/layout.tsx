@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { BottomNav } from "@/components/cliente/BottomNav";
 import { Toaster } from "sonner";
@@ -13,12 +13,15 @@ export default function ClienteLayout({
 }) {
   const { user, loading, needsPhoneLink } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (loading) return;
     if (!user) { router.push("/login"); return; }
-    if (needsPhoneLink) { router.push("/cliente/vincular-telefone"); return; }
-  }, [user, loading, needsPhoneLink, router]);
+    if (needsPhoneLink && pathname !== "/cliente/vincular-telefone") {
+      router.push("/cliente/vincular-telefone"); return;
+    }
+  }, [user, loading, needsPhoneLink, pathname, router]);
 
   if (loading) {
     return (
@@ -38,7 +41,7 @@ export default function ClienteLayout({
       </div>
 
       {/* Main Content Shell - Scrollable with hide scrollbar */}
-      <main className="relative z-10 flex-1 overflow-y-auto scrollbar-hide pb-24">
+      <main className="relative z-10 flex-1 overflow-y-auto scrollbar-hide pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {children}
       </main>
 

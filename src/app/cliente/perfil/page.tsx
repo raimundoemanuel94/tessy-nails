@@ -8,31 +8,6 @@ import { PersonalInfoSection, PersonalInfo } from "@/components/cliente/Personal
 import { ProfileShortcuts } from "@/components/cliente/ProfileShortcuts";
 import { NoProfileDataState } from "@/components/cliente/NoProfileDataState";
 import { useAuth } from "@/contexts/AuthContext";
-import { clientService } from "@/services/clients";
-import { Client } from "@/types";
-
-// Mock data para perfil da cliente
-const generateMockClientData = (): ClientData => {
-  return {
-    id: "1",
-    name: "Maria Silva",
-    email: "maria.silva@email.com",
-    phone: "(11) 98765-4321",
-    status: "active",
-    createdAt: new Date("2024-01-15")
-  };
-};
-
-const generateMockPersonalInfo = (): PersonalInfo => {
-  return {
-    fullName: "Maria Silva Santos",
-    email: "maria.silva@email.com",
-    phone: "(11) 98765-4321",
-    address: "Rua das Flores, 123 - Jardim Primavera, São Paulo - SP",
-    birthDate: new Date("1990-05-15"),
-    observations: "Cliente preferencial, sempre agendar com a profissional Ana."
-  };
-};
 
 export default function PerfilPage() {
   const router = useRouter();
@@ -64,74 +39,24 @@ export default function PerfilPage() {
         }
 
         if (client) {
-          // ✅ Usar dados do client do AuthContext
-          const transformedClientData: ClientData = {
+          setClientData({
             id: client.id || user.uid,
             name: client.name,
             email: client.email || "",
             phone: client.phone || "Não informado",
             status: "active",
-            createdAt: client.createdAt
-          };
-
-          const transformedPersonalInfo: PersonalInfo = {
+            createdAt: client.createdAt,
+          });
+          setPersonalInfo({
             fullName: client.name,
             email: client.email || "",
             phone: client.phone || "Não informado",
             address: "Não informado",
             birthDate: undefined,
-            observations: client.notes || undefined
-          };
-
-          setClientData(transformedClientData);
-          setPersonalInfo(transformedPersonalInfo);
-        } else {
-          // ✅ Fallback: Criar documento automaticamente se não existir
-          console.log('Cliente não encontrado no Firestore, criando fallback...');
-          
-          try {
-            // ✅ Criar documento clients/{uid} automaticamente
-            const newClientData = {
-              id: user.uid,
-              name: user.name || "Cliente",
-              email: user.email || "",
-              phone: undefined,
-              totalAppointments: 0,
-              createdAt: new Date(),
-              isActive: true,
-              notes: undefined
-            };
-            
-            await clientService.create(newClientData);
-            console.log('Cliente criado automaticamente:', newClientData);
-            
-            // ✅ Usar dados recém-criados
-            const transformedClientData: ClientData = {
-              id: newClientData.id,
-              name: newClientData.name,
-              email: newClientData.email,
-              phone: newClientData.phone || "Não informado",
-              status: "active",
-              createdAt: newClientData.createdAt
-            };
-
-            const transformedPersonalInfo: PersonalInfo = {
-              fullName: newClientData.name,
-              email: newClientData.email,
-              phone: newClientData.phone || "Não informado",
-              address: "Não informado",
-              birthDate: undefined,
-              observations: newClientData.notes || undefined
-            };
-
-            setClientData(transformedClientData);
-            setPersonalInfo(transformedPersonalInfo);
-            
-          } catch (createError: any) {
-            console.error('Error creating client fallback:', createError);
-            setError('Não foi possível criar seu perfil. Contate o administrador.');
-          }
+            observations: client.notes || undefined,
+          });
         }
+        // Se client for null aqui, o AuthContext já cuida via needsPhoneLink.
       } catch (error: any) {
         console.error('Error in loadClientData:', error);
         

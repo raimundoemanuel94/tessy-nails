@@ -85,11 +85,12 @@ export function ClientForm({ client, onSuccess, onCancel }: ClientFormProps) {
   const onSubmit = async (data: ClientFormValues) => {
     setLoading(true);
     try {
+      const { email, ...rest } = data;
       const sanitizedData = {
-        ...data,
+        ...rest,
         name: normalizeName(data.name),
         phone: sanitizePhone(data.phone),
-        email: data.email || undefined, // Ensure empty string becomes undefined for Zod optional schema
+        ...(email ? { email } : {}), // Omits the key entirely when empty — Zod rejects null, Firestore rejects undefined
       };
 
       // Check for duplicate phone (only if it's a new client or the phone has changed)
@@ -149,6 +150,7 @@ export function ClientForm({ client, onSuccess, onCancel }: ClientFormProps) {
               <Input
                 {...field}
                 id="name"
+                autoComplete="name"
                 placeholder="Ex: Maria Silva"
                 className={cn(
                   "pl-12 h-13 rounded-2xl border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 focus:ring-4 transition-all font-bold text-sm",
@@ -186,6 +188,8 @@ export function ClientForm({ client, onSuccess, onCancel }: ClientFormProps) {
                 <Input
                   {...field}
                   id="phone"
+                  inputMode="tel"
+                  autoComplete="tel"
                   placeholder="(00) 00000-0000"
                   className={cn(
                     "pl-12 h-13 rounded-2xl border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 focus:ring-4 transition-all font-bold text-sm",
@@ -227,6 +231,7 @@ export function ClientForm({ client, onSuccess, onCancel }: ClientFormProps) {
                   {...field}
                   id="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="maria@exemplo.com"
                   className={cn(
                     "pl-12 h-13 rounded-2xl border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 focus:ring-4 transition-all font-bold text-sm",

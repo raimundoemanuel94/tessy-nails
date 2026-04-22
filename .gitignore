@@ -62,3 +62,5 @@ tessy-nails-firebase-key.json
 .repo-audit/
 /Tessy Nails
 /tessy-nails/
+
+.vercel

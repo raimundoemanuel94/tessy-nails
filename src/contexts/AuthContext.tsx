@@ -193,41 +193,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const uid = result.user.uid;
-      
-      // Criar documento na coleção users (admin/profissional)
+
+      // Criar apenas o documento de usuário; o cliente será criado via fluxo
+      // de vinculação por telefone (needsPhoneLink), acionado pelo onAuthStateChanged.
       const newUser: User = {
-        uid: uid,
+        uid,
         name: name.trim(),
-        email: email,
-        role: "client", // ✅ Mudar para client - usuários comuns são clientes
+        email,
+        role: "client",
         createdAt: new Date(),
         isActive: true,
-        photoURL: (result.user.photoURL || "") // ✅ Mudar undefined para string vazia
       };
-      
-      // Criar documento na coleção clients (cliente) - para acesso à área cliente
-      const newClient: Client = {
-        id: uid, // Same as Firebase Auth UID
-        name: name.trim(),
-        email: email,
-        phone: "", // ✅ Mudar de undefined para string vazia
-        totalAppointments: 0,
-        createdAt: new Date(),
-        isActive: true,
-        notes: "" // ✅ Mudar de undefined para string vazia
-      };
-      
-      // ✅ Salvar ambos os documentos com validação
-      await Promise.all([
-        setDoc(doc(db, "users", uid), newUser),
-        setDoc(doc(db, "clients", uid), newClient)
-      ]);
-      
-      console.log('User and Client documents created successfully');
-      
-      // ✅ Atualizar estado local para evitar nova busca
-      setClient(newClient);
-      
+
+      await setDoc(doc(db, "users", uid), newUser);
+      console.log('User document created; phone link flow will handle client creation.');
+
       return true;
     } catch (error: any) {
       console.error("Sign up error:", error);

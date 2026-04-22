@@ -48,7 +48,7 @@ export function TimeSlotGrid({ timeSlots, selectedTime, onTimeSelect }: TimeSlot
           >
             {slot.time}
             {slot.label && !isSelected && isAvailable && (
-              <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full bg-brand-secondary/90 text-[7px] font-black text-white shadow-sm whitespace-nowrap">
+              <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full bg-brand-secondary/90 text-[10px] font-black text-white shadow-sm whitespace-nowrap">
                 {slot.label}
               </span>
             )}

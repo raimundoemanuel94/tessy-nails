@@ -38,6 +38,13 @@ interface AppointmentData {
   observation?: string;
 }
 
+const DEPOSIT_AMOUNT = 10; // Valor do sinal em BRL — alterar aqui para mudar em toda a tela
+const BRL_FORMATTER = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+const DEPOSIT_AMOUNT_LABEL = BRL_FORMATTER.format(DEPOSIT_AMOUNT);
+
 export default function ConfirmacaoPage() {
   const router = useRouter();
   const { user } = useAuth();
@@ -91,7 +98,7 @@ export default function ConfirmacaoPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           serviceName: appointmentData.service.name,
-          price: 10,
+          price: DEPOSIT_AMOUNT,
           appointmentId,
           clientId: user.uid,
           isDeposit: true,
@@ -159,11 +166,11 @@ export default function ConfirmacaoPage() {
             {/* Resumo financeiro */}
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl bg-brand-primary/5 border border-brand-primary/10 p-3 text-center">
-                <p className="text-[9px] font-black text-brand-primary uppercase tracking-widest leading-none mb-1">Sinal (agora)</p>
-                <p className="text-lg font-black text-brand-primary">R$ 10,00</p>
+                <p className="text-[11px] font-black text-brand-primary uppercase tracking-widest leading-none mb-1">Sinal (agora)</p>
+                <p className="text-lg font-black text-brand-primary">{DEPOSIT_AMOUNT_LABEL}</p>
               </div>
               <div className="rounded-2xl bg-brand-soft/30 border border-brand-soft p-3 text-center">
-                <p className="text-[9px] font-black text-brand-text-muted uppercase tracking-widest leading-none mb-1">Restante (no salão)</p>
+                <p className="text-[11px] font-black text-brand-text-muted uppercase tracking-widest leading-none mb-1">Restante (no salão)</p>
                 <p className="text-lg font-black text-brand-text-main">{appointmentData.service.price}</p>
               </div>
             </div>
@@ -209,7 +216,7 @@ export default function ConfirmacaoPage() {
           <div className="relative rounded-2xl bg-brand-primary/5 p-4 border border-brand-primary/10 flex items-center gap-3">
             <CheckCircle className="text-brand-primary shrink-0" size={18} />
             <p className="text-[10px] text-brand-primary font-bold leading-relaxed">
-              O sinal de <strong>R$ 10,00</strong> garante seu horário via Stripe. O restante é pago no estabelecimento.
+              O sinal de <strong>{DEPOSIT_AMOUNT_LABEL}</strong> garante seu horário via Stripe. O restante é pago no estabelecimento.
             </p>
           </div>
         </div>
@@ -219,7 +226,7 @@ export default function ConfirmacaoPage() {
           <Button 
             onClick={handleConfirmAppointment}
             disabled={confirming}
-            className="w-full h-18 rounded-[2rem] bg-linear-to-br from-brand-primary to-brand-secondary text-white font-black text-lg shadow-2xl shadow-brand-primary/20 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-70"
+            className="w-full h-[72px] rounded-[2rem] bg-linear-to-br from-brand-primary to-brand-secondary text-white font-black text-lg shadow-2xl shadow-brand-primary/20 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-70"
           >
             {confirming ? (
               <div className="flex items-center gap-3">

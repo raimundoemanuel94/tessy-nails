@@ -16,6 +16,12 @@ import { Service, ServiceSchema } from "@/types";
 
 const COLLECTION_NAME = "services";
 
+function omitUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, value]) => value !== undefined)
+  ) as Partial<T>;
+}
+
 export const salonService = {
   /**
    * Lista todos os serviços ativos
@@ -73,7 +79,7 @@ export const salonService = {
     const validatedData = ServiceSchema.omit({ id: true, createdAt: true, updatedAt: true }).parse(data);
 
     const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      ...validatedData,
+      ...omitUndefined(validatedData as Record<string, unknown>),
       createdAt: Timestamp.now(),
     });
 
@@ -86,9 +92,17 @@ export const salonService = {
   async update(id: string, data: Partial<Service>): Promise<void> {
     const docRef = doc(db, COLLECTION_NAME, id);
     await updateDoc(docRef, {
-      ...data,
+      ...omitUndefined(data as Record<string, unknown>),
       updatedAt: Timestamp.now(),
     });
+  },
+
+  /**
+   * Exclui um serviÃ§o (hard delete)
+   */
+  async delete(id: string): Promise<void> {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    await deleteDoc(docRef);
   },
 
   /**

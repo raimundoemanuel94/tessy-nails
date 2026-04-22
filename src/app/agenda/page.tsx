@@ -87,8 +87,8 @@ export default function AgendaPage() {
       
       const [apps, clients, services] = await Promise.all([
         appointmentService.getByDateRange(start, end),
-        globalStore.fetchRecentClients(false),
-        globalStore.fetchServices(false)
+        globalStore.fetchRecentClients(true),
+        globalStore.fetchServices(true)
       ]);
 
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);

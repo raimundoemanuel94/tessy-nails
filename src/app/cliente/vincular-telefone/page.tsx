@@ -66,6 +66,8 @@ export default function VincularTelefonePage() {
             />
             <Input
               type="tel"
+              inputMode="tel"
+              autoComplete="tel"
               placeholder="(66) 99999-9999"
               value={phone}
               onChange={(e) => setPhone(formatPhone(e.target.value))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -89,7 +89,13 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
   });
 
   const selectedClient = clients.find((client) => client.id === form.watch("clientId"));
-  const selectedService = services.find((service) => service.id === form.watch("serviceId"));
+  const selectedServiceId = form.watch("serviceId");
+  const selectedService = services.find((service) => service.id === selectedServiceId);
+  const servicesForSelect = useMemo(() => {
+    return services.filter(
+      (service) => service.isActive !== false || service.id === selectedServiceId
+    );
+  }, [services, selectedServiceId]);
 
   // Debounce effect
   useEffect(() => {
@@ -104,7 +110,7 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
     async function searchClients() {
       if (debouncedSearch.length < 2) {
         // Se a busca for vazia, usamos o cache rápido do globalStore
-        const recent = await globalStore.fetchRecentClients(false);
+        const recent = await globalStore.fetchRecentClients(true);
         setClients(recent);
         return;
       }
@@ -144,8 +150,8 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
         setFetching(true);
         // ✅ OTIMIZAÇÃO: Usa o cache do in-memory store invés de getAll() no Firebase
         const [recentClients, loadedServices] = await Promise.all([
-          globalStore.fetchRecentClients(false),
-          globalStore.fetchServices(false)
+          globalStore.fetchRecentClients(true),
+          globalStore.fetchServices(true)
         ]);
         
         // Garante que o cliente do agendamento editado está na lista
@@ -315,8 +321,8 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {services.length > 0 ? (
-                    services.map((service) => (
+                  {servicesForSelect.length > 0 ? (
+                    servicesForSelect.map((service) => (
                       <SelectItem key={service.id} value={service.id!}>
                         {(service.name || "Sem Nome") + " - R$ " + (service.price?.toFixed(2) || "0.00")}
                       </SelectItem>

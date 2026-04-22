@@ -10,17 +10,7 @@ const withPWA = require("next-pwa")({
   // ✅ Usando StaleWhileRevalidate para balancear cache rápido e conteúdo atualizado
   runtimeCaching: [
     {
-      urlPattern: /^https?.*/,
-      handler: "StaleWhileRevalidate",
-      options: {
-        cacheName: "tessy-pwa-cache",
-        expiration: {
-          maxEntries: 100,
-          maxAgeSeconds: 24 * 60 * 60, // 24 horas de cache
-        },
-      },
-    },
-    {
+      // API sempre vai à rede primeiro — deve vir antes da regra genérica
       urlPattern: /\/api\/.*/i,
       handler: "NetworkFirst",
       options: {
@@ -31,7 +21,18 @@ const withPWA = require("next-pwa")({
           maxAgeSeconds: 60 * 5, // 5 min para APIs
         },
       },
-    }
+    },
+    {
+      urlPattern: /^https?.*/,
+      handler: "StaleWhileRevalidate",
+      options: {
+        cacheName: "tessy-pwa-cache",
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 24 * 60 * 60, // 24 horas de cache
+        },
+      },
+    },
   ],
   reloadOnOnline: true,
   buildExcludes: [/middleware-manifest\.json$/]

@@ -98,13 +98,13 @@ export default function AgendamentosPage() {
       }
 
       try {
-        clientsData = await globalStore.fetchRecentClients(false);
+        clientsData = await globalStore.fetchRecentClients(true);
       } catch (e) {
         console.error("❌ Erro ao buscar CLIENTS:", e);
       }
 
       try {
-        servicesData = await globalStore.fetchServices(false);
+        servicesData = await globalStore.fetchServices(true);
       } catch (e) {
         console.error("❌ Erro ao buscar SERVICES:", e);
       }

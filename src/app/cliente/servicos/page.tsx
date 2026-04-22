@@ -27,63 +27,6 @@ interface Service {
   rating?: number;
 }
 
-// Mock data - pode ser substituído por dados reais do Firestore
-const mockServices: Service[] = [
-  {
-    id: "1",
-    name: "Manicure Simples",
-    description: "Limpeza, corte e esmaltação clássica para unhas bem cuidadas",
-    price: "R$ 69,90",
-    duration: "1h",
-    isActive: true,
-    rating: 4.8
-  },
-  {
-    id: "2",
-    name: "Pedicure Completa",
-    description: "Tratamento completo dos pés com esfoliação e hidratação",
-    price: "R$ 89,90",
-    duration: "1h 30min",
-    isActive: true,
-    rating: 4.9
-  },
-  {
-    id: "3",
-    name: "Esmaltação em Gel",
-    description: "Aplicação de esmalte em gel com maior durabilidade e brilho",
-    price: "R$ 99,90",
-    duration: "2h",
-    isActive: true,
-    rating: 5.0
-  },
-  {
-    id: "4",
-    name: "Alongamento Fibra",
-    description: "Alongamento com fibra de vidro para unhas mais longas e resistentes",
-    price: "R$ 149,90",
-    duration: "2h 30min",
-    isActive: true,
-    rating: 4.7
-  },
-  {
-    id: "5",
-    name: "Nail Art",
-    description: "Arte e decoração especializada em unhas",
-    price: "R$ 119,90",
-    duration: "2h",
-    isActive: false, // Exemplo de serviço indisponível
-    rating: 4.9
-  },
-  {
-    id: "6",
-    name: "Manutenção Alongamento",
-    description: "Manutenção semanal de alongamento para durabilidade",
-    price: "R$ 79,90",
-    duration: "1h",
-    isActive: true,
-    rating: 4.6
-  }
-];
 
 export default function ServicosPage() {
   const router = useRouter();

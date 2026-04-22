@@ -114,7 +114,7 @@ export function AppointmentCard({
                   onClick={handleConfirmCancel}
                   className="flex-1 h-11 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold shadow-md"
                 >
-                  Cancelar sim
+                  Confirmar cancelamento
                 </Button>
               </div>
             </div>

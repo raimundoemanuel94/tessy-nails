@@ -220,9 +220,9 @@ export default function AgendarPage() {
 
       {/* Calendar */}
       <section className="space-y-4">
-        <div className="rounded-[2.5rem] border border-brand-soft bg-white p-6 shadow-xl shadow-brand-primary/5">
+        <div className="rounded-[2.5rem] border border-brand-soft bg-white p-3 sm:p-6 shadow-xl shadow-brand-primary/5">
           {/* Month header */}
-          <div className="flex items-center justify-between mb-8 px-2">
+          <div className="flex items-center justify-between mb-4 sm:mb-8 px-2">
             <h3 className="text-lg font-black text-brand-text-main uppercase tracking-tight">
               {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
             </h3>
@@ -247,12 +247,12 @@ export default function AgendarPage() {
           </div>
 
           {/* Week labels */}
-          <div className="grid grid-cols-7 gap-1 mb-4">
-            {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map(
+          <div className="grid grid-cols-7 gap-0.5 mb-2">
+            {["D", "S", "T", "Q", "Q", "S", "S"].map(
               (day, idx) => (
                 <div
                   key={idx}
-                  className="text-center text-[9px] font-black text-brand-text-muted uppercase tracking-wide py-2"
+                  className="text-center text-[10px] font-black text-brand-text-muted uppercase tracking-wide py-1"
                 >
                   {day}
                 </div>
@@ -261,7 +261,7 @@ export default function AgendarPage() {
           </div>
 
           {/* Days grid */}
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1.5">
             {days.map((day) => {
               const active = selectedDate && isSameDay(day, selectedDate);
               const today = isToday(day);
@@ -278,7 +278,7 @@ export default function AgendarPage() {
                   onClick={() => !isDisabled && handleDateSelect(day)}
                   disabled={isDisabled}
                   className={cn(
-                    "relative aspect-square rounded-2xl text-sm font-black transition-all duration-300 flex items-center justify-center",
+                    "relative aspect-square min-h-[44px] rounded-xl text-xs font-black transition-all duration-300 flex items-center justify-center",
                     isDisabled && "opacity-20 cursor-not-allowed",
                     !isDisabled &&
                       !active &&

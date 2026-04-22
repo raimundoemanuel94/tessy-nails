@@ -10,7 +10,7 @@ import { SectionCard } from "@/components/shared/SectionCard";
 import { 
   Plus, Scissors, Clock, DollarSign, Edit2, Loader2,
   Search, Sparkles, Tag, EyeOff, Power, CheckCircle2, XCircle,
-  LayoutDashboard
+  LayoutDashboard, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -185,7 +185,7 @@ export default function ServicosPage() {
   };
 
   const handleActivate = async (id: string) => {
-    setActionLoading(id);
+    setActionLoading(`activate:${id}`);
     try {
       await salonService.activate(id);
       toast.success("Serviço ativado.");
@@ -198,13 +198,29 @@ export default function ServicosPage() {
   };
 
   const handleDeactivate = async (id: string) => {
-    setActionLoading(id);
+    setActionLoading(`deactivate:${id}`);
     try {
       await salonService.deactivate(id);
       toast.success("Serviço desativado.");
       await loadData();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erro ao desativar.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    const confirmed = window.confirm(`Excluir o serviÃ§o "${name}"? Essa aÃ§Ã£o nÃ£o pode ser desfeita.`);
+    if (!confirmed) return;
+
+    setActionLoading(`delete:${id}`);
+    try {
+      await salonService.delete(id);
+      toast.success("ServiÃ§o excluÃ­do.");
+      await loadData();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao excluir.");
     } finally {
       setActionLoading(null);
     }
@@ -449,7 +465,7 @@ export default function ServicosPage() {
                         disabled={!!actionLoading}
                         onClick={() => service.isActive !== false ? handleDeactivate(service.id) : handleActivate(service.id)}
                       >
-                        {actionLoading === service.id ? (
+                        {actionLoading === `activate:${service.id}` || actionLoading === `deactivate:${service.id}` ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         ) : service.isActive !== false ? (
                           <>
@@ -460,6 +476,22 @@ export default function ServicosPage() {
                           <>
                             <Power className="h-3.5 w-3.5 mr-2" />
                             Ativar
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-11 rounded-xl text-[10px] font-black uppercase tracking-widest border-brand-danger/20 text-brand-danger hover:bg-brand-danger/5 transition-all shadow-none"
+                        disabled={!!actionLoading}
+                        onClick={() => handleDelete(service.id, service.name)}
+                      >
+                        {actionLoading === `delete:${service.id}` ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <Trash2 className="h-3.5 w-3.5 mr-2" />
+                            Excluir
                           </>
                         )}
                       </Button>
