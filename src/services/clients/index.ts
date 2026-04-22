@@ -21,6 +21,12 @@ import { Client, ClientSchema } from "@/types";
 
 const COLLECTION_NAME = "clients";
 
+function omitUndefined<T extends Record<string, unknown>>(value: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, fieldValue]) => fieldValue !== undefined)
+  ) as Partial<T>;
+}
+
 export const clientService = {
   collectionName: COLLECTION_NAME,
   collectionRef: collection(db, COLLECTION_NAME),
@@ -144,9 +150,10 @@ export const clientService = {
     try {
       const { id, ...toValidate } = data as any;
       const validatedData = ClientSchema.omit({ id: true, createdAt: true, updatedAt: true }).parse(toValidate);
+      const payload = omitUndefined(validatedData as Record<string, unknown>);
 
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-        ...validatedData,
+        ...payload,
         createdAt: Timestamp.now(),
       });
 
@@ -165,8 +172,9 @@ export const clientService = {
    */
   async update(id: string, data: Partial<Client>): Promise<void> {
     const docRef = doc(db, COLLECTION_NAME, id);
+    const payload = omitUndefined(data as Record<string, unknown>);
     await updateDoc(docRef, {
-      ...data,
+      ...payload,
       updatedAt: Timestamp.now(),
     });
   },
