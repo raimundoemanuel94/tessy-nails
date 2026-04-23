@@ -13,7 +13,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { appointmentService } from "@/services/appointments";
+import { appointmentService, AppointmentWithService } from "@/services/appointments";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
 import { globalStore } from "@/store/globalStore";
 import { format, isFuture, isToday } from "date-fns";
@@ -25,7 +25,7 @@ export default function ClientePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  const [nextAppointment, setNextAppointment] = useState<any>(null);
+  const [nextAppointment, setNextAppointment] = useState<AppointmentWithService | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -65,6 +65,8 @@ export default function ClientePage() {
   }
 
   const firstName = user?.name?.split(" ")[0] || "Cliente";
+
+  const hasService = !!AppointmentStorage.loadSelectedService();
 
   const quickActions = [
     { id: "agenda",   label: "Agenda",    sub: "Meus horários",  icon: Calendar,  href: "/cliente/agendamentos" },
@@ -254,24 +256,28 @@ export default function ClientePage() {
                 <button
                   key={service.id}
                   onClick={() => {
-                    AppointmentStorage.saveSelectedService(service as any);
+                    AppointmentStorage.saveSelectedService({
+                      id: service.id,
+                      name: service.name,
+                      description: service.description,
+                      price: `R$ ${service.price.toFixed(2)}`,
+                      duration: `${service.durationMinutes}min`,
+                    });
                     AppointmentStorage.clearAppointmentData();
                     AppointmentStorage.clearSelectedDate();
                     router.push("/cliente/agendar");
                   }}
                   className="shrink-0 w-[148px] rounded-2xl bg-white border border-brand-soft shadow-sm overflow-hidden text-left active:scale-95 transition-all group"
                 >
-                  <div className="h-20 w-full bg-brand-background flex items-center justify-center group-hover:bg-brand-primary/5 transition-colors">
-                    <span className="text-3xl">💅</span>
+                  <div className="h-20 w-full bg-gradient-to-br from-brand-background to-brand-soft/60 flex items-center justify-center group-hover:from-brand-primary/5 group-hover:to-brand-accent/10 transition-all">
+                    <Sparkles size={24} className="text-brand-primary/30 group-hover:text-brand-primary/50 transition-colors" strokeWidth={1.5} />
                   </div>
                   <div className="p-3 space-y-1">
                     <p className="text-xs font-bold text-brand-text-main line-clamp-2 leading-tight">
                       {service.name}
                     </p>
                     <p className="text-[11px] font-black text-brand-primary">
-                      {typeof (service as any).price === "number"
-                        ? `R$ ${((service as any).price as number).toFixed(2)}`
-                        : (service as any).price || ""}
+                      {`R$ ${service.price.toFixed(2)}`}
                     </p>
                   </div>
                 </button>

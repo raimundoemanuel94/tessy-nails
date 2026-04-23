@@ -66,9 +66,9 @@ export function PaymentButton({
         // Redirect to Stripe Checkout
         window.location.href = data.url;
       }
-    } catch (error: any) {
-      console.error("Erro de checkout:", error);
-      toast.error(error.message || "Não foi possível iniciar o pagamento.");
+    } catch (err) {
+      console.error("Erro de checkout:", err);
+      toast.error((err instanceof Error ? err.message : null) || "Não foi possível iniciar o pagamento.");
     } finally {
       setLoading(false);
     }

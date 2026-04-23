@@ -13,6 +13,24 @@ import { AppointmentCard } from "@/components/cliente/AppointmentCard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
+type ClientAppointmentStatus = "pending" | "confirmed" | "completed" | "cancelled";
+
+interface ClientAppointment {
+  id: string;
+  service: {
+    id: string;
+    name: string;
+    durationMinutes: number;
+    price?: string;
+    duration?: string;
+  };
+  date: Date;
+  time: { id: string; time: string };
+  status: ClientAppointmentStatus;
+  observation?: string;
+  createdAt: Date;
+}
+
 function SkeletonCard() {
   return (
     <div className="overflow-hidden rounded-[24px] border border-brand-soft bg-white animate-pulse">
@@ -42,7 +60,7 @@ function SkeletonCard() {
 export default function AgendamentosPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<ClientAppointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"upcoming" | "history" | "all">("upcoming");
@@ -73,20 +91,28 @@ export default function AgendamentosPage() {
           return;
         }
 
-        const formattedAppointments = appointmentsWithServiceDetails.map((apt) => ({
-          ...apt,
-          service: {
-            ...apt.service,
-            price: `R$ ${apt.service.price.toFixed(2)}`,
-            duration: `${apt.service.durationMinutes}min`,
-          },
-        }));
+        const formattedAppointments: ClientAppointment[] = appointmentsWithServiceDetails
+          .filter((apt): apt is typeof apt & { status: ClientAppointmentStatus } =>
+            apt.status === "pending" ||
+            apt.status === "confirmed" ||
+            apt.status === "completed" ||
+            apt.status === "cancelled"
+          )
+          .map((apt) => ({
+            ...apt,
+            service: {
+              ...apt.service,
+              price: `R$ ${apt.service.price.toFixed(2)}`,
+              duration: `${apt.service.durationMinutes}min`,
+            },
+          }));
 
         setAppointments(formattedAppointments);
-      } catch (error: any) {
-        if (error.code === "permission-denied") {
+      } catch (err) {
+        const code = (err as { code?: string }).code;
+        if (code === "permission-denied") {
           setError("Sem permissão para acessar seus agendamentos.");
-        } else if (error.code === "unavailable") {
+        } else if (code === "unavailable") {
           setError("Serviço temporariamente indisponível. Tente novamente.");
         } else {
           setError("Não foi possível carregar seus agendamentos.");
@@ -135,7 +161,7 @@ export default function AgendamentosPage() {
   };
 
   const handleReschedule = () => router.push("/cliente/agendar");
-  const handleCancel = async (appointment: any) => {
+  const handleCancel = async (appointment: { id: string }) => {
     try {
       await appointmentService.cancel(appointment.id);
       setAppointments((prev) =>

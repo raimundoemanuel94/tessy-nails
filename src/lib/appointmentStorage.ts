@@ -73,29 +73,36 @@ export class AppointmentStorage {
   }
 
   // Validação de dados
-  private static validateAppointmentData(data: any): data is AppointmentData {
+  private static validateAppointmentData(data: unknown): data is AppointmentData {
+    if (!data || typeof data !== 'object') return false;
+
+    const record = data as Record<string, unknown>;
+    const service =
+      record.service && typeof record.service === 'object'
+        ? (record.service as Record<string, unknown>)
+        : null;
+    const time =
+      record.time && typeof record.time === 'object'
+        ? (record.time as Record<string, unknown>)
+        : null;
+
     return (
-      data &&
-      typeof data === 'object' &&
-      data.service &&
-      typeof data.service.id === 'string' &&
-      typeof data.service.name === 'string' &&
-      data.date &&
-      (data.date instanceof Date || typeof data.date === 'string') &&
-      data.time &&
-      typeof data.time.id === 'string' &&
-      typeof data.time.time === 'string' &&
-      Array.isArray(data.timeSlots)
+      Boolean(service) &&
+      typeof service?.id === 'string' &&
+      typeof service?.name === 'string' &&
+      Boolean(record.date) &&
+      (record.date instanceof Date || typeof record.date === 'string') &&
+      Boolean(time) &&
+      typeof time?.id === 'string' &&
+      typeof time?.time === 'string' &&
+      Array.isArray(record.timeSlots)
     );
   }
 
-  private static validateService(data: any): data is Service {
-    return (
-      data &&
-      typeof data === 'object' &&
-      typeof data.id === 'string' &&
-      typeof data.name === 'string'
-    );
+  private static validateService(data: unknown): data is Service {
+    if (!data || typeof data !== 'object') return false;
+    const record = data as Record<string, unknown>;
+    return typeof record.id === 'string' && typeof record.name === 'string';
   }
 
   // Salvar dados com validação
@@ -302,3 +309,5 @@ export class AppointmentStorage {
     return !!(appointmentData && selectedDate && selectedService);
   }
 }
+
+

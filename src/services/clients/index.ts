@@ -142,7 +142,7 @@ export const clientService = {
    */
   async create(data: Omit<Client, "id" | "createdAt">): Promise<string> {
     try {
-      const { id, ...toValidate } = data as any;
+      const { id, ...toValidate } = data as typeof data & { id?: string };
       const validatedData = ClientSchema.omit({ id: true, createdAt: true, updatedAt: true }).parse(toValidate);
 
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
@@ -151,9 +151,14 @@ export const clientService = {
       });
 
       return docRef.id;
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Erro ao criar cliente no clientService:", error);
-      if (error.code === 'permission-denied') {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code?: string }).code === "permission-denied"
+      ) {
         throw new Error("Permissão negada no Firebase para criar clientes.");
       }
       throw error;

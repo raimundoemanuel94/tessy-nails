@@ -31,7 +31,8 @@ messaging.onBackgroundMessage((payload) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   
-  const urlToOpen = event.notification.data?.url || '/dashboard';
+  const targetPath = event.notification.data?.url || '/cliente';
+  const urlToOpen = new URL(targetPath, self.location.origin).href;
   
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })

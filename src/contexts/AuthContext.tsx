@@ -8,7 +8,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  GoogleAuthProvider
+  GoogleAuthProvider,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { auth, db, isFirebaseConfigured } from "@/lib/firebase";
 import { doc, getDoc, setDoc, collection, query, where, getDocs, writeBatch } from "firebase/firestore";
@@ -25,6 +26,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<boolean>;
   signUp: (email: string, password: string, name: string) => Promise<boolean>;
   signInWithGoogle: () => Promise<boolean>;
+  resetPassword: (email: string) => Promise<boolean>;
   linkOrCreateByPhone: (phone: string) => Promise<void>;
 }
 
@@ -57,8 +59,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isFirebaseConfigured() || !auth) {
-      void syncServerSession(null);
-      setLoading(false);
+      void (async () => {
+        await Promise.resolve();
+        void syncServerSession(null);
+        setLoading(false);
+      })();
       return;
     }
 
@@ -209,7 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('User document created; phone link flow will handle client creation.');
 
       return true;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Sign up error:", error);
       return false;
     }
@@ -268,7 +273,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setNeedsPhoneLink(false);
   };
 
-  const signInWithGoogle = async (): Promise<boolean> => {
+
+  const resetPassword = async (email: string): Promise<boolean> => {
+    if (!auth) return false;
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      return true;
+    } catch (error) {
+      console.error("Reset password error:", error);
+      return false;
+    }
+  };
+
+    const signInWithGoogle = async (): Promise<boolean> => {
     if (!auth) return false;
     
     const provider = new GoogleAuthProvider();
@@ -282,7 +299,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, firebaseUser, client, loading, needsPhoneLink, signOut, signIn, signUp, signInWithGoogle, linkOrCreateByPhone }}>
+    <AuthContext.Provider value={{ user, firebaseUser, client, loading, needsPhoneLink, signOut, signIn, signUp, signInWithGoogle, linkOrCreateByPhone, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

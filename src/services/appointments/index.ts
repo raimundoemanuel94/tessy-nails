@@ -24,9 +24,26 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { z } from "zod";
 
+export interface AppointmentWithService {
+  id: string;
+  service: { id: string; name: string; price: number; durationMinutes: number };
+  date: Date;
+  time: { id: string; time: string };
+  status: string;
+  observation?: string;
+  createdAt: Date;
+}
+
+export interface BusySlot {
+  id: string;
+  appointmentDate: string | Date;
+  status: string;
+  serviceId: string;
+}
+
 const COLLECTION_NAME = "appointments";
 
-const mapAppointmentData = (doc: any) => {
+const mapAppointmentData = (doc: QueryDocumentSnapshot<DocumentData>) => {
   const data = doc.data();
   return {
     id: doc.id,
@@ -47,9 +64,14 @@ export const appointmentService = {
       const q = query(collection(db, COLLECTION_NAME), orderBy("appointmentDate", "desc"));
       const snapshot = await getDocs(q);
       return snapshot.docs.map(mapAppointmentData) as Appointment[];
-    } catch (error: any) {
+    } catch (error) {
       console.error("🔥 Error in appointmentService.getAll:", error);
-      if (error.code === 'permission-denied') {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code?: string }).code === "permission-denied"
+      ) {
         console.warn("⚠️ Firestore Permission Denied. Check rules for collection 'appointments'.");
       }
       throw error;
@@ -104,12 +126,12 @@ export const appointmentService = {
   /**
    * ✅ NOVO: Busca slots ocupados via API Server-Side (Ignora regras de segurança do Firestore)
    */
-  async getBusySlots(start: Date, end: Date): Promise<any[]> {
+  async getBusySlots(start: Date, end: Date): Promise<BusySlot[]> {
     try {
       const response = await fetch(`/api/appointments/availability?start=${start.toISOString()}&end=${end.toISOString()}`);
       if (!response.ok) throw new Error('Falha ao buscar disponibilidade');
-      const data = await response.json();
-      return data.busySlots || [];
+      const data = await response.json() as { busySlots?: BusySlot[] };
+      return Array.isArray(data.busySlots) ? data.busySlots : [];
     } catch (error) {
       console.error("🔥 Error in getBusySlots:", error);
       return [];
@@ -132,7 +154,7 @@ export const appointmentService = {
   /**
    * Busca agendamentos de um cliente com detalhes dos serviços
    */
-  async getByClientIdWithServices(clientId: string): Promise<any[]> {
+  async getByClientIdWithServices(clientId: string): Promise<AppointmentWithService[]> {
     const appointments = await this.getByClientId(clientId);
     
     // Buscar todos os serviços via Cache
@@ -202,7 +224,7 @@ export const appointmentService = {
    */
   async create(data: Omit<Appointment, "id" | "createdAt" | "updatedAt">): Promise<string> {
     // ✅ Remover campos que não pertencem ao schema antes da validação
-    const { time, ...toValidate } = data as any;
+    const { time, ...toValidate } = data as Appointment & { time?: string };
     
     try {
       const validatedData = AppointmentSchema.parse({
@@ -224,7 +246,7 @@ export const appointmentService = {
       });
 
       return docRef.id;
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Erro de validação/criação no AppointmentService:", error);
       if (error instanceof z.ZodError) {
         console.error("Validação falhou:", error.issues);
@@ -306,7 +328,7 @@ export const appointmentService = {
    */
   async update(id: string, data: Partial<Appointment>): Promise<void> {
     const docRef = doc(db, COLLECTION_NAME, id);
-    const updateData: any = { ...data };
+    const updateData: Record<string, unknown> = { ...data };
     
     if (data.appointmentDate) {
       updateData.appointmentDate = Timestamp.fromDate(new Date(data.appointmentDate));
@@ -326,15 +348,19 @@ export const appointmentService = {
   /**
    * Busca todos os especialistas (admins e profissionais)
    */
-  async getSpecialists(): Promise<any[]> {
+  async getSpecialists(): Promise<{ uid: string; name: string; role: string }[]> {
     const q = query(
       collection(db, "users"),
       where("role", "in", ["admin", "professional"])
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      uid: doc.id,
-      ...doc.data()
-    }));
+    return snapshot.docs.map((doc) => {
+      const data = doc.data() as { name?: string; role?: string };
+      return {
+        uid: doc.id,
+        name: data.name ?? "Profissional",
+        role: data.role ?? "professional",
+      };
+    });
   }
 };

@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Calendar, Clock, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, CheckCircle, PenLine, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { appointmentService } from "@/services/appointments";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
@@ -111,7 +111,7 @@ export default function ConfirmacaoPage() {
       } else {
         router.push('/cliente/agendar/sucesso');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       setError('Ocorreu um erro ao confirmar seu agendamento.');
       setConfirming(false);
@@ -202,7 +202,7 @@ export default function ConfirmacaoPage() {
 
           <div className="relative pt-6 border-t border-brand-border space-y-4">
              <div className="flex items-center gap-2">
-                <CheckCircle className="text-brand-primary" size={16} />
+                <PenLine className="text-brand-primary" size={16} />
                 <p className="text-[10px] font-black text-brand-text uppercase tracking-widest">Observações Adicionais</p>
              </div>
              <Textarea

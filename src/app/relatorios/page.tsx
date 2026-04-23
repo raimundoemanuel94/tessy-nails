@@ -164,7 +164,7 @@ export default function RelatoriosPage() {
     );
     
     // Dados para evolução financeira (últimos 6 meses)
-    const monthsData: any[] = [];
+    const monthsData: { date: string; Revenue: number }[] = [];
     const today = new Date();
     
     for (let i = 5; i >= 0; i--) {
@@ -194,7 +194,7 @@ export default function RelatoriosPage() {
         name: service.name,
         value: serviceCount
       };
-    }).filter((item: any) => item.value > 0);
+    }).filter((item: { name: string; value: number }) => item.value > 0);
     
     return { monthsData, serviceDistribution };
   };

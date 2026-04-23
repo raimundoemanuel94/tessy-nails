@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Tessy Nails - Studio de Beleza Premium",
   description: "Plataforma exclusiva de agendamento e gestão para Tessy Nails.",
-  manifest: "/manifest.json?v=6",
+  manifest: "/manifest.json?v=8",
   icons: {
     icon: "/brand/icons/favicon.png",
     apple: "/brand/icons/apple-touch-icon.png",

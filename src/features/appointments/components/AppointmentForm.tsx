@@ -176,7 +176,7 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
     loadData();
   }, [appointment]);
 
-  async function onSubmit(data: any) {
+  async function onSubmit(data: FormValues) {
     setLoading(true);
     try {
       // Combina a data selecionada com o horário selecionado
@@ -216,8 +216,9 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
         toast.success("Agendamento criado com sucesso!");
       }
       onSuccess();
-    } catch (error: any) {
-      toast.error("Erro ao criar agendamento: " + error.message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro desconhecido";
+      toast.error(`Erro ao criar agendamento: ${message}`);
     } finally {
       setLoading(false);
     }

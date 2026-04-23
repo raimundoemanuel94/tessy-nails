@@ -12,24 +12,26 @@ function SuccessContent() {
   const [verifying, setVerifying] = useState(true);
 
   useEffect(() => {
-    if (sessionId) {
-      fetch("/api/stripe/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log("Stripe Verify Result:", data);
-          setVerifying(false);
-        })
-        .catch((err) => {
-          console.error("Stripe Verify Error:", err);
-          setVerifying(false);
+    void (async () => {
+      await Promise.resolve();
+      if (!sessionId) {
+        setVerifying(false);
+        return;
+      }
+      try {
+        const res = await fetch("/api/stripe/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
         });
-    } else {
-      setVerifying(false);
-    }
+        const data = await res.json();
+        console.log("Stripe Verify Result:", data);
+        setVerifying(false);
+      } catch (err) {
+        console.error("Stripe Verify Error:", err);
+        setVerifying(false);
+      }
+    })();
   }, [sessionId]);
 
   return (

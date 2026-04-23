@@ -98,7 +98,7 @@ export function SuccessAppointmentSummary({
               <p className="text-[10px] font-black text-brand-text uppercase tracking-widest">Sua Observação</p>
            </div>
            <p className="text-xs font-bold text-brand-text-muted bg-brand-background/50 p-4 rounded-2xl italic">
-              "{observation}"
+              {'"'}{observation}{'"'}
            </p>
         </div>
       )}

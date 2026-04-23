@@ -83,13 +83,13 @@ export default function ServicosPage() {
           price: `R$ ${service.price.toFixed(2)}`,
           duration: `${service.durationMinutes}min`,
           isActive: service.isActive !== false,
-          imageUrl: (service as any).imageUrl || (service as any).image || getServiceImage(service.name),
+          imageUrl: getServiceImage(service.name),
           rating: undefined
         }));
         
         setServices(transformedServices);
         setFilteredServices(transformedServices);
-      } catch (error: any) {
+      } catch (error) {
         console.error('Error loading services:', error);
         setError('Não foi possível carregar os serviços.');
       } finally {

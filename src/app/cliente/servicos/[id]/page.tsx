@@ -38,7 +38,7 @@ export default function ServiceDetailPage() {
         }
 
         setService(serviceData);
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error loading service:', err);
         setError('Não foi possível carregar os detalhes do serviço');
       } finally {

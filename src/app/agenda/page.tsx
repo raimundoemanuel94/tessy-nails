@@ -61,7 +61,7 @@ import {
 import { format, startOfDay, endOfDay, isSameDay, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { appointmentService, authService } from "@/services";
-import { Appointment, Client, Service, AppointmentWithDetails } from "@/types";
+import { Appointment, AppointmentWithDetails, User } from "@/types";
 import { globalStore } from "@/store/globalStore";
 import { AppointmentForm } from "@/features/appointments/components/AppointmentForm";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -72,7 +72,7 @@ import { toast } from "sonner";
 export default function AgendaPage() {
   const [date, setDate] = useState<Date>(new Date());
   const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
-  const [clientUsers, setClientUsers] = useState<any[]>([]);
+  const [clientUsers, setClientUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);

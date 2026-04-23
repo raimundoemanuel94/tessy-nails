@@ -1,4 +1,5 @@
 "use client";
+import type { QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 
 export const dynamic = 'force-dynamic';
 
@@ -54,14 +55,14 @@ export default function ClientesPage() {
 
   // ✅ State para Paginação via Cursor do Firestore
   const PAGE_SIZE = 12;
-  const [pageHistory, setPageHistory] = useState<any[]>([null]);
+  const [pageHistory, setPageHistory] = useState<Array<QueryDocumentSnapshot<DocumentData> | null>>([null]);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(false);
 
   const loadClients = useCallback(async (direction: 'init' | 'next' | 'prev' = 'init') => {
     try {
       setLoading(true);
-      let targetDoc = null;
+      const targetDoc = null;
       let newPage = 0;
 
       // Usamos uma técnica de closure para evitar depender dos estados viciados
@@ -91,7 +92,10 @@ export default function ClientesPage() {
       if (direction === 'next') currentTargetDoc = pageHistory[currentPage + 1];
       if (direction === 'prev') currentTargetDoc = pageHistory[currentPage - 1];
 
-      const { clients: clientsData, lastVisible } = await clientService.getPaginated(PAGE_SIZE, currentTargetDoc);
+      const { clients: clientsData, lastVisible } = await clientService.getPaginated(
+        PAGE_SIZE,
+        currentTargetDoc ?? undefined
+      );
       
       setClients(clientsData || []);
 

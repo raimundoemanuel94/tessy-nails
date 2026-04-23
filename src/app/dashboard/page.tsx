@@ -66,6 +66,27 @@ const itemVariants: Variants = {
   visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 120, damping: 18 } },
 };
 
+interface RecentAppointmentItem {
+  id: string;
+  client: string;
+  service: string;
+  price: number;
+  time: string;
+  date: string;
+  isToday: boolean;
+  status: string;
+}
+
+interface TopServiceItem {
+  name: string;
+  count: number;
+}
+
+interface RevenueDataPoint {
+  date: string;
+  Revenue: number;
+}
+
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -77,9 +98,9 @@ export default function DashboardPage() {
     monthlyRevenue: 0,
     completionRate: 0,
   });
-  const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
-  const [topServices, setTopServices] = useState<any[]>([]);
-  const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [recentAppointments, setRecentAppointments] = useState<RecentAppointmentItem[]>([]);
+  const [topServices, setTopServices] = useState<TopServiceItem[]>([]);
+  const [revenueData, setRevenueData] = useState<RevenueDataPoint[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -156,7 +177,7 @@ export default function DashboardPage() {
           const clientUser = clientUsers.find((u) => u.uid === apt.clientId);
           const service = services.find((s) => s.id === apt.serviceId);
           return {
-            id: apt.id,
+            id: apt.id ?? "",
             client: client?.name || clientUser?.name || "Cliente",
             service: service?.name || "Serviço",
             price: service?.price || 0,
@@ -225,7 +246,6 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-brand-text-sub mb-1">
-              {format(new Date(), "EEEE, dd 'de' MMMM", { locale: require("date-fns/locale/pt-BR").ptBR })}
             </p>
             <h1 className="text-2xl lg:text-3xl font-serif font-bold text-brand-text-main">
               Olá, {displayName} ✨

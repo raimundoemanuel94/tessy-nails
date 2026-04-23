@@ -22,7 +22,6 @@ const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
     const t = setTimeout(onComplete, 2000);
     return () => clearTimeout(t);
   }, [onComplete]);
-
   return (
     <motion.div
       initial={{ opacity: 1 }}
@@ -95,7 +94,7 @@ const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.35 }}
             transition={{ delay: 1.6, duration: 0.8 }}
-            className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/40"
+            className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/40"
           >
             Studio de Beleza Premium
           </motion.p>
@@ -122,7 +121,7 @@ function LoginPageContent() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn, signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
+  const { signIn, signUp, signInWithGoogle, resetPassword, user, loading: authLoading } = useAuth();
 
   const isRegisterMode = searchParams.get("mode") === "register";
   // Pula o splash se já foi exibido nesta sessão (PWA / visita repetida)
@@ -165,6 +164,29 @@ function LoginPageContent() {
       if (ok) toast.success("Acesso realizado!");
     } catch { toast.error("Erro no login com Google."); }
     finally { setLoading(false); }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      toast.error("Digite seu e-mail primeiro.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const ok = await resetPassword(email);
+      if (ok) {
+        toast.success("E-mail enviado!", {
+          description: "Verifique sua caixa de entrada.",
+        });
+      } else {
+        toast.error("NÃ£o foi possÃ­vel enviar o e-mail.");
+      }
+    } catch {
+      toast.error("Erro ao enviar e-mail de recuperaÃ§Ã£o.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const visible = !showSplash;
@@ -268,7 +290,7 @@ function LoginPageContent() {
                       transition={{ duration: 0.3 }}
                       className="space-y-1.5"
                     >
-                      <label className="text-[9px] font-black uppercase tracking-[0.22em] pl-1" style={{ color: "#9a7060" }}>
+                      <label className="text-[11px] font-black uppercase tracking-[0.22em] pl-1" style={{ color: "#9a7060" }}>
                         Nome Completo
                       </label>
                       <div className="relative">
@@ -290,7 +312,7 @@ function LoginPageContent() {
 
                 {/* email */}
                 <motion.div {...fadeUp(0, visible)} className="space-y-1.5">
-                  <label className="text-[9px] font-black uppercase tracking-[0.22em] pl-1" style={{ color: "#9a7060" }}>
+                  <label className="text-[11px] font-black uppercase tracking-[0.22em] pl-1" style={{ color: "#9a7060" }}>
                     Endereço de E-mail
                   </label>
                   <div className="relative">
@@ -309,7 +331,7 @@ function LoginPageContent() {
 
                 {/* password */}
                 <motion.div {...fadeUp(1, visible)} className="space-y-1.5">
-                  <label className="text-[9px] font-black uppercase tracking-[0.22em] pl-1" style={{ color: "#9a7060" }}>
+                  <label className="text-[11px] font-black uppercase tracking-[0.22em] pl-1" style={{ color: "#9a7060" }}>
                     Senha Segura
                   </label>
                   <div className="relative">
@@ -327,6 +349,20 @@ function LoginPageContent() {
                     />
                   </div>
                 </motion.div>
+
+                {!isRegisterMode && (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      disabled={loading}
+                      className="text-[10px] font-black uppercase tracking-[0.2em] transition-colors disabled:opacity-50"
+                      style={{ color: "#9a7060" }}
+                    >
+                      Esqueci minha senha
+                    </button>
+                  </div>
+                )}
 
                 {/* CTA */}
                 <motion.div {...fadeUp(2, visible)}>
@@ -358,7 +394,7 @@ function LoginPageContent() {
               <div className="px-6 pb-6 space-y-3.5">
                 <div className="flex items-center gap-3">
                   <div className="h-px flex-1" style={{ background: "rgba(75,46,43,0.08)" }} />
-                  <span className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: "#c4a99a" }}>ou</span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.3em]" style={{ color: "#c4a99a" }}>ou</span>
                   <div className="h-px flex-1" style={{ background: "rgba(75,46,43,0.08)" }} />
                 </div>
 
@@ -417,7 +453,7 @@ function LoginPageContent() {
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            <p className="text-[9px] font-black uppercase tracking-[0.35em]" style={{ color: "#4B2E2B" }}>
+            <p className="text-[11px] font-black uppercase tracking-[0.35em]" style={{ color: "#4B2E2B" }}>
               Acesso Seguro & Criptografado
             </p>
           </motion.div>
@@ -434,3 +470,4 @@ export default function LoginPage() {
     </Suspense>
   );
 }
+

@@ -8,6 +8,7 @@ import { PersonalInfoSection, PersonalInfo } from "@/components/cliente/Personal
 import { ProfileShortcuts } from "@/components/cliente/ProfileShortcuts";
 import { NoProfileDataState } from "@/components/cliente/NoProfileDataState";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export default function PerfilPage() {
   const router = useRouter();
@@ -57,11 +58,11 @@ export default function PerfilPage() {
           });
         }
         // Se client for null aqui, o AuthContext já cuida via needsPhoneLink.
-      } catch (error: any) {
+      } catch (error) {
         console.error('Error in loadClientData:', error);
         
         // ✅ Tratamento específico de erros
-        if (error.code === 'unavailable') {
+        if ((error as { code?: string }).code === 'unavailable') {
           setError('Serviço temporariamente indisponível. Tente novamente em alguns minutos.');
         } else {
           setError('Ocorreu um erro ao carregar seus dados. Tente novamente mais tarde.');
@@ -74,16 +75,6 @@ export default function PerfilPage() {
     loadClientData();
   }, [client, user, authLoading]);
 
-  const handleEditProfile = () => {
-    // Preparar para futura implementação
-    console.log('Edit profile');
-  };
-
-  const handleEditPersonalInfo = () => {
-    // Preparar para futura implementação
-    console.log('Edit personal info');
-  };
-
   const handleMyAppointments = () => {
     router.push('/cliente/agendamentos');
   };
@@ -93,13 +84,11 @@ export default function PerfilPage() {
   };
 
   const handleSettings = () => {
-    // Preparar para futura implementação
-    console.log('Settings');
+    toast.info('Em breve', { description: 'Configurações disponíveis em breve.' });
   };
 
   const handleHelp = () => {
-    // Preparar para futura implementação
-    console.log('Help');
+    toast.info('Em breve', { description: 'Central de ajuda disponível em breve.' });
   };
 
   const handleLogout = () => {
@@ -184,15 +173,15 @@ export default function PerfilPage() {
           {/* Client Profile Card */}
           <ClientProfileCard 
             client={clientData}
-            onEditProfile={handleEditProfile}
-            showEditButton={true}
+            onEditProfile={() => toast.info('Em breve', { description: 'Edição de perfil disponível em breve.' })}
+            showEditButton={false}
           />
 
           {/* Personal Information Section */}
           <PersonalInfoSection 
             info={personalInfo}
-            onEdit={handleEditPersonalInfo}
-            showEditButton={true}
+            onEdit={() => toast.info('Em breve', { description: 'Edição de dados disponível em breve.' })}
+            showEditButton={false}
           />
 
           {/* Profile Shortcuts */}

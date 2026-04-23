@@ -42,28 +42,26 @@ export default function MensagemInicial() {
   const [mensagem, setMensagem] = useState(mensagens[0])
 
   useEffect(() => {
-    // Verifica se já mostrou hoje
-    const hoje = new Date().toDateString()
-    const ultima = localStorage.getItem("mensagem-dia")
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-    if (ultima !== hoje) {
-      // Pega mensagem aleatória
-      const random = mensagens[Math.floor(Math.random() * mensagens.length)]
-      setMensagem(random)
+    void (async () => {
+      await Promise.resolve();
+      const hoje = new Date().toDateString();
+      const ultima = localStorage.getItem("mensagem-dia");
 
-      // Mostra ao abrir
-      setMostrar(true)
-      
-      // Salva que mostrou hoje
-      localStorage.setItem("mensagem-dia", hoje)
+      if (ultima !== hoje) {
+        const random = mensagens[Math.floor(Math.random() * mensagens.length)];
+        setMensagem(random);
+        setMostrar(true);
+        localStorage.setItem("mensagem-dia", hoje);
 
-      // Some depois de 8s
-      const timer = setTimeout(() => {
-        setMostrar(false)
-      }, 8000)
+        timer = setTimeout(() => {
+          setMostrar(false);
+        }, 8000);
+      }
+    })();
 
-      return () => clearTimeout(timer)
-    }
+    return () => { if (timer) clearTimeout(timer); };
   }, [])
 
   if (!mostrar) return null
@@ -84,7 +82,7 @@ export default function MensagemInicial() {
       </div>
 
       <p className="text-lg font-bold text-slate-900 mb-2 leading-relaxed">
-        "{mensagem.texto}"
+        {'"'}{mensagem.texto}{'"'}
       </p>
 
       <p className="text-sm font-semibold text-violet-500">

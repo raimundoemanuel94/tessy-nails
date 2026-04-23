@@ -54,9 +54,9 @@ export function BottomNav() {
               <div
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
-                  isActive 
-                    ? "text-brand-primary" 
-                    : "text-[#6B6B6B] hover:text-brand-primary"
+                  isActive
+                    ? "bg-brand-primary/10 text-brand-primary"
+                    : "text-[#6B6B6B] hover:text-brand-primary hover:bg-brand-primary/5"
                 )}
               >
                 <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />

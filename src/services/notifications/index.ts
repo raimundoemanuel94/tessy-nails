@@ -1,5 +1,13 @@
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+interface AppointmentNotificationData {
+  serviceName: string;
+  clientName?: string;
+  date?: string;
+  time?: string;
+  [key: string]: unknown;
+}
+
 
 export interface NotificationPayload {
   title: string;
@@ -51,7 +59,7 @@ export const notificationService = {
   },
 
   // Notificar admin sobre novo agendamento
-  async notifyNewAppointment(appointmentData: any) {
+  async notifyNewAppointment(appointmentData: AppointmentNotificationData) {
     // Buscar todos os admins
     const admins = await this.getAdminUsers();
     
@@ -66,7 +74,7 @@ export const notificationService = {
   },
 
   // Notificar cliente sobre confirmação
-  async notifyAppointmentConfirmed(clientId: string, appointmentData: any) {
+  async notifyAppointmentConfirmed(clientId: string, appointmentData: AppointmentNotificationData) {
     await this.sendToUser(clientId, {
       title: '✅ Agendamento Confirmado',
       body: `Seu agendamento para ${appointmentData.serviceName} foi confirmado!`,
@@ -76,7 +84,7 @@ export const notificationService = {
   },
 
   // Lembrete de agendamento (1 hora antes)
-  async sendAppointmentReminder(clientId: string, appointmentData: any) {
+  async sendAppointmentReminder(clientId: string, appointmentData: AppointmentNotificationData) {
     await this.sendToUser(clientId, {
       title: '⏰ Lembrete de Agendamento',
       body: `Seu atendimento de ${appointmentData.serviceName} é em 1 hora!`,

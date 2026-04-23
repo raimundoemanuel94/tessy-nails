@@ -5,14 +5,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function ensureDate(date: any): Date {
+export function ensureDate(date: unknown): Date {
   if (!date) return new Date();
   if (date instanceof Date) return date;
-  if (typeof date.toDate === 'function') return date.toDate();
-  if (date && typeof date === 'object' && 'seconds' in date) {
-    return new Date(date.seconds * 1000);
+  if (typeof date === 'object' && date !== null && 'toDate' in date && typeof (date as {toDate: unknown}).toDate === 'function') return (date as {toDate: () => Date}).toDate();
+  if (typeof date === 'object' && date !== null && 'seconds' in date) {
+    return new Date((date as {seconds: number}).seconds * 1000);
   }
-  const parsed = new Date(date);
+  const parsed = new Date(date as string | number);
   return isNaN(parsed.getTime()) ? new Date() : parsed;
 }
 

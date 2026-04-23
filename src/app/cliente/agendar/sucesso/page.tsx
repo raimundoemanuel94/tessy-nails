@@ -42,26 +42,29 @@ export default function SucessoPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      setLoading(false);
-      return;
-    }
-
-    const savedAppointment = localStorage.getItem('confirmedAppointment');
-    if (savedAppointment) {
-      try {
-        const data: ConfirmedAppointment = JSON.parse(savedAppointment);
-        if (data.service && data.service.name) {
-          if (typeof data.date === 'string') {
-            data.date = new Date(data.date);
-          }
-          setAppointment(data);
-        }
-      } catch (error) {
-        console.error('Error parsing confirmed appointment:', error);
+    void (async () => {
+      await Promise.resolve();
+      if (typeof window === 'undefined') {
+        setLoading(false);
+        return;
       }
-    }
-    setLoading(false);
+
+      const savedAppointment = localStorage.getItem('confirmedAppointment');
+      if (savedAppointment) {
+        try {
+          const data: ConfirmedAppointment = JSON.parse(savedAppointment);
+          if (data.service && data.service.name) {
+            if (typeof data.date === 'string') {
+              data.date = new Date(data.date);
+            }
+            setAppointment(data);
+          }
+        } catch (error) {
+          console.error('Error parsing confirmed appointment:', error);
+        }
+      }
+      setLoading(false);
+    })();
   }, []);
 
   if (loading) {

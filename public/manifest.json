@@ -1,7 +1,11 @@
 {
+  "id": "/",
   "name": "Tessy Nails",
   "short_name": "Tessy",
+  "lang": "pt-BR",
+  "description": "Plataforma exclusiva de agendamento e gestao para Tessy Nails.",
   "start_url": "/",
+  "orientation": "portrait",
   "display": "standalone",
   "background_color": "#FAF7F5",
   "theme_color": "#4B2E2B",

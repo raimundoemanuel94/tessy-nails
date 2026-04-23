@@ -108,7 +108,7 @@ export function ClientForm({ client, onSuccess, onCancel }: ClientFormProps) {
       }
 
       if (client?.id) {
-        await clientService.update(client.id, sanitizedData as any);
+        await clientService.update(client.id, sanitizedData as Parameters<typeof clientService.update>[1]);
         toast.success("Cliente atualizado com sucesso!", {
           icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
         });
@@ -117,7 +117,7 @@ export function ClientForm({ client, onSuccess, onCancel }: ClientFormProps) {
           ...sanitizedData,
           totalAppointments: 0,
           isActive: true,
-        } as any);
+        } as Parameters<typeof clientService.create>[0]);
         toast.success("Cliente cadastrado com sucesso!", {
           icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
         });

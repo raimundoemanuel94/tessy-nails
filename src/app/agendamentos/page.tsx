@@ -63,12 +63,15 @@ type EnrichedAppointment = {
   specialist: string;
 };
 
+type AppUser = { uid: string; name: string; email?: string; role: string };
+type SpecialistUser = { uid: string; name: string; role: string };
+
 export default function AgendamentosPage() {
   const [rawAppointments, setRawAppointments] = useState<Appointment[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [clientUsers, setClientUsers] = useState<any[]>([]);
-  const [specialists, setSpecialists] = useState<any[]>([]);
+  const [clientUsers, setClientUsers] = useState<AppUser[]>([]);
+  const [specialists, setSpecialists] = useState<SpecialistUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
@@ -86,8 +89,8 @@ export default function AgendamentosPage() {
       let apps: Appointment[] = [];
       let clientsData: Client[] = [];
       let servicesData: Service[] = [];
-      let specialistsData: any[] = [];
-      let clientUsersData: any[] = [];
+      let specialistsData: SpecialistUser[] = [];
+      let clientUsersData: AppUser[] = [];
 
       try {
         const start = startOfYear(new Date());
