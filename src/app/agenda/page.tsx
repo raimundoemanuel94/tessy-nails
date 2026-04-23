@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { PageShell } from "@/components/shared/PageShell";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { PageHero } from "@/components/shared/PageHero";
@@ -78,6 +78,7 @@ export default function AgendaPage() {
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [appointmentsByDate, setAppointmentsByDate] = useState<Map<string, number>>(new Map());
+  const [monthCompletedRevenue, setMonthCompletedRevenue] = useState(0);
 
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
@@ -92,8 +93,9 @@ export default function AgendaPage() {
       ]);
 
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
-      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      const monthEnd = endOfDay(new Date(date.getFullYear(), date.getMonth() + 1, 0));
       const monthApps = await appointmentService.getByDateRange(monthStart, monthEnd);
+      const servicePriceById = new Map(services.map((service) => [service.id, service.price]));
       
       const dateMap = new Map<string, number>();
       monthApps.forEach(app => {
@@ -104,6 +106,11 @@ export default function AgendaPage() {
         }
       });
       setAppointmentsByDate(dateMap);
+      setMonthCompletedRevenue(
+        monthApps
+          .filter((app) => app.status === "completed")
+          .reduce((total, app) => total + (servicePriceById.get(app.serviceId) ?? 0), 0)
+      );
 
       const unresolvedClientIds = apps
         .map((app) => app.clientId)
@@ -137,6 +144,34 @@ export default function AgendaPage() {
   useEffect(() => {
     fetchAppointments();
   }, [fetchAppointments]);
+
+  const validAppointments = useMemo(
+    () => appointments.filter((appointment) => appointment.status !== "cancelled" && appointment.status !== "no_show"),
+    [appointments]
+  );
+
+  const openAppointments = useMemo(
+    () => validAppointments.filter((appointment) => appointment.status === "pending" || appointment.status === "confirmed"),
+    [validAppointments]
+  );
+
+  const completedAppointments = useMemo(
+    () => validAppointments.filter((appointment) => appointment.status === "completed"),
+    [validAppointments]
+  );
+
+  const dailyCompletedRevenue = useMemo(
+    () => completedAppointments.reduce((total, appointment) => total + (appointment.service?.price || 0), 0),
+    [completedAppointments]
+  );
+
+  const confirmationRate = useMemo(() => {
+    if (validAppointments.length === 0) return 0;
+    const confirmedOrCompleted = validAppointments.filter(
+      (appointment) => appointment.status === "confirmed" || appointment.status === "completed"
+    ).length;
+    return Math.round((confirmedOrCompleted / validAppointments.length) * 100);
+  }, [validAppointments]);
 
   const handleDateChange = (newDate: Date | undefined) => {
     if (newDate && isValid(newDate)) {
@@ -220,11 +255,11 @@ export default function AgendaPage() {
 
         <PageHero 
           title={format(ensureDate(date), "'Olá, Tessy!' - EEEE", { locale: ptBR })}
-          subtitle={appointments.length === 0 
+          subtitle={validAppointments.length === 0 
             ? "Dia livre para organizar e planejar" 
-            : appointments.length === 1 
+            : validAppointments.length === 1 
               ? "1 agendamento hoje" 
-              : `${appointments.length} agendamentos hoje`}
+              : `${validAppointments.length} agendamentos hoje`}
           actions={
             <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) (document.activeElement as HTMLElement)?.blur(); setIsDialogOpen(open); }}>
               <DialogTrigger
@@ -257,29 +292,28 @@ export default function AgendaPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
             title="Receita Hoje"
-            value={`R$ ${appointments.reduce((acc, curr) => acc + (curr.service?.price || 0), 0).toLocaleString('pt-BR')}`}
+            value={`R$ ${dailyCompletedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             icon={DollarSign}
-            trend={{ value: 12.5, isPositive: true }}
             variant="success"
           />
 
           <MetricCard
             title="Agendamentos"
-            value={appointments.length}
+            value={validAppointments.length}
             icon={CalendarDays}
             variant="primary"
           />
 
           <MetricCard
             title="A Confirmar"
-            value={appointments.filter(a => a.status === "pending").length}
+            value={validAppointments.filter(a => a.status === "pending").length}
             icon={Clock}
             variant="warning"
           />
 
           <MetricCard
             title="Clientes Atendidos"
-            value={appointments.filter(a => a.status === "completed").length}
+            value={completedAppointments.length}
             icon={Users}
             variant="accent"
           />
@@ -491,19 +525,19 @@ export default function AgendaPage() {
                   <div>
                     <p className="text-brand-text-sub text-[10px] font-black uppercase tracking-wider mb-1 opacity-50">Hoje</p>
                     <p className="text-2xl font-black text-brand-text-main">
-                      R$ {appointments.reduce((acc, curr) => acc + (curr.service?.price || 0), 0).toFixed(0)}
+                      R$ {dailyCompletedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
                   <div>
                     <p className="text-brand-text-sub text-[10px] font-black uppercase tracking-wider mb-1 opacity-50">Mês</p>
                     <p className="text-2xl font-black text-brand-text-main">
-                      R$ {(appointments.reduce((acc, curr) => acc + (curr.service?.price || 0), 0) * 30).toLocaleString('pt-BR')}
+                      R$ {monthCompletedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
                 </div>
                 <div className="h-24 bg-linear-to-r from-success/5 to-transparent rounded-2xl border border-success/20 flex flex-col items-center justify-center">
                   <TrendingUp className="h-8 w-8 text-success/60 mb-1" />
-                  <p className="text-success dark:text-success/80 text-[10px] font-black uppercase tracking-wider">Crescendo 12%</p>
+                  <p className="text-success dark:text-success/80 text-[10px] font-black uppercase tracking-wider">Receita real de atendimentos concluidos</p>
                 </div>
               </div>
             </SectionCard>
@@ -517,24 +551,22 @@ export default function AgendaPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center p-3 rounded-2xl bg-brand-accent/10">
                     <p className="text-2xl font-black text-brand-secondary">
-                      {appointments.filter(a => a.status === "completed").length}
+                      {completedAppointments.length}
                     </p>
                     <p className="text-brand-text-sub text-[10px] font-black uppercase opacity-60">Atendidos</p>
                   </div>
                   <div className="text-center p-3 rounded-2xl bg-warning/10">
                     <p className="text-2xl font-black text-warning">
-                      {appointments.filter(a => a.status === "pending").length}
+                      {openAppointments.length}
                     </p>
-                    <p className="text-brand-text-sub text-[10px] font-black uppercase opacity-60">Pendentes</p>
+                    <p className="text-brand-text-sub text-[10px] font-black uppercase opacity-60">Em Aberto</p>
                   </div>
                 </div>
                 <div className="pt-4 border-t border-brand-accent/5">
                   <div className="flex justify-between items-center">
                     <span className="text-brand-text-sub text-xs font-bold uppercase tracking-wider opacity-60">Taxa de Confirmação</span>
                     <span className="text-lg font-black text-brand-secondary">
-                      {appointments.length > 0 
-                        ? Math.round((appointments.filter(a => a.status === "confirmed").length / appointments.length) * 100)
-                        : 0}%
+                      {confirmationRate}%
                     </span>
                   </div>
                 </div>
@@ -584,3 +616,4 @@ export default function AgendaPage() {
     </PageShell>
   );
 }
+

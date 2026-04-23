@@ -215,21 +215,19 @@ export default function AgendamentosPage() {
   
   // Calcular estatísticas para cards de resumo
   const stats = useMemo(() => {
-    const total = enrichedAppointments.length;
-    const pending = enrichedAppointments.filter(app => app.status === 'pending').length;
-    const confirmed = enrichedAppointments.filter(app => app.status === 'confirmed').length;
-    const completed = enrichedAppointments.filter(app => app.status === 'completed').length;
+    const total = rawAppointments.length;
+    const pending = rawAppointments.filter((app) => app.status === 'pending').length;
+    const confirmed = rawAppointments.filter((app) => app.status === 'confirmed').length;
+    const completed = rawAppointments.filter((app) => app.status === 'completed').length;
+    const servicePriceById = new Map(services.map((service) => [service.id, Number(service.price) || 0]));
     
-    // Calcular receita prevista (soma de confirmados + pendentes)
-    const revenue = enrichedAppointments
-      .filter(app => app.status === 'confirmed' || app.status === 'pending')
-      .reduce((total, app) => {
-        const price = parseFloat(app.price.replace('R$ ', '').replace(',', '.')) || 0;
-        return total + price;
-      }, 0);
+    // Receita real: apenas atendimentos concluídos
+    const revenue = rawAppointments
+      .filter((app) => app.status === 'completed')
+      .reduce((total, app) => total + (servicePriceById.get(app.serviceId) ?? 0), 0);
     
     return { total, pending, confirmed, completed, revenue };
-  }, [enrichedAppointments]);
+  }, [rawAppointments, services]);
 
   const handleConfirmar = async (id: string) => {
     setActionLoading(id);
@@ -398,8 +396,8 @@ export default function AgendamentosPage() {
           />
           
           <MetricCard
-            title="Receita"
-            value={`R$ ${stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`}
+            title="Receita Realizada"
+            value={`R$ ${stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             icon={DollarSign}
             variant="primary"
             className="bg-brand-primary/5 border-brand-primary/10"
