@@ -212,21 +212,34 @@ export default function AgendamentosPage() {
 
     return filtered;
   }, [enrichedAppointments, searchTerm, activeFilter]);
-  
+
+  const formatCurrency = (value: number) =>
+    `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
   // Calcular estatísticas para cards de resumo
   const stats = useMemo(() => {
     const total = rawAppointments.length;
-    const pending = rawAppointments.filter((app) => app.status === 'pending').length;
-    const confirmed = rawAppointments.filter((app) => app.status === 'confirmed').length;
-    const completed = rawAppointments.filter((app) => app.status === 'completed').length;
+    const pending = rawAppointments.filter((app) => app.status === "pending").length;
+    const confirmed = rawAppointments.filter((app) => app.status === "confirmed").length;
+    const completed = rawAppointments.filter((app) => app.status === "completed").length;
     const servicePriceById = new Map(services.map((service) => [service.id, Number(service.price) || 0]));
-    
+
     // Receita real: apenas atendimentos concluídos
     const revenue = rawAppointments
-      .filter((app) => app.status === 'completed')
-      .reduce((total, app) => total + (servicePriceById.get(app.serviceId) ?? 0), 0);
-    
-    return { total, pending, confirmed, completed, revenue };
+      .filter((app) => app.status === "completed")
+      .reduce((sum, app) => sum + (servicePriceById.get(app.serviceId) ?? 0), 0);
+
+    const pendingRevenue = rawAppointments
+      .filter((app) => app.status === "pending")
+      .reduce((sum, app) => sum + (servicePriceById.get(app.serviceId) ?? 0), 0);
+
+    const confirmedRevenue = rawAppointments
+      .filter((app) => app.status === "confirmed")
+      .reduce((sum, app) => sum + (servicePriceById.get(app.serviceId) ?? 0), 0);
+
+    const totalPipelineRevenue = pendingRevenue + confirmedRevenue + revenue;
+
+    return { total, pending, confirmed, completed, revenue, pendingRevenue, confirmedRevenue, totalPipelineRevenue };
   }, [rawAppointments, services]);
 
   const handleConfirmar = async (id: string) => {
@@ -371,6 +384,7 @@ export default function AgendamentosPage() {
             title="Total"
             value={stats.total}
             icon={CalendarCheck}
+            description={`${formatCurrency(stats.totalPipelineRevenue)} no total`}
             variant="primary"
           />
           
@@ -378,6 +392,7 @@ export default function AgendamentosPage() {
             title="Pendentes"
             value={stats.pending}
             icon={Clock}
+            description={formatCurrency(stats.pendingRevenue)}
             variant="warning"
           />
           
@@ -385,6 +400,7 @@ export default function AgendamentosPage() {
             title="Confirmados"
             value={stats.confirmed}
             icon={CheckCircle2}
+            description={formatCurrency(stats.confirmedRevenue)}
             variant="accent"
           />
           
@@ -392,13 +408,15 @@ export default function AgendamentosPage() {
             title="Concluídos"
             value={stats.completed}
             icon={Users}
+            description={formatCurrency(stats.revenue)}
             variant="success"
           />
           
           <MetricCard
             title="Receita Realizada"
-            value={`R$ ${stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            value={formatCurrency(stats.revenue)}
             icon={DollarSign}
+            description={`Em aberto: ${formatCurrency(stats.pendingRevenue + stats.confirmedRevenue)}`}
             variant="primary"
             className="bg-brand-primary/5 border-brand-primary/10"
           />
@@ -627,3 +645,7 @@ export default function AgendamentosPage() {
       </PageShell>
   );
 }
+
+
+
+
