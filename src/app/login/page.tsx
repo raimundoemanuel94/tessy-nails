@@ -16,6 +16,56 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
+const ADMIN_ROOTS = [
+  "/dashboard",
+  "/agenda",
+  "/agendamentos",
+  "/clientes",
+  "/servicos",
+  "/relatorios",
+  "/configuracoes",
+] as const;
+
+function isAdminRole(role: string): boolean {
+  return role === "admin" || role === "professional";
+}
+
+function isAdminPath(pathname: string): boolean {
+  return ADMIN_ROOTS.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+}
+
+function isClientPath(pathname: string): boolean {
+  return pathname === "/cliente" || pathname.startsWith("/cliente/");
+}
+
+function parseSafeInternalNext(nextValue: string | null): { pathname: string; fullPath: string } | null {
+  if (!nextValue) return null;
+  if (!nextValue.startsWith("/") || nextValue.startsWith("//")) return null;
+
+  try {
+    const parsedUrl = new URL(nextValue, "http://localhost");
+    if (parsedUrl.origin !== "http://localhost") return null;
+    return {
+      pathname: parsedUrl.pathname,
+      fullPath: `${parsedUrl.pathname}${parsedUrl.search}`,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function resolvePostLoginTarget(role: string, nextValue: string | null): string {
+  const parsedNext = parseSafeInternalNext(nextValue);
+  const adminRole = isAdminRole(role);
+
+  if (parsedNext) {
+    if (adminRole && isAdminPath(parsedNext.pathname)) return parsedNext.fullPath;
+    if (!adminRole && isClientPath(parsedNext.pathname)) return parsedNext.fullPath;
+  }
+
+  return adminRole ? "/dashboard" : "/cliente";
+}
+
 // ── Splash ─────────────────────────────────────────────────────────────
 const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
   useEffect(() => {
@@ -124,6 +174,7 @@ function LoginPageContent() {
   const { signIn, signUp, signInWithGoogle, resetPassword, user, loading: authLoading } = useAuth();
 
   const isRegisterMode = searchParams.get("mode") === "register";
+  const nextParam = searchParams.get("next");
   // Pula o splash se já foi exibido nesta sessão (PWA / visita repetida)
   const [showSplash, setShowSplash] = useState(
     () => !user && typeof sessionStorage !== "undefined" && !sessionStorage.getItem("splashShown")
@@ -131,9 +182,18 @@ function LoginPageContent() {
 
   useEffect(() => {
     if (user && !authLoading) {
-      router.push(user.role === "admin" || user.role === "professional" ? "/dashboard" : "/cliente");
+      const targetPath = resolvePostLoginTarget(user.role, nextParam);
+      router.replace(targetPath);
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, nextParam]);
+
+  const buildModeToggleUrl = (registerMode: boolean): string => {
+    const params = new URLSearchParams();
+    if (registerMode) params.set("mode", "register");
+    if (nextParam) params.set("next", nextParam);
+    const queryString = params.toString();
+    return queryString ? `/login?${queryString}` : "/login";
+  };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -432,7 +492,7 @@ function LoginPageContent() {
           >
             <button
               type="button"
-              onClick={() => router.push(isRegisterMode ? "/login" : "/login?mode=register")}
+              onClick={() => router.push(buildModeToggleUrl(!isRegisterMode))}
               className="text-[10px] font-black uppercase tracking-[0.22em] transition-colors"
               style={{ color: "#9a7060" }}
             >

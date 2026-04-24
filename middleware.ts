@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isStaffRole, normalizeRole } from "@/lib/rbac";
+import { normalizeRole } from "@/lib/rbac";
 import {
   APP_SESSION_COOKIE_NAME,
   getCookieValue,
@@ -24,14 +24,20 @@ function isClientRoute(pathname: string): boolean {
   return pathname === "/cliente" || pathname.startsWith("/cliente/");
 }
 
+function isAdminUserRole(role: string): boolean {
+  const normalizedRole = normalizeRole(role);
+  return normalizedRole === "admin" || normalizedRole === "professional";
+}
+
 function redirectToLogin(request: NextRequest) {
   const loginUrl = new URL("/login", request.url);
-  loginUrl.searchParams.set("next", request.nextUrl.pathname);
+  const nextPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+  loginUrl.searchParams.set("next", nextPath);
   return NextResponse.redirect(loginUrl);
 }
 
 function redirectByRole(request: NextRequest, role: string) {
-  const target = isStaffRole(normalizeRole(role)) ? "/dashboard" : "/cliente";
+  const target = isAdminUserRole(role) ? "/dashboard" : "/cliente";
   return NextResponse.redirect(new URL(target, request.url));
 }
 
@@ -59,13 +65,27 @@ export async function middleware(request: NextRequest) {
     return redirectByRole(request, session.role);
   }
 
-  if (adminRoute && !isStaffRole(session.role)) {
+  if (adminRoute && !isAdminUserRole(session.role)) {
     return NextResponse.redirect(new URL("/cliente", request.url));
+  }
+
+  if (clientRoute && isAdminUserRole(session.role)) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: [
+    "/login",
+    "/dashboard/:path*",
+    "/agenda/:path*",
+    "/agendamentos/:path*",
+    "/clientes/:path*",
+    "/servicos/:path*",
+    "/relatorios/:path*",
+    "/configuracoes/:path*",
+    "/cliente/:path*",
+  ],
 };
