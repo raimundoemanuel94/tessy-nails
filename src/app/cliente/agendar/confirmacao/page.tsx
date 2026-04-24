@@ -109,7 +109,7 @@ export default function ConfirmacaoPage() {
       if (stripeData.url) {
         window.location.href = stripeData.url;
       } else {
-        router.push('/cliente/agendar/sucesso');
+        router.push(`/cliente/agendar/sucesso?appointmentId=${encodeURIComponent(appointmentId)}`);
       }
     } catch (err) {
       console.error(err);

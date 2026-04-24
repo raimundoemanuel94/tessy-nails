@@ -47,6 +47,7 @@ export default function AgendarPage() {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [slotsError, setSlotsError] = useState(false);
 
   useEffect(() => {
     const service = AppointmentStorage.loadSelectedService();
@@ -73,6 +74,7 @@ export default function AgendarPage() {
   const fetchSlots = async (date: Date) => {
     try {
       setLoadingSlots(true);
+      setSlotsError(false);
       const startOfDayTime = new Date(date);
       startOfDayTime.setHours(0, 0, 0, 0);
       const endOfDayTime = new Date(date);
@@ -123,6 +125,8 @@ export default function AgendarPage() {
       setTimeSlots(slots);
     } catch (error) {
       console.error("Erro ao buscar horários", error);
+      setTimeSlots([]);
+      setSlotsError(true);
     } finally {
       setLoadingSlots(false);
     }
@@ -322,7 +326,18 @@ export default function AgendarPage() {
 
           {loadingSlots ? (
             <div className="flex justify-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-brand-primary/40" />
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-brand-primary/40" />
+                <p className="text-xs font-black text-brand-primary uppercase tracking-widest">
+                  Carregando horários...
+                </p>
+              </div>
+            </div>
+          ) : slotsError ? (
+            <div className="text-center py-10 bg-brand-primary/5 rounded-3xl border border-brand-primary/10">
+              <p className="text-xs font-black text-brand-primary uppercase tracking-widest">
+                Erro ao carregar horários, tente novamente
+              </p>
             </div>
           ) : timeSlots.length > 0 ? (
             <TimeSlotGrid
@@ -333,7 +348,7 @@ export default function AgendarPage() {
           ) : (
             <div className="text-center py-10 bg-brand-primary/5 rounded-3xl border border-brand-primary/10">
               <p className="text-xs font-black text-brand-primary uppercase tracking-widest">
-                Não há horários para este dia
+                Sem horários disponíveis
               </p>
               <p className="text-[10px] text-brand-text-muted mt-1">
                 Por favor, selecione outra data no calendário

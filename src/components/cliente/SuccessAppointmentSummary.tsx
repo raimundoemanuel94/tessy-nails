@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Calendar, DollarSign, CheckCircle, Sparkles } from "lucide-react";
+import { Clock, Calendar, CheckCircle, Sparkles, User } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -25,6 +25,7 @@ interface SuccessAppointmentSummaryProps {
   service: Service;
   selectedDate: Date;
   selectedTime: TimeSlot;
+  clientName: string;
   observation?: string;
   status?: string;
 }
@@ -33,6 +34,7 @@ export function SuccessAppointmentSummary({
   service, 
   selectedDate, 
   selectedTime, 
+  clientName,
   observation,
   status = "Confirmado"
 }: SuccessAppointmentSummaryProps) {
@@ -87,6 +89,18 @@ export function SuccessAppointmentSummary({
                 <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest leading-none mb-1">Horário</p>
                 <p className="text-[11px] font-black text-brand-text uppercase">{selectedTime.time}</p>
              </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 rounded-2xl border border-brand-border bg-brand-background/40 px-4 py-3">
+          <div className="h-10 w-10 rounded-xl bg-brand-primary/5 flex items-center justify-center text-brand-primary">
+            <User size={18} />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest leading-none mb-1">
+              Cliente
+            </p>
+            <p className="text-[11px] font-black text-brand-text">{clientName}</p>
           </div>
         </div>
       </div>

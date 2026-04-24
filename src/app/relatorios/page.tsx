@@ -1,44 +1,53 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfDay, endOfDay, subDays, subMonths, isWithinInterval } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  BarChart3,
-  TrendingUp,
-  Users,
-  Scissors,
-  DollarSign,
-  Download,
-  Target,
-  Activity,
-  Search,
-  UsersRound,
+  addDays,
+  differenceInCalendarDays,
+  differenceInDays,
+  endOfDay,
+  endOfMonth,
+  endOfWeek,
+  format,
+  getDay,
+  getHours,
+  isWithinInterval,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+  subDays,
+  subMonths,
+} from "date-fns";
+import {
+  BarChart3, TrendingUp, Scissors,
+  Download, Target, Search, UsersRound,
+  UserX, Clock, Zap,
+  ArrowUpRight, ArrowDownRight, Minus, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell } from "@/components/shared/PageShell";
-import { PageHero } from "@/components/shared/PageHero";
-import { MetricCard } from "@/components/shared/MetricCard";
-import { SectionCard } from "@/components/shared/SectionCard";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RevenueChart, ServicesDonut } from "@/components/dashboard/DashboardCharts";
 import { appointmentService } from "@/services/appointments";
 import { clientService } from "@/services/clients";
 import { Appointment, Client, Service } from "@/types";
 import { globalStore } from "@/store/globalStore";
+import {
+  getLast30DaysInterval,
+  getPrevious30DaysInterval,
+} from "@/lib/analytics-period";
 import { ensureDate, cn } from "@/lib/utils";
 
-type PeriodKey = "hoje" | "semana" | "mes" | "periodo";
+// tipos locais
+type PeriodKey = "hoje" | "semana" | "mes" | "last30days";
 type Interval = { start: Date; end: Date };
 type ServiceMixItem = { name: string; value: number };
-type MonthRevenueItem = { date: string; Revenue: number };
+type MonthRevenueItem = { date: string; total: number };
 type ClientDateMode = "last_visit" | "created_at";
 type ClientStatusFilter = "todos" | "ativos" | "inativos";
-
 type ClientReportRow = {
   client: Client;
   appointments: Appointment[];
@@ -50,1068 +59,865 @@ type ClientReportRow = {
   lastCompletedDate: Date | null;
   lastServiceName: string;
   recentServices: string[];
+  avgDaysBetweenVisits: number | null;
 };
 
-const FILTERS: PeriodKey[] = ["hoje", "semana", "mes", "periodo"];
+// helpers
+const FILTERS: PeriodKey[] = ["hoje", "semana", "mes", "last30days"];
+const PERIOD_LABELS: Record<PeriodKey, string> = {
+  hoje: "Hoje",
+  semana: "Semana",
+  mes: "Mes",
+  last30days: "30 dias",
+};
+const DAY_NAMES = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 
-function getPeriodInterval(period: PeriodKey, baseDate: Date): Interval {
-  if (period === "hoje") {
-    return { start: startOfDay(baseDate), end: endOfDay(baseDate) };
-  }
-
-  if (period === "semana") {
-    return {
-      start: startOfWeek(baseDate, { weekStartsOn: 1 }),
-      end: endOfWeek(baseDate, { weekStartsOn: 1 }),
-    };
-  }
-
-  if (period === "mes") {
-    return { start: startOfMonth(baseDate), end: endOfMonth(baseDate) };
-  }
-
-  return {
-    start: startOfMonth(subMonths(baseDate, 5)),
-    end: endOfDay(baseDate),
-  };
+function getPeriodInterval(period: PeriodKey, base: Date): Interval {
+  if (period === "hoje") return { start: startOfDay(base), end: endOfDay(base) };
+  if (period === "semana") return { start: startOfWeek(base, { weekStartsOn: 1 }), end: endOfWeek(base, { weekStartsOn: 1 }) };
+  if (period === "mes") return { start: startOfMonth(base), end: endOfMonth(base) };
+  return getLast30DaysInterval(base);
 }
 
-function getPreviousInterval(period: PeriodKey, baseDate: Date): Interval {
+function getPreviousInterval(period: PeriodKey, base: Date): Interval {
   if (period === "hoje") {
-    const previousDay = subDays(baseDate, 1);
+    const previousDay = subDays(base, 1);
     return { start: startOfDay(previousDay), end: endOfDay(previousDay) };
   }
-
   if (period === "semana") {
-    const previousWeekBase = subDays(startOfWeek(baseDate, { weekStartsOn: 1 }), 1);
+    const previousWeekBase = subDays(startOfWeek(base, { weekStartsOn: 1 }), 1);
     return {
       start: startOfWeek(previousWeekBase, { weekStartsOn: 1 }),
       end: endOfWeek(previousWeekBase, { weekStartsOn: 1 }),
     };
   }
-
   if (period === "mes") {
-    const previousMonth = subMonths(baseDate, 1);
+    const previousMonth = subMonths(base, 1);
     return { start: startOfMonth(previousMonth), end: endOfMonth(previousMonth) };
   }
-
-  return {
-    start: startOfMonth(subMonths(baseDate, 11)),
-    end: endOfMonth(subMonths(baseDate, 6)),
-  };
+  return getPrevious30DaysInterval(base);
 }
 
-function getGrowth(current: number, previous: number): number {
-  if (previous <= 0) return current > 0 ? 100 : 0;
-  return Number((((current - previous) / previous) * 100).toFixed(1));
+function getGrowth(curr: number, prev: number): number {
+  if (prev <= 0) return curr > 0 ? 100 : 0;
+  return Number((((curr - prev) / prev) * 100).toFixed(1));
 }
 
-function toCurrency(value: number): string {
-  return `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function toCurrency(v: number) {
+  return "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function toCsvCell(value: string | number): string {
-  return `"${String(value).replace(/"/g, '""')}"`;
-}
+function toCsvCell(v: string | number) { return '"' + String(v).replace(/"/g, '""')+'"'; }
 
-function statusLabel(status: Appointment["status"]): string {
-  if (status === "completed") return "Concluido";
-  if (status === "confirmed") return "Confirmado";
-  if (status === "pending") return "Pendente";
-  if (status === "cancelled") return "Cancelado";
-  if (status === "no_show") return "Nao compareceu";
-  return status;
-}
-
-function parseInputDate(value: string, endOfSelectedDay = false): Date | null {
+function parseInputDate(value: string, eod = false): Date | null {
   if (!value) return null;
-  const [year, month, day] = value.split("-").map(Number);
-  if (!year || !month || !day) return null;
-  const parsed = new Date(year, month - 1, day);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return endOfSelectedDay ? endOfDay(parsed) : startOfDay(parsed);
+  const [y, m, d] = value.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  const p = new Date(y, m - 1, d);
+  if (Number.isNaN(p.getTime())) return null;
+  return eod ? endOfDay(p) : startOfDay(p);
 }
 
+// KpiCard
+function KpiCard({ label, value, sub, trend, color = "neutral" }: {
+  label: string; value: string | number; sub?: string;
+  trend?: { value: number; isPositive: boolean } | null; color?: "neutral" | "brand" | "success" | "warning" | "danger";
+}) {
+  const valueColor = {
+    neutral: "text-brand-text-main",
+    brand: "text-brand-primary",
+    success: "text-emerald-600",
+    warning: "text-amber-600",
+    danger: "text-red-600",
+  };
+  return (
+    <div className="rounded-2xl border border-brand-accent/10 bg-white p-4 sm:p-5 flex flex-col gap-1 transition-all hover:shadow-sm">
+      <p className="text-[10px] font-black uppercase tracking-widest leading-none text-brand-text-sub opacity-70">{label}</p>
+      <p className={cn("text-2xl font-black leading-tight", valueColor[color])}>{value}</p>
+      {sub && <p className="text-[11px] font-bold text-brand-text-sub opacity-60 leading-none">{sub}</p>}
+      {trend !== undefined && trend !== null && (
+        <div className={cn("flex items-center gap-1 mt-1 text-[11px] font-black", trend.isPositive ? "text-emerald-600" : "text-red-500")}>
+          {trend.value === 0 ? <Minus size={12} /> : trend.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+          {trend.value === 0 ? "Estavel" : Math.abs(trend.value) + "% vs anterior"}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SectionTitle({ icon: Icon, title, desc, actions }: { icon?: React.ElementType; title: string; desc?: string; actions?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center gap-3">
+        {Icon && <div className="h-9 w-9 rounded-xl bg-brand-primary/10 flex items-center justify-center"><Icon size={18} className="text-brand-primary" /></div>}
+        <div>
+          <h3 className="text-base font-black text-brand-text-main tracking-tight">{title}</h3>
+          {desc && <p className="text-[11px] font-bold text-brand-text-sub opacity-60">{desc}</p>}
+        </div>
+      </div>
+      {actions && <div className="flex gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+// pagina principal
 export default function RelatoriosPage() {
-  const [loading, setLoading] = useState(true);
+  const now = useMemo(() => new Date(), []);
+
+  const [loading, setLoading]           = useState(true);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
+  const [services, setServices]         = useState<Service[]>([]);
+  const [clients, setClients]           = useState<Client[]>([]);
   const [activeFilter, setActiveFilter] = useState<PeriodKey>("mes");
   const [clientSearch, setClientSearch] = useState("");
   const [clientStatusFilter, setClientStatusFilter] = useState<ClientStatusFilter>("todos");
   const [clientServiceFilter, setClientServiceFilter] = useState("todos");
   const [clientDateMode, setClientDateMode] = useState<ClientDateMode>("last_visit");
   const [clientStartDate, setClientStartDate] = useState("");
-  const [clientEndDate, setClientEndDate] = useState("");
+  const [clientEndDate, setClientEndDate]     = useState("");
+  const [showAllServices, setShowAllServices] = useState(false);
 
   useEffect(() => {
-    const loadData = async () => {
+    void (async () => {
       try {
         setLoading(true);
-
-        const [appointmentsData, servicesData, clientsData] = await Promise.all([
+        const [appts, svcs, cls] = await Promise.all([
           appointmentService.getAll(),
           globalStore.fetchServices(false),
           clientService.getAll(),
         ]);
-
-        setAppointments(appointmentsData);
-        setServices(servicesData);
-        setClients(clientsData);
-      } catch (error) {
-        console.error("Erro ao carregar relatorios:", error);
-        toast.error("Nao foi possivel carregar os dados reais dos relatorios.");
+        await Promise.resolve();
+        setAppointments(appts);
+        setServices(svcs);
+        setClients(cls);
+      } catch (err) {
+        console.error(err);
+        toast.error("Nao foi possivel carregar os dados dos relatorios.");
       } finally {
         setLoading(false);
       }
-    };
-
-    loadData();
+    })();
   }, []);
 
-  const now = new Date();
-
+  // mapas base
   const serviceById = useMemo(
-    () =>
-      new Map(
-        services.map((service) => [
-          service.id,
-          { name: service.name, price: Number(service.price) || 0 },
-        ])
-      ),
+    () => new Map(services.map((s) => [s.id, { name: s.name, price: Number(s.price) || 0 }])),
     [services]
   );
 
-  const completedAppointments = useMemo(
-    () => appointments.filter((appointment) => appointment.status === "completed"),
-    [appointments]
-  );
+  const completedAll = useMemo(() => appointments.filter((a) => a.status === "completed"),  [appointments]);
+  const pendingAll   = useMemo(() => appointments.filter((a) => a.status === "pending" || a.status === "confirmed"), [appointments]);
+  const cancelledAll = useMemo(() => appointments.filter((a) => a.status === "cancelled"),  [appointments]);
+  const noShowAll    = useMemo(() => appointments.filter((a) => a.status === "no_show"),    [appointments]);
 
-  const openAppointments = useMemo(
-    () => appointments.filter((appointment) => appointment.status === "pending" || appointment.status === "confirmed"),
-    [appointments]
-  );
-
-  const dayInterval = useMemo(() => getPeriodInterval("hoje", now), [now]);
-  const weekInterval = useMemo(() => getPeriodInterval("semana", now), [now]);
-  const monthInterval = useMemo(() => getPeriodInterval("mes", now), [now]);
+  // intervalos
   const activeInterval = useMemo(() => getPeriodInterval(activeFilter, now), [activeFilter, now]);
-  const previousActiveInterval = useMemo(() => getPreviousInterval(activeFilter, now), [activeFilter, now]);
+  const prevInterval   = useMemo(() => getPreviousInterval(activeFilter, now), [activeFilter, now]);
 
-  const filterByInterval = (data: Appointment[], interval: Interval): Appointment[] =>
-    data.filter((appointment) => {
-      const appointmentDate = ensureDate(appointment.appointmentDate);
-      return isWithinInterval(appointmentDate, interval);
-    });
+  const filterBy = useCallback((data: Appointment[], iv: Interval) =>
+    data.filter((a) => isWithinInterval(ensureDate(a.appointmentDate), iv)), []);
 
-  const sumRevenue = (data: Appointment[]): number =>
-    data.reduce((total, appointment) => total + (serviceById.get(appointment.serviceId)?.price ?? 0), 0);
+  const sumRev = useCallback((data: Appointment[]) =>
+    data.reduce((t, a) => t + (serviceById.get(a.serviceId)?.price ?? 0), 0), [serviceById]);
 
-  const dailyRevenue = useMemo(
-    () => sumRevenue(filterByInterval(completedAppointments, dayInterval)),
-    [completedAppointments, dayInterval, serviceById]
+  // periodo selecionado
+  const periodAppts     = useMemo(() => filterBy(appointments,  activeInterval), [appointments,  activeInterval, filterBy]);
+  const periodCompleted = useMemo(() => filterBy(completedAll,  activeInterval), [completedAll,  activeInterval, filterBy]);
+  const periodOpen      = useMemo(() => filterBy(pendingAll,    activeInterval), [pendingAll,    activeInterval, filterBy]);
+  const periodCancelled = useMemo(() => filterBy(cancelledAll,  activeInterval), [cancelledAll,  activeInterval, filterBy]);
+  const periodNoShow    = useMemo(() => filterBy(noShowAll,     activeInterval), [noShowAll,     activeInterval, filterBy]);
+  const prevCompleted   = useMemo(() => filterBy(completedAll,  prevInterval),   [completedAll,  prevInterval,   filterBy]);
+
+  const periodRev = useMemo(() => sumRev(periodCompleted), [periodCompleted, sumRev]);
+  const prevRev   = useMemo(() => sumRev(prevCompleted),   [prevCompleted,   sumRev]);
+  const revenueGrowth = useMemo(() => getGrowth(periodRev, prevRev), [periodRev, prevRev]);
+
+  const periodTicket = useMemo(
+    () => periodCompleted.length > 0 ? periodRev / periodCompleted.length : 0,
+    [periodCompleted, periodRev]
   );
-
-  const weeklyRevenue = useMemo(
-    () => sumRevenue(filterByInterval(completedAppointments, weekInterval)),
-    [completedAppointments, weekInterval, serviceById]
-  );
-
-  const monthlyRevenue = useMemo(
-    () => sumRevenue(filterByInterval(completedAppointments, monthInterval)),
-    [completedAppointments, monthInterval, serviceById]
-  );
-
-  const periodAppointments = useMemo(
-    () => filterByInterval(appointments, activeInterval),
-    [appointments, activeInterval]
-  );
-
-  const periodCompletedAppointments = useMemo(
-    () => filterByInterval(completedAppointments, activeInterval),
-    [completedAppointments, activeInterval]
-  );
-
-  const periodOpenAppointments = useMemo(
-    () => filterByInterval(openAppointments, activeInterval),
-    [openAppointments, activeInterval]
-  );
-
-  const periodCancelledAppointments = useMemo(
-    () => periodAppointments.filter((appointment) => appointment.status === "cancelled"),
-    [periodAppointments]
-  );
-
-  const periodNoShowAppointments = useMemo(
-    () => periodAppointments.filter((appointment) => appointment.status === "no_show"),
-    [periodAppointments]
-  );
-
-  const periodRevenue = useMemo(
-    () => sumRevenue(periodCompletedAppointments),
-    [periodCompletedAppointments, serviceById]
-  );
-
-  const previousPeriodRevenue = useMemo(
-    () => sumRevenue(filterByInterval(completedAppointments, previousActiveInterval)),
-    [completedAppointments, previousActiveInterval, serviceById]
-  );
-
-  const activeGrowth = useMemo(
-    () => getGrowth(periodRevenue, previousPeriodRevenue),
-    [periodRevenue, previousPeriodRevenue]
-  );
-
   const periodUniqueClients = useMemo(
-    () => new Set(periodAppointments.map((appointment) => appointment.clientId).filter(Boolean)).size,
-    [periodAppointments]
+    () => new Set(periodAppts.map((a) => a.clientId).filter(Boolean)).size,
+    [periodAppts]
+  );
+  const prevUniqueClients = useMemo(
+    () => new Set(filterBy(appointments, prevInterval).map((a) => a.clientId).filter(Boolean)).size,
+    [appointments, prevInterval, filterBy]
+  );
+  const clientsGrowth = useMemo(() => getGrowth(periodUniqueClients, prevUniqueClients), [periodUniqueClients, prevUniqueClients]);
+
+  const cancellationRate = useMemo(
+    () => periodAppts.length > 0 ? Number(((periodCancelled.length / periodAppts.length) * 100).toFixed(1)) : 0,
+    [periodAppts, periodCancelled]
+  );
+  const noShowRate = useMemo(
+    () => periodAppts.length > 0 ? Number(((periodNoShow.length / periodAppts.length) * 100).toFixed(1)) : 0,
+    [periodAppts, periodNoShow]
   );
 
-  const periodAverageTicket = useMemo(
-    () => (periodCompletedAppointments.length > 0 ? periodRevenue / periodCompletedAppointments.length : 0),
-    [periodCompletedAppointments.length, periodRevenue]
+  // clientes inativos 60+ dias
+  const inactiveClients = useMemo(() => {
+    const threshold = subDays(now, 60);
+    return clients.filter((c) => {
+      const clientAppts = completedAll.filter((a) => a.clientId === c.id);
+      if (clientAppts.length === 0) return false;
+      const lastDate = clientAppts
+        .map((a) => ensureDate(a.appointmentDate))
+        .sort((a, b) => b.getTime() - a.getTime())[0];
+      return lastDate < threshold;
+    });
+  }, [clients, completedAll, now]);
+
+  // taxa de retorno
+  const returnRateData = useMemo(() => {
+    let returned = 0, eligible = 0;
+    const clientMap = new Map<string, Date[]>();
+    periodCompleted.forEach((a) => {
+      const dates = clientMap.get(a.clientId) ?? [];
+      dates.push(ensureDate(a.appointmentDate));
+      clientMap.set(a.clientId, dates);
+    });
+    clientMap.forEach((dates) => {
+      if (dates.length < 2) return;
+      const sorted = [...dates].sort((a, b) => a.getTime() - b.getTime());
+      for (let i = 1; i < sorted.length; i++) {
+        eligible++;
+        if (differenceInDays(sorted[i], sorted[i - 1]) <= 45) returned++;
+      }
+    });
+    return eligible > 0 ? Number(((returned / eligible) * 100).toFixed(1)) : 0;
+  }, [periodCompleted]);
+
+  // intervalo medio
+  const avgReturnDays = useMemo(() => {
+    const gaps: number[] = [];
+    const clientMap = new Map<string, Date[]>();
+    periodCompleted.forEach((a) => {
+      const dates = clientMap.get(a.clientId) ?? [];
+      dates.push(ensureDate(a.appointmentDate));
+      clientMap.set(a.clientId, dates);
+    });
+    clientMap.forEach((dates) => {
+      if (dates.length < 2) return;
+      const sorted = [...dates].sort((a, b) => a.getTime() - b.getTime());
+      for (let i = 1; i < sorted.length; i++) {
+        gaps.push(differenceInDays(sorted[i], sorted[i - 1]));
+      }
+    });
+    return gaps.length > 0 ? Math.round(gaps.reduce((t, v) => t + v, 0) / gaps.length) : 0;
+  }, [periodCompleted]);
+
+  // pico por dia da semana
+  const peakByDow = useMemo(() => {
+    const counts = Array(7).fill(0) as number[];
+    periodAppts.forEach((a) => { counts[getDay(ensureDate(a.appointmentDate))]++; });
+    return counts;
+  }, [periodAppts]);
+
+  const peakDowMax = useMemo(() => Math.max(...peakByDow, 1), [peakByDow]);
+
+  // pico por hora
+  const peakByHour = useMemo(() => {
+    const counts: Record<number, number> = {};
+    periodAppts.forEach((a) => {
+      const h = getHours(ensureDate(a.appointmentDate));
+      counts[h] = (counts[h] ?? 0) + 1;
+    });
+    return counts;
+  }, [periodAppts]);
+
+  const topHour = useMemo(() => {
+    const entries = Object.entries(peakByHour);
+    if (entries.length === 0) return null;
+    const [h, c] = entries.sort((a, b) => Number(b[1]) - Number(a[1]))[0];
+    return { hour: h + "h-" + (Number(h) + 1) + "h", count: c };
+  }, [peakByHour]);
+
+  // sinal pendente
+  const pendingPayment = useMemo(
+    () => periodOpen.filter((a) => a.paymentStatus !== "fully_paid"),
+    [periodOpen]
   );
 
-  const weekGrowth = useMemo(() => {
-    const currentWeek = sumRevenue(filterByInterval(completedAppointments, weekInterval));
-    const previousWeek = sumRevenue(filterByInterval(completedAppointments, getPreviousInterval("semana", now)));
-    return getGrowth(currentWeek, previousWeek);
-  }, [completedAppointments, weekInterval, serviceById, now]);
-
-  const dayGrowth = useMemo(() => {
-    const currentDay = sumRevenue(filterByInterval(completedAppointments, dayInterval));
-    const previousDay = sumRevenue(filterByInterval(completedAppointments, getPreviousInterval("hoje", now)));
-    return getGrowth(currentDay, previousDay);
-  }, [completedAppointments, dayInterval, serviceById, now]);
-
-  const chartRevenueData = useMemo<MonthRevenueItem[]>(() => {
-    const data: MonthRevenueItem[] = [];
-
-    for (let index = 5; index >= 0; index -= 1) {
-      const monthDate = subMonths(now, index);
-      const monthRevenue = sumRevenue(
-        filterByInterval(completedAppointments, {
-          start: startOfMonth(monthDate),
-          end: endOfMonth(monthDate),
-        })
-      );
-
-      data.push({
-        date: format(monthDate, "MMM", { locale: ptBR }),
-        Revenue: monthRevenue,
+  // ranking de servicos
+  const serviceRanking = useMemo(() => {
+    const map = new Map<string, { name: string; count: number; revenue: number; cancelled: number; noShow: number }>();
+    const process = (list: Appointment[], key: "count" | "cancelled" | "noShow") => {
+      list.forEach((a) => {
+        const svc = serviceById.get(a.serviceId);
+        if (!svc) return;
+        const cur = map.get(a.serviceId) ?? { name: svc.name, count: 0, revenue: 0, cancelled: 0, noShow: 0 };
+        if (key === "count") { cur.count++; cur.revenue += svc.price; }
+        if (key === "cancelled") cur.cancelled++;
+        if (key === "noShow") cur.noShow++;
+        map.set(a.serviceId, cur);
       });
-    }
+    };
+    process(periodCompleted, "count");
+    process(periodCancelled, "cancelled");
+    process(periodNoShow, "noShow");
+    return Array.from(map.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .map((s) => ({
+        ...s,
+        ticket: s.count > 0 ? s.revenue / s.count : 0,
+        cancelRate: s.count + s.cancelled > 0 ? Number(((s.cancelled / (s.count + s.cancelled)) * 100).toFixed(1)) : 0,
+      }));
+  }, [periodCompleted, periodCancelled, periodNoShow, serviceById]);
 
-    return data;
-  }, [completedAppointments, now, serviceById]);
+  // grafico evolucao
+  const chartRevenueData = useMemo<MonthRevenueItem[]>(() => {
+    const revenueByDay = new Map<string, number>();
+    periodCompleted.forEach((appointment) => {
+      const dayKey = format(ensureDate(appointment.appointmentDate), "yyyy-MM-dd");
+      const currentRevenue = revenueByDay.get(dayKey) ?? 0;
+      const nextRevenue = currentRevenue + (serviceById.get(appointment.serviceId)?.price ?? 0);
+      revenueByDay.set(dayKey, nextRevenue);
+    });
+    const daysInInterval = differenceInCalendarDays(activeInterval.end, activeInterval.start) + 1;
+    return Array.from({ length: Math.max(daysInInterval, 1) }, (_, index) => {
+      const day = addDays(activeInterval.start, index);
+      const dayKey = format(day, "yyyy-MM-dd");
+      return {
+        date: format(day, "dd/MM"),
+        total: revenueByDay.get(dayKey) ?? 0,
+      };
+    });
+  }, [periodCompleted, serviceById, activeInterval]);
 
   const serviceDistribution = useMemo<ServiceMixItem[]>(() => {
     const counts = new Map<string, number>();
-
-    periodCompletedAppointments.forEach((appointment) => {
-      const serviceName = serviceById.get(appointment.serviceId)?.name ?? "Servico removido";
-      counts.set(serviceName, (counts.get(serviceName) ?? 0) + 1);
+    periodCompleted.forEach((a) => {
+      const name = serviceById.get(a.serviceId)?.name ?? "Removido";
+      counts.set(name, (counts.get(name) ?? 0) + 1);
     });
-
-    const total = Array.from(counts.values()).reduce((acc, value) => acc + value, 0);
+    const total = Array.from(counts.values()).reduce((t, v) => t + v, 0);
     if (total === 0) return [];
-
     return Array.from(counts.entries())
-      .sort((first, second) => second[1] - first[1])
-      .map(([name, count]) => ({
-        name,
-        value: Number(((count / total) * 100).toFixed(1)),
-      }));
-  }, [periodCompletedAppointments, serviceById]);
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => ({ name, value: Number(((count / total) * 100).toFixed(1)) }));
+  }, [periodCompleted, serviceById]);
 
-  const topService = useMemo(() => {
-    if (serviceDistribution.length === 0) return { name: "Sem dados", value: 0 };
-    return serviceDistribution[0];
-  }, [serviceDistribution]);
-
-  const bestWeekDay = useMemo(() => {
-    const dayCount = new Map<string, number>();
-
-    periodAppointments.forEach((appointment) => {
-      const label = format(ensureDate(appointment.appointmentDate), "EEEE", { locale: ptBR });
-      dayCount.set(label, (dayCount.get(label) ?? 0) + 1);
-    });
-
-    if (dayCount.size === 0) return { day: "Sem dados", count: 0 };
-
-    const sorted = Array.from(dayCount.entries()).sort((first, second) => second[1] - first[1]);
-    return { day: sorted[0][0], count: sorted[0][1] };
-  }, [periodAppointments]);
-
+  // tabela clientes 360
   const clientReportRows = useMemo<ClientReportRow[]>(() => {
-    const appointmentsByClient = new Map<string, Appointment[]>();
-
-    appointments.forEach((appointment) => {
-      const current = appointmentsByClient.get(appointment.clientId) ?? [];
-      current.push(appointment);
-      appointmentsByClient.set(appointment.clientId, current);
+    const apptsByClient = new Map<string, Appointment[]>();
+    appointments.forEach((a) => {
+      const cur = apptsByClient.get(a.clientId) ?? [];
+      cur.push(a);
+      apptsByClient.set(a.clientId, cur);
     });
-
-    const rows = clients.map((client) => {
-      const clientAppointments = [...(appointmentsByClient.get(client.id) ?? [])].sort(
-        (first, second) =>
-          ensureDate(second.appointmentDate).getTime() - ensureDate(first.appointmentDate).getTime()
-      );
-      const completedAppointments = clientAppointments.filter(
-        (appointment) => appointment.status === "completed"
-      );
-
-      const lastAppointmentDate =
-        clientAppointments.length > 0 ? ensureDate(clientAppointments[0].appointmentDate) : null;
-      const lastCompletedDate =
-        completedAppointments.length > 0
-          ? ensureDate(completedAppointments[0].appointmentDate)
-          : client.lastVisit
-            ? ensureDate(client.lastVisit)
-            : null;
-
-      const lastAppointmentForService =
-        completedAppointments[0] ?? clientAppointments[0] ?? null;
-
-      const recentServices = completedAppointments.slice(0, 3).map((appointment) => {
-        const service = serviceById.get(appointment.serviceId);
-        return service?.name ?? "Servico removido";
+    return clients
+      .map((c) => {
+        const all = [...(apptsByClient.get(c.id) ?? [])].sort(
+          (a, b) => ensureDate(b.appointmentDate).getTime() - ensureDate(a.appointmentDate).getTime()
+        );
+        const done = all.filter((a) => a.status === "completed");
+        const dates = done.map((a) => ensureDate(a.appointmentDate)).sort((a, b) => a.getTime() - b.getTime());
+        let avgGap: number | null = null;
+        if (dates.length >= 2) {
+          const gaps = dates.slice(1).map((d, i) => differenceInDays(d, dates[i]));
+          avgGap = Math.round(gaps.reduce((t, v) => t + v, 0) / gaps.length);
+        }
+        return {
+          client: c,
+          appointments: all,
+          completedAppointments: done,
+          totalAppointments: all.length,
+          completedCount: done.length,
+          totalSpent: done.reduce((t, a) => t + (serviceById.get(a.serviceId)?.price ?? 0), 0),
+          lastAppointmentDate: all[0] ? ensureDate(all[0].appointmentDate) : null,
+          lastCompletedDate: done[0] ? ensureDate(done[0].appointmentDate) : null,
+          lastServiceName: done[0] ? (serviceById.get(done[0].serviceId)?.name ?? "-") : "-",
+          recentServices: done.slice(0, 3).map((a) => serviceById.get(a.serviceId)?.name ?? "-"),
+          avgDaysBetweenVisits: avgGap,
+        };
+      })
+      .sort((a, b) => {
+        const ad = a.lastCompletedDate ?? a.lastAppointmentDate ?? ensureDate(a.client.createdAt);
+        const bd = b.lastCompletedDate ?? b.lastAppointmentDate ?? ensureDate(b.client.createdAt);
+        return bd.getTime() - ad.getTime();
       });
-
-      const totalSpent = completedAppointments.reduce(
-        (total, appointment) => total + (serviceById.get(appointment.serviceId)?.price ?? 0),
-        0
-      );
-
-      return {
-        client,
-        appointments: clientAppointments,
-        completedAppointments,
-        totalAppointments: clientAppointments.length,
-        completedCount: completedAppointments.length,
-        totalSpent,
-        lastAppointmentDate,
-        lastCompletedDate,
-        lastServiceName: lastAppointmentForService
-          ? serviceById.get(lastAppointmentForService.serviceId)?.name ?? "Servico removido"
-          : "Sem atendimento",
-        recentServices,
-      };
-    });
-
-    return rows.sort((first, second) => {
-      const firstDate = first.lastCompletedDate ?? first.lastAppointmentDate ?? ensureDate(first.client.createdAt);
-      const secondDate = second.lastCompletedDate ?? second.lastAppointmentDate ?? ensureDate(second.client.createdAt);
-      return secondDate.getTime() - firstDate.getTime();
-    });
   }, [appointments, clients, serviceById]);
 
-  const clientDateStartBoundary = useMemo(
-    () => parseInputDate(clientStartDate, false),
-    [clientStartDate]
-  );
-  const clientDateEndBoundary = useMemo(
-    () => parseInputDate(clientEndDate, true),
-    [clientEndDate]
-  );
+  const clientDateStart = useMemo(() => parseInputDate(clientStartDate, false), [clientStartDate]);
+  const clientDateEnd   = useMemo(() => parseInputDate(clientEndDate, true),    [clientEndDate]);
 
   const filteredClientRows = useMemo(() => {
-    const normalizedSearch = clientSearch.trim().toLowerCase();
-
+    const q = clientSearch.trim().toLowerCase();
     return clientReportRows.filter((row) => {
-      if (clientStatusFilter === "ativos" && row.client.isActive === false) return false;
+      if (clientStatusFilter === "ativos"   && row.client.isActive === false) return false;
       if (clientStatusFilter === "inativos" && row.client.isActive !== false) return false;
-
-      if (clientServiceFilter !== "todos") {
-        const hasService = row.appointments.some(
-          (appointment) => appointment.serviceId === clientServiceFilter
-        );
-        if (!hasService) return false;
+      if (clientServiceFilter !== "todos" && !row.appointments.some((a) => a.serviceId === clientServiceFilter)) return false;
+      if (q && ![row.client.name, row.client.email ?? "", row.client.phone ?? ""].some((f) => f.toLowerCase().includes(q))) return false;
+      if (clientDateStart || clientDateEnd) {
+        const ref = clientDateMode === "created_at" ? ensureDate(row.client.createdAt) : row.lastCompletedDate ?? row.lastAppointmentDate;
+        if (!ref) return false;
+        if (clientDateStart && ref < clientDateStart) return false;
+        if (clientDateEnd   && ref > clientDateEnd)   return false;
       }
-
-      if (normalizedSearch) {
-        const matchesSearch =
-          row.client.name.toLowerCase().includes(normalizedSearch) ||
-          String(row.client.email ?? "").toLowerCase().includes(normalizedSearch) ||
-          String(row.client.phone ?? "").toLowerCase().includes(normalizedSearch);
-        if (!matchesSearch) return false;
-      }
-
-      if (clientDateStartBoundary || clientDateEndBoundary) {
-        const referenceDate =
-          clientDateMode === "created_at"
-            ? ensureDate(row.client.createdAt)
-            : row.lastCompletedDate ?? row.lastAppointmentDate;
-
-        if (!referenceDate) return false;
-        if (clientDateStartBoundary && referenceDate.getTime() < clientDateStartBoundary.getTime()) {
-          return false;
-        }
-        if (clientDateEndBoundary && referenceDate.getTime() > clientDateEndBoundary.getTime()) {
-          return false;
-        }
-      }
-
       return true;
     });
-  }, [
-    clientDateEndBoundary,
-    clientDateMode,
-    clientDateStartBoundary,
-    clientReportRows,
-    clientSearch,
-    clientServiceFilter,
-    clientStatusFilter,
-  ]);
+  }, [clientReportRows, clientSearch, clientStatusFilter, clientServiceFilter, clientDateMode, clientDateStart, clientDateEnd]);
 
-  const filteredClientRevenue = useMemo(
-    () => filteredClientRows.reduce((total, row) => total + row.totalSpent, 0),
-    [filteredClientRows]
-  );
+  const filteredRev       = useMemo(() => filteredClientRows.reduce((t, r) => t + r.totalSpent, 0),       [filteredClientRows]);
+  const filteredDone      = useMemo(() => filteredClientRows.reduce((t, r) => t + r.completedCount, 0),   [filteredClientRows]);
+  const filteredWithVisit = useMemo(() => filteredClientRows.filter((r) => r.totalAppointments > 0).length,[filteredClientRows]);
+  const filteredTicket    = useMemo(() => filteredDone > 0 ? filteredRev / filteredDone : 0,               [filteredRev, filteredDone]);
 
-  const filteredClientCompleted = useMemo(
-    () => filteredClientRows.reduce((total, row) => total + row.completedCount, 0),
-    [filteredClientRows]
-  );
-
-  const filteredClientsWithVisits = useMemo(
-    () => filteredClientRows.filter((row) => row.totalAppointments > 0).length,
-    [filteredClientRows]
-  );
-
-  const filteredClientAverageTicket = useMemo(
-    () => (filteredClientCompleted > 0 ? filteredClientRevenue / filteredClientCompleted : 0),
-    [filteredClientCompleted, filteredClientRevenue]
-  );
-
-  const periodLabel = useMemo(() => {
-    if (activeFilter === "hoje") return "Hoje";
-    if (activeFilter === "semana") return "Semana";
-    if (activeFilter === "mes") return "Mes";
-    return "Ultimos 6 meses";
-  }, [activeFilter]);
-
-  const exportPremiumReport = () => {
+  // exportacao premium
+  const exportPremium = () => {
     try {
-      const generatedAt = new Date();
-      const detailedRows = [...periodAppointments].sort(
-        (first, second) => ensureDate(first.appointmentDate).getTime() - ensureDate(second.appointmentDate).getTime()
-      );
-
-      const serviceRankingRaw = new Map<string, { count: number; revenue: number }>();
-
-      periodCompletedAppointments.forEach((appointment) => {
-        const service = serviceById.get(appointment.serviceId);
-        const serviceName = service?.name ?? "Servico removido";
-        const current = serviceRankingRaw.get(serviceName) ?? { count: 0, revenue: 0 };
-        serviceRankingRaw.set(serviceName, {
-          count: current.count + 1,
-          revenue: current.revenue + (service?.price ?? 0),
-        });
+      const now2 = new Date();
+      const rows: string[] = [];
+      const pr = (...cols: Array<string | number>) => rows.push(cols.map(toCsvCell).join(";"));
+      pr("RELATORIO PREMIUM - TESSY NAILS");
+      pr("Gerado em", format(now2, "dd/MM/yyyy HH:mm"));
+      pr("Periodo", PERIOD_LABELS[activeFilter]);
+      rows.push("");
+      pr("RESUMO EXECUTIVO");
+      pr("Receita", toCurrency(periodRev));
+      pr("Crescimento", revenueGrowth + "%");
+      pr("Ticket medio", toCurrency(periodTicket));
+      pr("Clientes unicos", periodUniqueClients);
+      pr("Concluidos", periodCompleted.length);
+      pr("Em aberto", periodOpen.length);
+      pr("Agendamentos", periodAppts.length);
+      pr("Cancelamentos", periodCancelled.length, cancellationRate + "%");
+      pr("Nao compareceu", periodNoShow.length, noShowRate + "%");
+      pr("Taxa de retorno 45d", returnRateData + "%");
+      pr("Intervalo medio visitas", avgReturnDays + " dias");
+      rows.push("");
+      pr("RANKING DE SERVICOS");
+      pr("Servico", "Concluidos", "Receita", "Ticket medio", "Taxa de cancelamento");
+      serviceRanking.forEach((s) => pr(s.name, s.count, toCurrency(s.revenue), toCurrency(s.ticket), s.cancelRate + "%"));
+      rows.push("");
+      pr("CLIENTES INATIVOS 60+ DIAS");
+      pr("Cliente", "Telefone", "Ultimo atendimento");
+      inactiveClients.forEach((c) => {
+        const last = completedAll.filter((a) => a.clientId === c.id).sort((a, b) => ensureDate(b.appointmentDate).getTime() - ensureDate(a.appointmentDate).getTime())[0];
+        pr(c.name, c.phone ?? "-", last ? format(ensureDate(last.appointmentDate), "dd/MM/yyyy") : "-");
       });
-
-      const serviceRanking = Array.from(serviceRankingRaw.entries())
-        .sort((first, second) => second[1].count - first[1].count)
-        .map(([name, data]) => ({
-          name,
-          count: data.count,
-          revenue: data.revenue,
-          share: periodCompletedAppointments.length > 0 ? (data.count / periodCompletedAppointments.length) * 100 : 0,
-        }));
-
-      const rows: string[] = [];
-      const pushRow = (...columns: Array<string | number>) => {
-        rows.push(columns.map((value) => toCsvCell(value)).join(";"));
-      };
-
-      pushRow("RELATORIO PREMIUM - TESSY NAILS");
-      pushRow("Gerado em", format(generatedAt, "dd/MM/yyyy HH:mm"));
-      pushRow("Periodo", periodLabel);
-      pushRow("Intervalo inicio", format(activeInterval.start, "dd/MM/yyyy HH:mm"));
-      pushRow("Intervalo fim", format(activeInterval.end, "dd/MM/yyyy HH:mm"));
-      rows.push("");
-
-      pushRow("RESUMO EXECUTIVO");
-      pushRow("Metrica", "Valor");
-      pushRow("Receita realizada", toCurrency(periodRevenue));
-      pushRow("Ticket medio", toCurrency(periodAverageTicket));
-      pushRow("Atendimentos concluidos", periodCompletedAppointments.length);
-      pushRow("Atendimentos em aberto", periodOpenAppointments.length);
-      pushRow("Cancelados", periodCancelledAppointments.length);
-      pushRow("Nao compareceu", periodNoShowAppointments.length);
-      pushRow("Clientes unicos", periodUniqueClients);
-      pushRow("Crescimento vs periodo anterior", `${activeGrowth}%`);
-      rows.push("");
-
-      pushRow("SERVICOS - RANKING");
-      pushRow("Servico", "Concluidos", "Participacao", "Receita");
-      if (serviceRanking.length === 0) {
-        pushRow("Sem dados", 0, "0%", toCurrency(0));
-      } else {
-        serviceRanking.forEach((service) => {
-          pushRow(service.name, service.count, `${service.share.toFixed(1)}%`, toCurrency(service.revenue));
-        });
-      }
-      rows.push("");
-
-      pushRow("ATENDIMENTOS DETALHADOS");
-      pushRow("Data", "Hora", "Status", "Servico", "Cliente ID", "Valor referencia");
-      if (detailedRows.length === 0) {
-        pushRow("-", "-", "-", "Sem dados", "-", "-");
-      } else {
-        detailedRows.forEach((appointment) => {
-          const appointmentDate = ensureDate(appointment.appointmentDate);
-          const service = serviceById.get(appointment.serviceId);
-          pushRow(
-            format(appointmentDate, "dd/MM/yyyy"),
-            format(appointmentDate, "HH:mm"),
-            statusLabel(appointment.status),
-            service?.name ?? "Servico removido",
-            appointment.clientId ?? "",
-            toCurrency(service?.price ?? 0)
-          );
-        });
-      }
-
-      const csv = `\uFEFF${rows.join("\n")}`;
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-
-      anchor.href = url;
-      anchor.download = `relatorio-premium-${activeFilter}-${format(generatedAt, "yyyy-MM-dd-HH-mm")}.csv`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-      URL.revokeObjectURL(url);
-
-      toast.success("Relatorio premium exportado com dados reais.");
-    } catch (error) {
-      console.error("Erro ao exportar relatorio:", error);
-      toast.error("Nao foi possivel exportar o relatorio premium.");
-    }
+      const csv = "\uFEFF" + rows.join("\n");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+      a.download = "relatorio-premium-" + activeFilter + "-" + format(now2, "yyyy-MM-dd-HH-mm") + ".csv";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      toast.success("Relatorio exportado com sucesso.");
+    } catch (err) { console.error(err); toast.error("Nao foi possivel exportar."); }
   };
 
-  const clearClientFilters = () => {
-    setClientSearch("");
-    setClientStatusFilter("todos");
-    setClientServiceFilter("todos");
-    setClientDateMode("last_visit");
-    setClientStartDate("");
-    setClientEndDate("");
-  };
-
-  const exportClientReport = () => {
+  const exportClients = () => {
     try {
-      const generatedAt = new Date();
+      const now2 = new Date();
       const rows: string[] = [];
-      const pushRow = (...columns: Array<string | number>) => {
-        rows.push(columns.map((value) => toCsvCell(value)).join(";"));
-      };
-
-      const selectedServiceName =
-        clientServiceFilter === "todos"
-          ? "Todos"
-          : serviceById.get(clientServiceFilter)?.name ?? "Servico removido";
-
-      pushRow("RELATORIO CLIENTES 360 - TESSY NAILS");
-      pushRow("Gerado em", format(generatedAt, "dd/MM/yyyy HH:mm"));
-      pushRow("Busca", clientSearch.trim() || "Todos");
-      pushRow(
-        "Status",
-        clientStatusFilter === "todos"
-          ? "Todos"
-          : clientStatusFilter === "ativos"
-            ? "Apenas ativos"
-            : "Apenas inativos"
-      );
-      pushRow("Servico", selectedServiceName);
-      pushRow("Base da data", clientDateMode === "created_at" ? "Data de cadastro" : "Ultimo atendimento");
-      pushRow("Data inicio", clientStartDate || "-");
-      pushRow("Data fim", clientEndDate || "-");
+      const pr = (...cols: Array<string | number>) => rows.push(cols.map(toCsvCell).join(";"));
+      pr("RELATORIO CLIENTES 360 - TESSY NAILS");
+      pr("Gerado em", format(now2, "dd/MM/yyyy HH:mm"));
       rows.push("");
-
-      pushRow("RESUMO");
-      pushRow("Metrica", "Valor");
-      pushRow("Clientes filtrados", filteredClientRows.length);
-      pushRow("Clientes com atendimento", filteredClientsWithVisits);
-      pushRow("Concluidos (historico)", filteredClientCompleted);
-      pushRow("Receita estimada (historico)", toCurrency(filteredClientRevenue));
-      pushRow("Ticket medio (historico)", toCurrency(filteredClientAverageTicket));
-      rows.push("");
-
-      pushRow("LISTA DETALHADA DE CLIENTES");
-      pushRow(
-        "Cliente",
-        "Telefone",
-        "Email",
-        "Status",
-        "Cadastro",
-        "Ultimo atendimento",
-        "Ultimo servico",
-        "Historico recente",
-        "Concluidos",
-        "Total agendamentos",
-        "Receita estimada"
-      );
-
-      if (filteredClientRows.length === 0) {
-        pushRow("Sem dados", "-", "-", "-", "-", "-", "-", "-", 0, 0, toCurrency(0));
-      } else {
-        filteredClientRows.forEach((row) => {
-          pushRow(
-            row.client.name,
-            row.client.phone || "-",
-            row.client.email || "-",
-            row.client.isActive !== false ? "Ativo" : "Inativo",
-            format(ensureDate(row.client.createdAt), "dd/MM/yyyy"),
-            row.lastCompletedDate || row.lastAppointmentDate
-              ? format(row.lastCompletedDate || row.lastAppointmentDate || new Date(), "dd/MM/yyyy HH:mm")
-              : "-",
-            row.lastServiceName,
-            row.recentServices.length > 0 ? row.recentServices.join(" | ") : "-",
-            row.completedCount,
-            row.totalAppointments,
-            toCurrency(row.totalSpent)
-          );
-        });
-      }
-
-      const csv = `\uFEFF${rows.join("\n")}`;
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-
-      anchor.href = url;
-      anchor.download = `relatorio-clientes-360-${format(generatedAt, "yyyy-MM-dd-HH-mm")}.csv`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-      URL.revokeObjectURL(url);
-
+      pr("Cliente", "Telefone", "Email", "Status", "Cadastro", "Ultimo atendimento", "Ultimo servico", "Historico recente", "Concluidos", "Total", "Receita", "Intervalo medio");
+      filteredClientRows.forEach((r) => pr(
+        r.client.name, r.client.phone ?? "-", r.client.email ?? "-",
+        r.client.isActive !== false ? "Ativo" : "Inativo",
+        format(ensureDate(r.client.createdAt), "dd/MM/yyyy"),
+        r.lastCompletedDate ? format(r.lastCompletedDate, "dd/MM/yyyy") : "-",
+        r.lastServiceName,
+        r.recentServices.join(" | ") || "-",
+        r.completedCount, r.totalAppointments, toCurrency(r.totalSpent),
+        r.avgDaysBetweenVisits ? r.avgDaysBetweenVisits + " dias" : "-"
+      ));
+      const csv = "\uFEFF" + rows.join("\n");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+      a.download = "clientes-360-" + format(now2, "yyyy-MM-dd-HH-mm") + ".csv";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
       toast.success("Relatorio de clientes exportado.");
-    } catch (error) {
-      console.error("Erro ao exportar relatorio de clientes:", error);
-      toast.error("Nao foi possivel exportar o relatorio de clientes.");
-    }
+    } catch (err) { console.error(err); toast.error("Nao foi possivel exportar."); }
   };
+
+  // loading skeleton
+  if (loading) {
+    return (
+      <PageShell>
+        <div className="flex flex-col gap-6 animate-pulse">
+          <div className="h-16 rounded-2xl bg-brand-soft/40" />
+          <div className="grid grid-cols-3 gap-4">
+            {[1,2,3].map((i) => <div key={i} className="h-28 rounded-2xl bg-brand-soft/40" />)}
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            {[1,2,3,4].map((i) => <div key={i} className="h-24 rounded-2xl bg-brand-soft/40" />)}
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-2 h-72 rounded-2xl bg-brand-soft/40" />
+            <div className="h-72 rounded-2xl bg-brand-soft/40" />
+          </div>
+        </div>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell>
       <PageHeader
-        title="Relatorios Financeiros"
-        description="Acompanhe o desempenho real do negocio com dados do Firestore."
+        title="Relatorios"
+        description="Dados reais do Firestore em tempo real."
         icon={BarChart3}
       >
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 p-1.5 bg-white/40 rounded-2xl backdrop-blur-md border border-brand-accent/10 shadow-sm">
-            {FILTERS.map((filter) => (
-              <Button
-                key={filter}
-                variant={activeFilter === filter ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setActiveFilter(filter)}
-                className={cn(
-                  "rounded-xl font-black text-[10px] uppercase tracking-wider px-4 h-9 transition-all",
-                  activeFilter === filter
-                    ? "bg-brand-primary text-white shadow-premium"
-                    : "text-brand-text-sub opacity-50 hover:opacity-100"
-                )}
-              >
-                {filter === "mes" ? "Mes" : filter === "periodo" ? "Periodo" : filter.charAt(0).toUpperCase() + filter.slice(1)}
-              </Button>
-            ))}
-          </div>
-
-          <Button
-            variant="default"
-            size="sm"
-            onClick={exportPremiumReport}
-            disabled={loading}
-            className="rounded-xl font-bold text-sm px-4 py-2 h-auto gap-2 bg-brand-primary hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
-          >
-            <Download size={16} />
-            Exportar Premium
-          </Button>
-        </div>
+        <Button onClick={exportPremium} size="sm"
+          className="rounded-xl font-bold gap-2 bg-brand-primary hover:opacity-90 text-white shadow-md">
+          <Download size={14} /> Exportar Premium
+        </Button>
       </PageHeader>
 
-      <PageHero
-        title="Visao Geral do Negocio"
-        subtitle="Metricas reais por periodo com base nos atendimentos gravados."
-        metrics={[
-          { label: `Receita (${periodLabel})`, value: toCurrency(periodRevenue), icon: DollarSign, variant: "primary" },
-          { label: "Clientes no periodo", value: periodUniqueClients, icon: Users, variant: "success" },
-          { label: "Ticket medio", value: toCurrency(periodAverageTicket), icon: Target, variant: "warning" },
-        ]}
-      />
+      {/* Filtro de periodo */}
+      <div className="mb-6 flex flex-wrap items-center gap-1.5 rounded-2xl border border-brand-accent/10 bg-white p-1.5 shadow-sm">
+        {FILTERS.map((f) => (
+          <button key={f} onClick={() => setActiveFilter(f)}
+            className={cn(
+              "h-9 rounded-xl px-3 text-[10px] font-black uppercase tracking-wider transition-all",
+              activeFilter === f
+                ? "bg-brand-primary text-white shadow-md"
+                : "text-brand-text-sub hover:text-brand-primary hover:bg-brand-primary/5"
+            )}>
+            {PERIOD_LABELS[f]}
+          </button>
+        ))}
+        <div className="ml-auto pr-2 text-[10px] font-bold text-brand-text-sub opacity-50">
+          {format(activeInterval.start, "dd/MM")} &rarr; {format(activeInterval.end, "dd/MM")}
+        </div>
+      </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-12">
-        <MetricCard
-          title="Receita da Semana"
-          value={toCurrency(weeklyRevenue)}
-          icon={DollarSign}
-          trend={{ value: Math.abs(weekGrowth), isPositive: weekGrowth >= 0 }}
-          variant="primary"
+      {/* KPIs principais */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <KpiCard
+          label={"Receita - " + PERIOD_LABELS[activeFilter]}
+          value={toCurrency(periodRev)}
+          sub={"Anterior: " + toCurrency(prevRev)}
+          trend={{ value: Math.abs(revenueGrowth), isPositive: revenueGrowth >= 0 }}
+          color="brand"
         />
-        <MetricCard
-          title="Receita do Dia"
-          value={toCurrency(dailyRevenue)}
-          icon={Activity}
-          trend={{ value: Math.abs(dayGrowth), isPositive: dayGrowth >= 0 }}
-          variant="accent"
+        <KpiCard
+          label="Clientes unicos"
+          value={periodUniqueClients}
+          sub={"Ticket medio: " + toCurrency(periodTicket)}
+          trend={{ value: Math.abs(clientsGrowth), isPositive: clientsGrowth >= 0 }}
+          color="neutral"
         />
-        <MetricCard
-          title="Receita do Mes"
-          value={toCurrency(monthlyRevenue)}
-          icon={TrendingUp}
-          trend={{ value: Math.abs(activeGrowth), isPositive: activeGrowth >= 0 }}
-          variant="success"
-        />
-        <MetricCard
-          title="Concluidos no Periodo"
-          value={periodCompletedAppointments.length}
-          icon={Scissors}
-          description={`${periodOpenAppointments.length} em aberto`}
-          variant="warning"
+        <KpiCard
+          label={"Agendamentos - " + PERIOD_LABELS[activeFilter]}
+          value={periodAppts.length}
+          sub={`${periodCompleted.length} concluidos`}
+          color="neutral"
         />
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3 mb-12">
-        <SectionCard
-          title="Evolucao Financeira"
-          description="Faturamento real de atendimentos concluidos nos ultimos 6 meses"
-          className="lg:col-span-2"
-          icon={TrendingUp}
-        >
-          <div className="w-full h-[300px]">
-            <RevenueChart data={chartRevenueData} />
-          </div>
-        </SectionCard>
-
-        <SectionCard
-          title="Distribuicao de Servicos"
-          description="Percentual dos servicos concluidos no periodo selecionado"
-          icon={BarChart3}
-        >
-          <div className="w-full h-[300px]">
-            <ServicesDonut data={serviceDistribution} />
-          </div>
-        </SectionCard>
+      {/* Status grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+        <div className="rounded-xl border border-emerald-200 bg-white p-4">
+          <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Concluidos</p>
+          <p className="text-xl font-black text-emerald-600">{periodCompleted.length}</p>
+          <p className="text-[10px] text-brand-text-sub opacity-50">{periodOpen.length} em aberto</p>
+        </div>
+        <div className="rounded-xl border border-red-200 bg-white p-4">
+          <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Cancelamentos</p>
+          <p className="text-xl font-black text-red-600">{periodCancelled.length}</p>
+          <p className="text-[10px] text-red-400 font-bold">taxa {cancellationRate}%</p>
+        </div>
+        <div className="rounded-xl border border-amber-200 bg-white p-4">
+          <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-1">Nao compareceu</p>
+          <p className="text-xl font-black text-amber-600">{periodNoShow.length}</p>
+          <p className="text-[10px] text-amber-400 font-bold">taxa {noShowRate}%</p>
+        </div>
+        <div className="rounded-xl border border-brand-accent/10 bg-white p-4">
+          <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest mb-1">Taxa de Retorno</p>
+          <p className="text-xl font-black text-brand-text-main">{returnRateData}%</p>
+          <p className="text-[10px] text-brand-text-sub opacity-50">em ate 45 dias</p>
+        </div>
+        <div className="rounded-xl border border-brand-accent/10 bg-white p-4">
+          <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest mb-1">Intervalo Medio</p>
+          <p className="text-xl font-black text-brand-text-main">{avgReturnDays || "-"}</p>
+          <p className="text-[10px] text-brand-text-sub opacity-50">dias entre visitas</p>
+        </div>
+        <div className={cn("rounded-xl border p-4", pendingPayment.length > 0 ? "border-orange-200 bg-orange-50" : "border-brand-accent/10 bg-white")}>
+          <p className={cn("text-[9px] font-black uppercase tracking-widest mb-1", pendingPayment.length > 0 ? "text-orange-500" : "text-brand-text-sub")}>Sinal Pendente</p>
+          <p className={cn("text-xl font-black", pendingPayment.length > 0 ? "text-orange-600" : "text-brand-text-main")}>{pendingPayment.length}</p>
+          <p className={cn("text-[10px] font-bold", pendingPayment.length > 0 ? "text-orange-400" : "text-brand-text-sub opacity-50")}>agend. sem pagamento</p>
+        </div>
       </div>
 
-      <SectionCard
-        title="Relatorio de Clientes 360"
-        description="Filtre por nome, periodo, servico e veja a ultima passagem de cada cliente."
-        icon={UsersRound}
-        actions={
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearClientFilters}
-              className="rounded-xl font-bold"
-            >
-              Limpar Filtros
-            </Button>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={exportClientReport}
-              className="rounded-xl font-bold gap-2"
-            >
-              <Download size={14} />
-              Exportar Clientes
-            </Button>
-          </>
-        }
-        className="mb-12"
-      >
-        <div className="space-y-6">
-          <div className="grid gap-4 lg:grid-cols-5">
-            <div className="lg:col-span-2">
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                Buscar Cliente
-              </label>
-              <div className="relative group">
-                <Search
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-sub opacity-40 group-focus-within:text-brand-primary"
-                  size={18}
-                />
-                <Input
-                  value={clientSearch}
-                  onChange={(event) => setClientSearch(event.target.value)}
-                  placeholder="Nome, telefone ou email"
-                  className="pl-11 h-11 rounded-xl bg-white/50"
-                />
+      {/* Graficos */}
+      <div className="grid gap-6 lg:grid-cols-3 mb-8">
+        <div className="lg:col-span-2 bg-white border border-brand-accent/10 rounded-2xl p-6 shadow-sm">
+          <SectionTitle icon={TrendingUp} title="Evolucao Financeira" desc={"Faturamento concluido - " + PERIOD_LABELS[activeFilter]} />
+          {chartRevenueData.some((d) => d.total > 0) ? (
+            <div className="h-[280px]"><RevenueChart data={chartRevenueData} /></div>
+          ) : (
+            <div className="h-[280px] flex flex-col items-center justify-center gap-3 text-brand-text-sub opacity-40">
+              <BarChart3 size={40} strokeWidth={1} />
+              <p className="text-sm font-bold">Nenhum atendimento concluido ainda</p>
+            </div>
+          )}
+        </div>
+        <div className="bg-white border border-brand-accent/10 rounded-2xl p-6 shadow-sm">
+          <SectionTitle icon={Target} title="Mix de Servicos" desc="Participacao no periodo" />
+          {serviceDistribution.length > 0 ? (
+            <div className="h-[240px]"><ServicesDonut data={serviceDistribution} /></div>
+          ) : (
+            <div className="h-[240px] flex flex-col items-center justify-center gap-3 text-brand-text-sub opacity-40">
+              <Target size={36} strokeWidth={1} />
+              <p className="text-sm font-bold">Sem dados no periodo</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Pico por dia da semana */}
+      <div className="bg-white border border-brand-accent/10 rounded-2xl p-6 shadow-sm mb-8">
+        <SectionTitle icon={Clock} title="Horarios de Pico" desc={"Agendamentos por dia da semana - " + PERIOD_LABELS[activeFilter]} />
+        <div className="flex items-end gap-3 h-20">
+          {DAY_NAMES.map((day, i) => {
+            const count = peakByDow[i] ?? 0;
+            const pct = peakDowMax > 0 ? (count / peakDowMax) * 100 : 0;
+            const isTop = count === peakDowMax && count > 0;
+            return (
+              <div key={day} className="flex-1 flex flex-col items-center gap-1">
+                <div className="w-full flex flex-col justify-end" style={{ height: "56px" }}>
+                  <div
+                    className={cn("w-full rounded-t-lg transition-all", isTop ? "bg-brand-primary" : "bg-brand-primary/20")}
+                    style={{ height: Math.max(pct, count > 0 ? 8 : 0) + "%" }}
+                  />
+                </div>
+                <span className={cn("text-[9px] font-black uppercase", isTop ? "text-brand-primary" : "text-brand-text-sub opacity-50")}>{day}</span>
+                {count > 0 && <span className="text-[8px] font-bold text-brand-text-sub opacity-40">{count}</span>}
               </div>
+            );
+          })}
+          {topHour && (
+            <div className="ml-4 pl-4 border-l border-brand-accent/10 flex flex-col justify-center gap-1 shrink-0">
+              <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest">Pico de hora</p>
+              <p className="text-lg font-black text-brand-primary">{topHour.hour}</p>
+              <p className="text-[10px] font-bold text-brand-text-sub opacity-60">{topHour.count} agend.</p>
             </div>
+          )}
+        </div>
+      </div>
 
-            <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                Status
-              </label>
-              <select
-                value={clientStatusFilter}
-                onChange={(event) => setClientStatusFilter(event.target.value as ClientStatusFilter)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none transition focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
-              >
-                <option value="todos">Todos</option>
-                <option value="ativos">Ativos</option>
-                <option value="inativos">Inativos</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                Servico
-              </label>
-              <select
-                value={clientServiceFilter}
-                onChange={(event) => setClientServiceFilter(event.target.value)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none transition focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
-              >
-                <option value="todos">Todos os servicos</option>
-                {services
-                  .slice()
-                  .sort((first, second) => first.name.localeCompare(second.name))
-                  .map((service) => (
-                    <option key={service.id} value={service.id}>
-                      {service.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                Base da Data
-              </label>
-              <select
-                value={clientDateMode}
-                onChange={(event) => setClientDateMode(event.target.value as ClientDateMode)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none transition focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
-              >
-                <option value="last_visit">Ultimo atendimento</option>
-                <option value="created_at">Data de cadastro</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                Data Inicial
-              </label>
-              <Input
-                type="date"
-                value={clientStartDate}
-                onChange={(event) => setClientStartDate(event.target.value)}
-                className="h-11 rounded-xl bg-white/60"
-              />
-            </div>
-            <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                Data Final
-              </label>
-              <Input
-                type="date"
-                value={clientEndDate}
-                onChange={(event) => setClientEndDate(event.target.value)}
-                className="h-11 rounded-xl bg-white/60"
-              />
-            </div>
-            <div className="rounded-2xl border border-brand-accent/10 bg-brand-soft/10 p-4">
-              <p className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                Resultado Atual
-              </p>
-              <p className="mt-1 text-sm font-black text-brand-text-main">
-                {filteredClientRows.length} clientes encontrados
-              </p>
-              <p className="text-xs font-bold text-brand-text-sub opacity-70">
-                Receita estimada: {toCurrency(filteredClientRevenue)}
-              </p>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="rounded-2xl border border-brand-accent/10 bg-white/50 p-4">
-              <p className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                Clientes Filtrados
-              </p>
-              <p className="mt-1 text-lg font-black text-brand-text-main">{filteredClientRows.length}</p>
-            </div>
-            <div className="rounded-2xl border border-brand-accent/10 bg-white/50 p-4">
-              <p className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                Com Atendimento
-              </p>
-              <p className="mt-1 text-lg font-black text-brand-text-main">{filteredClientsWithVisits}</p>
-            </div>
-            <div className="rounded-2xl border border-brand-accent/10 bg-white/50 p-4">
-              <p className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                Total Concluidos
-              </p>
-              <p className="mt-1 text-lg font-black text-brand-text-main">{filteredClientCompleted}</p>
-            </div>
-            <div className="rounded-2xl border border-brand-accent/10 bg-white/50 p-4">
-              <p className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                Ticket Medio
-              </p>
-              <p className="mt-1 text-lg font-black text-brand-text-main">{toCurrency(filteredClientAverageTicket)}</p>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto rounded-2xl border border-brand-accent/10 bg-white/40">
+      {/* Ranking de servicos */}
+      <div className="bg-white border border-brand-accent/10 rounded-2xl p-6 shadow-sm mb-8">
+        <SectionTitle icon={Scissors} title="Ranking de Servicos" desc={"Performance detalhada - " + PERIOD_LABELS[activeFilter]} />
+        {serviceRanking.length === 0 ? (
+          <p className="text-sm font-bold text-brand-text-sub opacity-40 text-center py-8">Sem atendimentos no periodo.</p>
+        ) : (
+          <>
             <Table>
               <TableHeader>
-                <TableRow className="border-brand-accent/10 hover:bg-transparent">
-                  <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                    Cliente
-                  </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                    Contato
-                  </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                    Ultimo Atendimento
-                  </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                    Ultimo Servico
-                  </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                    Historico Recente
-                  </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                    Concluidos
-                  </TableHead>
-                  <TableHead className="text-right text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-                    Receita Estimada
-                  </TableHead>
+                <TableRow className="border-brand-accent/10">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub">#</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub">Servico</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub text-right">Concluidos</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub text-right">Receita</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub text-right">Ticket Medio</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub text-right">Cancelamentos</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredClientRows.length === 0 ? (
-                  <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={7} className="py-10 text-center text-sm font-bold text-brand-text-sub opacity-60">
-                      Nenhum cliente encontrado para os filtros aplicados.
+                {(showAllServices ? serviceRanking : serviceRanking.slice(0, 5)).map((s, i) => (
+                  <TableRow key={s.name} className="border-brand-accent/5 hover:bg-brand-background/50">
+                    <TableCell className="text-[11px] font-black text-brand-text-sub w-8">{i + 1}</TableCell>
+                    <TableCell className="text-sm font-bold text-brand-text-main">{s.name}</TableCell>
+                    <TableCell className="text-sm font-black text-brand-text-main text-right">{s.count}</TableCell>
+                    <TableCell className="text-sm font-bold text-brand-text-main text-right">{toCurrency(s.revenue)}</TableCell>
+                    <TableCell className="text-sm font-bold text-brand-text-sub text-right">{toCurrency(s.ticket)}</TableCell>
+                    <TableCell className="text-right">
+                      <span className={cn("text-[11px] font-black px-2 py-0.5 rounded-full",
+                        s.cancelRate > 20 ? "bg-red-100 text-red-600" :
+                        s.cancelRate > 10 ? "bg-amber-100 text-amber-600" :
+                        "bg-emerald-100 text-emerald-600"
+                      )}>
+                        {s.cancelRate}%
+                      </span>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  filteredClientRows.map((row) => {
-                    const lastReferenceDate = row.lastCompletedDate ?? row.lastAppointmentDate;
-                    return (
-                      <TableRow key={row.client.id} className="border-brand-accent/10">
-                        <TableCell>
-                          <div className="space-y-1">
-                            <p className="font-black text-brand-text-main">{row.client.name}</p>
-                            <Badge variant={row.client.isActive !== false ? "success" : "neutral"} size="xs">
-                              {row.client.isActive !== false ? "Ativo" : "Inativo"}
-                            </Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1 text-xs font-bold text-brand-text-sub">
-                            <p>{row.client.phone || "Sem telefone"}</p>
-                            <p>{row.client.email || "Sem email"}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {lastReferenceDate ? (
-                            <div className="space-y-1">
-                              <p className="text-xs font-black text-brand-text-main">
-                                {format(lastReferenceDate, "dd/MM/yyyy")}
-                              </p>
-                              <p className="text-[10px] font-bold text-brand-text-sub opacity-60">
-                                {format(lastReferenceDate, "HH:mm")}
-                              </p>
-                            </div>
-                          ) : (
-                            <Badge variant="neutral" size="xs">Sem historico</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-xs font-black text-brand-text-main">{row.lastServiceName}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-xs font-bold text-brand-text-sub">
-                            {row.recentServices.length > 0 ? row.recentServices.join(" | ") : "Sem servicos concluidos"}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-xs font-black text-brand-text-main">
-                            {row.completedCount} / {row.totalAppointments}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <span className="text-xs font-black text-brand-text-main tabular-nums">
-                            {toCurrency(row.totalSpent)}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
+                ))}
+              </TableBody>
+            </Table>
+            {serviceRanking.length > 5 && (
+              <button onClick={() => setShowAllServices((v) => !v)}
+                className="mt-3 w-full flex items-center justify-center gap-1 text-[11px] font-bold text-brand-primary hover:underline">
+                {showAllServices ? <><ChevronUp size={12} /> Ver menos</> : <><ChevronDown size={12} /> Ver todos ({serviceRanking.length})</>}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Insights */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <div className={cn("rounded-2xl border p-5", inactiveClients.length > 0 ? "border-amber-200 bg-amber-50" : "border-brand-accent/10 bg-white")}>
+          <SectionTitle icon={UserX} title="Clientes Inativos" desc="Sem visita ha 60+ dias" />
+          {inactiveClients.length === 0 ? (
+            <p className="text-sm font-bold text-emerald-600">Nenhum cliente inativo - otimo!</p>
+          ) : (
+            <div className="space-y-2">
+              {inactiveClients.slice(0, 4).map((c) => {
+                const last = completedAll
+                  .filter((a) => a.clientId === c.id)
+                  .sort((a, b) => ensureDate(b.appointmentDate).getTime() - ensureDate(a.appointmentDate).getTime())[0];
+                const dias = last ? differenceInDays(now, ensureDate(last.appointmentDate)) : null;
+                return (
+                  <div key={c.id} className="flex items-center justify-between">
+                    <p className="text-sm font-bold text-brand-text-main">{c.name}</p>
+                    <span className="text-[10px] font-black text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+                      {dias ? dias + "d atras" : "-"}
+                    </span>
+                  </div>
+                );
+              })}
+              {inactiveClients.length > 4 && (
+                <p className="text-[11px] font-bold text-amber-500">+{inactiveClients.length - 4} clientes inativos</p>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="rounded-2xl border border-brand-accent/10 bg-white p-5">
+          <SectionTitle icon={Zap} title="Resumo de Saude" desc="Indicadores do negocio" />
+          <div className="space-y-3">
+            {[
+              { label: "Taxa de conclusao", value: (periodAppts.length > 0 ? ((periodCompleted.length / periodAppts.length) * 100).toFixed(0) : 0) + "%", ok: (periodCompleted.length / Math.max(periodAppts.length, 1)) > 0.7 },
+              { label: "Clientes retornando", value: returnRateData + "%", ok: returnRateData >= 60 },
+              { label: "Taxa de cancelamento", value: cancellationRate + "%", ok: cancellationRate <= 10 },
+              { label: "Clientes inativos", value: String(inactiveClients.length), ok: inactiveClients.length === 0 },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center justify-between">
+                <p className="text-sm font-bold text-brand-text-sub">{item.label}</p>
+                <span className={cn("text-sm font-black", item.ok ? "text-emerald-600" : "text-amber-600")}>{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Clientes 360 */}
+      <div className="bg-white border border-brand-accent/10 rounded-2xl p-6 shadow-sm mb-8">
+        <SectionTitle
+          icon={UsersRound}
+          title="Clientes 360"
+          desc="Historico completo com filtros avancados"
+          actions={
+            <>
+              <Button variant="outline" size="sm" className="rounded-xl font-bold text-[11px]"
+                onClick={() => { setClientSearch(""); setClientStatusFilter("todos"); setClientServiceFilter("todos"); setClientDateMode("last_visit"); setClientStartDate(""); setClientEndDate(""); }}>
+                Limpar
+              </Button>
+              <Button size="sm" className="rounded-xl font-bold text-[11px] gap-1.5 bg-brand-primary text-white hover:opacity-90"
+                onClick={exportClients}>
+                <Download size={12} /> Exportar
+              </Button>
+            </>
+          }
+        />
+
+        <div className="grid gap-3 lg:grid-cols-5 mb-4">
+          <div className="lg:col-span-2 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-text-sub opacity-40" size={16} />
+            <Input value={clientSearch} onChange={(e) => setClientSearch(e.target.value)}
+              placeholder="Nome, telefone ou e-mail"
+              className="pl-9 h-10 rounded-xl bg-brand-background/50 text-sm" />
+          </div>
+          {[
+            { val: clientStatusFilter, set: setClientStatusFilter as (v: string) => void, opts: [["todos","Todos"],["ativos","Ativos"],["inativos","Inativos"]] },
+            { val: clientServiceFilter, set: setClientServiceFilter as (v: string) => void, opts: [["todos","Todos os servicos"], ...services.slice().sort((a,b)=>a.name.localeCompare(b.name)).map((s)=>[s.id, s.name])] },
+            { val: clientDateMode, set: setClientDateMode as (v: string) => void, opts: [["last_visit","Ultimo atendimento"],["created_at","Data de cadastro"]] },
+          ].map((sel, i) => (
+            <select key={i} value={sel.val}
+              onChange={(e) => sel.set(e.target.value)}
+              className="h-10 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10">
+              {sel.opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          ))}
+        </div>
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 mb-5">
+          <Input type="date" value={clientStartDate} onChange={(e) => setClientStartDate(e.target.value)} className="h-10 rounded-xl text-sm" />
+          <Input type="date" value={clientEndDate}   onChange={(e) => setClientEndDate(e.target.value)}   className="h-10 rounded-xl text-sm" />
+          {[
+            { label: "Filtrados", value: filteredClientRows.length },
+            { label: "Receita estimada", value: toCurrency(filteredRev) },
+          ].map((m) => (
+            <div key={m.label} className="rounded-xl bg-brand-background/50 border border-brand-accent/10 px-4 py-2 flex flex-col justify-center">
+              <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest">{m.label}</p>
+              <p className="text-sm font-black text-brand-text-main">{m.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+          {[
+            { label: "Com visita",    value: filteredWithVisit },
+            { label: "Concluidos",   value: filteredDone },
+            { label: "Receita total", value: toCurrency(filteredRev) },
+            { label: "Ticket medio",  value: toCurrency(filteredTicket) },
+          ].map((m) => (
+            <div key={m.label} className="rounded-xl border border-brand-accent/10 bg-brand-background/30 p-3">
+              <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest mb-1">{m.label}</p>
+              <p className="text-base font-black text-brand-text-main">{m.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {filteredClientRows.length === 0 ? (
+          <p className="text-sm font-bold text-brand-text-sub opacity-40 text-center py-10">Nenhum cliente encontrado.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-brand-accent/10">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-brand-accent/10 bg-brand-background/30">
+                  {["Cliente","Ultimo atendimento","Ultimo servico","Concluidos","Receita","Intervalo medio","Status"].map((h) => (
+                    <TableHead key={h} className="text-[9px] font-black uppercase tracking-widest text-brand-text-sub whitespace-nowrap">{h}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredClientRows.map((r) => {
+                  const diasSemVisita = r.lastCompletedDate ? differenceInDays(now, r.lastCompletedDate) : null;
+                  const inativo = diasSemVisita !== null && diasSemVisita > 60;
+                  return (
+                    <TableRow key={r.client.id} className="border-brand-accent/5 hover:bg-brand-background/40">
+                      <TableCell>
+                        <div>
+                          <p className="text-sm font-bold text-brand-text-main leading-tight">{r.client.name}</p>
+                          <p className="text-[10px] font-bold text-brand-text-sub opacity-50">{r.client.phone ?? r.client.email ?? "-"}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm font-bold text-brand-text-sub whitespace-nowrap">
+                        {r.lastCompletedDate ? format(r.lastCompletedDate, "dd/MM/yyyy") : "-"}
+                        {diasSemVisita !== null && <span className={cn("ml-1 text-[10px] font-black", inativo ? "text-amber-500" : "text-brand-text-sub opacity-40")}>{diasSemVisita}d</span>}
+                      </TableCell>
+                      <TableCell className="text-sm font-bold text-brand-text-main max-w-[140px] truncate">{r.lastServiceName}</TableCell>
+                      <TableCell className="text-sm font-black text-brand-text-main text-center">{r.completedCount}</TableCell>
+                      <TableCell className="text-sm font-bold text-brand-text-main whitespace-nowrap">{toCurrency(r.totalSpent)}</TableCell>
+                      <TableCell className="text-sm font-bold text-brand-text-sub text-center">
+                        {r.avgDaysBetweenVisits ? r.avgDaysBetweenVisits + "d" : "-"}
+                      </TableCell>
+                      <TableCell>
+                        <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full",
+                          inativo ? "bg-amber-100 text-amber-600" :
+                          r.client.isActive !== false ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-500"
+                        )}>
+                          {inativo ? "Inativo" : r.client.isActive !== false ? "Ativo" : "Desativado"}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
-        </div>
-      </SectionCard>
+        )}
+      </div>
 
-      <SectionCard
-        title="Insights do Periodo"
-        description="Analise automatica baseada apenas em dados reais."
-        icon={Activity}
-      >
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <div className="flex items-start gap-4 p-5 rounded-2xl bg-brand-soft/10 border border-brand-accent/5">
-            <div className="w-12 h-12 rounded-xl bg-brand-success/20 flex items-center justify-center shrink-0 shadow-sm">
-              <Scissors className="h-6 w-6 text-brand-success" strokeWidth={3} />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-black text-brand-text-main uppercase tracking-tight mb-1">Servico Popular</h4>
-              <p className="text-sm font-bold text-brand-text-sub opacity-70 leading-relaxed">
-                {topService.name} lidera com <span className="font-black text-brand-success">{topService.value}%</span> dos concluidos
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-5 rounded-2xl bg-brand-soft/10 border border-brand-accent/5">
-            <div className="w-12 h-12 rounded-xl bg-brand-primary/20 flex items-center justify-center shrink-0 shadow-sm">
-              <TrendingUp className="h-6 w-6 text-brand-primary" strokeWidth={3} />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-black text-brand-text-main uppercase tracking-tight mb-1">Pico de Atividade</h4>
-              <p className="text-sm font-bold text-brand-text-sub opacity-70 leading-relaxed">
-                {bestWeekDay.day} teve <span className="font-black text-brand-primary">{bestWeekDay.count}</span> atendimentos
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-5 rounded-2xl bg-brand-soft/10 border border-brand-accent/5">
-            <div className="w-12 h-12 rounded-xl bg-brand-secondary/20 flex items-center justify-center shrink-0 shadow-sm">
-              <Target className="h-6 w-6 text-brand-secondary" strokeWidth={3} />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-black text-brand-text-main uppercase tracking-tight mb-1">Produtividade</h4>
-              <p className="text-sm font-bold text-brand-text-sub opacity-70 leading-relaxed">
-                <span className="font-black text-brand-secondary">{periodCompletedAppointments.length}</span> concluidos no periodo
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-5 rounded-2xl bg-brand-soft/10 border border-brand-accent/5">
-            <div className="w-12 h-12 rounded-xl bg-brand-accent/20 flex items-center justify-center shrink-0 shadow-sm">
-              <DollarSign className="h-6 w-6 text-brand-accent" strokeWidth={3} />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-black text-brand-text-main uppercase tracking-tight mb-1">Status Financeiro</h4>
-              <p className="text-sm font-bold text-brand-text-sub opacity-70 leading-relaxed">
-                Crescimento: <span className="font-black text-brand-accent">{activeGrowth >= 0 ? "+" : ""}{activeGrowth}%</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </SectionCard>
+      <footer className="flex items-center justify-center gap-2 pb-8 opacity-20">
+        <Scissors size={10} className="text-brand-primary" />
+        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-brand-primary">Tessy Nails - Relatorios</span>
+      </footer>
     </PageShell>
   );
 }

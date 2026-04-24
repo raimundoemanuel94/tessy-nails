@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from 'react';
 import { 
@@ -18,7 +18,7 @@ import {
 
 interface RevenueData {
   date: string;
-  Revenue: number;
+  total: number;
 }
 
 interface ServiceData {
@@ -28,19 +28,25 @@ interface ServiceData {
 
 const COLORS = ['#4B2E2B', '#6D4C41', '#A1887F', '#B08A7A'];
 
-export function RevenueChart({ data }: { data: RevenueData[] }) {
+export function RevenueChart({ data, compact = false }: { data: RevenueData[]; compact?: boolean }) {
   return (
-    <div className="w-full space-y-4">
+    <div className={compact ? "w-full space-y-2" : "w-full space-y-4"}>
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Evolução Financeira</h3>
-          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Histórico de faturamento bruto</p>
+          <h3 className={compact ? "text-base font-black text-slate-900 dark:text-white tracking-tight" : "text-xl font-black text-slate-900 dark:text-white tracking-tight"}>
+            Evolução Financeira
+          </h3>
+          <p className={compact ? "mt-1 text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest" : "mt-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"}>
+            Histórico de faturamento bruto
+          </p>
         </div>
-        <div className="bg-success/10 text-success px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-success/20">
-          +12.5% Crescimento
-        </div>
+        {!compact && (
+          <div className="bg-success/10 text-success px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-success/20">
+            +12.5% Crescimento
+          </div>
+        )}
       </div>
-      <div style={{ width: '100%', height: 280 }}>
+      <div style={{ width: '100%', height: compact ? 170 : 280 }}>
         <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data}>
           <defs>
@@ -50,20 +56,20 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-          <XAxis 
-            dataKey="date" 
-            axisLine={false} 
-            tickLine={false} 
-            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-            dy={10}
+          <XAxis
+            dataKey="date"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: '#94a3b8', fontSize: compact ? 9 : 10, fontWeight: 700 }}
+            dy={compact ? 6 : 10}
           />
-          <YAxis 
-            hide 
+          <YAxis
+            hide
           />
-          <Tooltip 
-            contentStyle={{ 
-              backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-              borderRadius: '16px', 
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: '16px',
               border: '1px solid #f1f5f9',
               boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
               padding: '12px'
@@ -71,14 +77,14 @@ export function RevenueChart({ data }: { data: RevenueData[] }) {
             itemStyle={{ color: '#4B2E2B', fontWeight: 900, fontSize: '12px' }}
             labelStyle={{ color: '#64748b', fontWeight: 700, fontSize: '10px', marginBottom: '4px', textTransform: 'uppercase' }}
           />
-          <Area 
-            type="monotone" 
-            dataKey="Revenue" 
-            stroke="#6D4C41" 
-            strokeWidth={4}
-            fillOpacity={1} 
-            fill="url(#colorRevenue)" 
-            animationDuration={1500}
+          <Area
+            type="monotone"
+            dataKey="total"
+            stroke="#6D4C41"
+            strokeWidth={compact ? 3 : 4}
+            fillOpacity={1}
+            fill="url(#colorRevenue)"
+            animationDuration={compact ? 900 : 1500}
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -146,3 +152,4 @@ export function ServicesDonut({ data }: { data: ServiceData[] }) {
     </div>
   );
 }
+

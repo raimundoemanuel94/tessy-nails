@@ -1,111 +1,73 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn, ensureDate } from "@/lib/utils";
+import { getLast30DaysInterval } from "@/lib/analytics-period";
 import { PageShell } from "@/components/shared/PageShell";
 import { motion, Variants } from "framer-motion";
 import {
-  DollarSign,
-  Clock,
-  Users,
-  TrendingUp,
-  Plus,
-  Target,
-  CalendarDays,
-  Sparkles,
-  ArrowRight,
-  CheckCircle2,
-  AlertCircle,
-  ChevronRight,
+  DollarSign, CalendarDays, Users, Plus, Target,
+  Clock, Sparkles, ChevronRight, TrendingUp, CheckCircle2,
+  BarChart3, ArrowRight,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { appointmentService } from "@/services/appointments";
 import { authService } from "@/services/auth";
-import { salonService } from "@/services/salon";
-import { format, isToday, isPast, startOfDay, subDays, endOfDay } from "date-fns";
+import { format, isToday, isPast, startOfDay, getHours } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import nextDynamic from "next/dynamic";
 import { globalStore } from "@/store/globalStore";
+import { toast } from "sonner";
+import { AppointmentForm } from "@/features/appointments/components/AppointmentForm";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const RevenueChart = nextDynamic(
   () => import("@/components/dashboard/DashboardCharts").then((m) => m.RevenueChart),
-  { ssr: false, loading: () => <div className="h-[280px] w-full animate-pulse bg-brand-soft/20 rounded-2xl" /> }
+  { ssr: false, loading: () => <div className="h-[220px] w-full animate-pulse bg-brand-soft/20 rounded-2xl" /> }
 );
 
-import { toast } from "sonner";
-import { AppointmentForm } from "@/features/appointments/components/AppointmentForm";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-const statusConfig: Record<string, { label: string; color: string; bg: string; dot: string }> = {
-  confirmed: { label: "Confirmado", color: "text-emerald-700", bg: "bg-emerald-50", dot: "bg-emerald-500" },
-  pending:   { label: "Pendente",   color: "text-amber-700",   bg: "bg-amber-50",   dot: "bg-amber-400"  },
-  completed: { label: "Concluído",  color: "text-brand-primary", bg: "bg-brand-soft/30", dot: "bg-brand-primary" },
-};
-
-const containerVariants: Variants = {
+const container: Variants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
 };
-const itemVariants: Variants = {
-  hidden: { y: 16, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 120, damping: 18 } },
+const item: Variants = {
+  hidden: { y: 14, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 130, damping: 18 } },
 };
 
-interface RecentAppointmentItem {
-  id: string;
-  client: string;
-  service: string;
-  price: number;
-  time: string;
-  date: string;
-  isToday: boolean;
-  status: string;
+const STATUS: Record<string, { label: string; cls: string; dot: string }> = {
+  confirmed: { label: "Confirmado", cls: "bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" },
+  pending:   { label: "Pendente",   cls: "bg-amber-50 text-amber-700",     dot: "bg-amber-400"  },
+  completed: { label: "Concluido",  cls: "bg-brand-soft/40 text-brand-primary", dot: "bg-brand-primary" },
+};
+
+function greeting(name: string) {
+  const h = getHours(new Date());
+  const g = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
+  return g + ", " + name;
 }
 
-interface TopServiceItem {
-  name: string;
-  count: number;
-}
-
-interface RevenueDataPoint {
-  date: string;
-  Revenue: number;
-}
+interface ApptItem { id: string; client: string; service: string; price: number; time: string; date: string; isToday: boolean; status: string; }
+interface SvcItem  { name: string; count: number; }
+interface RevPoint { date: string; total: number; }
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  const [stats, setStats] = useState({
-    totalClients: 0,
-    todayAppointments: 0,
-    dailyRevenue: 0,
-    monthlyRevenue: 0,
-    completionRate: 0,
-  });
-  const [recentAppointments, setRecentAppointments] = useState<RecentAppointmentItem[]>([]);
-  const [topServices, setTopServices] = useState<TopServiceItem[]>([]);
-  const [revenueData, setRevenueData] = useState<RevenueDataPoint[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [stats, setStats] = useState({ revenue: 0, today: 0, clients: 0, rate: 0 });
+  const [appts,    setAppts]    = useState<ApptItem[]>([]);
+  const [services, setServices] = useState<SvcItem[]>([]);
+  const [chart,    setChart]    = useState<RevPoint[]>([]);
+  const [busy,     setBusy]     = useState(true);
+  const [dialog,   setDialog]   = useState(false);
 
   const displayName =
-    user?.name && user.name.trim() !== "" && user.name.trim().toLowerCase() !== "usuário"
+    user?.name && user.name.trim() !== "" && user.name.trim().toLowerCase() !== "usuario"
       ? user.name.split(" ")[0]
       : user?.email?.split("@")[0] || "Tessy";
 
@@ -116,85 +78,54 @@ export default function DashboardPage() {
     }
   }, [user, loading, router]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (loading || !user || (user.role !== "admin" && user.role !== "professional")) return;
     try {
-      setDataLoading(true);
-      const rangeStart = startOfDay(subDays(new Date(), 30));
-      const rangeEnd = endOfDay(new Date());
-
-      const [appointments, clients, services] = await Promise.all([
-        appointmentService.getByDateRange(rangeStart, rangeEnd),
+      setBusy(true);
+      const { start, end } = getLast30DaysInterval();
+      const [rawAppts, clients, svcs] = await Promise.all([
+        appointmentService.getByDateRange(start, end),
         globalStore.fetchRecentClients(false),
         globalStore.fetchServices(false),
       ]);
-
-      const unresolvedClientIds = appointments
-        .map((apt) => apt.clientId)
+      const unknownIds = rawAppts
+        .map((a) => a.clientId)
         .filter((id, i, arr) => Boolean(id) && arr.indexOf(id) === i)
         .filter((id) => !clients.some((c) => c.id === id));
-
-      const clientUsers =
-        unresolvedClientIds.length > 0 ? await authService.getUsersByIds(unresolvedClientIds) : [];
-
-      const todayApps = appointments.filter(
-        (apt) => isToday(ensureDate(apt.appointmentDate)) && (apt.status === "pending" || apt.status === "confirmed")
+      const extraUsers = unknownIds.length > 0 ? await authService.getUsersByIds(unknownIds) : [];
+      const priceById = new Map(svcs.map((s) => [s.id, Number(s.price) || 0]));
+      const done      = rawAppts.filter((a) => a.status === "completed");
+      const todayAppts = rawAppts.filter(
+        (a) => isToday(ensureDate(a.appointmentDate)) && a.status !== "cancelled" && a.status !== "no_show"
       );
-      const completedMonth = appointments.filter((apt) => {
-        const d = ensureDate(apt.appointmentDate);
-        const now = new Date();
-        return apt.status === "completed" && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      });
-      const dailyRevenue = appointments
-        .filter((apt) => isToday(ensureDate(apt.appointmentDate)) && apt.status === "completed")
-        .reduce((t, apt) => t + (services.find((s) => s.id === apt.serviceId)?.price || 0), 0);
-      const monthlyRevenue = completedMonth.reduce(
-        (t, apt) => t + (services.find((s) => s.id === apt.serviceId)?.price || 0), 0
-      );
-      const completionRate =
-        appointments.length > 0
-          ? (appointments.filter((a) => a.status === "completed").length / appointments.length) * 100
-          : 0;
-
-      setStats({
-        totalClients: clients.length,
-        todayAppointments: todayApps.length,
-        dailyRevenue,
-        monthlyRevenue,
-        completionRate: Math.round(completionRate),
-      });
-
-      const next = appointments
-        .filter(
-          (apt) =>
-            (apt.status === "pending" || apt.status === "confirmed") &&
-            (!isPast(ensureDate(apt.appointmentDate)) || isToday(ensureDate(apt.appointmentDate)))
-        )
+      const revenue   = done.reduce((t, a) => t + (priceById.get(a.serviceId) ?? 0), 0);
+      const clientSet = new Set(done.map((a) => a.clientId).filter(Boolean)).size;
+      const rate      = rawAppts.length > 0 ? Math.round((done.length / rawAppts.length) * 100) : 0;
+      setStats({ revenue, today: todayAppts.length, clients: clientSet, rate });
+      const upcoming = rawAppts
+        .filter((a) => (a.status === "pending" || a.status === "confirmed") &&
+          (!isPast(ensureDate(a.appointmentDate)) || isToday(ensureDate(a.appointmentDate))))
         .sort((a, b) => ensureDate(a.appointmentDate).getTime() - ensureDate(b.appointmentDate).getTime())
         .slice(0, 6)
-        .map((apt) => {
-          const client = clients.find((c) => c.id === apt.clientId);
-          const clientUser = clientUsers.find((u) => u.uid === apt.clientId);
-          const service = services.find((s) => s.id === apt.serviceId);
+        .map((a) => {
+          const c = clients.find((x) => x.id === a.clientId) ?? extraUsers.find((x) => x.uid === a.clientId);
+          const s = svcs.find((x) => x.id === a.serviceId);
           return {
-            id: apt.id ?? "",
-            client: client?.name || clientUser?.name || "Cliente",
-            service: service?.name || "Serviço",
-            price: service?.price || 0,
-            time: format(ensureDate(apt.appointmentDate), "HH:mm"),
-            date: format(ensureDate(apt.appointmentDate), "dd/MM"),
-            isToday: isToday(ensureDate(apt.appointmentDate)),
-            status: apt.status,
+            id: a.id ?? "",
+            client: c?.name || "Cliente",
+            service: s?.name || "Servico",
+            price: s?.price || 0,
+            time: format(ensureDate(a.appointmentDate), "HH:mm"),
+            date: format(ensureDate(a.appointmentDate), "EEE dd/MM", { locale: ptBR }),
+            isToday: isToday(ensureDate(a.appointmentDate)),
+            status: a.status,
           };
         });
-      setRecentAppointments(next);
-
-      const serviceStats = services
-        .map((s) => ({ name: s.name, count: appointments.filter((a) => a.serviceId === s.id).length }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 4);
-      setTopServices(serviceStats);
-
+      setAppts(upcoming);
+      const top = svcs
+        .map((s) => ({ name: s.name, count: rawAppts.filter((a) => a.serviceId === s.id && a.status === "completed").length }))
+        .sort((a, b) => b.count - a.count).slice(0, 5);
+      setServices(top);
       const now2 = new Date();
       const weekStart = startOfDay(new Date(new Date().setDate(now2.getDate() - now2.getDay())));
       const chartData = Array.from({ length: 7 }, (_, i) => {
@@ -203,301 +134,277 @@ export default function DashboardPage() {
         const dateStr = format(d, "dd/MM");
         return {
           date: dateStr,
-          Revenue: appointments
-            .filter((apt) => apt.status === "completed" && format(ensureDate(apt.appointmentDate), "dd/MM") === dateStr)
-            .reduce((t, apt) => t + (services.find((s) => s.id === apt.serviceId)?.price || 0), 0),
+          total: done
+            .filter((a) => format(ensureDate(a.appointmentDate), "dd/MM") === dateStr)
+            .reduce((t, a) => t + (priceById.get(a.serviceId) ?? 0), 0),
         };
       });
-      setRevenueData(chartData);
+      setChart(chartData);
     } catch (err) {
       console.error(err);
       toast.error("Erro ao carregar dados do dashboard");
     } finally {
-      setDataLoading(false);
+      setBusy(false);
     }
-  };
+  }, [loading, user]);
 
-  useEffect(() => { fetchData(); }, [user, loading]);
+  useEffect(() => { void fetchData(); }, [fetchData]);
 
-  if (loading || dataLoading) {
+  if (loading || busy) {
     return (
-      <PageShell className="max-w-none pb-0 space-y-0">
-        <div className="flex h-full min-h-[60vh] items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-10 h-10 rounded-full border-2 border-brand-primary border-t-transparent animate-spin" />
-            <p className="text-xs font-semibold text-brand-text-sub uppercase tracking-widest">Carregando...</p>
+      <PageShell className="max-w-none pb-0">
+        <div className="mx-auto max-w-7xl space-y-6 pb-12 animate-pulse">
+          <div className="h-16 rounded-2xl bg-brand-soft/30 w-64" />
+          <div className="grid grid-cols-4 gap-4">
+            {[1,2,3,4].map((i) => <div key={i} className="h-28 rounded-2xl bg-brand-soft/30" />)}
           </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="col-span-2 h-80 rounded-2xl bg-brand-soft/30" />
+            <div className="h-80 rounded-2xl bg-brand-soft/30" />
+          </div>
+          <div className="h-64 rounded-2xl bg-brand-soft/30" />
         </div>
       </PageShell>
     );
   }
 
-  const goalPct = Math.min(Math.round((stats.monthlyRevenue / 15000) * 100), 100);
+  const goalPct = Math.min(Math.round((stats.revenue / 15000) * 100), 100);
+  const today = format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR });
 
   return (
-    <PageShell className="max-w-none pb-0 space-y-0">
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w-7xl mx-auto space-y-8 pb-20"
-      >
-        {/* ── HEADER ── */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <PageShell className="max-w-none pb-0">
+      <motion.div variants={container} initial="hidden" animate="visible"
+        className="mx-auto max-w-7xl space-y-6 pb-12">
+
+        {/* HEADER */}
+        <motion.div variants={item}
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-brand-text-sub mb-1">
-            </p>
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-brand-text-sub mb-1 capitalize">{today}</p>
             <h1 className="text-2xl lg:text-3xl font-serif font-bold text-brand-text-main">
-              Olá, {displayName} ✨
+              {greeting(displayName)} ✨
             </h1>
-            <p className="text-sm text-brand-text-sub mt-1">Aqui está o resumo do seu studio hoje.</p>
+            <p className="text-sm text-brand-text-sub mt-1 opacity-60">
+              Visao rapida do que importa no seu studio hoje.
+            </p>
           </div>
-          <Button
-            onClick={() => setIsDialogOpen(true)}
-            className="self-start sm:self-auto h-12 px-6 bg-linear-to-r from-brand-primary to-brand-secondary text-white font-semibold rounded-2xl shadow-premium hover:shadow-premium-hover transition-all active:scale-95 border-none"
-          >
-            <Plus size={18} className="mr-2" />
-            Novo Agendamento
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="outline" size="sm"
+              onClick={() => router.push("/relatorios")}
+              className="rounded-2xl border-brand-accent/20 text-brand-text-sub hover:text-brand-primary font-semibold gap-2 h-11">
+              <BarChart3 size={15} /> Relatorios
+            </Button>
+            <Button onClick={() => setDialog(true)}
+              className="h-11 px-6 bg-brand-primary text-white font-bold rounded-2xl shadow-md hover:opacity-90 active:scale-95 transition-all gap-2">
+              <Plus size={16} /> Novo Agendamento
+            </Button>
+          </div>
         </motion.div>
 
-        {/* ── KPI CARDS ── */}
-        <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: "Clientes", value: stats.totalClients, icon: Users, suffix: "", color: "from-brand-accent/20 to-brand-accent/5", iconBg: "bg-brand-accent/20 text-brand-accent" },
-            { label: "Hoje", value: stats.todayAppointments, icon: CalendarDays, suffix: " aptos", color: "from-brand-primary/15 to-brand-primary/5", iconBg: "bg-brand-primary/15 text-brand-primary" },
-            { label: "Receita Hoje", value: stats.dailyRevenue, icon: DollarSign, prefix: "R$", color: "from-success/15 to-success/5", iconBg: "bg-success/15 text-success" },
-            { label: "Taxa Conclusão", value: stats.completionRate, icon: Target, suffix: "%", color: "from-warning/15 to-warning/5", iconBg: "bg-warning/15 text-warning" },
-          ].map((kpi, i) => (
-            <Card key={i} className={cn("border-0 bg-linear-to-br shadow-premium overflow-hidden", kpi.color)}>
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", kpi.iconBg)}>
-                    <kpi.icon size={20} strokeWidth={2} />
-                  </div>
+        {/* 4 KPI CARDS */}
+        <motion.div variants={item} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative overflow-hidden rounded-2xl bg-brand-primary p-5 text-white shadow-xl col-span-2 lg:col-span-1">
+            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-white/8" />
+            <div className="absolute right-2 bottom-2 h-12 w-12 rounded-full bg-white/5" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/60">Receita 30d</p>
+                <DollarSign size={16} className="text-white/40" />
+              </div>
+              <p className="text-3xl font-black tracking-tight">
+                <span className="text-base font-semibold mr-0.5">R$</span>
+                {stats.revenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </p>
+              <div className="mt-3 space-y-1.5">
+                <div className="flex justify-between text-[9px] font-bold text-white/50">
+                  <span>Meta R$ 15.000</span><span>{goalPct}%</span>
                 </div>
-                <p className="text-2xl font-bold text-brand-text-main tracking-tight">
-                  {kpi.prefix && <span className="text-sm font-semibold mr-1">{kpi.prefix}</span>}
-                  {typeof kpi.value === "number" && kpi.prefix
-                    ? kpi.value.toLocaleString("pt-BR")
-                    : kpi.value}
-                  {kpi.suffix && <span className="text-sm font-semibold ml-0.5">{kpi.suffix}</span>}
-                </p>
-                <p className="text-xs text-brand-text-sub mt-1 font-medium">{kpi.label}</p>
-              </CardContent>
-            </Card>
-          ))}
+                <div className="h-1.5 w-full bg-white/15 rounded-full overflow-hidden">
+                  <motion.div initial={{ width: 0 }} animate={{ width: goalPct + "%" }}
+                    transition={{ duration: 1.2, ease: "easeOut" }}
+                    className="h-full bg-white/80 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-brand-accent/10 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-text-sub">Agend. Hoje</p>
+              <CalendarDays size={16} className="text-brand-primary" />
+            </div>
+            <p className="text-3xl font-black tracking-tight text-brand-text-main">{stats.today}</p>
+            <p className="text-[10px] font-bold text-brand-text-sub opacity-50 mt-2">
+              {stats.today === 0 ? "nenhum agendamento" : stats.today + " agendamentos"}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-brand-accent/10 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-text-sub">Clientes 30d</p>
+              <Users size={16} className="text-emerald-500" />
+            </div>
+            <p className="text-3xl font-black tracking-tight text-brand-text-main">{stats.clients}</p>
+            <p className="text-[10px] font-bold text-brand-text-sub opacity-50 mt-2">clientes unicos atendidos</p>
+          </div>
+
+          <div className="rounded-2xl border border-brand-accent/10 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-text-sub">Taxa Conclusao</p>
+              <CheckCircle2 size={16} className={stats.rate >= 70 ? "text-emerald-500" : "text-amber-400"} />
+            </div>
+            <p className={cn("text-3xl font-black tracking-tight", stats.rate >= 70 ? "text-emerald-600" : "text-amber-600")}>
+              {stats.rate}%
+            </p>
+            <p className="text-[10px] font-bold text-brand-text-sub opacity-50 mt-2">
+              {stats.rate >= 70 ? "excelente performance" : "pode melhorar"}
+            </p>
+          </div>
         </motion.div>
 
-        {/* ── MAIN GRID ── */}
+        {/* MAIN GRID */}
         <div className="grid gap-6 lg:grid-cols-3">
-
-          {/* ── PRÓXIMOS AGENDAMENTOS ── */}
-          <motion.div variants={itemVariants} className="lg:col-span-2">
-            <Card className="border border-brand-accent/10 bg-white shadow-premium h-full">
-              <CardHeader className="px-6 pt-6 pb-4 border-b border-brand-accent/5 flex flex-row items-center justify-between">
-                <div className="flex items-center gap-2">
+          <motion.div variants={item} className="lg:col-span-2">
+            <div className="rounded-2xl border border-brand-accent/10 bg-white shadow-sm h-full flex flex-col">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-brand-accent/5">
+                <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center">
-                    <Clock size={16} className="text-brand-primary" />
+                    <Clock size={15} className="text-brand-primary" />
                   </div>
-                  <CardTitle className="text-base font-serif font-bold text-brand-text-main">
-                    Próximos Atendimentos
-                  </CardTitle>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => router.push("/agenda")}
-                  className="text-brand-primary text-xs font-semibold hover:bg-brand-soft/30 rounded-xl gap-1"
-                >
-                  Ver agenda <ChevronRight size={14} />
-                </Button>
-              </CardHeader>
-              <CardContent className="p-0">
-                {recentAppointments.length > 0 ? (
                   <div>
-                    {recentAppointments.map((apt, i) => {
-                      const s = statusConfig[apt.status] || statusConfig.pending;
+                    <h2 className="text-sm font-black text-brand-text-main">Proximos Atendimentos</h2>
+                    <p className="text-[10px] font-bold text-brand-text-sub opacity-50">pendentes e confirmados</p>
+                  </div>
+                </div>
+                <button onClick={() => router.push("/agendamentos")}
+                  className="flex items-center gap-1 text-[11px] font-bold text-brand-primary hover:underline">
+                  Ver agenda <ChevronRight size={13} />
+                </button>
+              </div>
+              <div className="flex-1">
+                {appts.length > 0 ? (
+                  <div>
+                    {appts.map((a, i) => {
+                      const st = STATUS[a.status] ?? STATUS.pending;
                       return (
-                        <motion.div
-                          key={apt.id}
-                          initial={{ opacity: 0, x: -8 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.05 }}
-                          className="flex items-center gap-4 px-6 py-4 border-b border-brand-accent/5 last:border-0 hover:bg-brand-soft/10 transition-colors cursor-pointer group"
-                          onClick={() => router.push("/agenda")}
-                        >
-                          {/* Hora */}
-                          <div className="text-center min-w-[52px]">
-                            <p className="text-lg font-bold text-brand-primary tabular-nums leading-none">{apt.time}</p>
-                            <p className="text-[10px] font-medium text-brand-text-sub mt-0.5">
-                              {apt.isToday ? "hoje" : apt.date}
+                        <motion.div key={a.id}
+                          initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.04 }}
+                          onClick={() => router.push("/agendamentos")}
+                          className="flex items-center gap-4 px-6 py-3.5 border-b border-brand-accent/5 last:border-0 hover:bg-brand-soft/10 cursor-pointer transition-colors">
+                          <div className="text-center w-12 shrink-0">
+                            <p className="text-base font-black text-brand-primary tabular-nums">{a.time}</p>
+                            <p className="text-[9px] font-bold text-brand-text-sub opacity-50 capitalize">
+                              {a.isToday ? "hoje" : a.date}
                             </p>
                           </div>
-
-                          {/* Divider */}
-                          <div className="w-px h-10 bg-brand-accent/15 shrink-0" />
-
-                          {/* Info */}
+                          <div className="w-px h-9 bg-brand-accent/10 shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-brand-text-main text-sm leading-tight truncate">{apt.client}</p>
-                            <p className="text-xs text-brand-text-sub mt-0.5 truncate">{apt.service}</p>
+                            <p className="text-sm font-bold text-brand-text-main truncate">{a.client}</p>
+                            <p className="text-[11px] text-brand-text-sub opacity-60 truncate mt-0.5">{a.service}</p>
                           </div>
-
-                          {/* Preço */}
-                          {apt.price > 0 && (
-                            <p className="text-sm font-semibold text-brand-text-main tabular-nums shrink-0">
-                              R$ {apt.price.toLocaleString("pt-BR")}
+                          {Number(a.price) > 0 && (
+                            <p className="text-sm font-black text-brand-text-main tabular-nums shrink-0">
+                              R$ {Number(a.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                             </p>
                           )}
-
-                          {/* Status */}
-                          <div className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shrink-0", s.bg, s.color)}>
-                            <div className={cn("w-1.5 h-1.5 rounded-full", s.dot)} />
-                            {s.label}
+                          <div className={cn("flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black shrink-0", st.cls)}>
+                            <div className={cn("w-1.5 h-1.5 rounded-full", st.dot)} />
+                            {st.label}
                           </div>
                         </motion.div>
                       );
                     })}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-16 text-center px-6">
-                    <div className="w-14 h-14 rounded-2xl bg-brand-soft/30 flex items-center justify-center mb-4">
-                      <Sparkles size={24} className="text-brand-accent" />
+                  <div className="px-6 py-8 flex flex-col items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-brand-soft/30 flex items-center justify-center">
+                      <Sparkles size={22} className="text-brand-accent" />
                     </div>
-                    <p className="font-serif font-bold text-brand-text-main text-lg">Agenda livre</p>
-                    <p className="text-xs text-brand-text-sub mt-1 max-w-xs">Nenhum atendimento pendente. Que tal criar um novo agendamento?</p>
-                    <Button
-                      size="sm"
-                      onClick={() => setIsDialogOpen(true)}
-                      className="mt-4 rounded-xl bg-brand-primary text-white hover:bg-brand-secondary text-xs font-semibold"
-                    >
-                      <Plus size={14} className="mr-1.5" /> Agendar agora
+                    <div className="text-center">
+                      <p className="text-sm font-black text-brand-text-main">Agenda livre agora</p>
+                      <p className="text-xs text-brand-text-sub opacity-50 mt-1">Nenhum atendimento pendente no momento.</p>
+                    </div>
+                    <Button size="sm" onClick={() => setDialog(true)}
+                      className="rounded-xl bg-brand-primary text-white hover:opacity-90 text-xs font-bold gap-1.5">
+                      <Plus size={13} /> Agendar agora
                     </Button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
 
-          {/* ── SIDEBAR DIREITA ── */}
-          <div className="space-y-6">
-
-            {/* Meta Mensal */}
-            <motion.div variants={itemVariants}>
-              <Card className="border-0 bg-linear-to-br from-brand-primary to-brand-secondary text-white overflow-hidden shadow-premium-xl relative">
-                <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
-                <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
-                <CardContent className="p-6 relative z-10 space-y-5">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-widest text-white/60">Receita do Mês</p>
-                    <Target size={18} className="text-white/40" />
+          <motion.div variants={item}>
+            <div className="rounded-2xl border border-brand-accent/10 bg-white shadow-sm h-full flex flex-col">
+              <div className="flex items-center gap-2.5 px-5 py-4 border-b border-brand-accent/5">
+                <div className="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center">
+                  <TrendingUp size={15} className="text-brand-primary" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-black text-brand-text-main">Top Servicos</h2>
+                  <p className="text-[10px] font-bold text-brand-text-sub opacity-50">concluidos nos ultimos 30d</p>
+                </div>
+              </div>
+              <div className="flex-1 p-5 space-y-4">
+                {services.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-6 gap-2 opacity-40">
+                    <Target size={24} strokeWidth={1.5} className="text-brand-text-sub" />
+                    <p className="text-xs font-bold text-brand-text-sub">Nenhum servico registrado.</p>
                   </div>
-                  <div>
-                    <p className="text-3xl font-bold tracking-tight">
-                      R$ {stats.monthlyRevenue.toLocaleString("pt-BR")}
-                    </p>
-                    <p className="text-xs text-white/60 mt-1">Meta: R$ 15.000 &bull; {goalPct}% atingido</p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-2 w-full bg-white/15 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${goalPct}%` }}
-                        transition={{ duration: 1.2, ease: "easeOut" }}
-                        className="h-full bg-white/90 rounded-full"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] text-white/50 font-medium">
-                      <span>R$ 0</span>
-                      <span>R$ 15.000</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Top Serviços */}
-            <motion.div variants={itemVariants}>
-              <Card className="border border-brand-accent/10 bg-white shadow-premium">
-                <CardHeader className="px-5 pt-5 pb-3 border-b border-brand-accent/5 flex flex-row items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-brand-secondary/10 flex items-center justify-center">
-                    <Sparkles size={14} className="text-brand-secondary" />
-                  </div>
-                  <CardTitle className="text-sm font-serif font-bold text-brand-text-main">Top Serviços</CardTitle>
-                </CardHeader>
-                <CardContent className="p-5 space-y-4">
-                  {topServices.length === 0 ? (
-                    <p className="text-xs text-brand-text-sub text-center py-3 opacity-60">
-                      Nenhum serviço registrado ainda.
-                    </p>
-                  ) : (
-                    topServices.map((svc, idx) => {
-                      const pct = Math.round((svc.count / (topServices[0]?.count || 1)) * 100);
-                      return (
-                        <div key={svc.name} className="space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs font-semibold text-brand-text-main truncate max-w-[70%]">{svc.name}</p>
-                            <span className="text-xs font-bold text-brand-text-sub">{svc.count}x</span>
-                          </div>
-                          <div className="h-1.5 w-full bg-brand-soft/30 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${pct}%` }}
-                              transition={{ delay: 0.4 + idx * 0.08, duration: 0.8, ease: "easeOut" }}
-                              className="h-full rounded-full bg-linear-to-r from-brand-primary to-brand-secondary"
-                            />
-                          </div>
+                ) : (
+                  services.map((svc, idx) => {
+                    const max = services[0]?.count || 1;
+                    const pct = Math.round((svc.count / max) * 100);
+                    return (
+                      <div key={svc.name} className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-bold text-brand-text-main truncate max-w-[75%]">{svc.name}</p>
+                          <span className="text-[10px] font-black text-brand-text-sub">{svc.count}x</span>
                         </div>
-                      );
-                    })
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
+                        <div className="h-1.5 w-full bg-brand-soft/30 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }} animate={{ width: pct + "%" }}
+                            transition={{ delay: 0.3 + idx * 0.07, duration: 0.8, ease: "easeOut" }}
+                            className="h-full rounded-full bg-brand-primary" />
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              <div className="px-5 pb-5">
+                <button onClick={() => router.push("/relatorios")}
+                  className="w-full flex items-center justify-center gap-1.5 text-[11px] font-black text-brand-primary hover:underline">
+                  Ver relatorio completo <ArrowRight size={12} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
         </div>
 
-        {/* ── GRÁFICO RECEITA SEMANA ── */}
-        <motion.div variants={itemVariants}>
-          <Card className="border border-brand-accent/10 bg-white shadow-premium">
-            <CardHeader className="px-6 pt-6 pb-4 border-b border-brand-accent/5 flex flex-row items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-brand-secondary/10 flex items-center justify-center">
-                  <TrendingUp size={16} className="text-brand-secondary" />
-                </div>
-                <CardTitle className="text-base font-serif font-bold text-brand-text-main">Receita da Semana</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="h-[260px] w-full">
-                <RevenueChart data={revenueData} />
-              </div>
-            </CardContent>
-          </Card>
+        {/* GRAFICO */}
+        <motion.div variants={item}>
+          <div className="rounded-2xl border border-brand-accent/10 bg-white shadow-sm p-6">
+            <RevenueChart data={chart} compact={false} />
+          </div>
         </motion.div>
 
       </motion.div>
 
-      {/* ── DIALOG NOVO AGENDAMENTO ── */}
-      <Dialog
-        open={isDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) (document.activeElement as HTMLElement)?.blur();
-          setIsDialogOpen(open);
-        }}
-      >
+      <Dialog open={dialog} onOpenChange={(open) => {
+        if (!open) (document.activeElement as HTMLElement)?.blur();
+        setDialog(open);
+      }}>
         <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-brand-accent/20">
           <DialogHeader>
             <DialogTitle className="text-xl font-serif font-bold text-brand-primary">Novo Agendamento</DialogTitle>
           </DialogHeader>
-          <AppointmentForm
-            onSuccess={() => {
-              setIsDialogOpen(false);
-              fetchData();
-              toast.success("Agendamento criado com sucesso! ✨");
-            }}
-          />
+          <AppointmentForm onSuccess={() => {
+            setDialog(false);
+            void fetchData();
+            toast.success("Agendamento criado com sucesso!");
+          }} />
         </DialogContent>
       </Dialog>
     </PageShell>

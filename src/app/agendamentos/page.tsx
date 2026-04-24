@@ -4,10 +4,11 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { appointmentService, authService } from "@/services";
-import { format, startOfDay, endOfDay, isSameDay, addDays, addWeeks, startOfYear } from "date-fns";
+import { format, startOfDay, isSameDay, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Appointment, Client, Service } from "@/types";
 import { globalStore } from "@/store/globalStore";
+import { getLast30DaysInterval } from "@/lib/analytics-period";
 
 import { PageShell } from "@/components/shared/PageShell";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -93,8 +94,7 @@ export default function AgendamentosPage() {
       let clientUsersData: AppUser[] = [];
 
       try {
-        const start = startOfYear(new Date());
-        const end = addDays(startOfDay(new Date()), 30); // Até 30 dias no futuro
+        const { start, end } = getLast30DaysInterval();
         apps = await appointmentService.getByDateRange(start, end);
       } catch (e) {
         console.error("❌ Erro ao buscar APPOINTMENTS:", e);

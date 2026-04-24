@@ -43,14 +43,34 @@ export interface BusySlot {
 
 const COLLECTION_NAME = "appointments";
 
+const parseFirestoreDate = (value: unknown): Date | null => {
+  if (!value) return null;
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "toDate" in value &&
+    typeof (value as { toDate?: unknown }).toDate === "function"
+  ) {
+    const parsed = (value as { toDate: () => Date }).toDate();
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  const parsed = new Date(value as string | number);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
 const mapAppointmentData = (doc: QueryDocumentSnapshot<DocumentData>) => {
   const data = doc.data();
+  const fallbackDate = new Date(0);
+  const createdAt = parseFirestoreDate(data.createdAt) ?? fallbackDate;
+  const appointmentDate = parseFirestoreDate(data.appointmentDate) ?? parseFirestoreDate(data.createdAt) ?? fallbackDate;
+  const updatedAt = parseFirestoreDate(data.updatedAt) ?? undefined;
   return {
     id: doc.id,
     ...data,
-    appointmentDate: data.appointmentDate?.toDate ? data.appointmentDate.toDate() : (data.appointmentDate ? new Date(data.appointmentDate) : new Date()),
-    createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt ? new Date(data.createdAt) : new Date()),
-    updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt ? new Date(data.updatedAt) : undefined),
+    appointmentDate,
+    createdAt,
+    updatedAt,
   };
 };
 
@@ -128,13 +148,23 @@ export const appointmentService = {
    */
   async getBusySlots(start: Date, end: Date): Promise<BusySlot[]> {
     try {
-      const response = await fetch(`/api/appointments/availability?start=${start.toISOString()}&end=${end.toISOString()}`);
-      if (!response.ok) throw new Error('Falha ao buscar disponibilidade');
-      const data = await response.json() as { busySlots?: BusySlot[] };
-      return Array.isArray(data.busySlots) ? data.busySlots : [];
+      const response = await fetch(
+        `/api/appointments/availability?start=${start.toISOString()}&end=${end.toISOString()}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Falha ao buscar disponibilidade");
+      }
+
+      const data = (await response.json()) as { busySlots?: BusySlot[] };
+      if (!Array.isArray(data.busySlots)) {
+        throw new Error("Resposta de disponibilidade invalida");
+      }
+
+      return data.busySlots;
     } catch (error) {
       console.error("🔥 Error in getBusySlots:", error);
-      return [];
+      throw error;
     }
   },
 
