@@ -2,7 +2,9 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   DropdownMenu, 
@@ -43,6 +45,14 @@ export function Header() {
   const { user, signOut } = useAuth();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    if (!user || (user.role !== "admin" && user.role !== "professional")) return;
+    const q = query(collection(db, "appointments"), where("status", "==", "pending"));
+    const unsub = onSnapshot(q, (snap) => setPendingCount(snap.size), () => setPendingCount(0));
+    return () => unsub();
+  }, [user]);
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -123,9 +133,25 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4 lg:gap-6">
-<Button variant="ghost" size="icon" className="relative h-9 w-9 md:h-10 md:w-10 rounded-xl bg-brand-primary/5 text-brand-primary hover:bg-brand-primary/10 transition-all shadow-sm border-none">
+<Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.push("/agendamentos?filter=pending")}
+          className="relative h-9 w-9 md:h-10 md:w-10 rounded-xl bg-brand-primary/5 text-brand-primary hover:bg-brand-primary/10 transition-all shadow-sm border-none"
+          title={pendingCount > 0 ? `${pendingCount} agendamento${pendingCount > 1 ? "s" : ""} pendente${pendingCount > 1 ? "s" : ""}` : "Nenhum agendamento pendente"}
+        >
           <Bell size={18} strokeWidth={2} />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-brand-primary rounded-full border-2 border-white animate-pulse" />
+          {pendingCount > 0 && (
+            pendingCount > 9 ? (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-brand-primary text-white text-[9px] font-black rounded-full border-2 border-white flex items-center justify-center animate-pulse">
+                9+
+              </span>
+            ) : (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-brand-primary text-white text-[9px] font-black rounded-full border-2 border-white flex items-center justify-center animate-pulse">
+                {pendingCount}
+              </span>
+            )
+          )}
         </Button>
 
         <DropdownMenu>

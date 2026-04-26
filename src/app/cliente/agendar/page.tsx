@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   format,
@@ -19,6 +19,7 @@ import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { cn, ensureDate } from "@/lib/utils";
 import { appointmentService } from "@/services/appointments";
+import { globalStore } from "@/store/globalStore";
 import { TimeSlotGrid, TimeSlot } from "@/components/cliente/TimeSlotGrid";
 import {
   Loader2,
@@ -35,8 +36,14 @@ interface Service {
   description?: string;
   price: string;
   duration: string;
+  bufferMinutes?: number;
   image?: string;
   rating?: number;
+}
+
+function getDurationMinutes(value?: string) {
+  const duration = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(duration) && duration > 0 ? duration : 60;
 }
 
 export default function AgendarPage() {
@@ -48,6 +55,9 @@ export default function AgendarPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slotsError, setSlotsError] = useState(false);
+  const [availableDays, setAvailableDays] = useState<Set<string>>(new Set());
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
+  const availabilityAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const service = AppointmentStorage.loadSelectedService();
@@ -56,22 +66,22 @@ export default function AgendarPage() {
       return;
     }
     setSelectedService(service);
-    const savedDate = AppointmentStorage.loadSelectedDate();
-    if (savedDate) {
-      setSelectedDate(savedDate);
-      setCurrentMonth(savedDate);
-      fetchSlots(savedDate);
-    }
+      const savedDate = AppointmentStorage.loadSelectedDate();
+      if (savedDate) {
+        setSelectedDate(savedDate);
+        setCurrentMonth(savedDate);
+        void fetchSlots(savedDate, service);
+      }
   }, [router]);
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
     setSelectedTime(null);
     AppointmentStorage.saveSelectedDate(date);
-    fetchSlots(date);
+    void fetchSlots(date);
   };
 
-  const fetchSlots = async (date: Date) => {
+  const fetchSlots = async (date: Date, serviceOverride?: Service) => {
     try {
       setLoadingSlots(true);
       setSlotsError(false);
@@ -80,12 +90,28 @@ export default function AgendarPage() {
       const endOfDayTime = new Date(date);
       endOfDayTime.setHours(23, 59, 59, 999);
 
-      const activeAppointments = await appointmentService.getBusySlots(
-        startOfDayTime,
-        endOfDayTime
+      const slotsRes = await fetch(
+        `/api/slots?start=${startOfDayTime.toISOString()}&end=${endOfDayTime.toISOString()}`
+      );
+      if (!slotsRes.ok) throw new Error("Falha ao buscar slots");
+      const slotsData = await slotsRes.json() as { busySlots: { appointmentDate: string; serviceId: string }[] };
+      const activeAppointments = slotsData.busySlots;
+      const allServices = await globalStore.fetchServices(false);
+      const serviceTimingById = new Map(
+        allServices.map((service) => [
+          service.id,
+          {
+            durationMinutes: Number(service.durationMinutes) || 60,
+            bufferMinutes: Number(service.bufferMinutes) || 0,
+          },
+        ])
       );
 
-      const durationMinutes = 60;
+      // Usar duração real do serviço selecionado (com buffer)
+      const currentService = serviceOverride ?? selectedService;
+      const serviceDuration = getDurationMinutes(currentService?.duration);
+      const serviceBuffer = currentService?.bufferMinutes ?? 0;
+      const totalBlockMinutes = serviceDuration + serviceBuffer;
       const slots: TimeSlot[] = [];
       let currentTime = new Date(date);
       currentTime.setHours(8, 0, 0, 0);
@@ -96,16 +122,15 @@ export default function AgendarPage() {
       while (currentTime < endTime) {
         const slotStart = new Date(currentTime);
         const slotEnd = new Date(
-          currentTime.getTime() + durationMinutes * 60000
+          currentTime.getTime() + totalBlockMinutes * 60000
         );
         const isPastSlot = isToday(date) && slotStart < now;
         const hasOverlap = activeAppointments.some((apt) => {
-          const aptStart = ensureDate(apt.appointmentDate);
-          const aptEnd = new Date(aptStart.getTime() + 60 * 60000);
-          return (
-            (slotStart < aptEnd && slotEnd > aptStart) ||
-            slotStart.getTime() === aptStart.getTime()
-          );
+          const aptStart = new Date(apt.appointmentDate);
+          const timing = serviceTimingById.get(apt.serviceId);
+          const busyMinutes = (timing?.durationMinutes ?? 60) + (timing?.bufferMinutes ?? 0);
+          const aptEnd = new Date(aptStart.getTime() + busyMinutes * 60000);
+          return slotStart < aptEnd && slotEnd > aptStart;
         });
         slots.push({
           id: format(slotStart, "HH:mm"),
@@ -131,6 +156,103 @@ export default function AgendarPage() {
       setLoadingSlots(false);
     }
   };
+
+  const preloadMonthAvailability = useCallback(async (month: Date, service: Service | null) => {
+    if (!service) return;
+
+    // Cancel any in-flight preload via a simple flag
+    if (availabilityAbortRef.current) {
+      availabilityAbortRef.current.abort();
+    }
+    const controller = new AbortController();
+    availabilityAbortRef.current = controller;
+
+    setLoadingAvailability(true);
+
+    const today = startOfDay(new Date());
+    const monthStart = startOfMonth(month);
+    const monthEnd = endOfMonth(month);
+    // Only future days (from today onwards)
+    const rangeStart = isBefore(monthStart, today) ? today : monthStart;
+
+    const serviceDuration = getDurationMinutes(service.duration);
+    const serviceBuffer = service.bufferMinutes ?? 0;
+    const totalBlockMinutes = serviceDuration + serviceBuffer;
+
+    try {
+      // Fetch month slots via public API (Admin SDK, sem auth de staff)
+      const [allServices, slotsRes] = await Promise.all([
+        globalStore.fetchServices(false),
+        fetch(`/api/slots?start=${rangeStart.toISOString()}&end=${monthEnd.toISOString()}`),
+      ]);
+      if (controller.signal.aborted) return;
+      if (!slotsRes.ok) throw new Error("Falha ao buscar slots do mês");
+      const slotsData = await slotsRes.json() as { busySlots: { appointmentDate: string; serviceId: string }[] };
+
+      const serviceTimingById = new Map(
+        allServices.map((s) => [
+          s.id,
+          {
+            durationMinutes: Number(s.durationMinutes) || 60,
+            bufferMinutes: Number(s.bufferMinutes) || 0,
+          },
+        ])
+      );
+
+      const busyApts = slotsData.busySlots;
+
+      // Check each future day of the month
+      const futureDays = eachDayOfInterval({ start: rangeStart, end: monthEnd });
+      const available = new Set<string>();
+      const now = new Date();
+
+      for (const day of futureDays) {
+        if (controller.signal.aborted) break;
+
+        // Appointments that fall on this day
+        const dayKey = format(day, "yyyy-MM-dd");
+        const dayBusy = busyApts.filter(
+          (a) => format(new Date(a.appointmentDate), "yyyy-MM-dd") === dayKey
+        );
+
+        let cur = new Date(day); cur.setHours(8, 0, 0, 0);
+        const dayEnd = new Date(day); dayEnd.setHours(19, 0, 0, 0);
+        let foundSlot = false;
+
+        while (cur < dayEnd && !foundSlot) {
+          const slotStart = new Date(cur);
+          const slotEnd = new Date(cur.getTime() + totalBlockMinutes * 60000);
+          const isPast = isToday(day) && slotStart < now;
+          if (!isPast) {
+            const blocked = dayBusy.some((apt) => {
+              const aptStart = new Date(apt.appointmentDate);
+              const timing = serviceTimingById.get(apt.serviceId);
+              const busyMin = (timing?.durationMinutes ?? 60) + (timing?.bufferMinutes ?? 0);
+              const aptEnd = new Date(aptStart.getTime() + busyMin * 60000);
+              return slotStart < aptEnd && slotEnd > aptStart;
+            });
+            if (!blocked) foundSlot = true;
+          }
+          cur = new Date(cur.getTime() + 30 * 60000);
+        }
+
+        if (foundSlot) available.add(dayKey);
+      }
+
+      if (!controller.signal.aborted) setAvailableDays(available);
+    } catch {
+      // Non-critical — indicators simply won't show
+    } finally {
+      if (!controller.signal.aborted) setLoadingAvailability(false);
+    }
+  }, []);
+
+  // Re-preload when month or service changes
+  useEffect(() => {
+    if (selectedService) {
+      void preloadMonthAvailability(currentMonth, selectedService);
+    }
+  }, [currentMonth, selectedService, preloadMonthAvailability]);
 
   const handleContinue = () => {
     if (!selectedDate || !selectedService || !selectedTime) return;
@@ -275,6 +397,8 @@ export default function AgendarPage() {
                 startOfDay(new Date())
               );
               const isDisabled = !isCurrentMonth || isPastDay;
+              const dayKey = format(day, "yyyy-MM-dd");
+              const hasAvailability = !isDisabled && availableDays.has(dayKey);
 
               return (
                 <button
@@ -297,12 +421,42 @@ export default function AgendarPage() {
                   )}
                 >
                   {format(day, "d")}
-                  {today && !active && (
-                    <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand-primary" />
+                  {/* Availability dot — green when slots exist, shown below the number */}
+                  {!active && !isDisabled && (
+                    <span
+                      className={cn(
+                        "absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded-full transition-all duration-300",
+                        hasAvailability
+                          ? "w-1.5 h-1.5 bg-emerald-400"
+                          : today
+                          ? "w-1 h-1 bg-brand-primary"
+                          : loadingAvailability
+                          ? "w-1 h-1 bg-brand-text-muted/20 animate-pulse"
+                          : "w-0 h-0"
+                      )}
+                    />
                   )}
                 </button>
               );
             })}
+          </div>
+
+          {/* Legend */}
+          <div className="flex items-center gap-4 pt-3 px-1 border-t border-brand-soft/50">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+              <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-wider">Com horários</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-brand-primary inline-block" />
+              <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-wider">Hoje</span>
+            </div>
+            {loadingAvailability && (
+              <div className="flex items-center gap-1.5 ml-auto">
+                <Loader2 className="w-3 h-3 animate-spin text-brand-text-muted/40" />
+                <span className="text-[10px] font-bold text-brand-text-muted/40 uppercase tracking-wider">Verificando...</span>
+              </div>
+            )}
           </div>
         </div>
       </section>

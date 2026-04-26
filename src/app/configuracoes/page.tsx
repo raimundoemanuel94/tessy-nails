@@ -107,7 +107,8 @@ export default function ConfiguracoesPage() {
       sunday: { enabled: false, start: '09:00', end: '14:00' }
     },
     appointmentInterval: 15,
-    allowSundayBookings: false
+    allowSundayBookings: false,
+    monthlyRevenueGoal: 15000
   });
 
   // Estados para Notificações
@@ -133,8 +134,8 @@ export default function ConfiguracoesPage() {
     requirePasswordChange: false
   });
 
-  // Estados para Integrações
-  const [integrations, setIntegrations] = useState({
+  // Mantido para a tela interna de integracoes, hoje sem aba visivel.
+  const [integrations] = useState({
     firebaseConfigured: true,
     emailConfigured: false,
     smsConfigured: false,
@@ -315,12 +316,6 @@ export default function ConfiguracoesPage() {
             >
               <Shield size={16} className="mr-2" /> Segurança
             </TabsTrigger>
-            <TabsTrigger 
-              value="integracoes" 
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-violet-600 data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
-            >
-              <Zap size={16} className="mr-2" /> Integrações
-            </TabsTrigger>
           </TabsList>
 
           {/* ABA PERFIL */}
@@ -455,6 +450,21 @@ export default function ConfiguracoesPage() {
                         <SelectItem value="60">1 hora</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="monthlyRevenueGoal" className="font-semibold flex items-center gap-2">
+                      <Store size={16} /> Meta mensal de receita
+                    </Label>
+                    <Input
+                      id="monthlyRevenueGoal"
+                      type="number"
+                      min={0}
+                      step={100}
+                      value={salonData.monthlyRevenueGoal}
+                      onChange={(e) => setSalonData({ ...salonData, monthlyRevenueGoal: Number(e.target.value) || 0 })}
+                      className="h-11"
+                    />
+                    <p className="text-xs text-muted-foreground">Usada no card de meta do dashboard.</p>
                   </div>
                 </div>
 

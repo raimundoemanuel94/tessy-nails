@@ -12,6 +12,7 @@ export interface Service {
   description?: string;
   price: string;
   duration: string;
+  bufferMinutes?: number;
   image?: string;
   rating?: number;
 }

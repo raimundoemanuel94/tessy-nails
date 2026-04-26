@@ -176,6 +176,7 @@ export default function RelatoriosPage() {
   const [clientStartDate, setClientStartDate] = useState("");
   const [clientEndDate, setClientEndDate]     = useState("");
   const [showAllServices, setShowAllServices] = useState(false);
+  const [clientFiltersOpen, setClientFiltersOpen] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -816,38 +817,52 @@ export default function RelatoriosPage() {
           }
         />
 
-        <div className="grid gap-3 lg:grid-cols-5 mb-4">
-          <div className="lg:col-span-2 relative">
+        <div className="flex gap-2 mb-3">
+          <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-text-sub opacity-40" size={16} />
             <Input value={clientSearch} onChange={(e) => setClientSearch(e.target.value)}
               placeholder="Nome, telefone ou e-mail"
               className="pl-9 h-10 rounded-xl bg-brand-background/50 text-sm" />
           </div>
-          {[
-            { val: clientStatusFilter, set: setClientStatusFilter as (v: string) => void, opts: [["todos","Todos"],["ativos","Ativos"],["inativos","Inativos"]] },
-            { val: clientServiceFilter, set: setClientServiceFilter as (v: string) => void, opts: [["todos","Todos os servicos"], ...services.slice().sort((a,b)=>a.name.localeCompare(b.name)).map((s)=>[s.id, s.name])] },
-            { val: clientDateMode, set: setClientDateMode as (v: string) => void, opts: [["last_visit","Ultimo atendimento"],["created_at","Data de cadastro"]] },
-          ].map((sel, i) => (
-            <select key={i} value={sel.val}
-              onChange={(e) => sel.set(e.target.value)}
-              className="h-10 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10">
-              {sel.opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-          ))}
+          <Button variant="outline" size="sm"
+            onClick={() => setClientFiltersOpen(!clientFiltersOpen)}
+            className={cn(
+              "h-10 px-3 rounded-xl border font-bold text-[11px] gap-1.5 transition-colors",
+              clientFiltersOpen ? "border-brand-primary bg-brand-primary/5 text-brand-primary" : "border-brand-accent/20 text-brand-text-sub"
+            )}>
+            Filtros {clientFiltersOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+          </Button>
         </div>
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 mb-5">
-          <Input type="date" value={clientStartDate} onChange={(e) => setClientStartDate(e.target.value)} className="h-10 rounded-xl text-sm" />
-          <Input type="date" value={clientEndDate}   onChange={(e) => setClientEndDate(e.target.value)}   className="h-10 rounded-xl text-sm" />
-          {[
-            { label: "Filtrados", value: filteredClientRows.length },
-            { label: "Receita estimada", value: toCurrency(filteredRev) },
-          ].map((m) => (
-            <div key={m.label} className="rounded-xl bg-brand-background/50 border border-brand-accent/10 px-4 py-2 flex flex-col justify-center">
-              <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest">{m.label}</p>
-              <p className="text-sm font-black text-brand-text-main">{m.value}</p>
+        {clientFiltersOpen && (
+          <div className="space-y-3 mb-4 p-3 rounded-2xl border border-brand-accent/10 bg-brand-background/30">
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+              {[
+                { val: clientStatusFilter, set: setClientStatusFilter as (v: string) => void, opts: [["todos","Todos"],["ativos","Ativos"],["inativos","Inativos"]] },
+                { val: clientServiceFilter, set: setClientServiceFilter as (v: string) => void, opts: [["todos","Todos os servicos"], ...services.slice().sort((a,b)=>a.name.localeCompare(b.name)).map((s)=>[s.id, s.name])] },
+                { val: clientDateMode, set: setClientDateMode as (v: string) => void, opts: [["last_visit","Ultimo atendimento"],["created_at","Data de cadastro"]] },
+              ].map((sel, i) => (
+                <select key={i} value={sel.val}
+                  onChange={(e) => sel.set(e.target.value)}
+                  className="h-10 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10">
+                  {sel.opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              ))}
             </div>
-          ))}
-        </div>
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+              <Input type="date" value={clientStartDate} onChange={(e) => setClientStartDate(e.target.value)} className="h-10 rounded-xl text-sm" />
+              <Input type="date" value={clientEndDate}   onChange={(e) => setClientEndDate(e.target.value)}   className="h-10 rounded-xl text-sm" />
+              {[
+                { label: "Filtrados", value: filteredClientRows.length },
+                { label: "Receita estimada", value: toCurrency(filteredRev) },
+              ].map((m) => (
+                <div key={m.label} className="rounded-xl bg-brand-background/50 border border-brand-accent/10 px-4 py-2 flex flex-col justify-center">
+                  <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest">{m.label}</p>
+                  <p className="text-sm font-black text-brand-text-main">{m.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
           {[

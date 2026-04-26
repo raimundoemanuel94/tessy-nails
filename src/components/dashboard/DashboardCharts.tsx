@@ -31,9 +31,9 @@ const COLORS = ['#4B2E2B', '#6D4C41', '#A1887F', '#B08A7A'];
 export function RevenueChart({ data, compact = false }: { data: RevenueData[]; compact?: boolean }) {
   return (
     <div className={compact ? "w-full space-y-2" : "w-full space-y-4"}>
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className={compact ? "text-base font-black text-slate-900 dark:text-white tracking-tight" : "text-xl font-black text-slate-900 dark:text-white tracking-tight"}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h3 className={compact ? "text-base font-black text-slate-900 dark:text-white tracking-tight" : "text-lg font-black text-slate-900 dark:text-white tracking-tight sm:text-xl"}>
             Evolução Financeira
           </h3>
           <p className={compact ? "mt-1 text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest" : "mt-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"}>
@@ -41,12 +41,12 @@ export function RevenueChart({ data, compact = false }: { data: RevenueData[]; c
           </p>
         </div>
         {!compact && (
-          <div className="bg-success/10 text-success px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-success/20">
+          <div className="w-fit bg-success/10 text-success px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-success/20 sm:px-4 sm:text-[10px]">
             +12.5% Crescimento
           </div>
         )}
       </div>
-      <div style={{ width: '100%', height: compact ? 170 : 280 }}>
+      <div className={compact ? "h-[170px] w-full" : "h-[260px] w-full sm:h-[280px]"}>
         <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data}>
           <defs>

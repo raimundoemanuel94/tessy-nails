@@ -125,6 +125,7 @@ export default function ClientesPage() {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<ClientStatusFilter>("all");
   const [segmentFilter, setSegmentFilter] = useState<SegmentFilter>("all");
   const [serviceFilter, setServiceFilter] = useState("all");
@@ -402,6 +403,17 @@ export default function ClientesPage() {
     setRowsPerPage(12);
   };
 
+  const activeFiltersCount = [
+    statusFilter !== "all",
+    segmentFilter !== "all",
+    serviceFilter !== "all",
+    !!dateStart,
+    !!dateEnd,
+    !!minAppointmentsInput,
+    !!maxAppointmentsInput,
+    sortBy !== "last_visit_desc",
+  ].filter(Boolean).length;
+
   const handleExport = () => {
     try {
       const generatedAt = new Date();
@@ -604,179 +616,129 @@ export default function ClientesPage() {
       />
 
       <SectionCard
-        title="Busca Avancada e Segmentacao"
-        description="Filtre por nome, status, servico, periodo, faixa de agendamentos e ordenacao."
+        title="Busca e Filtros"
         icon={Sparkles}
         actions={
-          <Button variant="outline" size="sm" className="rounded-xl font-bold" onClick={clearFilters}>
-            Limpar filtros
-          </Button>
+          activeFiltersCount > 0 ? (
+            <Button variant="outline" size="sm" className="rounded-xl font-bold" onClick={clearFilters}>
+              Limpar ({activeFiltersCount})
+            </Button>
+          ) : undefined
         }
       >
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="xl:col-span-2">
-            <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-              Busca inteligente
-            </label>
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-sub opacity-40 group-focus-within:text-brand-primary transition-colors" size={18} />
-              <Input
-                placeholder="Nome, email, telefone ou ultimo servico"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                className="pl-11 h-11 rounded-xl border-brand-accent/15 bg-white/60"
-              />
+        {/* Busca sempre visível */}
+        <div className="flex gap-3 items-center mb-4">
+          <div className="relative flex-1 group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-sub opacity-40 group-focus-within:text-brand-primary transition-colors" size={18} />
+            <Input
+              placeholder="Nome, email, telefone ou ultimo servico"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className="pl-11 h-11 rounded-xl border-brand-accent/15 bg-white/60"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((v) => !v)}
+            className={[
+              "flex items-center gap-2 h-11 px-4 rounded-xl border text-xs font-black uppercase tracking-widest transition-all shrink-0",
+              filtersOpen
+                ? "bg-brand-primary text-white border-brand-primary"
+                : "border-brand-accent/20 text-brand-text-sub hover:border-brand-primary hover:text-brand-primary bg-white/60",
+            ].join(" ")}
+          >
+            <Search size={14} />
+            {filtersOpen ? "Fechar" : "Filtros"}
+            {activeFiltersCount > 0 && (
+              <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/30 text-[10px] font-black">
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Filtros avançados recolhíveis */}
+        {filtersOpen && (
+          <div className="pt-4 border-t border-brand-accent/10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Status</label>
+              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as ClientStatusFilter)}
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10">
+                <option value="all">Todas</option>
+                <option value="active">Somente ativas</option>
+                <option value="inactive">Somente inativas</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Segmento</label>
+              <select value={segmentFilter} onChange={(event) => setSegmentFilter(event.target.value as SegmentFilter)}
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10">
+                <option value="all">Todos</option>
+                <option value="new">Novas (30 dias)</option>
+                <option value="vip">Vip recorrentes (5+)</option>
+                <option value="at_risk">Sem retorno +60 dias</option>
+                <option value="no_appointments">Sem agendamentos</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Servico</label>
+              <select value={serviceFilter} onChange={(event) => setServiceFilter(event.target.value)}
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10">
+                <option value="all">Todos os servicos</option>
+                {services.slice().sort((a, b) => a.name.localeCompare(b.name)).map((service) => (
+                  <option key={service.id} value={service.id}>{service.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Ordenar por</label>
+              <select value={sortBy} onChange={(event) => setSortBy(event.target.value as SortOption)}
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10">
+                <option value="last_visit_desc">Ultima visita (mais recente)</option>
+                <option value="last_visit_asc">Ultima visita (mais antiga)</option>
+                <option value="name_asc">Nome (A-Z)</option>
+                <option value="name_desc">Nome (Z-A)</option>
+                <option value="appointments_desc">Agendamentos (maior)</option>
+                <option value="appointments_asc">Agendamentos (menor)</option>
+                <option value="spent_desc">Receita estimada (maior)</option>
+                <option value="spent_asc">Receita estimada (menor)</option>
+                <option value="created_desc">Cadastro (mais recente)</option>
+                <option value="created_asc">Cadastro (mais antigo)</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Base da data</label>
+              <select value={dateBaseFilter} onChange={(event) => setDateBaseFilter(event.target.value as DateBaseFilter)}
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10">
+                <option value="last_visit">Ultima visita</option>
+                <option value="created_at">Data de cadastro</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Data inicial</label>
+              <Input type="date" value={dateStart} onChange={(event) => setDateStart(event.target.value)} className="h-11 rounded-xl bg-white/60" />
+            </div>
+            <div>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Data final</label>
+              <Input type="date" value={dateEnd} onChange={(event) => setDateEnd(event.target.value)} className="h-11 rounded-xl bg-white/60" />
+            </div>
+            <div>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Linhas por pagina</label>
+              <select value={rowsPerPage} onChange={(event) => setRowsPerPage(Number(event.target.value))}
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10">
+                {PAGE_SIZE_OPTIONS.map((size) => <option key={size} value={size}>{size}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Min agendamentos</label>
+              <Input type="number" min={0} placeholder="Ex: 1" value={minAppointmentsInput} onChange={(event) => setMinAppointmentsInput(event.target.value)} className="h-11 rounded-xl bg-white/60" />
+            </div>
+            <div>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Max agendamentos</label>
+              <Input type="number" min={0} placeholder="Ex: 10" value={maxAppointmentsInput} onChange={(event) => setMaxAppointmentsInput(event.target.value)} className="h-11 rounded-xl bg-white/60" />
             </div>
           </div>
-
-          <div>
-            <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-              Status
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value as ClientStatusFilter)}
-              className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
-            >
-              <option value="all">Todas</option>
-              <option value="active">Somente ativas</option>
-              <option value="inactive">Somente inativas</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-              Segmento
-            </label>
-            <select
-              value={segmentFilter}
-              onChange={(event) => setSegmentFilter(event.target.value as SegmentFilter)}
-              className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
-            >
-              <option value="all">Todos</option>
-              <option value="new">Novas (30 dias)</option>
-              <option value="vip">Vip recorrentes (5+)</option>
-              <option value="at_risk">Sem retorno +60 dias</option>
-              <option value="no_appointments">Sem agendamentos</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-              Servico
-            </label>
-            <select
-              value={serviceFilter}
-              onChange={(event) => setServiceFilter(event.target.value)}
-              className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
-            >
-              <option value="all">Todos os servicos</option>
-              {services
-                .slice()
-                .sort((first, second) => first.name.localeCompare(second.name))
-                .map((service) => (
-                  <option key={service.id} value={service.id}>
-                    {service.name}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-              Base da data
-            </label>
-            <select
-              value={dateBaseFilter}
-              onChange={(event) => setDateBaseFilter(event.target.value as DateBaseFilter)}
-              className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
-            >
-              <option value="last_visit">Ultima visita</option>
-              <option value="created_at">Data de cadastro</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-              Data inicial
-            </label>
-            <Input type="date" value={dateStart} onChange={(event) => setDateStart(event.target.value)} className="h-11 rounded-xl bg-white/60" />
-          </div>
-
-          <div>
-            <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-              Data final
-            </label>
-            <Input type="date" value={dateEnd} onChange={(event) => setDateEnd(event.target.value)} className="h-11 rounded-xl bg-white/60" />
-          </div>
-
-          <div>
-            <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-              Ordenar por
-            </label>
-            <select
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value as SortOption)}
-              className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
-            >
-              <option value="last_visit_desc">Ultima visita (mais recente)</option>
-              <option value="last_visit_asc">Ultima visita (mais antiga)</option>
-              <option value="name_asc">Nome (A-Z)</option>
-              <option value="name_desc">Nome (Z-A)</option>
-              <option value="appointments_desc">Agendamentos (maior)</option>
-              <option value="appointments_asc">Agendamentos (menor)</option>
-              <option value="spent_desc">Receita estimada (maior)</option>
-              <option value="spent_asc">Receita estimada (menor)</option>
-              <option value="created_desc">Cadastro (mais recente)</option>
-              <option value="created_asc">Cadastro (mais antigo)</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-              Min agendamentos
-            </label>
-            <Input
-              type="number"
-              min={0}
-              placeholder="Ex: 1"
-              value={minAppointmentsInput}
-              onChange={(event) => setMinAppointmentsInput(event.target.value)}
-              className="h-11 rounded-xl bg-white/60"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-              Max agendamentos
-            </label>
-            <Input
-              type="number"
-              min={0}
-              placeholder="Ex: 10"
-              value={maxAppointmentsInput}
-              onChange={(event) => setMaxAppointmentsInput(event.target.value)}
-              className="h-11 rounded-xl bg-white/60"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
-              Linhas por pagina
-            </label>
-            <select
-              value={rowsPerPage}
-              onChange={(event) => setRowsPerPage(Number(event.target.value))}
-              className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
-            >
-              {PAGE_SIZE_OPTIONS.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        )}
       </SectionCard>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">

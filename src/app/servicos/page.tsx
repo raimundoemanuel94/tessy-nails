@@ -7,10 +7,10 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { PageHero } from "@/components/shared/PageHero";
 import { MetricCard } from "@/components/shared/MetricCard";
 import { SectionCard } from "@/components/shared/SectionCard";
-import { 
+import {
   Plus, Scissors, Clock, DollarSign, Edit2, Loader2,
   Search, Sparkles, Tag, EyeOff, Power, CheckCircle2, XCircle,
-  LayoutDashboard, Trash2
+  LayoutDashboard, Trash2, LayoutGrid, List
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -47,11 +47,13 @@ export default function ServicosPage() {
   const [formName, setFormName] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formDuration, setFormDuration] = useState(30);
+  const [formBuffer, setFormBuffer] = useState(0);
   const [formPrice, setFormPrice] = useState(0);
   const [formCategory, setFormCategory] = useState("");
   const [formIsActive, setFormIsActive] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
 
   // Derived stats
   const stats = useMemo(() => {
@@ -86,6 +88,7 @@ export default function ServicosPage() {
       setFormName(editingService.name);
       setFormDescription(editingService.description ?? "");
       setFormDuration(editingService.durationMinutes);
+      setFormBuffer(editingService.bufferMinutes ?? 0);
       setFormPrice(editingService.price);
       setFormCategory(editingService.category ?? "");
       setFormIsActive(editingService.isActive ?? true);
@@ -93,6 +96,7 @@ export default function ServicosPage() {
       setFormName("");
       setFormDescription("");
       setFormDuration(30);
+      setFormBuffer(0);
       setFormPrice(0);
       setFormCategory("");
       setFormIsActive(true);
@@ -113,6 +117,7 @@ export default function ServicosPage() {
           name,
           description: formDescription.trim() || undefined,
           durationMinutes: formDuration,
+          bufferMinutes: formBuffer,
           price: formPrice,
           category: formCategory.trim() || undefined,
           isActive: formIsActive,
@@ -123,6 +128,7 @@ export default function ServicosPage() {
           name,
           description: formDescription.trim() || undefined,
           durationMinutes: formDuration,
+          bufferMinutes: formBuffer,
           price: formPrice,
           category: formCategory.trim() || undefined,
           isActive: formIsActive,
@@ -329,8 +335,8 @@ export default function ServicosPage() {
                   onClick={() => setActiveFilter(filter)}
                   className={cn(
                     "h-9 px-4 text-xs font-black uppercase tracking-wider rounded-xl transition-all",
-                    activeFilter === filter 
-                      ? "bg-brand-primary hover:opacity-90 text-white shadow-premium" 
+                    activeFilter === filter
+                      ? "bg-brand-primary hover:opacity-90 text-white shadow-premium"
                       : "text-brand-text-sub opacity-60 hover:opacity-100"
                   )}
                 >
@@ -338,9 +344,40 @@ export default function ServicosPage() {
                 </Button>
               ))}
             </div>
+            {/* Toggle card/tabela */}
+            <div className="flex items-center gap-1 bg-white/50 backdrop-blur-sm border border-brand-accent/10 rounded-2xl p-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode('card')}
+                className={cn(
+                  "h-9 w-9 rounded-xl p-0 transition-all",
+                  viewMode === 'card'
+                    ? "bg-brand-primary text-white shadow-premium"
+                    : "text-brand-text-sub opacity-60 hover:opacity-100"
+                )}
+                title="Visualização em cards"
+              >
+                <LayoutGrid size={15} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode('table')}
+                className={cn(
+                  "h-9 w-9 rounded-xl p-0 transition-all",
+                  viewMode === 'table'
+                    ? "bg-brand-primary text-white shadow-premium"
+                    : "text-brand-text-sub opacity-60 hover:opacity-100"
+                )}
+                title="Visualização em tabela"
+              >
+                <List size={15} />
+              </Button>
+            </div>
           </div>
 
-          {/* Services Grid */}
+          {/* Services Grid / Table */}
           {filteredServices.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="h-16 w-16 rounded-2xl bg-brand-soft/20 flex items-center justify-center mb-4">
@@ -348,6 +385,101 @@ export default function ServicosPage() {
               </div>
               <p className="text-sm font-black text-brand-text-sub opacity-60">Nenhum serviço encontrado</p>
               <p className="text-xs text-brand-text-sub opacity-40 mt-1">Tente ajustar os filtros ou a busca</p>
+            </div>
+          ) : viewMode === 'table' ? (
+            <div className="overflow-x-auto rounded-2xl border border-brand-accent/10">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-brand-soft/20 border-b border-brand-accent/10">
+                    <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Nome</th>
+                    <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Categoria</th>
+                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Preço</th>
+                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Duração</th>
+                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Intervalo</th>
+                    <th className="text-center px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Status</th>
+                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredServices.map((service, idx) => (
+                    <tr
+                      key={service.id}
+                      className={cn(
+                        "border-b border-brand-accent/5 last:border-0 transition-colors hover:bg-brand-soft/10",
+                        idx % 2 === 0 ? "bg-white" : "bg-brand-soft/5",
+                        service.isActive === false && "opacity-60"
+                      )}
+                    >
+                      <td className="px-4 py-3 font-bold text-brand-text-main">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
+                            service.isActive !== false ? "bg-brand-primary text-white" : "bg-brand-soft/20 text-brand-text-sub"
+                          )}>
+                            <Scissors size={14} strokeWidth={2.5} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-brand-text-main text-sm">{service.name}</p>
+                            {service.description && (
+                              <p className="text-[11px] text-brand-text-sub opacity-50 truncate max-w-[200px]">{service.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-brand-text-sub text-xs font-semibold">
+                        {service.category || <span className="opacity-30">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-right font-black text-brand-text-main tabular-nums">
+                        R$ {service.price.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-brand-text-sub tabular-nums">
+                        {formatDuration(service.durationMinutes)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-brand-text-sub tabular-nums">
+                        {service.bufferMinutes ? formatDuration(service.bufferMinutes) : "0min"}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={cn(
+                          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black",
+                          service.isActive !== false
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-slate-100 text-slate-500"
+                        )}>
+                          <span className={cn("w-1.5 h-1.5 rounded-full", service.isActive !== false ? "bg-emerald-500" : "bg-slate-400")} />
+                          {service.isActive !== false ? "Ativo" : "Inativo"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg hover:bg-brand-primary/10 hover:text-brand-primary" onClick={() => openEdit(service)}>
+                            <Edit2 size={14} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={!!actionLoading}
+                            className={cn("h-8 w-8 p-0 rounded-lg", service.isActive !== false ? "hover:bg-slate-100 hover:text-slate-600" : "hover:bg-emerald-50 hover:text-emerald-600")}
+                            onClick={() => service.isActive !== false ? handleDeactivate(service.id) : handleActivate(service.id)}
+                          >
+                            {actionLoading === `activate:${service.id}` || actionLoading === `deactivate:${service.id}`
+                              ? <Loader2 size={14} className="animate-spin" />
+                              : service.isActive !== false ? <EyeOff size={14} /> : <Power size={14} />}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={!!actionLoading}
+                            className="h-8 w-8 p-0 rounded-lg hover:bg-red-50 hover:text-red-600"
+                            onClick={() => handleDelete(service.id, service.name)}
+                          >
+                            {actionLoading === `delete:${service.id}` ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -501,8 +633,8 @@ export default function ServicosPage() {
               ))}
             </div>
           )}
-        </SectionCard>
-      </>
+          </SectionCard>
+        </>
       )}
 
       {/* Dialog Novo / Editar Serviço */}
@@ -569,6 +701,22 @@ export default function ServicosPage() {
                 />
               </div>
               <div className="space-y-2.5">
+                <Label htmlFor="form-buffer" className="text-[10px] font-black text-brand-text-sub uppercase tracking-[2px] opacity-50 ml-1">
+                  Intervalo pós (min)
+                </Label>
+                <Input
+                  id="form-buffer"
+                  type="number"
+                  min={0}
+                  value={formBuffer}
+                  onChange={(e) => setFormBuffer(Number(e.target.value) || 0)}
+                  className="h-12 rounded-2xl border-brand-accent/10 bg-brand-soft/5 focus-visible:ring-brand-primary/20 font-black tabular-nums"
+                  title="Tempo de preparo/limpeza após o serviço antes do próximo agendamento"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2.5">
                 <Label htmlFor="form-price" className="text-[10px] font-black text-brand-text-sub uppercase tracking-[2px] opacity-50 ml-1">
                   Preço (R$) *
                 </Label>
@@ -582,6 +730,7 @@ export default function ServicosPage() {
                   className="h-12 rounded-2xl border-brand-accent/10 bg-brand-soft/5 focus-visible:ring-brand-primary/20 font-black tabular-nums"
                 />
               </div>
+              <div className="space-y-2.5" />
             </div>
             <div className="space-y-2.5">
               <Label htmlFor="form-category" className="text-[10px] font-black text-brand-text-sub uppercase tracking-[2px] opacity-50 ml-1">

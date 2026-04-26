@@ -2,7 +2,8 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { Suspense, useState, useEffect, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { appointmentService, authService } from "@/services";
 import { format, startOfDay, isSameDay, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -14,7 +15,7 @@ import { PageShell } from "@/components/shared/PageShell";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { MetricCard } from "@/components/shared/MetricCard";
 import { SectionCard } from "@/components/shared/SectionCard";
-import { Search, Plus, CalendarIcon, Clock, MoreHorizontal, User, Scissors, Loader2, UserPlus, Trash2, CheckCircle2, TrendingUp, Users, DollarSign, CalendarCheck, CalendarDays } from "lucide-react";
+import { Search, Plus, CalendarIcon, Clock, MoreHorizontal, User, Scissors, Loader2, UserPlus, Trash2, CheckCircle2, TrendingUp, Users, DollarSign, CalendarCheck, CalendarDays, ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -66,8 +67,21 @@ type EnrichedAppointment = {
 
 type AppUser = { uid: string; name: string; email?: string; role: string };
 type SpecialistUser = { uid: string; name: string; role: string };
+type SortKey = "datetime" | "client" | "service" | "status" | "price";
+type SortDirection = "asc" | "desc";
 
-export default function AgendamentosPage() {
+function parseAppointmentDateTime(app: EnrichedAppointment) {
+  const [day, month, year] = app.date.split("/").map(Number);
+  const [hours, minutes] = app.time.split(":").map(Number);
+  return new Date(year, month - 1, day, hours || 0, minutes || 0).getTime();
+}
+
+function parseCurrency(value: string) {
+  return Number(value.replace(/[^\d,.-]/g, "").replace(".", "").replace(",", ".")) || 0;
+}
+
+function AgendamentosContent() {
+  const searchParams = useSearchParams();
   const [rawAppointments, setRawAppointments] = useState<Appointment[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -81,6 +95,9 @@ export default function AgendamentosPage() {
   const [remarcarDate, setRemarcarDate] = useState<Date>(new Date());
   const [remarcarTime, setRemarcarTime] = useState<string>("09:00");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [recentlyChangedId, setRecentlyChangedId] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>("datetime");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   const loadData = useCallback(async () => {
     try {
@@ -150,6 +167,13 @@ export default function AgendamentosPage() {
     loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    const filterParam = searchParams.get("filter");
+    if (["all", "today", "tomorrow", "week", "pending"].includes(filterParam ?? "")) {
+      setActiveFilter(filterParam as string);
+    }
+  }, [searchParams]);
+
   const enrichedAppointments = useMemo<EnrichedAppointment[]>(() => {
     return rawAppointments.map(app => {
       const client = clients.find(c => c.id === app.clientId);
@@ -213,6 +237,37 @@ export default function AgendamentosPage() {
     return filtered;
   }, [enrichedAppointments, searchTerm, activeFilter]);
 
+  const sortedAppointments = useMemo(() => {
+    const list = [...filteredAppointments];
+    list.sort((first, second) => {
+      let result = 0;
+      if (sortKey === "datetime") result = parseAppointmentDateTime(first) - parseAppointmentDateTime(second);
+      if (sortKey === "client") result = first.client.localeCompare(second.client, "pt-BR");
+      if (sortKey === "service") result = first.service.localeCompare(second.service, "pt-BR");
+      if (sortKey === "status") result = first.status.localeCompare(second.status, "pt-BR");
+      if (sortKey === "price") result = parseCurrency(first.price) - parseCurrency(second.price);
+      return sortDirection === "asc" ? result : -result;
+    });
+    return list;
+  }, [filteredAppointments, sortDirection, sortKey]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDirection((current) => (current === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortKey(key);
+    setSortDirection(key === "datetime" ? "asc" : "desc");
+  };
+
+  const renderSortIcon = (key: SortKey) => {
+    if (sortKey !== key) return <ArrowUpDown size={12} className="opacity-40" />;
+    return sortDirection === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />;
+  };
+
+  const sortableHeadClass =
+    "px-6 py-4 text-[10px] font-black uppercase text-brand-text-sub opacity-60 tracking-widest";
+
   const formatCurrency = (value: number) =>
     `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -242,12 +297,18 @@ export default function AgendamentosPage() {
     return { total, pending, confirmed, completed, revenue, pendingRevenue, confirmedRevenue, totalPipelineRevenue };
   }, [rawAppointments, services]);
 
+  const flashChanged = (id: string) => {
+    setRecentlyChangedId(id);
+    setTimeout(() => setRecentlyChangedId(null), 2000);
+  };
+
   const handleConfirmar = async (id: string) => {
     setActionLoading(id);
     try {
       await appointmentService.confirm(id);
       toast.success("Agendamento confirmado.");
       await loadData();
+      flashChanged(id);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao confirmar.");
     } finally {
@@ -261,6 +322,7 @@ export default function AgendamentosPage() {
       await appointmentService.complete(id);
       toast.success("Atendimento concluído com sucesso!");
       await loadData();
+      flashChanged(id);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao concluir atendimento.");
     } finally {
@@ -274,6 +336,7 @@ export default function AgendamentosPage() {
       await appointmentService.noShow(id);
       toast.success("Falta registrada.");
       await loadData();
+      flashChanged(id);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao registrar falta.");
     } finally {
@@ -288,6 +351,7 @@ export default function AgendamentosPage() {
       await appointmentService.cancel(id);
       toast.success("Agendamento cancelado.");
       await loadData();
+      flashChanged(id);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao cancelar.");
     } finally {
@@ -469,7 +533,7 @@ export default function AgendamentosPage() {
                 
                 {/* Results Count */}
                 <div className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-40">
-                  <span className="text-brand-primary">{filteredAppointments.length}</span> agendamentos encontrados
+                  <span className="text-brand-primary">{sortedAppointments.length}</span> agendamentos encontrados
                 </div>
               </div>
             </div>
@@ -485,18 +549,41 @@ export default function AgendamentosPage() {
                 <Table>
                   <TableHeader className="bg-brand-soft/20">
                     <TableRow className="hover:bg-transparent border-b border-brand-accent/5">
-                      <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Data & Horário</TableHead>
-                      <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Cliente</TableHead>
-                      <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Serviço</TableHead>
-                      <TableHead className="px-6 py-4 text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Status</TableHead>
-                      <TableHead className="px-6 py-4 text-right text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Valor</TableHead>
+                      <TableHead className={sortableHeadClass}>
+                        <button type="button" onClick={() => toggleSort("datetime")} className="flex items-center gap-1.5 hover:text-brand-primary">
+                          Data & Horario {renderSortIcon("datetime")}
+                        </button>
+                      </TableHead>
+                      <TableHead className={sortableHeadClass}>
+                        <button type="button" onClick={() => toggleSort("client")} className="flex items-center gap-1.5 hover:text-brand-primary">
+                          Cliente {renderSortIcon("client")}
+                        </button>
+                      </TableHead>
+                      <TableHead className={sortableHeadClass}>
+                        <button type="button" onClick={() => toggleSort("service")} className="flex items-center gap-1.5 hover:text-brand-primary">
+                          Servico {renderSortIcon("service")}
+                        </button>
+                      </TableHead>
+                      <TableHead className={sortableHeadClass}>
+                        <button type="button" onClick={() => toggleSort("status")} className="flex items-center gap-1.5 hover:text-brand-primary">
+                          Status {renderSortIcon("status")}
+                        </button>
+                      </TableHead>
+                      <TableHead className="px-6 py-4 text-right text-[10px] font-black uppercase text-brand-text-sub opacity-60 tracking-widest">
+                        <button type="button" onClick={() => toggleSort("price")} className="ml-auto flex items-center gap-1.5 hover:text-brand-primary">
+                          Valor {renderSortIcon("price")}
+                        </button>
+                      </TableHead>
                       <TableHead className="px-6 py-4 text-center text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredAppointments.length > 0 ? (
-                      filteredAppointments.map((app) => (
-                        <TableRow key={app.id} className="group hover:bg-white border-b border-brand-accent/5 transition-all">
+                    {sortedAppointments.length > 0 ? (
+                      sortedAppointments.map((app) => (
+                        <TableRow key={app.id} className={cn(
+                          "group hover:bg-white border-b border-brand-accent/5 transition-all duration-300",
+                          recentlyChangedId === app.id && "bg-emerald-50 ring-1 ring-inset ring-emerald-200"
+                        )}>
                           <TableCell className="px-6 py-5">
                             <div className="flex flex-col">
                               <span className="text-sm font-black text-brand-text-main tabular-nums">{app.date}</span>
@@ -646,6 +733,22 @@ export default function AgendamentosPage() {
   );
 }
 
-
-
+export default function AgendamentosPage() {
+  return (
+    <Suspense
+      fallback={
+        <PageShell>
+          <div className="flex flex-col items-center justify-center p-20 gap-4">
+            <Loader2 className="h-10 w-10 animate-spin text-brand-primary/30" />
+            <p className="text-[10px] font-black text-brand-text-sub opacity-40 uppercase tracking-widest">
+              Sincronizando...
+            </p>
+          </div>
+        </PageShell>
+      }
+    >
+      <AgendamentosContent />
+    </Suspense>
+  );
+}
 

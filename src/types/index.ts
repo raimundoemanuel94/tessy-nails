@@ -39,6 +39,7 @@ export const ServiceSchema = z.object({
   name: z.string().min(2),
   description: z.string().optional(),
   durationMinutes: z.number().min(1),
+  bufferMinutes: z.number().min(0).default(0), // intervalo de preparo após o serviço
   price: z.number().min(0),
   category: z.string().optional(),
   isActive: z.boolean().default(true),

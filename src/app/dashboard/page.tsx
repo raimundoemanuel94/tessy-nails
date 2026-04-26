@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn, ensureDate } from "@/lib/utils";
@@ -17,13 +17,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { appointmentService } from "@/services/appointments";
 import { authService } from "@/services/auth";
-import { format, isToday, isPast, startOfDay, getHours } from "date-fns";
+import { format, isToday, isPast, startOfDay, getHours, endOfDay, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import nextDynamic from "next/dynamic";
 import { globalStore } from "@/store/globalStore";
 import { toast } from "sonner";
 import { AppointmentForm } from "@/features/appointments/components/AppointmentForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const RevenueChart = nextDynamic(
   () => import("@/components/dashboard/DashboardCharts").then((m) => m.RevenueChart),
@@ -54,6 +56,21 @@ function greeting(name: string) {
 interface ApptItem { id: string; client: string; service: string; price: number; time: string; date: string; isToday: boolean; status: string; }
 interface SvcItem  { name: string; count: number; }
 interface RevPoint { date: string; total: number; }
+type ChartPeriod = "week" | "last14days" | "last30days";
+
+const DEFAULT_MONTHLY_GOAL = 15000;
+const CHART_PERIOD_LABELS: Record<ChartPeriod, string> = {
+  week: "7 dias",
+  last14days: "14 dias",
+  last30days: "30 dias",
+};
+
+function getChartInterval(period: ChartPeriod) {
+  const now = new Date();
+  if (period === "week") return { start: startOfDay(subDays(now, 6)), end: endOfDay(now) };
+  if (period === "last14days") return { start: startOfDay(subDays(now, 13)), end: endOfDay(now) };
+  return getLast30DaysInterval(now);
+}
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -65,6 +82,8 @@ export default function DashboardPage() {
   const [chart,    setChart]    = useState<RevPoint[]>([]);
   const [busy,     setBusy]     = useState(true);
   const [dialog,   setDialog]   = useState(false);
+  const [chartPeriod, setChartPeriod] = useState<ChartPeriod>("last30days");
+  const [monthlyGoal, setMonthlyGoal] = useState(DEFAULT_MONTHLY_GOAL);
 
   const displayName =
     user?.name && user.name.trim() !== "" && user.name.trim().toLowerCase() !== "usuario"
@@ -83,11 +102,14 @@ export default function DashboardPage() {
     try {
       setBusy(true);
       const { start, end } = getLast30DaysInterval();
-      const [rawAppts, clients, svcs] = await Promise.all([
+      const [rawAppts, clients, svcs, salonSnap] = await Promise.all([
         appointmentService.getByDateRange(start, end),
         globalStore.fetchRecentClients(false),
         globalStore.fetchServices(false),
+        getDoc(doc(db, "settings", "salon")).catch(() => null),
       ]);
+      const savedGoal = salonSnap?.exists() ? Number(salonSnap.data().monthlyRevenueGoal) : 0;
+      setMonthlyGoal(savedGoal > 0 ? savedGoal : DEFAULT_MONTHLY_GOAL);
       const unknownIds = rawAppts
         .map((a) => a.clientId)
         .filter((id, i, arr) => Boolean(id) && arr.indexOf(id) === i)
@@ -126,11 +148,8 @@ export default function DashboardPage() {
         .map((s) => ({ name: s.name, count: rawAppts.filter((a) => a.serviceId === s.id && a.status === "completed").length }))
         .sort((a, b) => b.count - a.count).slice(0, 5);
       setServices(top);
-      const now2 = new Date();
-      const weekStart = startOfDay(new Date(new Date().setDate(now2.getDate() - now2.getDay())));
-      const chartData = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(weekStart);
-        d.setDate(d.getDate() + i);
+      const chartSeed = Array.from({ length: 30 }, (_, i) => {
+        const d = startOfDay(subDays(new Date(), 29 - i));
         const dateStr = format(d, "dd/MM");
         return {
           date: dateStr,
@@ -139,7 +158,7 @@ export default function DashboardPage() {
             .reduce((t, a) => t + (priceById.get(a.serviceId) ?? 0), 0),
         };
       });
-      setChart(chartData);
+      setChart(chartSeed);
     } catch (err) {
       console.error(err);
       toast.error("Erro ao carregar dados do dashboard");
@@ -149,6 +168,20 @@ export default function DashboardPage() {
   }, [loading, user]);
 
   useEffect(() => { void fetchData(); }, [fetchData]);
+
+  const chartData = useMemo(() => {
+    const { start, end } = getChartInterval(chartPeriod);
+    const dayCount = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / 86400000));
+    return Array.from({ length: dayCount }, (_, i) => {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const dateStr = format(d, "dd/MM");
+      const total = chart
+        .filter((point) => point.date === dateStr)
+        .reduce((sum, point) => sum + point.total, 0);
+      return { date: dateStr, total };
+    });
+  }, [chart, chartPeriod]);
 
   if (loading || busy) {
     return (
@@ -168,7 +201,8 @@ export default function DashboardPage() {
     );
   }
 
-  const goalPct = Math.min(Math.round((stats.revenue / 15000) * 100), 100);
+  const goalPct = Math.min(Math.round((stats.revenue / monthlyGoal) * 100), 100);
+  const formattedGoal = monthlyGoal.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   const today = format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR });
 
   return (
@@ -188,15 +222,17 @@ export default function DashboardPage() {
               Visao rapida do que importa no seu studio hoje.
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto">
             <Button variant="outline" size="sm"
               onClick={() => router.push("/relatorios")}
-              className="rounded-2xl border-brand-accent/20 text-brand-text-sub hover:text-brand-primary font-semibold gap-2 h-11">
-              <BarChart3 size={15} /> Relatorios
+              className="min-w-0 rounded-2xl border-brand-accent/20 px-3 text-brand-text-sub hover:text-brand-primary font-semibold gap-2 h-11 text-[11px] sm:px-4 sm:text-sm">
+              <BarChart3 size={15} className="shrink-0" />
+              <span className="truncate">Relatorios</span>
             </Button>
             <Button onClick={() => setDialog(true)}
-              className="h-11 px-6 bg-brand-primary text-white font-bold rounded-2xl shadow-md hover:opacity-90 active:scale-95 transition-all gap-2">
-              <Plus size={16} /> Novo Agendamento
+              className="min-w-0 h-11 px-3 bg-brand-primary text-white font-bold rounded-2xl shadow-md hover:opacity-90 active:scale-95 transition-all gap-2 text-[11px] sm:px-6 sm:text-sm">
+              <Plus size={16} className="shrink-0" />
+              <span className="truncate">Novo Agend.</span>
             </Button>
           </div>
         </motion.div>
@@ -217,7 +253,7 @@ export default function DashboardPage() {
               </p>
               <div className="mt-3 space-y-1.5">
                 <div className="flex justify-between text-[9px] font-bold text-white/50">
-                  <span>Meta R$ 15.000</span><span>{goalPct}%</span>
+                  <span>Meta R$ {formattedGoal}</span><span>{goalPct}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-white/15 rounded-full overflow-hidden">
                   <motion.div initial={{ width: 0 }} animate={{ width: goalPct + "%" }}
@@ -228,7 +264,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-brand-accent/10 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-brand-accent/10 bg-white p-5 shadow-sm col-span-2 sm:col-span-1">
             <div className="flex items-center justify-between mb-3">
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-text-sub">Agend. Hoje</p>
               <CalendarDays size={16} className="text-brand-primary" />
@@ -386,7 +422,36 @@ export default function DashboardPage() {
         {/* GRAFICO */}
         <motion.div variants={item}>
           <div className="rounded-2xl border border-brand-accent/10 bg-white shadow-sm p-6">
-            <RevenueChart data={chart} compact={false} />
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-text-sub opacity-50">
+                  Receita no periodo
+                </p>
+                <p className="text-sm font-bold text-brand-text-main">
+                  Evolucao dos ultimos {CHART_PERIOD_LABELS[chartPeriod].toLowerCase()}
+                </p>
+              </div>
+              <div className="flex w-full gap-1.5 rounded-2xl border border-brand-accent/10 bg-brand-soft/10 p-1 sm:w-auto">
+                {(Object.keys(CHART_PERIOD_LABELS) as ChartPeriod[]).map((period) => (
+                  <Button
+                    key={period}
+                    type="button"
+                    size="sm"
+                    variant={chartPeriod === period ? "default" : "ghost"}
+                    onClick={() => setChartPeriod(period)}
+                    className={cn(
+                      "h-8 flex-1 rounded-xl px-3 text-[10px] font-black uppercase tracking-wider sm:flex-none",
+                      chartPeriod === period
+                        ? "bg-brand-primary text-white shadow-sm"
+                        : "text-brand-text-sub opacity-60 hover:opacity-100"
+                    )}
+                  >
+                    {CHART_PERIOD_LABELS[period]}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <RevenueChart data={chartData} compact={false} />
           </div>
         </motion.div>
 

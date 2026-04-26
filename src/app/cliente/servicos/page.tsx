@@ -22,6 +22,7 @@ interface Service {
   description: string;
   price: string;
   duration: string;
+  bufferMinutes?: number;
   isActive: boolean;
   image?: string;
   rating?: number;
@@ -82,6 +83,7 @@ export default function ServicosPage() {
           description: service.description || "",
           price: `R$ ${service.price.toFixed(2)}`,
           duration: `${service.durationMinutes}min`,
+          bufferMinutes: service.bufferMinutes ?? 0,
           isActive: service.isActive !== false,
           imageUrl: getServiceImage(service.name),
           rating: undefined
