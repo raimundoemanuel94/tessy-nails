@@ -5,15 +5,14 @@ import { useRouter } from "next/navigation";
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   isSameMonth, isSameDay, isToday, addMonths, subMonths,
-  isBefore, startOfDay,
+  isBefore, startOfDay, getDay,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn, ensureDate } from "@/lib/utils";
-import { appointmentService } from "@/services/appointments";
 import { globalStore } from "@/store/globalStore";
 import { TimeSlotGrid, TimeSlot } from "@/components/cliente/TimeSlotGrid";
-import { ArrowLeft, ChevronLeft, ChevronRight, Clock, Sparkles } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Clock, Sparkles, CheckCircle2 } from "lucide-react";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
 
 interface Service {
@@ -21,99 +20,341 @@ interface Service {
   price: string; duration: string; bufferMinutes?: number;
 }
 
-function getDurationMinutes(value?: string) {
-  const d = Number.parseInt(value ?? "", 10);
+function getDurationMinutes(v?: string) {
+  const d = Number.parseInt(v ?? "", 10);
   return Number.isFinite(d) && d > 0 ? d : 60;
 }
 
-const WEEK_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const WEEKDAYS = ["D","S","T","Q","Q","S","S"];
+const MONTHS_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
+// ── Componente de calendário premium ──────────────────────────────────────
+function PremiumCalendar({
+  currentMonth, selectedDate, availableDays, loadingAvailability,
+  onDateSelect, onPrevMonth, onNextMonth,
+}: {
+  currentMonth: Date; selectedDate: Date | null;
+  availableDays: Set<string>; loadingAvailability: boolean;
+  onDateSelect: (d: Date) => void;
+  onPrevMonth: () => void; onNextMonth: () => void;
+}) {
+  const days = eachDayOfInterval({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) });
+  const offset = getDay(days[0]);
+  const today = new Date();
+  const todayKey = format(today, "yyyy-MM-dd");
+
+  // Agrupar em semanas
+  const allCells: (Date | null)[] = [
+    ...Array(offset).fill(null),
+    ...days,
+  ];
+  const weeks: (Date | null)[][] = [];
+  for (let i = 0; i < allCells.length; i += 7) {
+    weeks.push(allCells.slice(i, i + 7).concat(Array(7).fill(null)).slice(0, 7));
+  }
+
+  return (
+    <div className="select-none">
+      {/* Month header */}
+      <div className="flex items-center justify-between mb-6 px-1">
+        <div>
+          <h2 className="text-xl font-black text-[#1E1A2E] leading-none">
+            {MONTHS_PT[currentMonth.getMonth()]}
+          </h2>
+          <p className="text-[11px] font-bold text-[#9B8FC0] mt-0.5">
+            {currentMonth.getFullYear()}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {loadingAvailability && (
+            <div className="flex gap-0.5 mr-1">
+              {[0,1,2].map(i => (
+                <motion.div key={i} className="w-1 h-1 rounded-full bg-[#9D7FD4]/40"
+                  animate={{ opacity:[0.3,1,0.3] }}
+                  transition={{ duration:1, delay:i*0.2, repeat:Infinity }} />
+              ))}
+            </div>
+          )}
+          <motion.button whileTap={{ scale:0.85 }} onClick={onPrevMonth}
+            className="h-9 w-9 rounded-2xl bg-[#EDE5FF] flex items-center justify-center">
+            <ChevronLeft size={15} className="text-[#7C5CBF]" />
+          </motion.button>
+          <motion.button whileTap={{ scale:0.85 }} onClick={onNextMonth}
+            className="h-9 w-9 rounded-2xl bg-[#EDE5FF] flex items-center justify-center">
+            <ChevronRight size={15} className="text-[#7C5CBF]" />
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Weekday labels */}
+      <div className="grid grid-cols-7 mb-3">
+        {WEEKDAYS.map((d, i) => (
+          <div key={i} className="text-center">
+            <span className="text-[10px] font-black text-[#C4BAE0] uppercase tracking-widest">{d}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Weeks */}
+      <div className="space-y-1.5">
+        {weeks.map((week, wi) => (
+          <div key={wi} className="grid grid-cols-7 gap-1">
+            {week.map((day, di) => {
+              if (!day) return <div key={di} />;
+
+              const dayKey  = format(day, "yyyy-MM-dd");
+              const isPast  = isBefore(startOfDay(day), startOfDay(today));
+              const isTd    = isToday(day);
+              const active  = selectedDate && isSameDay(day, selectedDate);
+              const hasSlots = !isPast && availableDays.has(dayKey);
+              const disabled = isPast && !isTd;
+
+              return (
+                <motion.button
+                  key={dayKey}
+                  whileTap={!disabled ? { scale: 0.88 } : undefined}
+                  onClick={() => !disabled && onDateSelect(day)}
+                  disabled={disabled}
+                  className={cn(
+                    "relative flex flex-col items-center justify-center rounded-2xl transition-all duration-200",
+                    "h-11 w-full",
+                    disabled  && "opacity-25 cursor-not-allowed",
+                    !disabled && !active && !isTd && "hover:bg-[#FAF8FF]",
+                    !disabled && isTd && !active && "bg-[#EDE5FF]",
+                    active && "shadow-lg",
+                  )}
+                  style={active ? {
+                    background: "linear-gradient(135deg, #5A3F9A 0%, #9D7FD4 100%)",
+                    boxShadow: "0 4px 16px rgba(125, 79, 212, 0.35)",
+                  } : undefined}
+                >
+                  <span className={cn(
+                    "text-[13px] font-black leading-none",
+                    active    ? "text-white"    :
+                    isTd      ? "text-[#7C5CBF]" :
+                    disabled  ? "text-[#C4BAE0]" : "text-[#1E1A2E]"
+                  )}>
+                    {format(day, "d")}
+                  </span>
+
+                  {/* Dot de disponibilidade */}
+                  {!active && (
+                    <span className={cn(
+                      "absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full transition-all duration-300",
+                      hasSlots ? "w-1 h-1 bg-emerald-400" :
+                      isTd && !hasSlots && !isPast ? "w-1 h-1 bg-[#9D7FD4]/40" :
+                      "w-0 h-0"
+                    )} />
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4 mt-4 pt-4 border-t border-[#F0EBFF]">
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+          <span className="text-[9px] font-bold text-[#9B8FC0] uppercase tracking-widest">Livre</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#7C5CBF] inline-block" />
+          <span className="text-[9px] font-bold text-[#9B8FC0] uppercase tracking-widest">Selecionado</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded bg-[#EDE5FF] inline-block" />
+          <span className="text-[9px] font-bold text-[#9B8FC0] uppercase tracking-widest">Hoje</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Componente de horários premium ────────────────────────────────────────
+function PremiumTimeSlots({
+  slots, selected, onSelect,
+}: {
+  slots: TimeSlot[]; selected: string | null;
+  onSelect: (id: string) => void;
+}) {
+  const manha = slots.filter(s => parseInt(s.time.split(":")[0]) < 12);
+  const tarde = slots.filter(s => parseInt(s.time.split(":")[0]) >= 12);
+
+  const renderGroup = (label: string, emoji: string, group: TimeSlot[]) => {
+    if (!group.length) return null;
+    const freeCount = group.filter(s => s.available).length;
+
+    return (
+      <div className="mb-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-base">{emoji}</span>
+            <span className="text-xs font-black text-[#2A2440] uppercase tracking-widest">{label}</span>
+          </div>
+          <span className="text-[9px] font-bold text-[#9B8FC0]">
+            {freeCount} horário{freeCount !== 1 ? "s" : ""} livre{freeCount !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-4 gap-2">
+          {group.map((slot, i) => {
+            const isSelected = selected === slot.id;
+            const avail = slot.available;
+
+            return (
+              <motion.button
+                key={slot.id}
+                initial={{ opacity:0, scale:0.8 }}
+                animate={{ opacity:1, scale:1 }}
+                transition={{ delay: i * 0.025, type:"spring", stiffness:400, damping:25 }}
+                whileTap={avail ? { scale:0.9 } : undefined}
+                onClick={() => avail && onSelect(slot.id)}
+                disabled={!avail}
+                className="relative"
+              >
+                <div className={cn(
+                  "h-12 rounded-2xl flex flex-col items-center justify-center transition-all duration-200 relative overflow-hidden",
+                  isSelected
+                    ? "shadow-lg shadow-[#7C5CBF]/30"
+                    : avail
+                    ? "bg-white border border-[#EDE5FF] hover:border-[#9D7FD4]/40 hover:bg-[#FAF8FF]"
+                    : "bg-[#FAF8FF] border border-transparent opacity-40 cursor-not-allowed"
+                )}
+                style={isSelected ? {
+                  background: "linear-gradient(135deg, #5A3F9A 0%, #9D7FD4 100%)",
+                } : undefined}>
+                  {/* Pulse se selecionado */}
+                  {isSelected && (
+                    <motion.div className="absolute inset-0 rounded-2xl"
+                      animate={{ opacity:[0.3,0,0.3] }}
+                      transition={{ duration:2, repeat:Infinity }}
+                      style={{ background:"radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)" }} />
+                  )}
+
+                  <span className={cn(
+                    "text-[11px] font-black tabular-nums relative z-10",
+                    isSelected ? "text-white" : avail ? "text-[#1E1A2E]" : "text-[#C4BAE0]"
+                  )}>
+                    {slot.time}
+                  </span>
+
+                  {isSelected && (
+                    <CheckCircle2 size={8} className="text-white/70 mt-0.5 relative z-10" />
+                  )}
+
+                  {/* Dot verde */}
+                  {!isSelected && avail && (
+                    <span className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-emerald-400" />
+                  )}
+
+                  {/* Badge popular */}
+                  {slot.label && avail && !isSelected && (
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-px rounded-full bg-[#9D7FD4] text-[7px] font-black text-white whitespace-nowrap">
+                      {slot.label}
+                    </span>
+                  )}
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {renderGroup("Manhã", "🌅", manha)}
+      {renderGroup("Tarde", "☀️", tarde)}
+    </div>
+  );
+}
+
+// ── Página principal ──────────────────────────────────────────────────────
 export default function AgendarPage() {
   const router = useRouter();
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [service, setService]         = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [timeSlots, setTimeSlots]     = useState<TimeSlot[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [slotsError, setSlotsError] = useState(false);
+  const [slotsError, setSlotsError]   = useState(false);
   const [availableDays, setAvailableDays] = useState<Set<string>>(new Set());
-  const [loadingAvailability, setLoadingAvailability] = useState(false);
+  const [loadingAvail, setLoadingAvail] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    const service = AppointmentStorage.loadSelectedService();
-    if (!service) { router.push("/cliente/servicos"); return; }
-    setSelectedService(service);
-    const savedDate = AppointmentStorage.loadSelectedDate();
-    if (savedDate) {
-      setSelectedDate(savedDate);
-      setCurrentMonth(savedDate);
-      void fetchSlots(savedDate, service);
+    const svc = AppointmentStorage.loadSelectedService();
+    if (!svc) { router.push("/cliente/servicos"); return; }
+    setService(svc);
+    const saved = AppointmentStorage.loadSelectedDate();
+    if (saved) {
+      setSelectedDate(saved); setCurrentMonth(saved);
+      void fetchSlots(saved, svc);
     }
   }, [router]);
 
-  const fetchSlots = async (date: Date, serviceOverride?: Service) => {
+  const fetchSlots = async (date: Date, svcOverride?: Service) => {
     try {
       setLoadingSlots(true); setSlotsError(false);
-      const start = new Date(date); start.setHours(0, 0, 0, 0);
-      const end   = new Date(date); end.setHours(23, 59, 59, 999);
+      const start = new Date(date); start.setHours(0,0,0,0);
+      const end   = new Date(date); end.setHours(23,59,59,999);
       const res = await fetch(`/api/slots?start=${start.toISOString()}&end=${end.toISOString()}`);
       if (!res.ok) throw new Error();
-      const { busySlots } = await res.json() as { busySlots: { appointmentDate: string; serviceId: string }[] };
+      const { busySlots } = await res.json() as { busySlots:{appointmentDate:string;serviceId:string}[] };
       const allSvcs = await globalStore.fetchServices(false);
-      const timingMap = new Map(allSvcs.map(s => [s.id, {
-        durationMinutes: Number(s.durationMinutes) || 60,
-        bufferMinutes: Number(s.bufferMinutes) || 0,
+      const tMap = new Map(allSvcs.map(s => [s.id, {
+        durationMinutes: Number(s.durationMinutes)||60, bufferMinutes: Number(s.bufferMinutes)||0,
       }]));
-      const cur = serviceOverride ?? selectedService;
-      const totalBlock = getDurationMinutes(cur?.duration) + (cur?.bufferMinutes ?? 0);
+      const cur = svcOverride ?? service;
+      const total = getDurationMinutes(cur?.duration) + (cur?.bufferMinutes ?? 0);
       const slots: TimeSlot[] = [];
-      let t = new Date(date); t.setHours(8, 0, 0, 0);
-      const endT = new Date(date); endT.setHours(19, 0, 0, 0);
+      let t = new Date(date); t.setHours(8,0,0,0);
+      const endT = new Date(date); endT.setHours(19,0,0,0);
       const now = new Date();
       while (t < endT) {
-        const slotStart = new Date(t);
-        const slotEnd   = new Date(t.getTime() + totalBlock * 60000);
-        const isPast = isToday(date) && slotStart < now;
+        const ss = new Date(t), se = new Date(t.getTime() + total*60000);
+        const isPast = isToday(date) && ss < now;
         const busy = busySlots.some(apt => {
-          const as = new Date(apt.appointmentDate);
-          const tm = timingMap.get(apt.serviceId);
-          const ae = new Date(as.getTime() + ((tm?.durationMinutes ?? 60) + (tm?.bufferMinutes ?? 0)) * 60000);
-          return slotStart < ae && slotEnd > as;
+          const as2 = new Date(apt.appointmentDate);
+          const tm = tMap.get(apt.serviceId);
+          const ae = new Date(as2.getTime()+((tm?.durationMinutes??60)+(tm?.bufferMinutes??0))*60000);
+          return ss < ae && se > as2;
         });
+        const timeStr = format(ss, "HH:mm");
         slots.push({
-          id: format(slotStart, "HH:mm"),
-          time: format(slotStart, "HH:mm"),
+          id: timeStr, time: timeStr,
           available: !busy && !isPast,
-          label: ["10:00","11:00","15:00","16:00"].includes(format(slotStart,"HH:mm")) && !busy && !isPast ? "Popular" : undefined,
+          label: ["10:00","11:00","15:00","16:00"].includes(timeStr) && !busy && !isPast ? "Popular" : undefined,
         });
-        t = new Date(t.getTime() + 30 * 60000);
+        t = new Date(t.getTime() + 30*60000);
       }
       setTimeSlots(slots);
     } catch { setTimeSlots([]); setSlotsError(true); }
     finally { setLoadingSlots(false); }
   };
 
-  const preloadMonth = useCallback(async (month: Date, service: Service | null) => {
-    if (!service) return;
+  const preloadMonth = useCallback(async (month: Date, svc: Service | null) => {
+    if (!svc) return;
     abortRef.current?.abort();
     const ctrl = new AbortController(); abortRef.current = ctrl;
-    setLoadingAvailability(true);
+    setLoadingAvail(true);
     const today = startOfDay(new Date());
     const mStart = startOfMonth(month), mEnd = endOfMonth(month);
     const rangeStart = isBefore(mStart, today) ? today : mStart;
-    const totalBlock = getDurationMinutes(service.duration) + (service.bufferMinutes ?? 0);
+    const total = getDurationMinutes(svc.duration) + (svc.bufferMinutes ?? 0);
     try {
       const [allSvcs, res] = await Promise.all([
         globalStore.fetchServices(false),
         fetch(`/api/slots?start=${rangeStart.toISOString()}&end=${mEnd.toISOString()}`),
       ]);
       if (ctrl.signal.aborted) return;
-      const { busySlots } = await res.json() as { busySlots: { appointmentDate: string; serviceId: string }[] };
-      const timingMap = new Map(allSvcs.map(s => [s.id, {
-        durationMinutes: Number(s.durationMinutes)||60,
-        bufferMinutes: Number(s.bufferMinutes)||0,
+      const { busySlots } = await res.json() as { busySlots:{appointmentDate:string;serviceId:string}[] };
+      const tMap = new Map(allSvcs.map(s => [s.id,{
+        durationMinutes:Number(s.durationMinutes)||60, bufferMinutes:Number(s.bufferMinutes)||0,
       }]));
       const available = new Set<string>();
       const now = new Date();
@@ -125,13 +366,13 @@ export default function AgendarPage() {
         const dayEnd = new Date(day); dayEnd.setHours(19,0,0,0);
         let found = false;
         while (cur < dayEnd && !found) {
-          const ss = new Date(cur), se = new Date(cur.getTime()+totalBlock*60000);
+          const ss = new Date(cur), se = new Date(cur.getTime()+total*60000);
           if (!(isToday(day) && ss < now)) {
             found = !dayBusy.some(apt => {
-              const as = new Date(apt.appointmentDate);
-              const tm = timingMap.get(apt.serviceId);
-              const ae = new Date(as.getTime()+((tm?.durationMinutes??60)+(tm?.bufferMinutes??0))*60000);
-              return ss < ae && se > as;
+              const as2 = new Date(apt.appointmentDate);
+              const tm = tMap.get(apt.serviceId);
+              const ae = new Date(as2.getTime()+((tm?.durationMinutes??60)+(tm?.bufferMinutes??0))*60000);
+              return ss < ae && se > as2;
             });
           }
           cur = new Date(cur.getTime()+30*60000);
@@ -140,12 +381,12 @@ export default function AgendarPage() {
       }
       if (!ctrl.signal.aborted) setAvailableDays(available);
     } catch { /* silencioso */ }
-    finally { if (!ctrl.signal.aborted) setLoadingAvailability(false); }
+    finally { if (!ctrl.signal.aborted) setLoadingAvail(false); }
   }, []);
 
   useEffect(() => {
-    if (selectedService) void preloadMonth(currentMonth, selectedService);
-  }, [currentMonth, selectedService, preloadMonth]);
+    if (service) void preloadMonth(currentMonth, service);
+  }, [currentMonth, service, preloadMonth]);
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date); setSelectedTime(null);
@@ -154,25 +395,23 @@ export default function AgendarPage() {
   };
 
   const handleContinue = () => {
-    if (!selectedDate || !selectedService || !selectedTime) return;
+    if (!selectedDate || !service || !selectedTime) return;
     const slot = timeSlots.find(s => s.id === selectedTime);
     if (!slot) return;
-    AppointmentStorage.saveAppointmentData({ service: selectedService, date: selectedDate, time: slot, timeSlots, observation: undefined });
+    AppointmentStorage.saveAppointmentData({ service, date: selectedDate, time: slot, timeSlots, observation: undefined });
     router.push("/cliente/agendar/confirmacao");
   };
 
-  const days = selectedService ? eachDayOfInterval({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) }) : [];
-  const firstDayOfWeek = days[0]?.getDay() ?? 0;
-
-  if (!selectedService) return (
+  if (!service) return (
     <div className="min-h-screen bg-[#FAF8FF] flex items-center justify-center p-6 text-center">
       <div>
-        <div className="h-16 w-16 rounded-2xl bg-[#1E1A2E]/10 flex items-center justify-center mx-auto mb-4">
-          <Sparkles size={28} className="text-[#1E1A2E]/40" />
+        <div className="h-16 w-16 rounded-2xl bg-[#EDE5FF] flex items-center justify-center mx-auto mb-4">
+          <Sparkles size={24} className="text-[#9D7FD4]" />
         </div>
         <p className="text-sm font-bold text-[#6B6480] mb-4">Selecione um serviço primeiro</p>
         <button onClick={() => router.push("/cliente/servicos")}
-          className="px-6 py-2.5 rounded-full bg-[#1E1A2E] text-white text-xs font-black uppercase tracking-widest">
+          className="px-6 py-2.5 rounded-full text-white text-xs font-black uppercase tracking-widest"
+          style={{ background:"linear-gradient(135deg,#5A3F9A,#9D7FD4)" }}>
           Ver Serviços
         </button>
       </div>
@@ -182,239 +421,192 @@ export default function AgendarPage() {
   return (
     <div className="min-h-screen bg-[#FAF8FF]">
 
-      {/* ── HEADER ────────────────────────────────────────────────── */}
-      <div className="bg-[#1E1A2E] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#9D7FD4]/8 blur-2xl translate-x-16 -translate-y-10" />
-        <div className="absolute inset-0 opacity-[0.03]"
-          style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
+      {/* ── HEADER ──────────────────────────────────────────────── */}
+      <div style={{ background:"linear-gradient(145deg,#1E1A2E 0%,#2A2044 100%)" }}
+        className="relative overflow-hidden">
+        <div className="absolute inset-0 tn-dot-pattern opacity-20" />
+        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#9D7FD4]/15 blur-3xl translate-x-10 -translate-y-10" />
 
-        <div className="relative z-10 px-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-6 max-w-lg mx-auto">
-          <div className="flex items-center gap-3 mb-5">
-            <button onClick={() => router.push("/cliente/servicos")}
-              className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center active:scale-90 transition-all shrink-0">
-              <ArrowLeft size={16} className="text-white/80" />
-            </button>
+        <div className="relative z-10 px-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-5 max-w-lg mx-auto">
+          <div className="flex items-center gap-3 mb-4">
+            <motion.button whileTap={{ scale:0.9 }}
+              onClick={() => router.push("/cliente/servicos")}
+              className="h-9 w-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
+              <ArrowLeft size={15} className="text-white/80" />
+            </motion.button>
             <div>
-              <h1 className="text-lg font-black text-white leading-none">Escolha o horário</h1>
-              <p className="text-[10px] text-white/40 mt-0.5">Selecione data e hora disponíveis</p>
+              <h1 className="text-base font-black text-white leading-none">Agendar</h1>
+              <p className="text-[10px] text-white/40 mt-0.5">Escolha data e horário</p>
             </div>
           </div>
 
-          {/* Service pill */}
-          <div className="flex items-center gap-3 bg-white/10 border border-white/10 rounded-2xl px-4 py-3">
-            <div className="h-9 w-9 rounded-xl bg-[#F0EBFF]0/20 flex items-center justify-center shrink-0">
-              <Sparkles size={15} className="text-[#9D7FD4]" />
+          {/* Service card */}
+          <div className="flex items-center gap-3 rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+            <div className="h-9 w-9 rounded-xl bg-[#9D7FD4]/30 flex items-center justify-center shrink-0">
+              <Sparkles size={14} className="text-[#EDE5FF]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Serviço</p>
-              <p className="text-sm font-black text-white truncate">{selectedService.name}</p>
+              <p className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Serviço</p>
+              <p className="text-sm font-black text-white truncate">{service.name}</p>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-sm font-black text-[#9D7FD4]">{selectedService.price}</p>
-              <div className="flex items-center gap-1 justify-end">
+              <p className="text-sm font-black text-[#9D7FD4]">{service.price}</p>
+              <div className="flex items-center gap-1 justify-end mt-0.5">
                 <Clock size={9} className="text-white/30" />
-                <p className="text-[9px] text-white/30">{selectedService.duration}</p>
+                <p className="text-[9px] text-white/30">{service.duration}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── BODY ─────────────────────────────────────────────────── */}
-      <div className="px-5 pt-5 pb-36 max-w-lg mx-auto space-y-5">
+      {/* ── BODY ────────────────────────────────────────────────── */}
+      <div className="px-5 pt-5 pb-36 max-w-lg mx-auto space-y-4">
 
-        {/* ── CALENDÁRIO ───────────────────────────────────────────── */}
-        <div className="bg-white rounded-3xl border border-[#EDE5FF] shadow-sm overflow-hidden">
-          {/* Month nav */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#F0EBFF]">
-            <h3 className="text-sm font-black text-[#1E1A2E] capitalize">
-              {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
-            </h3>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                className="h-8 w-8 rounded-xl bg-[#FAF8FF] flex items-center justify-center active:scale-90 transition-all hover:bg-[#F0EBFF]"
-              >
-                <ChevronLeft size={14} className="text-[#6B6480]" />
-              </button>
-              <button
-                onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                className="h-8 w-8 rounded-xl bg-[#FAF8FF] flex items-center justify-center active:scale-90 transition-all hover:bg-[#F0EBFF]"
-              >
-                <ChevronRight size={14} className="text-[#6B6480]" />
-              </button>
-            </div>
-          </div>
+        {/* ── CALENDÁRIO PREMIUM ──────────────────────────────── */}
+        <motion.div
+          initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }}
+          transition={{ delay:0.05, type:"spring", stiffness:280, damping:26 }}
+          className="bg-white rounded-3xl border border-[#EDE5FF] shadow-sm p-5"
+        >
+          <PremiumCalendar
+            currentMonth={currentMonth}
+            selectedDate={selectedDate}
+            availableDays={availableDays}
+            loadingAvailability={loadingAvail}
+            onDateSelect={handleDateSelect}
+            onPrevMonth={() => setCurrentMonth(subMonths(currentMonth, 1))}
+            onNextMonth={() => setCurrentMonth(addMonths(currentMonth, 1))}
+          />
+        </motion.div>
 
-          <div className="px-4 pt-3 pb-4">
-            {/* Week labels */}
-            <div className="grid grid-cols-7 mb-2">
-              {WEEK_LABELS.map(d => (
-                <div key={d} className="text-center text-[9px] font-black text-[#DDD5F5] uppercase tracking-widest py-1">
-                  {d}
-                </div>
-              ))}
-            </div>
-
-            {/* Days grid */}
-            <div className="grid grid-cols-7 gap-1">
-              {/* Offset for first day */}
-              {[...Array(firstDayOfWeek)].map((_, i) => <div key={`e-${i}`} />)}
-
-              {days.map(day => {
-                const active   = selectedDate && isSameDay(day, selectedDate);
-                const today    = isToday(day);
-                const inMonth  = isSameMonth(day, currentMonth);
-                const isPast   = isBefore(startOfDay(day), startOfDay(new Date()));
-                const disabled = !inMonth || isPast;
-                const dayKey   = format(day, "yyyy-MM-dd");
-                const hasSlots = !disabled && availableDays.has(dayKey);
-
-                return (
-                  <button
-                    key={day.toString()}
-                    onClick={() => !disabled && handleDateSelect(day)}
-                    disabled={disabled}
-                    className={cn(
-                      "relative aspect-square rounded-xl flex flex-col items-center justify-center transition-all duration-200",
-                      disabled && "opacity-20 cursor-not-allowed",
-                      !disabled && !active && !today && "hover:bg-[#FAF8FF] active:scale-90",
-                      !disabled && today && !active && "bg-[#F0EBFF]",
-                      active && "bg-[#1E1A2E] shadow-lg shadow-[#1E1A2E]/25 scale-105",
-                    )}
-                  >
-                    <span className={cn(
-                      "text-[11px] font-black",
-                      active  ? "text-white" :
-                      today   ? "text-[#7C5CBF]" :
-                      disabled? "text-[#DDD5F5]" : "text-[#2A2440]"
-                    )}>
-                      {format(day, "d")}
-                    </span>
-                    {/* Dot */}
-                    {!active && !disabled && (
-                      <span className={cn(
-                        "absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full transition-all",
-                        hasSlots          ? "w-1 h-1 bg-emerald-400" :
-                        today             ? "w-1 h-1 bg-[#9D7FD4]" :
-                        loadingAvailability ? "w-1 h-1 bg-[#DDD5F5] animate-pulse" : "w-0 h-0"
-                      )} />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Legend */}
-            <div className="flex items-center gap-4 pt-3 mt-2 border-t border-[#F0EBFF]">
-              <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span className="text-[9px] font-bold text-[#9B8FC0] uppercase tracking-widest">Disponível</span>
+        {/* ── DATA SELECIONADA HEADER ──────────────────────────── */}
+        <AnimatePresence>
+          {selectedDate && (
+            <motion.div
+              key="date-header"
+              initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
+              exit={{ opacity:0, y:-10 }}
+              transition={{ type:"spring", stiffness:350, damping:30 }}
+              className="flex items-center gap-3"
+            >
+              <div className="h-10 w-10 rounded-2xl flex items-center justify-center shrink-0"
+                style={{ background:"linear-gradient(135deg,#5A3F9A,#9D7FD4)" }}>
+                <span className="text-white font-black text-sm">{format(selectedDate,"d")}</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#9D7FD4]" />
-                <span className="text-[9px] font-bold text-[#9B8FC0] uppercase tracking-widest">Hoje</span>
+              <div>
+                <p className="text-xs font-black text-[#1E1A2E] capitalize">
+                  {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                </p>
+                <p className="text-[9px] text-[#9B8FC0] font-bold">
+                  {timeSlots.filter(s => s.available).length} horários disponíveis
+                </p>
               </div>
-              {loadingAvailability && (
-                <div className="ml-auto flex items-center gap-1">
-                  <div className="w-1 h-1 rounded-full bg-stone-300 animate-pulse" />
-                  <span className="text-[9px] text-[#DDD5F5]">Verificando...</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* ── HORÁRIOS ─────────────────────────────────────────────── */}
+        {/* ── HORÁRIOS ────────────────────────────────────────── */}
         <AnimatePresence>
           {selectedDate && (
             <motion.div
               key="slots"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }}
+              exit={{ opacity:0 }}
+              transition={{ type:"spring", stiffness:280, damping:28 }}
+              className="bg-white rounded-3xl border border-[#EDE5FF] shadow-sm p-5"
             >
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-6 w-1 rounded-full bg-[#1E1A2E]" />
-                <p className="text-xs font-black text-[#2A2440]">
-                  {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
-                </p>
-              </div>
-
               {loadingSlots ? (
-                <div className="bg-white rounded-3xl border border-[#EDE5FF] p-8 flex flex-col items-center gap-3">
-                  <div className="flex gap-1">
-                    {[...Array(3)].map((_, i) => (
-                      <motion.div key={i} className="w-2 h-2 rounded-full bg-[#1E1A2E]/20"
-                        animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
-                        transition={{ duration: 0.8, delay: i * 0.15, repeat: Infinity }} />
+                <div className="flex flex-col items-center py-8 gap-3">
+                  <div className="flex gap-1.5">
+                    {[0,1,2].map(i => (
+                      <motion.div key={i}
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ background:"linear-gradient(135deg,#5A3F9A,#9D7FD4)" }}
+                        animate={{ y:[0,-8,0], opacity:[0.4,1,0.4] }}
+                        transition={{ duration:0.8, delay:i*0.15, repeat:Infinity }} />
                     ))}
                   </div>
-                  <p className="text-[10px] font-bold text-[#9B8FC0] uppercase tracking-widest">Carregando horários</p>
+                  <p className="text-[10px] font-bold text-[#9B8FC0] uppercase tracking-widest">
+                    Carregando horários...
+                  </p>
                 </div>
               ) : slotsError ? (
-                <div className="bg-white rounded-3xl border border-red-100 p-6 text-center">
-                  <p className="text-xs font-bold text-red-500 mb-2">Erro ao carregar horários</p>
-                  <button onClick={() => void fetchSlots(selectedDate)}
-                    className="text-[10px] font-black text-[#1E1A2E] uppercase tracking-widest underline underline-offset-2">
+                <div className="text-center py-6">
+                  <p className="text-sm font-bold text-red-400 mb-3">Erro ao carregar horários</p>
+                  <button onClick={() => selectedDate && fetchSlots(selectedDate)}
+                    className="text-xs font-black text-[#7C5CBF] underline underline-offset-2 uppercase tracking-widest">
                     Tentar novamente
                   </button>
                 </div>
               ) : timeSlots.length > 0 ? (
-                <TimeSlotGrid timeSlots={timeSlots} selectedTime={selectedTime || undefined} onTimeSelect={setSelectedTime} />
+                <PremiumTimeSlots
+                  slots={timeSlots}
+                  selected={selectedTime}
+                  onSelect={setSelectedTime}
+                />
               ) : (
-                <div className="bg-white rounded-3xl border border-[#EDE5FF] p-8 text-center">
-                  <p className="text-sm font-bold text-[#6B6480] mb-1">Sem horários disponíveis</p>
-                  <p className="text-xs text-[#9B8FC0]">Escolha outra data no calendário</p>
+                <div className="text-center py-8">
+                  <div className="h-12 w-12 rounded-2xl bg-[#EDE5FF] flex items-center justify-center mx-auto mb-3">
+                    <Clock size={18} className="text-[#9D7FD4]" />
+                  </div>
+                  <p className="text-sm font-bold text-[#2A2440] mb-1">Sem horários disponíveis</p>
+                  <p className="text-xs text-[#9B8FC0]">Tente outro dia no calendário</p>
                 </div>
               )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Dica quando não selecionou data */}
         {!selectedDate && (
-          <div className="text-center py-6">
-            <p className="text-[10px] font-black text-[#DDD5F5] uppercase tracking-[0.3em]">
-              Selecione um dia no calendário
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.2 }}
+            className="text-center py-4">
+            <p className="text-[10px] font-black text-[#C4BAE0] uppercase tracking-[0.3em]">
+              ↑ Toque em um dia disponível
             </p>
-          </div>
+          </motion.div>
         )}
       </div>
 
-      {/* ── CTA FLUTUANTE ────────────────────────────────────────── */}
+      {/* ── CTA FLUTUANTE ───────────────────────────────────── */}
       <AnimatePresence>
         {selectedTime && (
           <motion.div
-            initial={{ opacity: 0, y: 60 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 60 }}
-            transition={{ type: "spring", stiffness: 400, damping: 35 }}
+            initial={{ opacity:0, y:80 }} animate={{ opacity:1, y:0 }}
+            exit={{ opacity:0, y:80 }}
+            transition={{ type:"spring", stiffness:400, damping:35 }}
             className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] inset-x-0 px-5 z-40"
           >
             <div className="max-w-lg mx-auto">
-              <button
+              <motion.button
+                whileTap={{ scale:0.97 }}
                 onClick={handleContinue}
-                className="w-full h-[60px] rounded-2xl bg-[#1E1A2E] text-white flex items-center justify-between px-6 shadow-2xl shadow-[#1E1A2E]/40 active:scale-[0.98] transition-all"
+                className="w-full h-[62px] rounded-2xl flex items-center justify-between px-5 relative overflow-hidden"
+                style={{ background:"linear-gradient(135deg,#1E1A2E 0%,#3D2B6E 60%,#5A3F9A 100%)" }}
               >
-                <div className="text-left">
-                  <p className="text-[8px] text-white/40 uppercase tracking-[0.25em] leading-none mb-1">Horário selecionado</p>
-                  <p className="text-sm font-black leading-none">
-                    {selectedDate && format(selectedDate, "dd/MM")} às {selectedTime}
+                {/* Shimmer */}
+                <motion.div className="absolute inset-0"
+                  animate={{ x:["-100%","200%"] }}
+                  transition={{ duration:3, repeat:Infinity, ease:"linear", repeatDelay:1 }}
+                  style={{ background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)" }} />
+
+                <div className="relative z-10 text-left">
+                  <p className="text-[8px] text-white/40 uppercase tracking-[0.3em] leading-none mb-1">
+                    {selectedDate && format(selectedDate,"EEEE, dd/MM",{locale:ptBR})}
                   </p>
+                  <p className="text-[15px] font-black text-white leading-none">às {selectedTime}</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="h-px w-8 bg-white/20" />
+
+                <div className="relative z-10 flex items-center gap-3">
                   <div className="text-right">
                     <p className="text-[8px] text-white/40 uppercase tracking-widest leading-none mb-1">Total</p>
-                    <p className="text-sm font-black text-[#9D7FD4] leading-none">{selectedService.price}</p>
+                    <p className="text-sm font-black text-[#C4B0E8] leading-none">{service.price}</p>
                   </div>
-                  <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center ml-1">
+                  <div className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center">
                     <ChevronRight size={16} className="text-white" />
                   </div>
                 </div>
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         )}
