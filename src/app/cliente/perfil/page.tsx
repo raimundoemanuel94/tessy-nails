@@ -50,18 +50,18 @@ export default function PerfilPage() {
   ];
 
   if (loading || authLoading) return (
-    <div className="min-h-screen bg-[#F7F5F1]">
-      <div className="bg-[#111110] h-64 animate-pulse" />
+    <div className="min-h-screen bg-[#FAF8FF]">
+      <div className="bg-[#1E1A2E] h-64 animate-pulse" />
       <div className="px-5 -mt-12 space-y-4 max-w-lg mx-auto">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-16 rounded-2xl bg-white border border-stone-100 animate-pulse" />
+          <div key={i} className="h-16 rounded-2xl bg-white border border-[#EDE5FF] animate-pulse" />
         ))}
       </div>
     </div>
   );
 
   if (error) return (
-    <div className="min-h-screen bg-[#F7F5F1] flex items-center justify-center p-5">
+    <div className="min-h-screen bg-[#FAF8FF] flex items-center justify-center p-5">
       <ErrorState title="Erro no Perfil" message={error} onRetry={() => window.location.reload()} />
     </div>
   );
@@ -76,11 +76,11 @@ export default function PerfilPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-[#F7F5F1] pb-32">
+    <div className="min-h-screen bg-[#FAF8FF] pb-32">
 
       {/* Hero dark */}
-      <div className="bg-[#111110] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#C9A96E]/8 blur-3xl translate-x-20 -translate-y-20" />
+      <div className="bg-[#1E1A2E] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#9D7FD4]/8 blur-3xl translate-x-20 -translate-y-20" />
         <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full bg-amber-600/6 blur-2xl -translate-x-10 translate-y-10" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
@@ -103,10 +103,10 @@ export default function PerfilPage() {
               transition={{ type: "spring", stiffness: 200 }}
               className="relative mb-4"
             >
-              <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-700 flex items-center justify-center shadow-xl shadow-black/20">
+              <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-[#9D7FD4] to-[#5A3F9A] flex items-center justify-center shadow-xl shadow-black/20">
                 <span className="text-2xl font-black text-white">{initials}</span>
               </div>
-              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-emerald-500 border-2 border-[#111110] flex items-center justify-center">
+              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-emerald-500 border-2 border-[#1E1A2E] flex items-center justify-center">
                 <Star size={10} className="text-white fill-white" />
               </div>
             </motion.div>
@@ -126,9 +126,9 @@ export default function PerfilPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-3xl border border-stone-100 shadow-xl shadow-stone-200/50 overflow-hidden"
+          className="bg-white rounded-3xl border border-[#EDE5FF] shadow-xl shadow-stone-200/50 overflow-hidden"
         >
-          <div className="h-0.5 bg-gradient-to-r from-[#111110]/0 via-amber-500 to-[#111110]/0" />
+          <div className="h-0.5 bg-gradient-to-r from-[#1E1A2E]/0 via-[#9D7FD4] to-[#1E1A2E]/0" />
           <div className="divide-y divide-stone-50">
             {[
               { icon: User,     label: "Nome",     value: name },
@@ -136,12 +136,12 @@ export default function PerfilPage() {
               { icon: Phone,    label: "Telefone", value: phone || "Não informado" },
             ].map((row, i) => (
               <div key={i} className="flex items-center gap-4 px-5 py-3.5">
-                <div className="h-8 w-8 rounded-xl bg-[#F7F5F1] flex items-center justify-center shrink-0">
-                  <row.icon size={14} className="text-[#111110]/60" />
+                <div className="h-8 w-8 rounded-xl bg-[#FAF8FF] flex items-center justify-center shrink-0">
+                  <row.icon size={14} className="text-[#1E1A2E]/60" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">{row.label}</p>
-                  <p className="text-xs font-bold text-stone-700 truncate mt-0.5">{row.value}</p>
+                  <p className="text-[9px] font-bold text-[#9B8FC0] uppercase tracking-widest">{row.label}</p>
+                  <p className="text-xs font-bold text-[#2A2440] truncate mt-0.5">{row.value}</p>
                 </div>
               </div>
             ))}
@@ -156,23 +156,23 @@ export default function PerfilPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 + gi * 0.08 }}>
-            <p className="text-[9px] font-black text-stone-400 uppercase tracking-[0.25em] mb-2 px-1">
+            <p className="text-[9px] font-black text-[#9B8FC0] uppercase tracking-[0.25em] mb-2 px-1">
               {group.group}
             </p>
-            <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden divide-y divide-stone-50">
+            <div className="bg-white rounded-2xl border border-[#EDE5FF] overflow-hidden divide-y divide-stone-50">
               {group.items.map((item, ii) => (
                 <button key={ii} onClick={item.onClick}
-                  className="w-full flex items-center gap-4 px-4 py-3.5 active:bg-stone-50 transition-colors text-left group">
+                  className="w-full flex items-center gap-4 px-4 py-3.5 active:bg-[#FAF8FF] transition-colors text-left group">
                   <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                    item.accent ? "bg-[#111110]" : "bg-[#F7F5F1] group-hover:bg-[#111110]"
+                    item.accent ? "bg-[#1E1A2E]" : "bg-[#FAF8FF] group-hover:bg-[#1E1A2E]"
                   }`}>
-                    <item.icon size={15} className={item.accent ? "text-[#C9A96E]" : "text-stone-500 group-hover:text-[#C9A96E] transition-colors"} />
+                    <item.icon size={15} className={item.accent ? "text-[#9D7FD4]" : "text-[#6B6480] group-hover:text-[#9D7FD4] transition-colors"} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-stone-800">{item.label}</p>
-                    <p className="text-[10px] text-stone-400">{item.sub}</p>
+                    <p className="text-sm font-bold text-[#1E1A2E]">{item.label}</p>
+                    <p className="text-[10px] text-[#9B8FC0]">{item.sub}</p>
                   </div>
-                  <ChevronRight size={14} className="text-stone-300 shrink-0" />
+                  <ChevronRight size={14} className="text-[#DDD5F5] shrink-0" />
                 </button>
               ))}
             </div>
@@ -196,8 +196,8 @@ export default function PerfilPage() {
 
         {/* Footer */}
         <div className="flex items-center justify-center gap-2 pt-2 opacity-25">
-          <Sparkles size={9} className="text-[#111110]" />
-          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-[#111110]">Tessy Nails</span>
+          <Sparkles size={9} className="text-[#1E1A2E]" />
+          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-[#1E1A2E]">Tessy Nails</span>
         </div>
       </div>
     </div>

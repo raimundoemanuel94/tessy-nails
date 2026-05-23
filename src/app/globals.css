@@ -13,20 +13,20 @@
   --font-serif: "Playfair Display", serif;
 
   /* ── Tessy Nails Premium Tokens — Noir Nubuck Edition ───── */
-  --tn-noir:        #111110;
-  --tn-noir-mid:    #1C1C1A;
-  --tn-noir-soft:   #2A2A28;
+  --tn-noir:        #1E1A2E;
+  --tn-noir-mid:    #2A2440;
+  --tn-noir-soft:   #3D3560;
   --tn-champagne:   #C9A96E;
-  --tn-champagne-light: #E8D5B0;
-  --tn-champagne-muted: #A88B55;
-  --tn-linen:       #F7F5F1;
-  --tn-linen-dark:  #EDEAE4;
+  --tn-champagne-light: #EDE5FF;
+  --tn-champagne-muted: #7C5CBF;
+  --tn-linen:       #FAF8FF;
+  --tn-linen-dark:  #EDE5FF;
   --tn-white:       #FFFFFF;
-  --tn-ink-100:     #F0EEE9;
-  --tn-ink-200:     #D9D5CE;
-  --tn-ink-400:     #9A958E;
-  --tn-ink-600:     #5C5852;
-  --tn-ink-800:     #2A2724;
+  --tn-ink-100:     #F0EBFF;
+  --tn-ink-200:     #DDD5F5;
+  --tn-ink-400:     #9B8FC0;
+  --tn-ink-600:     #6B6480;
+  --tn-ink-800:     #1E1A2E;
   --tn-stone-200:   #E7E5E4;
   --tn-stone-400:   #A8A29E;
   --tn-stone-600:   #57534E;
@@ -202,8 +202,8 @@
     color: var(--tn-ink-400);
   }
   .tn-dot-pattern {
-    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.12) 1px, transparent 0);
-    background-size: 20px 20px;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.18) 1px, transparent 0);
+    background-size: 18px 18px;
   }
   .tn-shimmer {
     background: linear-gradient(90deg, transparent 0%, rgba(201,169,110,0.15) 50%, transparent 100%);

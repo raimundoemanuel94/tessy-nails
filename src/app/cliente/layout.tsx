@@ -25,12 +25,12 @@ export default function ClienteLayout({
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F7F5F1]">
+      <div className="flex min-h-screen items-center justify-center bg-[#FAF8FF]">
         <div className="flex gap-1.5">
           {[0,1,2].map(i => (
             <div
               key={i}
-              className="w-2 h-2 rounded-full bg-[#111110]/30 animate-pulse"
+              className="w-2 h-2 rounded-full bg-[#1E1A2E]/30 animate-pulse"
               style={{ animationDelay: `${i * 150}ms` }}
             />
           ))}
@@ -40,7 +40,7 @@ export default function ClienteLayout({
   }
 
   return (
-    <div className="relative min-h-dvh flex flex-col bg-[#F7F5F1] selection:bg-[#111110]/20">
+    <div className="relative min-h-dvh flex flex-col bg-[#FAF8FF] selection:bg-[#1E1A2E]/20">
 
       {/* Noise texture overlay sutil */}
       <div
@@ -55,9 +55,9 @@ export default function ClienteLayout({
       {/* Glow suave café nos cantos */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute -top-32 -right-32 h-72 w-72 rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, #C9A96E 0%, transparent 70%)" }} />
+          style={{ background: "radial-gradient(circle, #9D7FD4 0%, transparent 70%)" }} />
         <div className="absolute -bottom-24 -left-24 h-56 w-56 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #111110 0%, transparent 70%)" }} />
+          style={{ background: "radial-gradient(circle, #1E1A2E 0%, transparent 70%)" }} />
       </div>
 
       {/* Main Content */}
@@ -71,8 +71,8 @@ export default function ClienteLayout({
         position="top-center"
         toastOptions={{
           style: {
-            background: "#111110",
-            color: "#F7F5F1",
+            background: "#1E1A2E",
+            color: "#FAF8FF",
             border: "1px solid rgba(255,255,255,0.08)",
             borderRadius: "16px",
             fontSize: "12px",

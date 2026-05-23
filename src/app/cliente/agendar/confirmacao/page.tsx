@@ -61,10 +61,10 @@ export default function ConfirmacaoPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#111110] flex items-center justify-center">
+    <div className="min-h-screen bg-[#1E1A2E] flex items-center justify-center">
       <div className="flex gap-1.5">
         {[0,1,2].map(i => (
-          <motion.div key={i} className="w-2 h-2 rounded-full bg-[#C9A96E]"
+          <motion.div key={i} className="w-2 h-2 rounded-full bg-[#9D7FD4]"
             animate={{ scale:[1,1.5,1], opacity:[0.4,1,0.4] }}
             transition={{ duration: 0.8, delay: i*0.15, repeat: Infinity }} />
         ))}
@@ -75,11 +75,11 @@ export default function ConfirmacaoPage() {
   if (!data) return null;
 
   return (
-    <div className="min-h-screen bg-[#F7F5F1]">
+    <div className="min-h-screen bg-[#FAF8FF]">
 
       {/* ── HEADER ─────────────────────────────────────────────────── */}
-      <div className="bg-[#111110] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#C9A96E]/8 blur-2xl translate-x-16 -translate-y-10" />
+      <div className="bg-[#1E1A2E] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#9D7FD4]/8 blur-2xl translate-x-16 -translate-y-10" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
 
@@ -97,14 +97,14 @@ export default function ConfirmacaoPage() {
 
           {/* Service pill no header */}
           <div className="flex items-center gap-3 bg-white/10 border border-white/10 rounded-2xl px-4 py-3">
-            <div className="h-9 w-9 rounded-xl bg-[#FBF4E8]0/20 flex items-center justify-center shrink-0">
-              <Sparkles size={15} className="text-[#C9A96E]" />
+            <div className="h-9 w-9 rounded-xl bg-[#F0EBFF]0/20 flex items-center justify-center shrink-0">
+              <Sparkles size={15} className="text-[#9D7FD4]" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Serviço</p>
               <p className="text-sm font-black text-white truncate">{data.service.name}</p>
             </div>
-            <p className="text-base font-black text-[#C9A96E] shrink-0">{data.service.price}</p>
+            <p className="text-base font-black text-[#9D7FD4] shrink-0">{data.service.price}</p>
           </div>
         </div>
       </div>
@@ -124,8 +124,8 @@ export default function ConfirmacaoPage() {
 
         {/* ── Resumo data/hora ─ */}
         <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.05 }}
-          className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden">
-          <div className="h-0.5 bg-gradient-to-r from-[#111110]/0 via-amber-500 to-[#111110]/0" />
+          className="bg-white rounded-3xl border border-[#EDE5FF] shadow-sm overflow-hidden">
+          <div className="h-0.5 bg-gradient-to-r from-[#1E1A2E]/0 via-[#9D7FD4] to-[#1E1A2E]/0" />
           <div className="p-5 grid grid-cols-2 gap-3">
             {[
               { icon: Calendar, label: "Data",    value: format(data.date, "dd 'de' MMMM", { locale: ptBR }), sub: format(data.date, "EEEE", { locale: ptBR }) },
@@ -133,14 +133,14 @@ export default function ConfirmacaoPage() {
             ].map((item, i) => (
               <motion.div key={i}
                 initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay: 0.1 + i*0.06 }}
-                className="rounded-2xl bg-[#F7F5F1] p-4 flex flex-col gap-2">
-                <div className="h-8 w-8 rounded-xl bg-[#111110] flex items-center justify-center">
-                  <item.icon size={14} className="text-[#C9A96E]" />
+                className="rounded-2xl bg-[#FAF8FF] p-4 flex flex-col gap-2">
+                <div className="h-8 w-8 rounded-xl bg-[#1E1A2E] flex items-center justify-center">
+                  <item.icon size={14} className="text-[#9D7FD4]" />
                 </div>
                 <div>
-                  <p className="text-[8px] font-bold text-stone-400 uppercase tracking-widest">{item.label}</p>
-                  <p className="text-sm font-black text-stone-800 mt-0.5">{item.value}</p>
-                  <p className="text-[9px] text-stone-400 capitalize mt-0.5">{item.sub}</p>
+                  <p className="text-[8px] font-bold text-[#9B8FC0] uppercase tracking-widest">{item.label}</p>
+                  <p className="text-sm font-black text-[#1E1A2E] mt-0.5">{item.value}</p>
+                  <p className="text-[9px] text-[#9B8FC0] capitalize mt-0.5">{item.sub}</p>
                 </div>
               </motion.div>
             ))}
@@ -149,24 +149,24 @@ export default function ConfirmacaoPage() {
 
         {/* ── Pagamento ─────────────────────────────────────────────── */}
         <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.12 }}
-          className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden">
+          className="bg-white rounded-3xl border border-[#EDE5FF] shadow-sm overflow-hidden">
           <div className="p-5 space-y-3">
-            <p className="text-[9px] font-black text-stone-400 uppercase tracking-[0.25em]">Pagamento</p>
+            <p className="text-[9px] font-black text-[#9B8FC0] uppercase tracking-[0.25em]">Pagamento</p>
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-[#111110] p-4">
+              <div className="rounded-2xl bg-[#1E1A2E] p-4">
                 <p className="text-[8px] font-bold text-white/40 uppercase tracking-widest mb-1">Sinal agora</p>
-                <p className="text-xl font-black text-[#C9A96E]">{DEPOSIT_LABEL}</p>
+                <p className="text-xl font-black text-[#9D7FD4]">{DEPOSIT_LABEL}</p>
                 <p className="text-[8px] text-white/30 mt-1">via Stripe</p>
               </div>
-              <div className="rounded-2xl bg-[#F7F5F1] p-4">
-                <p className="text-[8px] font-bold text-stone-400 uppercase tracking-widest mb-1">Restante</p>
-                <p className="text-xl font-black text-stone-700">{data.service.price}</p>
-                <p className="text-[8px] text-stone-400 mt-1">no salão</p>
+              <div className="rounded-2xl bg-[#FAF8FF] p-4">
+                <p className="text-[8px] font-bold text-[#9B8FC0] uppercase tracking-widest mb-1">Restante</p>
+                <p className="text-xl font-black text-[#2A2440]">{data.service.price}</p>
+                <p className="text-[8px] text-[#9B8FC0] mt-1">no salão</p>
               </div>
             </div>
-            <div className="flex items-start gap-2.5 bg-[#FBF4E8] border border-[#E8D5B0] rounded-2xl p-3">
-              <ShieldCheck size={14} className="text-[#A88B55] shrink-0 mt-0.5" />
-              <p className="text-[10px] text-[#A88B55] leading-relaxed">
+            <div className="flex items-start gap-2.5 bg-[#F0EBFF] border border-[#EDE5FF] rounded-2xl p-3">
+              <ShieldCheck size={14} className="text-[#7C5CBF] shrink-0 mt-0.5" />
+              <p className="text-[10px] text-[#7C5CBF] leading-relaxed">
                 O sinal de <strong>{DEPOSIT_LABEL}</strong> garante seu horário. O restante é pago no estabelecimento.
               </p>
             </div>
@@ -175,28 +175,28 @@ export default function ConfirmacaoPage() {
 
         {/* ── Observação ─────────────────────────────────────────────── */}
         <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.18 }}
-          className="bg-white rounded-3xl border border-stone-100 shadow-sm p-5 space-y-3">
+          className="bg-white rounded-3xl border border-[#EDE5FF] shadow-sm p-5 space-y-3">
           <div className="flex items-center gap-2">
-            <PenLine size={13} className="text-stone-400" />
-            <p className="text-[9px] font-black text-stone-400 uppercase tracking-[0.25em]">Observações (opcional)</p>
+            <PenLine size={13} className="text-[#9B8FC0]" />
+            <p className="text-[9px] font-black text-[#9B8FC0] uppercase tracking-[0.25em]">Observações (opcional)</p>
           </div>
           <Textarea
             value={observation}
             onChange={e => setObservation(e.target.value)}
             placeholder="Ex: Remoção de gel, chegar 5 min antes..."
-            className="min-h-[100px] rounded-2xl border-stone-100 bg-[#F7F5F1] focus:bg-white focus:border-[#111110]/20 text-sm resize-none"
+            className="min-h-[100px] rounded-2xl border-[#EDE5FF] bg-[#FAF8FF] focus:bg-white focus:border-[#1E1A2E]/20 text-sm resize-none"
           />
         </motion.div>
       </div>
 
       {/* ── CTA FLUTUANTE ──────────────────────────────────────────── */}
-      <div className="fixed bottom-0 inset-x-0 px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] z-40 bg-gradient-to-t from-[#F7F5F1] via-[#F7F5F1]/90 to-transparent pt-6">
+      <div className="fixed bottom-0 inset-x-0 px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] z-40 bg-gradient-to-t from-[#FAF8FF] via-[#FAF8FF]/90 to-transparent pt-6">
         <div className="max-w-lg mx-auto">
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={handleConfirm}
             disabled={confirming}
-            className="w-full h-[60px] rounded-2xl bg-[#111110] text-white flex items-center justify-center gap-3 shadow-2xl shadow-[#111110]/40 transition-all disabled:opacity-60"
+            className="w-full h-[60px] rounded-2xl bg-[#1E1A2E] text-white flex items-center justify-center gap-3 shadow-2xl shadow-[#1E1A2E]/40 transition-all disabled:opacity-60"
           >
             {confirming ? (
               <>
@@ -205,12 +205,12 @@ export default function ConfirmacaoPage() {
               </>
             ) : (
               <>
-                <CheckCircle size={18} className="text-[#C9A96E]" />
+                <CheckCircle size={18} className="text-[#9D7FD4]" />
                 <div className="text-left">
                   <p className="text-sm font-black leading-none">Pagar sinal e confirmar</p>
                   <p className="text-[9px] text-white/40 mt-0.5">Você será redirecionado para o Stripe</p>
                 </div>
-                <div className="ml-auto text-base font-black text-[#C9A96E]">{DEPOSIT_LABEL}</div>
+                <div className="ml-auto text-base font-black text-[#9D7FD4]">{DEPOSIT_LABEL}</div>
               </>
             )}
           </motion.button>

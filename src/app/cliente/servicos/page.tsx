@@ -76,18 +76,18 @@ export default function ServicosPage() {
   if (loading) return <ServicosSkeleton />;
 
   if (error) return (
-    <div className="min-h-screen bg-[#F7F5F1] flex items-center justify-center p-5">
+    <div className="min-h-screen bg-[#FAF8FF] flex items-center justify-center p-5">
       <ErrorState title="Erro" message={error} onRetry={() => window.location.reload()} />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#F7F5F1]">
+    <div className="min-h-screen bg-[#FAF8FF]">
 
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-[#111110]">
+      <div className="sticky top-0 z-20 bg-[#1E1A2E]">
         <div className="relative overflow-hidden px-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-5 max-w-lg mx-auto">
-          <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-[#C9A96E]/8 blur-2xl translate-x-10 -translate-y-10" />
+          <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-[#9D7FD4]/8 blur-2xl translate-x-10 -translate-y-10" />
           <div className="flex items-center gap-3 mb-5">
             <button onClick={() => router.back()}
               className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center active:scale-90 transition-all">
@@ -123,7 +123,7 @@ export default function ServicosPage() {
             <button key={cat} onClick={() => setActiveCategory(cat)}
               className={`shrink-0 px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
                 activeCategory === cat
-                  ? "bg-[#FBF4E8]0 text-white shadow-md"
+                  ? "bg-[#F0EBFF]0 text-white shadow-md"
                   : "bg-white/10 text-white/50 hover:bg-white/15"
               }`}>
               {cat}
@@ -138,9 +138,9 @@ export default function ServicosPage() {
           {filtered.length === 0 ? (
             <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="text-center py-16">
-              <Sparkles size={32} className="text-stone-300 mx-auto mb-3" strokeWidth={1} />
-              <p className="text-sm font-bold text-stone-500">Nenhum serviço encontrado</p>
-              <p className="text-xs text-stone-400 mt-1">Tente outra busca</p>
+              <Sparkles size={32} className="text-[#DDD5F5] mx-auto mb-3" strokeWidth={1} />
+              <p className="text-sm font-bold text-[#6B6480]">Nenhum serviço encontrado</p>
+              <p className="text-xs text-[#9B8FC0] mt-1">Tente outra busca</p>
             </motion.div>
           ) : filtered.map((service, i) => (
             <motion.button
@@ -154,29 +154,29 @@ export default function ServicosPage() {
               onClick={() => handleSelect(service)}
               className="w-full text-left"
             >
-              <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden shadow-sm hover:shadow-md transition-all group">
-                <div className="h-0.5 bg-gradient-to-r from-[#111110]/0 via-[#111110]/40 to-[#111110]/0 group-hover:via-amber-500 transition-all duration-500" />
+              <div className="bg-white rounded-2xl border border-[#EDE5FF] overflow-hidden shadow-sm hover:shadow-md transition-all group">
+                <div className="h-0.5 bg-gradient-to-r from-[#1E1A2E]/0 via-[#1E1A2E]/40 to-[#1E1A2E]/0 group-hover:via-amber-500 transition-all duration-500" />
                 <div className="p-4 flex items-center gap-4">
                   {/* Icon */}
-                  <div className="h-12 w-12 rounded-xl bg-[#F7F5F1] flex items-center justify-center shrink-0 group-hover:bg-[#111110] transition-colors duration-300">
-                    <Sparkles size={18} className="text-[#111110]/30 group-hover:text-[#C9A96E] transition-colors duration-300" strokeWidth={1.5} />
+                  <div className="h-12 w-12 rounded-xl bg-[#FAF8FF] flex items-center justify-center shrink-0 group-hover:bg-[#1E1A2E] transition-colors duration-300">
+                    <Sparkles size={18} className="text-[#1E1A2E]/30 group-hover:text-[#9D7FD4] transition-colors duration-300" strokeWidth={1.5} />
                   </div>
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-black text-stone-800 leading-tight truncate">{service.name}</p>
+                    <p className="text-sm font-black text-[#1E1A2E] leading-tight truncate">{service.name}</p>
                     {service.description && (
-                      <p className="text-[10px] text-stone-400 mt-0.5 line-clamp-1">{service.description}</p>
+                      <p className="text-[10px] text-[#9B8FC0] mt-0.5 line-clamp-1">{service.description}</p>
                     )}
                     <div className="flex items-center gap-2 mt-1.5">
-                      <Clock size={9} className="text-stone-300" />
-                      <span className="text-[9px] font-bold text-stone-400">{service.duration}</span>
+                      <Clock size={9} className="text-[#DDD5F5]" />
+                      <span className="text-[9px] font-bold text-[#9B8FC0]">{service.duration}</span>
                     </div>
                   </div>
                   {/* Price + arrow */}
                   <div className="shrink-0 flex flex-col items-end gap-1.5">
-                    <p className="text-sm font-black text-[#111110]">{service.price}</p>
-                    <div className="h-7 w-7 rounded-xl bg-[#F7F5F1] group-hover:bg-[#111110] flex items-center justify-center transition-colors duration-300">
-                      <ChevronRight size={13} className="text-stone-400 group-hover:text-[#C9A96E] transition-colors duration-300" />
+                    <p className="text-sm font-black text-[#1E1A2E]">{service.price}</p>
+                    <div className="h-7 w-7 rounded-xl bg-[#FAF8FF] group-hover:bg-[#1E1A2E] flex items-center justify-center transition-colors duration-300">
+                      <ChevronRight size={13} className="text-[#9B8FC0] group-hover:text-[#9D7FD4] transition-colors duration-300" />
                     </div>
                   </div>
                 </div>

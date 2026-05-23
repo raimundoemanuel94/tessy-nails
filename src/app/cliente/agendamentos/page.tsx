@@ -29,9 +29,9 @@ interface ClientAppointment {
 }
 
 const STATUS_BADGE = {
-  pending:   { label: "Pendente",   cls: "bg-[#FBF4E8] text-[#A88B55] border border-[#E8D5B0]"    },
+  pending:   { label: "Pendente",   cls: "bg-[#F0EBFF] text-[#7C5CBF] border border-[#EDE5FF]"    },
   confirmed: { label: "Confirmado", cls: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
-  completed: { label: "Concluído",  cls: "bg-stone-100 text-stone-600 border border-stone-200"   },
+  completed: { label: "Concluído",  cls: "bg-[#F0EBFF] text-[#6B6480] border border-[#DDD5F5]"   },
   cancelled: { label: "Cancelado",  cls: "bg-red-50 text-red-600 border border-red-200"          },
   no_show:   { label: "Ausente",    cls: "bg-slate-100 text-slate-600 border border-slate-200"   },
 } as const;
@@ -100,11 +100,11 @@ export default function AgendamentosPage() {
   if (loading) return <AgendamentosSkeleton />;
 
   return (
-    <div className="min-h-screen bg-[#F7F5F1]">
+    <div className="min-h-screen bg-[#FAF8FF]">
 
       {/* Header dark */}
-      <div className="bg-[#111110] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#C9A96E]/8 blur-2xl translate-x-16 -translate-y-10" />
+      <div className="bg-[#1E1A2E] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#9D7FD4]/8 blur-2xl translate-x-16 -translate-y-10" />
         <div className="px-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-6 max-w-lg mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-1">
             <button onClick={() => router.push("/cliente")}
@@ -126,14 +126,14 @@ export default function AgendamentosPage() {
               className={cn(
                 "flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-t-xl transition-all duration-200",
                 activeTab === tab.key
-                  ? "bg-[#F7F5F1] text-[#111110]"
+                  ? "bg-[#FAF8FF] text-[#1E1A2E]"
                   : "text-white/40 hover:text-white/60"
               )}>
               {tab.label}
               {counts[tab.key] > 0 && (
                 <span className={cn(
                   "ml-1.5 text-[8px] px-1.5 py-0.5 rounded-full font-black",
-                  activeTab === tab.key ? "bg-[#111110] text-[#C9A96E]" : "bg-white/10 text-white/40"
+                  activeTab === tab.key ? "bg-[#1E1A2E] text-[#9D7FD4]" : "bg-white/10 text-white/40"
                 )}>
                   {counts[tab.key]}
                 </span>
@@ -154,15 +154,15 @@ export default function AgendamentosPage() {
           {filtered.length === 0 ? (
             <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="text-center py-16">
-              <div className="h-16 w-16 rounded-2xl bg-white border border-stone-100 mx-auto mb-4 flex items-center justify-center">
-                <Calendar size={24} className="text-stone-300" />
+              <div className="h-16 w-16 rounded-2xl bg-white border border-[#EDE5FF] mx-auto mb-4 flex items-center justify-center">
+                <Calendar size={24} className="text-[#DDD5F5]" />
               </div>
-              <p className="text-sm font-black text-stone-600 mb-1">Nenhum agendamento aqui</p>
-              <p className="text-xs text-stone-400 mb-6">
+              <p className="text-sm font-black text-[#6B6480] mb-1">Nenhum agendamento aqui</p>
+              <p className="text-xs text-[#9B8FC0] mb-6">
                 {activeTab === "upcoming" ? "Sem horários futuros agendados." : "Nenhum registro neste período."}
               </p>
               <button onClick={() => router.push("/cliente/servicos")}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#111110] text-white text-xs font-black uppercase tracking-widest active:scale-95 transition-all">
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#1E1A2E] text-white text-xs font-black uppercase tracking-widest active:scale-95 transition-all">
                 <Plus size={13} strokeWidth={3} /> Agendar agora
               </button>
             </motion.div>

@@ -26,9 +26,9 @@ interface AppointmentCardProps {
 }
 
 const STATUS = {
-  pending:   { label: "Pendente",         dot: "bg-[#C9A96E]",   text: "text-[#A88B55]",   bg: "bg-[#FBF4E8]",   border: "border-[#E8D5B0]",  strip: "#F59E0B" },
+  pending:   { label: "Pendente",         dot: "bg-[#9D7FD4]",   text: "text-[#7C5CBF]",   bg: "bg-[#F0EBFF]",   border: "border-[#EDE5FF]",  strip: "#9D7FD4" },
   confirmed: { label: "Confirmado",       dot: "bg-emerald-400", text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200",strip: "#10B981" },
-  completed: { label: "Concluído",        dot: "bg-stone-400",   text: "text-stone-600",   bg: "bg-stone-100",  border: "border-stone-200",  strip: "#78716C" },
+  completed: { label: "Concluído",        dot: "bg-[#9B8FC0]",   text: "text-[#6B6480]",   bg: "bg-[#F0EBFF]",  border: "border-[#DDD5F5]",  strip: "#9B8FC0" },
   cancelled: { label: "Cancelado",        dot: "bg-red-400",     text: "text-red-600",     bg: "bg-red-50",     border: "border-red-200",    strip: "#EF4444" },
   no_show:   { label: "Não Compareceu",   dot: "bg-slate-400",   text: "text-slate-600",   bg: "bg-slate-50",   border: "border-slate-200",  strip: "#94A3B8" },
 } as const;
@@ -72,20 +72,20 @@ export function AppointmentCard({ appointment, onReschedule, onCancel }: Appoint
                   <AlertTriangle size={24} className="text-red-500" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-stone-800 mb-2">Cancelar agendamento?</h3>
-                  <p className="text-xs text-stone-500 leading-relaxed">
+                  <h3 className="text-base font-black text-[#1E1A2E] mb-2">Cancelar agendamento?</h3>
+                  <p className="text-xs text-[#6B6480] leading-relaxed">
                     Você está cancelando{" "}
-                    <span className="font-bold text-stone-700">{appointment.service.name}</span>{" "}
+                    <span className="font-bold text-[#2A2440]">{appointment.service.name}</span>{" "}
                     do dia{" "}
-                    <span className="font-bold text-stone-700">{format(appointment.date, "dd/MM")}</span>{" "}
-                    às <span className="font-bold text-stone-700">{appointment.time.time}</span>.
+                    <span className="font-bold text-[#2A2440]">{format(appointment.date, "dd/MM")}</span>{" "}
+                    às <span className="font-bold text-[#2A2440]">{appointment.time.time}</span>.
                     Esta ação não pode ser desfeita.
                   </p>
                 </div>
                 <div className="flex gap-3 w-full">
                   <button
                     onClick={() => setShowModal(false)}
-                    className="flex-1 h-11 rounded-2xl border border-stone-200 text-stone-600 text-sm font-bold active:scale-95 transition-all"
+                    className="flex-1 h-11 rounded-2xl border border-[#DDD5F5] text-[#6B6480] text-sm font-bold active:scale-95 transition-all"
                   >
                     Manter
                   </button>
@@ -105,7 +105,7 @@ export function AppointmentCard({ appointment, onReschedule, onCancel }: Appoint
       {/* ── CARD ──────────────────────────────────────────────────── */}
       <div className={cn(
         "rounded-3xl overflow-hidden border bg-white shadow-sm",
-        isActive ? "border-stone-100" : "border-stone-100 opacity-80"
+        isActive ? "border-[#EDE5FF]" : "border-[#EDE5FF] opacity-80"
       )}>
         {/* Top accent strip */}
         <div className="h-0.5 w-full" style={{ backgroundColor: st.strip }} />
@@ -118,13 +118,13 @@ export function AppointmentCard({ appointment, onReschedule, onCancel }: Appoint
               {/* Icon */}
               <div className={cn(
                 "h-10 w-10 rounded-2xl shrink-0 flex items-center justify-center",
-                isActive ? "bg-[#111110]" : "bg-stone-100"
+                isActive ? "bg-[#1E1A2E]" : "bg-[#F0EBFF]"
               )}>
-                <Sparkles size={16} className={isActive ? "text-[#C9A96E]" : "text-stone-400"} strokeWidth={1.5} />
+                <Sparkles size={16} className={isActive ? "text-[#9D7FD4]" : "text-[#9B8FC0]"} strokeWidth={1.5} />
               </div>
               <div className="min-w-0">
-                <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Serviço</p>
-                <h3 className="text-sm font-black text-stone-800 leading-tight line-clamp-2">
+                <p className="text-[9px] font-bold text-[#9B8FC0] uppercase tracking-widest mb-0.5">Serviço</p>
+                <h3 className="text-sm font-black text-[#1E1A2E] leading-tight line-clamp-2">
                   {appointment.service.name}
                 </h3>
               </div>
@@ -142,36 +142,36 @@ export function AppointmentCard({ appointment, onReschedule, onCancel }: Appoint
 
           {/* ── Data / Hora / Duração ── */}
           <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-2xl bg-[#F7F5F1] p-3 text-center">
-              <Calendar size={12} className="text-[#111110]/40 mx-auto mb-1" />
-              <p className="text-[8px] text-stone-400 font-bold uppercase tracking-widest leading-none mb-0.5">
+            <div className="rounded-2xl bg-[#FAF8FF] p-3 text-center">
+              <Calendar size={12} className="text-[#1E1A2E]/40 mx-auto mb-1" />
+              <p className="text-[8px] text-[#9B8FC0] font-bold uppercase tracking-widest leading-none mb-0.5">
                 {dateLabel(appointment.date)}
               </p>
-              <p className="text-xs font-black text-stone-700 tabular-nums">
+              <p className="text-xs font-black text-[#2A2440] tabular-nums">
                 {format(appointment.date, "dd/MM")}
               </p>
             </div>
-            <div className="rounded-2xl bg-[#F7F5F1] p-3 text-center">
-              <Clock size={12} className="text-[#111110]/40 mx-auto mb-1" />
-              <p className="text-[8px] text-stone-400 font-bold uppercase tracking-widest leading-none mb-0.5">Hora</p>
-              <p className="text-xs font-black text-stone-700 tabular-nums">
+            <div className="rounded-2xl bg-[#FAF8FF] p-3 text-center">
+              <Clock size={12} className="text-[#1E1A2E]/40 mx-auto mb-1" />
+              <p className="text-[8px] text-[#9B8FC0] font-bold uppercase tracking-widest leading-none mb-0.5">Hora</p>
+              <p className="text-xs font-black text-[#2A2440] tabular-nums">
                 {appointment.time.time}
               </p>
             </div>
-            <div className="rounded-2xl bg-[#F7F5F1] p-3 text-center">
-              <div className="h-3 w-3 rounded-full border-2 border-[#111110]/30 mx-auto mb-1" />
-              <p className="text-[8px] text-stone-400 font-bold uppercase tracking-widest leading-none mb-0.5">Duração</p>
-              <p className="text-xs font-black text-stone-700">
+            <div className="rounded-2xl bg-[#FAF8FF] p-3 text-center">
+              <div className="h-3 w-3 rounded-full border-2 border-[#1E1A2E]/30 mx-auto mb-1" />
+              <p className="text-[8px] text-[#9B8FC0] font-bold uppercase tracking-widest leading-none mb-0.5">Duração</p>
+              <p className="text-xs font-black text-[#2A2440]">
                 {appointment.service.duration || "—"}
               </p>
             </div>
           </div>
 
           {/* ── Valor ── */}
-          <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-[#F7F5F1]">
+          <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-[#FAF8FF]">
             <div>
-              <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Valor</p>
-              <p className="text-base font-black text-[#111110]">
+              <p className="text-[9px] font-bold text-[#9B8FC0] uppercase tracking-widest mb-0.5">Valor</p>
+              <p className="text-base font-black text-[#1E1A2E]">
                 {appointment.service.price || "A confirmar"}
               </p>
             </div>
@@ -189,9 +189,9 @@ export function AppointmentCard({ appointment, onReschedule, onCancel }: Appoint
 
           {/* ── Observação ── */}
           {appointment.observation && (
-            <div className="rounded-2xl border border-stone-100 bg-stone-50 p-3">
-              <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-1">Observação</p>
-              <p className="text-xs text-stone-600 leading-relaxed">{appointment.observation}</p>
+            <div className="rounded-2xl border border-[#EDE5FF] bg-[#FAF8FF] p-3">
+              <p className="text-[9px] font-black text-[#9B8FC0] uppercase tracking-widest mb-1">Observação</p>
+              <p className="text-xs text-[#6B6480] leading-relaxed">{appointment.observation}</p>
             </div>
           )}
 
@@ -205,7 +205,7 @@ export function AppointmentCard({ appointment, onReschedule, onCancel }: Appoint
                   appointmentId={appointment.id}
                   isDeposit={true}
                   title="Pagar sinal agora"
-                  className="w-full h-11 rounded-2xl bg-[#111110] text-white text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-black/15"
+                  className="w-full h-11 rounded-2xl bg-[#1E1A2E] text-white text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-black/15"
                 />
               )}
 
@@ -213,7 +213,7 @@ export function AppointmentCard({ appointment, onReschedule, onCancel }: Appoint
                 {canReschedule && (
                   <button
                     onClick={() => onReschedule?.(appointment)}
-                    className="h-11 rounded-2xl border border-stone-200 text-stone-600 text-xs font-black flex items-center justify-center gap-1.5 active:scale-95 transition-all hover:bg-stone-50"
+                    className="h-11 rounded-2xl border border-[#DDD5F5] text-[#6B6480] text-xs font-black flex items-center justify-center gap-1.5 active:scale-95 transition-all hover:bg-[#FAF8FF]"
                   >
                     <RotateCcw size={13} />
                     Remarcar

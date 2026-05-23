@@ -165,14 +165,14 @@ export default function AgendarPage() {
   const firstDayOfWeek = days[0]?.getDay() ?? 0;
 
   if (!selectedService) return (
-    <div className="min-h-screen bg-[#F7F5F1] flex items-center justify-center p-6 text-center">
+    <div className="min-h-screen bg-[#FAF8FF] flex items-center justify-center p-6 text-center">
       <div>
-        <div className="h-16 w-16 rounded-2xl bg-[#111110]/10 flex items-center justify-center mx-auto mb-4">
-          <Sparkles size={28} className="text-[#111110]/40" />
+        <div className="h-16 w-16 rounded-2xl bg-[#1E1A2E]/10 flex items-center justify-center mx-auto mb-4">
+          <Sparkles size={28} className="text-[#1E1A2E]/40" />
         </div>
-        <p className="text-sm font-bold text-stone-600 mb-4">Selecione um serviço primeiro</p>
+        <p className="text-sm font-bold text-[#6B6480] mb-4">Selecione um serviço primeiro</p>
         <button onClick={() => router.push("/cliente/servicos")}
-          className="px-6 py-2.5 rounded-full bg-[#111110] text-white text-xs font-black uppercase tracking-widest">
+          className="px-6 py-2.5 rounded-full bg-[#1E1A2E] text-white text-xs font-black uppercase tracking-widest">
           Ver Serviços
         </button>
       </div>
@@ -180,11 +180,11 @@ export default function AgendarPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F7F5F1]">
+    <div className="min-h-screen bg-[#FAF8FF]">
 
       {/* ── HEADER ────────────────────────────────────────────────── */}
-      <div className="bg-[#111110] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#C9A96E]/8 blur-2xl translate-x-16 -translate-y-10" />
+      <div className="bg-[#1E1A2E] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#9D7FD4]/8 blur-2xl translate-x-16 -translate-y-10" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
 
@@ -202,15 +202,15 @@ export default function AgendarPage() {
 
           {/* Service pill */}
           <div className="flex items-center gap-3 bg-white/10 border border-white/10 rounded-2xl px-4 py-3">
-            <div className="h-9 w-9 rounded-xl bg-[#FBF4E8]0/20 flex items-center justify-center shrink-0">
-              <Sparkles size={15} className="text-[#C9A96E]" />
+            <div className="h-9 w-9 rounded-xl bg-[#F0EBFF]0/20 flex items-center justify-center shrink-0">
+              <Sparkles size={15} className="text-[#9D7FD4]" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Serviço</p>
               <p className="text-sm font-black text-white truncate">{selectedService.name}</p>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-sm font-black text-[#C9A96E]">{selectedService.price}</p>
+              <p className="text-sm font-black text-[#9D7FD4]">{selectedService.price}</p>
               <div className="flex items-center gap-1 justify-end">
                 <Clock size={9} className="text-white/30" />
                 <p className="text-[9px] text-white/30">{selectedService.duration}</p>
@@ -224,24 +224,24 @@ export default function AgendarPage() {
       <div className="px-5 pt-5 pb-36 max-w-lg mx-auto space-y-5">
 
         {/* ── CALENDÁRIO ───────────────────────────────────────────── */}
-        <div className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-3xl border border-[#EDE5FF] shadow-sm overflow-hidden">
           {/* Month nav */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-stone-50">
-            <h3 className="text-sm font-black text-stone-800 capitalize">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[#F0EBFF]">
+            <h3 className="text-sm font-black text-[#1E1A2E] capitalize">
               {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
             </h3>
             <div className="flex gap-1">
               <button
                 onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                className="h-8 w-8 rounded-xl bg-[#F7F5F1] flex items-center justify-center active:scale-90 transition-all hover:bg-stone-100"
+                className="h-8 w-8 rounded-xl bg-[#FAF8FF] flex items-center justify-center active:scale-90 transition-all hover:bg-[#F0EBFF]"
               >
-                <ChevronLeft size={14} className="text-stone-500" />
+                <ChevronLeft size={14} className="text-[#6B6480]" />
               </button>
               <button
                 onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                className="h-8 w-8 rounded-xl bg-[#F7F5F1] flex items-center justify-center active:scale-90 transition-all hover:bg-stone-100"
+                className="h-8 w-8 rounded-xl bg-[#FAF8FF] flex items-center justify-center active:scale-90 transition-all hover:bg-[#F0EBFF]"
               >
-                <ChevronRight size={14} className="text-stone-500" />
+                <ChevronRight size={14} className="text-[#6B6480]" />
               </button>
             </div>
           </div>
@@ -250,7 +250,7 @@ export default function AgendarPage() {
             {/* Week labels */}
             <div className="grid grid-cols-7 mb-2">
               {WEEK_LABELS.map(d => (
-                <div key={d} className="text-center text-[9px] font-black text-stone-300 uppercase tracking-widest py-1">
+                <div key={d} className="text-center text-[9px] font-black text-[#DDD5F5] uppercase tracking-widest py-1">
                   {d}
                 </div>
               ))}
@@ -278,16 +278,16 @@ export default function AgendarPage() {
                     className={cn(
                       "relative aspect-square rounded-xl flex flex-col items-center justify-center transition-all duration-200",
                       disabled && "opacity-20 cursor-not-allowed",
-                      !disabled && !active && !today && "hover:bg-[#F7F5F1] active:scale-90",
-                      !disabled && today && !active && "bg-[#FBF4E8]",
-                      active && "bg-[#111110] shadow-lg shadow-[#111110]/25 scale-105",
+                      !disabled && !active && !today && "hover:bg-[#FAF8FF] active:scale-90",
+                      !disabled && today && !active && "bg-[#F0EBFF]",
+                      active && "bg-[#1E1A2E] shadow-lg shadow-[#1E1A2E]/25 scale-105",
                     )}
                   >
                     <span className={cn(
                       "text-[11px] font-black",
                       active  ? "text-white" :
-                      today   ? "text-[#A88B55]" :
-                      disabled? "text-stone-300" : "text-stone-700"
+                      today   ? "text-[#7C5CBF]" :
+                      disabled? "text-[#DDD5F5]" : "text-[#2A2440]"
                     )}>
                       {format(day, "d")}
                     </span>
@@ -296,8 +296,8 @@ export default function AgendarPage() {
                       <span className={cn(
                         "absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full transition-all",
                         hasSlots          ? "w-1 h-1 bg-emerald-400" :
-                        today             ? "w-1 h-1 bg-[#C9A96E]" :
-                        loadingAvailability ? "w-1 h-1 bg-stone-200 animate-pulse" : "w-0 h-0"
+                        today             ? "w-1 h-1 bg-[#9D7FD4]" :
+                        loadingAvailability ? "w-1 h-1 bg-[#DDD5F5] animate-pulse" : "w-0 h-0"
                       )} />
                     )}
                   </button>
@@ -306,19 +306,19 @@ export default function AgendarPage() {
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-4 pt-3 mt-2 border-t border-stone-50">
+            <div className="flex items-center gap-4 pt-3 mt-2 border-t border-[#F0EBFF]">
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Disponível</span>
+                <span className="text-[9px] font-bold text-[#9B8FC0] uppercase tracking-widest">Disponível</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#C9A96E]" />
-                <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Hoje</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#9D7FD4]" />
+                <span className="text-[9px] font-bold text-[#9B8FC0] uppercase tracking-widest">Hoje</span>
               </div>
               {loadingAvailability && (
                 <div className="ml-auto flex items-center gap-1">
                   <div className="w-1 h-1 rounded-full bg-stone-300 animate-pulse" />
-                  <span className="text-[9px] text-stone-300">Verificando...</span>
+                  <span className="text-[9px] text-[#DDD5F5]">Verificando...</span>
                 </div>
               )}
             </div>
@@ -336,37 +336,37 @@ export default function AgendarPage() {
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
             >
               <div className="flex items-center gap-2 mb-3">
-                <div className="h-6 w-1 rounded-full bg-[#111110]" />
-                <p className="text-xs font-black text-stone-700">
+                <div className="h-6 w-1 rounded-full bg-[#1E1A2E]" />
+                <p className="text-xs font-black text-[#2A2440]">
                   {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
                 </p>
               </div>
 
               {loadingSlots ? (
-                <div className="bg-white rounded-3xl border border-stone-100 p-8 flex flex-col items-center gap-3">
+                <div className="bg-white rounded-3xl border border-[#EDE5FF] p-8 flex flex-col items-center gap-3">
                   <div className="flex gap-1">
                     {[...Array(3)].map((_, i) => (
-                      <motion.div key={i} className="w-2 h-2 rounded-full bg-[#111110]/20"
+                      <motion.div key={i} className="w-2 h-2 rounded-full bg-[#1E1A2E]/20"
                         animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
                         transition={{ duration: 0.8, delay: i * 0.15, repeat: Infinity }} />
                     ))}
                   </div>
-                  <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Carregando horários</p>
+                  <p className="text-[10px] font-bold text-[#9B8FC0] uppercase tracking-widest">Carregando horários</p>
                 </div>
               ) : slotsError ? (
                 <div className="bg-white rounded-3xl border border-red-100 p-6 text-center">
                   <p className="text-xs font-bold text-red-500 mb-2">Erro ao carregar horários</p>
                   <button onClick={() => void fetchSlots(selectedDate)}
-                    className="text-[10px] font-black text-[#111110] uppercase tracking-widest underline underline-offset-2">
+                    className="text-[10px] font-black text-[#1E1A2E] uppercase tracking-widest underline underline-offset-2">
                     Tentar novamente
                   </button>
                 </div>
               ) : timeSlots.length > 0 ? (
                 <TimeSlotGrid timeSlots={timeSlots} selectedTime={selectedTime || undefined} onTimeSelect={setSelectedTime} />
               ) : (
-                <div className="bg-white rounded-3xl border border-stone-100 p-8 text-center">
-                  <p className="text-sm font-bold text-stone-500 mb-1">Sem horários disponíveis</p>
-                  <p className="text-xs text-stone-400">Escolha outra data no calendário</p>
+                <div className="bg-white rounded-3xl border border-[#EDE5FF] p-8 text-center">
+                  <p className="text-sm font-bold text-[#6B6480] mb-1">Sem horários disponíveis</p>
+                  <p className="text-xs text-[#9B8FC0]">Escolha outra data no calendário</p>
                 </div>
               )}
             </motion.div>
@@ -376,7 +376,7 @@ export default function AgendarPage() {
         {/* Dica quando não selecionou data */}
         {!selectedDate && (
           <div className="text-center py-6">
-            <p className="text-[10px] font-black text-stone-300 uppercase tracking-[0.3em]">
+            <p className="text-[10px] font-black text-[#DDD5F5] uppercase tracking-[0.3em]">
               Selecione um dia no calendário
             </p>
           </div>
@@ -396,7 +396,7 @@ export default function AgendarPage() {
             <div className="max-w-lg mx-auto">
               <button
                 onClick={handleContinue}
-                className="w-full h-[60px] rounded-2xl bg-[#111110] text-white flex items-center justify-between px-6 shadow-2xl shadow-[#111110]/40 active:scale-[0.98] transition-all"
+                className="w-full h-[60px] rounded-2xl bg-[#1E1A2E] text-white flex items-center justify-between px-6 shadow-2xl shadow-[#1E1A2E]/40 active:scale-[0.98] transition-all"
               >
                 <div className="text-left">
                   <p className="text-[8px] text-white/40 uppercase tracking-[0.25em] leading-none mb-1">Horário selecionado</p>
@@ -408,7 +408,7 @@ export default function AgendarPage() {
                   <div className="h-px w-8 bg-white/20" />
                   <div className="text-right">
                     <p className="text-[8px] text-white/40 uppercase tracking-widest leading-none mb-1">Total</p>
-                    <p className="text-sm font-black text-[#C9A96E] leading-none">{selectedService.price}</p>
+                    <p className="text-sm font-black text-[#9D7FD4] leading-none">{selectedService.price}</p>
                   </div>
                   <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center ml-1">
                     <ChevronRight size={16} className="text-white" />
