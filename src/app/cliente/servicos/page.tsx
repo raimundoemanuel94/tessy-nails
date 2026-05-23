@@ -11,71 +11,65 @@ import { ServicosSkeleton } from "@/components/cliente/ClienteSkeletons";
 
 interface Service {
   id: string; name: string; description: string;
-  price: string; duration: string; isActive: boolean;
+  price: string; duration: string;
 }
 
-const CATEGORIES = ["Todos", "Manicure", "Pedicure", "Gel", "Combo", "Especial"];
+const CATS = ["Todos","Manicure","Pedicure","Gel","Combo","Especial"];
 
 export default function ServicosPage() {
   const router = useRouter();
-  const [services, setServices] = useState<Service[]>([]);
-  const [filtered, setFiltered] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("Todos");
+  const [all, setAll]           = useState<Service[]>([]);
+  const [shown, setShown]       = useState<Service[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState<string | null>(null);
+  const [query, setQuery]       = useState("");
+  const [cat, setCat]           = useState("Todos");
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const data = await globalStore.fetchServices(false);
-        const valid = data.filter(s => s.id && s.name && s.price && s.durationMinutes)
+    globalStore.fetchServices(false)
+      .then(data => {
+        const v = data.filter(s => s.id && s.name && s.price && s.durationMinutes)
           .map(s => ({
             id: s.id, name: s.name,
             description: s.description || "",
             price: `R$ ${s.price.toFixed(2)}`,
             duration: `${s.durationMinutes}min`,
-            isActive: s.isActive !== false,
           }));
-        setServices(valid);
-        setFiltered(valid);
-      } catch { setError("Não foi possível carregar os serviços."); }
-      finally { setLoading(false); }
-    };
-    load();
+        setAll(v); setShown(v);
+      })
+      .catch(() => setError("Não foi possível carregar os serviços."))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    let result = services;
-    if (query.trim()) result = result.filter(s =>
+    let r = all;
+    if (query.trim()) r = r.filter(s =>
       s.name.toLowerCase().includes(query.toLowerCase()) ||
       s.description.toLowerCase().includes(query.toLowerCase())
     );
-    if (activeCategory !== "Todos") {
-      result = result.filter(s => {
+    if (cat !== "Todos") {
+      r = r.filter(s => {
         const n = s.name.toLowerCase();
-        if (activeCategory === "Manicure") return n.includes("manicure") || n.includes("esmalt");
-        if (activeCategory === "Pedicure") return n.includes("pedicure") || n.includes("pé");
-        if (activeCategory === "Gel") return n.includes("gel") || n.includes("fibra") || n.includes("acrílico");
-        if (activeCategory === "Combo") return n.includes("combo") || n.includes("casadinha");
-        if (activeCategory === "Especial") return n.includes("especial") || n.includes("premium") || n.includes("spa");
+        if (cat === "Manicure") return n.includes("manicure") || n.includes("esmalt");
+        if (cat === "Pedicure") return n.includes("pedicure");
+        if (cat === "Gel")      return n.includes("gel") || n.includes("fibra") || n.includes("acrílic");
+        if (cat === "Combo")    return n.includes("combo") || n.includes("casadinha");
+        if (cat === "Especial") return n.includes("especial") || n.includes("premium") || n.includes("spa");
         return true;
       });
     }
-    setFiltered(result);
-  }, [query, activeCategory, services]);
+    setShown(r);
+  }, [query, cat, all]);
 
-  const handleSelect = (service: Service) => {
-    AppointmentStorage.saveSelectedService(service);
+  const pick = (s: Service) => {
+    AppointmentStorage.saveSelectedService(s);
     AppointmentStorage.clearAppointmentData();
     AppointmentStorage.clearSelectedDate();
     router.push("/cliente/agendar");
   };
 
   if (loading) return <ServicosSkeleton />;
-
-  if (error) return (
+  if (error)   return (
     <div className="min-h-screen bg-[#FAF8FF] flex items-center justify-center p-5">
       <ErrorState title="Erro" message={error} onRetry={() => window.location.reload()} />
     </div>
@@ -84,104 +78,97 @@ export default function ServicosPage() {
   return (
     <div className="min-h-screen bg-[#FAF8FF]">
 
-      {/* Header */}
-      <div className="sticky top-0 z-20 bg-[#1E1A2E]">
-        <div className="relative overflow-hidden px-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-5 max-w-lg mx-auto">
-          <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-[#9D7FD4]/8 blur-2xl translate-x-10 -translate-y-10" />
-          <div className="flex items-center gap-3 mb-5">
-            <button onClick={() => router.back()}
-              className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center active:scale-90 transition-all">
-              <ArrowLeft size={16} className="text-white/80" />
-            </button>
-            <div>
-              <h1 className="text-lg font-black text-white leading-none">Nossos Serviços</h1>
-              <p className="text-[10px] text-white/40 mt-0.5">{services.length} serviços disponíveis</p>
+      {/* ── HEADER ─────────────────────────────────────────── */}
+      <div className="sticky top-0 z-20" style={{ background: "linear-gradient(145deg, #1E1A2E 0%, #2A2044 100%)" }}>
+        <div className="px-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 max-w-lg mx-auto">
+
+          {/* Título */}
+          <div className="flex items-center gap-3 mb-4">
+            <motion.button whileTap={{ scale: 0.9 }} onClick={() => router.back()}
+              className="h-9 w-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
+              <ArrowLeft size={15} className="text-white/80" />
+            </motion.button>
+            <div className="flex-1">
+              <h1 className="text-base font-black text-white leading-none">Serviços</h1>
+              <p className="text-[10px] text-white/40 mt-0.5">{all.length} disponíveis</p>
             </div>
           </div>
 
           {/* Search */}
-          <div className="relative">
-            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" />
-            <input
-              value={query}
-              onChange={e => setQuery(e.target.value)}
+          <div className="relative mb-3">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+            <input value={query} onChange={e => setQuery(e.target.value)}
               placeholder="Buscar serviço..."
-              className="w-full h-10 bg-white/10 border border-white/10 rounded-2xl pl-9 pr-9 text-xs text-white placeholder:text-white/30 outline-none focus:border-amber-400/40 transition-colors"
-            />
+              className="w-full h-9 bg-white/10 border border-white/10 rounded-xl pl-8 pr-8 text-xs text-white placeholder:text-white/30 outline-none focus:border-[#9D7FD4]/50 transition-colors" />
             {query && (
-              <button onClick={() => setQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2">
-                <X size={13} className="text-white/40" />
+              <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+                <X size={12} className="text-white/40" />
               </button>
             )}
           </div>
-        </div>
 
-        {/* Category pills */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide px-5 pb-4 max-w-lg mx-auto">
-          {CATEGORIES.map(cat => (
-            <button key={cat} onClick={() => setActiveCategory(cat)}
-              className={`shrink-0 px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-                activeCategory === cat
-                  ? "bg-[#F0EBFF]0 text-white shadow-md"
-                  : "bg-white/10 text-white/50 hover:bg-white/15"
-              }`}>
-              {cat}
-            </button>
-          ))}
+          {/* Categorias */}
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            {CATS.map(c => (
+              <button key={c} onClick={() => setCat(c)}
+                className={`shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${
+                  cat === c
+                    ? "bg-[#9D7FD4] text-white"
+                    : "bg-white/10 text-white/50 hover:bg-white/15"
+                }`}>
+                {c}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* List */}
-      <div className="px-5 pt-4 pb-32 max-w-lg mx-auto space-y-3">
+      {/* ── LISTA ──────────────────────────────────────────── */}
+      <div className="px-5 pt-4 pb-32 max-w-lg mx-auto space-y-2.5">
         <AnimatePresence mode="popLayout">
-          {filtered.length === 0 ? (
-            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          {shown.length === 0 ? (
+            <motion.div key="empty" initial={{ opacity:0 }} animate={{ opacity:1 }}
               className="text-center py-16">
-              <Sparkles size={32} className="text-[#DDD5F5] mx-auto mb-3" strokeWidth={1} />
-              <p className="text-sm font-bold text-[#6B6480]">Nenhum serviço encontrado</p>
-              <p className="text-xs text-[#9B8FC0] mt-1">Tente outra busca</p>
+              <div className="h-14 w-14 rounded-2xl bg-[#EDE5FF] flex items-center justify-center mx-auto mb-4">
+                <Sparkles size={22} className="text-[#9D7FD4]" strokeWidth={1.5} />
+              </div>
+              <p className="text-sm font-bold text-[#2A2440] mb-1">Nenhum serviço encontrado</p>
+              <p className="text-xs text-[#9B8FC0]">Tente outra busca ou categoria</p>
             </motion.div>
-          ) : filtered.map((service, i) => (
-            <motion.button
-              key={service.id}
-              layout
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ delay: i * 0.04, type: "spring", stiffness: 300, damping: 30 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleSelect(service)}
-              className="w-full text-left"
-            >
-              <div className="bg-white rounded-2xl border border-[#EDE5FF] overflow-hidden shadow-sm hover:shadow-md transition-all group">
-                <div className="h-0.5 bg-gradient-to-r from-[#1E1A2E]/0 via-[#1E1A2E]/40 to-[#1E1A2E]/0 group-hover:via-amber-500 transition-all duration-500" />
-                <div className="p-4 flex items-center gap-4">
-                  {/* Icon */}
-                  <div className="h-12 w-12 rounded-xl bg-[#FAF8FF] flex items-center justify-center shrink-0 group-hover:bg-[#1E1A2E] transition-colors duration-300">
-                    <Sparkles size={18} className="text-[#1E1A2E]/30 group-hover:text-[#9D7FD4] transition-colors duration-300" strokeWidth={1.5} />
-                  </div>
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-black text-[#1E1A2E] leading-tight truncate">{service.name}</p>
-                    {service.description && (
-                      <p className="text-[10px] text-[#9B8FC0] mt-0.5 line-clamp-1">{service.description}</p>
-                    )}
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <Clock size={9} className="text-[#DDD5F5]" />
-                      <span className="text-[9px] font-bold text-[#9B8FC0]">{service.duration}</span>
+          ) : shown.map((s, i) => (
+            <motion.div key={s.id} layout
+              initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
+              exit={{ opacity:0, scale:0.96 }}
+              transition={{ delay: i * 0.035, type:"spring", stiffness:320, damping:28 }}>
+              <button onClick={() => pick(s)} className="w-full text-left group">
+                <div className="bg-white rounded-2xl border border-[#EDE5FF] shadow-sm group-hover:border-[#9D7FD4]/40 group-hover:shadow-md transition-all overflow-hidden">
+                  <div className="p-4 flex items-center gap-3.5">
+                    {/* Ícone */}
+                    <div className="h-11 w-11 rounded-xl bg-[#EDE5FF] flex items-center justify-center shrink-0 group-hover:bg-[#9D7FD4] transition-colors duration-250">
+                      <Sparkles size={17} className="text-[#7C5CBF] group-hover:text-white transition-colors duration-250" strokeWidth={1.5} />
                     </div>
-                  </div>
-                  {/* Price + arrow */}
-                  <div className="shrink-0 flex flex-col items-end gap-1.5">
-                    <p className="text-sm font-black text-[#1E1A2E]">{service.price}</p>
-                    <div className="h-7 w-7 rounded-xl bg-[#FAF8FF] group-hover:bg-[#1E1A2E] flex items-center justify-center transition-colors duration-300">
-                      <ChevronRight size={13} className="text-[#9B8FC0] group-hover:text-[#9D7FD4] transition-colors duration-300" />
+                    {/* Textos */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-black text-[#1E1A2E] leading-tight truncate">{s.name}</p>
+                      {s.description && (
+                        <p className="text-[10px] text-[#9B8FC0] mt-0.5 line-clamp-1">{s.description}</p>
+                      )}
+                      <div className="flex items-center gap-1 mt-1">
+                        <Clock size={9} className="text-[#DDD5F5]" />
+                        <span className="text-[9px] font-bold text-[#9B8FC0]">{s.duration}</span>
+                      </div>
+                    </div>
+                    {/* Preço */}
+                    <div className="shrink-0 text-right">
+                      <p className="text-[13px] font-black text-[#7C5CBF]">{s.price}</p>
+                      <div className="mt-1 h-6 w-6 rounded-lg bg-[#EDE5FF] group-hover:bg-[#9D7FD4] flex items-center justify-center ml-auto transition-colors duration-250">
+                        <ChevronRight size={12} className="text-[#7C5CBF] group-hover:text-white transition-colors duration-250" />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </motion.button>
+              </button>
+            </motion.div>
           ))}
         </AnimatePresence>
       </div>
