@@ -165,14 +165,14 @@ export default function AgendarPage() {
   const firstDayOfWeek = days[0]?.getDay() ?? 0;
 
   if (!selectedService) return (
-    <div className="min-h-screen bg-[#F5F0EA] flex items-center justify-center p-6 text-center">
+    <div className="min-h-screen bg-[#F7F5F1] flex items-center justify-center p-6 text-center">
       <div>
-        <div className="h-16 w-16 rounded-2xl bg-[#2C1810]/10 flex items-center justify-center mx-auto mb-4">
-          <Sparkles size={28} className="text-[#2C1810]/40" />
+        <div className="h-16 w-16 rounded-2xl bg-[#111110]/10 flex items-center justify-center mx-auto mb-4">
+          <Sparkles size={28} className="text-[#111110]/40" />
         </div>
         <p className="text-sm font-bold text-stone-600 mb-4">Selecione um serviço primeiro</p>
         <button onClick={() => router.push("/cliente/servicos")}
-          className="px-6 py-2.5 rounded-full bg-[#2C1810] text-white text-xs font-black uppercase tracking-widest">
+          className="px-6 py-2.5 rounded-full bg-[#111110] text-white text-xs font-black uppercase tracking-widest">
           Ver Serviços
         </button>
       </div>
@@ -180,11 +180,11 @@ export default function AgendarPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F5F0EA]">
+    <div className="min-h-screen bg-[#F7F5F1]">
 
       {/* ── HEADER ────────────────────────────────────────────────── */}
-      <div className="bg-[#2C1810] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-amber-400/8 blur-2xl translate-x-16 -translate-y-10" />
+      <div className="bg-[#111110] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#C9A96E]/8 blur-2xl translate-x-16 -translate-y-10" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
 
@@ -202,15 +202,15 @@ export default function AgendarPage() {
 
           {/* Service pill */}
           <div className="flex items-center gap-3 bg-white/10 border border-white/10 rounded-2xl px-4 py-3">
-            <div className="h-9 w-9 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
-              <Sparkles size={15} className="text-amber-400" />
+            <div className="h-9 w-9 rounded-xl bg-[#FBF4E8]0/20 flex items-center justify-center shrink-0">
+              <Sparkles size={15} className="text-[#C9A96E]" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Serviço</p>
               <p className="text-sm font-black text-white truncate">{selectedService.name}</p>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-sm font-black text-amber-400">{selectedService.price}</p>
+              <p className="text-sm font-black text-[#C9A96E]">{selectedService.price}</p>
               <div className="flex items-center gap-1 justify-end">
                 <Clock size={9} className="text-white/30" />
                 <p className="text-[9px] text-white/30">{selectedService.duration}</p>
@@ -233,13 +233,13 @@ export default function AgendarPage() {
             <div className="flex gap-1">
               <button
                 onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                className="h-8 w-8 rounded-xl bg-[#F5F0EA] flex items-center justify-center active:scale-90 transition-all hover:bg-stone-100"
+                className="h-8 w-8 rounded-xl bg-[#F7F5F1] flex items-center justify-center active:scale-90 transition-all hover:bg-stone-100"
               >
                 <ChevronLeft size={14} className="text-stone-500" />
               </button>
               <button
                 onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                className="h-8 w-8 rounded-xl bg-[#F5F0EA] flex items-center justify-center active:scale-90 transition-all hover:bg-stone-100"
+                className="h-8 w-8 rounded-xl bg-[#F7F5F1] flex items-center justify-center active:scale-90 transition-all hover:bg-stone-100"
               >
                 <ChevronRight size={14} className="text-stone-500" />
               </button>
@@ -278,15 +278,15 @@ export default function AgendarPage() {
                     className={cn(
                       "relative aspect-square rounded-xl flex flex-col items-center justify-center transition-all duration-200",
                       disabled && "opacity-20 cursor-not-allowed",
-                      !disabled && !active && !today && "hover:bg-[#F5F0EA] active:scale-90",
-                      !disabled && today && !active && "bg-amber-50",
-                      active && "bg-[#2C1810] shadow-lg shadow-[#2C1810]/25 scale-105",
+                      !disabled && !active && !today && "hover:bg-[#F7F5F1] active:scale-90",
+                      !disabled && today && !active && "bg-[#FBF4E8]",
+                      active && "bg-[#111110] shadow-lg shadow-[#111110]/25 scale-105",
                     )}
                   >
                     <span className={cn(
                       "text-[11px] font-black",
                       active  ? "text-white" :
-                      today   ? "text-amber-700" :
+                      today   ? "text-[#A88B55]" :
                       disabled? "text-stone-300" : "text-stone-700"
                     )}>
                       {format(day, "d")}
@@ -296,7 +296,7 @@ export default function AgendarPage() {
                       <span className={cn(
                         "absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full transition-all",
                         hasSlots          ? "w-1 h-1 bg-emerald-400" :
-                        today             ? "w-1 h-1 bg-amber-400" :
+                        today             ? "w-1 h-1 bg-[#C9A96E]" :
                         loadingAvailability ? "w-1 h-1 bg-stone-200 animate-pulse" : "w-0 h-0"
                       )} />
                     )}
@@ -312,7 +312,7 @@ export default function AgendarPage() {
                 <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Disponível</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#C9A96E]" />
                 <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Hoje</span>
               </div>
               {loadingAvailability && (
@@ -336,7 +336,7 @@ export default function AgendarPage() {
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
             >
               <div className="flex items-center gap-2 mb-3">
-                <div className="h-6 w-1 rounded-full bg-[#2C1810]" />
+                <div className="h-6 w-1 rounded-full bg-[#111110]" />
                 <p className="text-xs font-black text-stone-700">
                   {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
                 </p>
@@ -346,7 +346,7 @@ export default function AgendarPage() {
                 <div className="bg-white rounded-3xl border border-stone-100 p-8 flex flex-col items-center gap-3">
                   <div className="flex gap-1">
                     {[...Array(3)].map((_, i) => (
-                      <motion.div key={i} className="w-2 h-2 rounded-full bg-[#2C1810]/20"
+                      <motion.div key={i} className="w-2 h-2 rounded-full bg-[#111110]/20"
                         animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
                         transition={{ duration: 0.8, delay: i * 0.15, repeat: Infinity }} />
                     ))}
@@ -357,7 +357,7 @@ export default function AgendarPage() {
                 <div className="bg-white rounded-3xl border border-red-100 p-6 text-center">
                   <p className="text-xs font-bold text-red-500 mb-2">Erro ao carregar horários</p>
                   <button onClick={() => void fetchSlots(selectedDate)}
-                    className="text-[10px] font-black text-[#2C1810] uppercase tracking-widest underline underline-offset-2">
+                    className="text-[10px] font-black text-[#111110] uppercase tracking-widest underline underline-offset-2">
                     Tentar novamente
                   </button>
                 </div>
@@ -396,7 +396,7 @@ export default function AgendarPage() {
             <div className="max-w-lg mx-auto">
               <button
                 onClick={handleContinue}
-                className="w-full h-[60px] rounded-2xl bg-[#2C1810] text-white flex items-center justify-between px-6 shadow-2xl shadow-[#2C1810]/40 active:scale-[0.98] transition-all"
+                className="w-full h-[60px] rounded-2xl bg-[#111110] text-white flex items-center justify-between px-6 shadow-2xl shadow-[#111110]/40 active:scale-[0.98] transition-all"
               >
                 <div className="text-left">
                   <p className="text-[8px] text-white/40 uppercase tracking-[0.25em] leading-none mb-1">Horário selecionado</p>
@@ -408,7 +408,7 @@ export default function AgendarPage() {
                   <div className="h-px w-8 bg-white/20" />
                   <div className="text-right">
                     <p className="text-[8px] text-white/40 uppercase tracking-widest leading-none mb-1">Total</p>
-                    <p className="text-sm font-black text-amber-400 leading-none">{selectedService.price}</p>
+                    <p className="text-sm font-black text-[#C9A96E] leading-none">{selectedService.price}</p>
                   </div>
                   <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center ml-1">
                     <ChevronRight size={16} className="text-white" />

@@ -26,7 +26,7 @@ interface AppointmentCardProps {
 }
 
 const STATUS = {
-  pending:   { label: "Pendente",         dot: "bg-amber-400",   text: "text-amber-700",   bg: "bg-amber-50",   border: "border-amber-200",  strip: "#F59E0B" },
+  pending:   { label: "Pendente",         dot: "bg-[#C9A96E]",   text: "text-[#A88B55]",   bg: "bg-[#FBF4E8]",   border: "border-[#E8D5B0]",  strip: "#F59E0B" },
   confirmed: { label: "Confirmado",       dot: "bg-emerald-400", text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200",strip: "#10B981" },
   completed: { label: "Concluído",        dot: "bg-stone-400",   text: "text-stone-600",   bg: "bg-stone-100",  border: "border-stone-200",  strip: "#78716C" },
   cancelled: { label: "Cancelado",        dot: "bg-red-400",     text: "text-red-600",     bg: "bg-red-50",     border: "border-red-200",    strip: "#EF4444" },
@@ -118,9 +118,9 @@ export function AppointmentCard({ appointment, onReschedule, onCancel }: Appoint
               {/* Icon */}
               <div className={cn(
                 "h-10 w-10 rounded-2xl shrink-0 flex items-center justify-center",
-                isActive ? "bg-[#2C1810]" : "bg-stone-100"
+                isActive ? "bg-[#111110]" : "bg-stone-100"
               )}>
-                <Sparkles size={16} className={isActive ? "text-amber-400" : "text-stone-400"} strokeWidth={1.5} />
+                <Sparkles size={16} className={isActive ? "text-[#C9A96E]" : "text-stone-400"} strokeWidth={1.5} />
               </div>
               <div className="min-w-0">
                 <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Serviço</p>
@@ -142,8 +142,8 @@ export function AppointmentCard({ appointment, onReschedule, onCancel }: Appoint
 
           {/* ── Data / Hora / Duração ── */}
           <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-2xl bg-[#F5F0EA] p-3 text-center">
-              <Calendar size={12} className="text-[#2C1810]/40 mx-auto mb-1" />
+            <div className="rounded-2xl bg-[#F7F5F1] p-3 text-center">
+              <Calendar size={12} className="text-[#111110]/40 mx-auto mb-1" />
               <p className="text-[8px] text-stone-400 font-bold uppercase tracking-widest leading-none mb-0.5">
                 {dateLabel(appointment.date)}
               </p>
@@ -151,15 +151,15 @@ export function AppointmentCard({ appointment, onReschedule, onCancel }: Appoint
                 {format(appointment.date, "dd/MM")}
               </p>
             </div>
-            <div className="rounded-2xl bg-[#F5F0EA] p-3 text-center">
-              <Clock size={12} className="text-[#2C1810]/40 mx-auto mb-1" />
+            <div className="rounded-2xl bg-[#F7F5F1] p-3 text-center">
+              <Clock size={12} className="text-[#111110]/40 mx-auto mb-1" />
               <p className="text-[8px] text-stone-400 font-bold uppercase tracking-widest leading-none mb-0.5">Hora</p>
               <p className="text-xs font-black text-stone-700 tabular-nums">
                 {appointment.time.time}
               </p>
             </div>
-            <div className="rounded-2xl bg-[#F5F0EA] p-3 text-center">
-              <div className="h-3 w-3 rounded-full border-2 border-[#2C1810]/30 mx-auto mb-1" />
+            <div className="rounded-2xl bg-[#F7F5F1] p-3 text-center">
+              <div className="h-3 w-3 rounded-full border-2 border-[#111110]/30 mx-auto mb-1" />
               <p className="text-[8px] text-stone-400 font-bold uppercase tracking-widest leading-none mb-0.5">Duração</p>
               <p className="text-xs font-black text-stone-700">
                 {appointment.service.duration || "—"}
@@ -168,10 +168,10 @@ export function AppointmentCard({ appointment, onReschedule, onCancel }: Appoint
           </div>
 
           {/* ── Valor ── */}
-          <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-[#F5F0EA]">
+          <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-[#F7F5F1]">
             <div>
               <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Valor</p>
-              <p className="text-base font-black text-[#2C1810]">
+              <p className="text-base font-black text-[#111110]">
                 {appointment.service.price || "A confirmar"}
               </p>
             </div>
@@ -205,7 +205,7 @@ export function AppointmentCard({ appointment, onReschedule, onCancel }: Appoint
                   appointmentId={appointment.id}
                   isDeposit={true}
                   title="Pagar sinal agora"
-                  className="w-full h-11 rounded-2xl bg-[#2C1810] text-white text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-[#2C1810]/20"
+                  className="w-full h-11 rounded-2xl bg-[#111110] text-white text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-black/15"
                 />
               )}
 

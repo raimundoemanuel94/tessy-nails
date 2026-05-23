@@ -53,9 +53,9 @@ function SlotGroup({ title, slots, selectedTime, onTimeSelect }: {
               className={cn(
                 "relative h-11 rounded-2xl text-[11px] font-black transition-all duration-200",
                 isSelected
-                  ? "bg-[#2C1810] text-white shadow-lg shadow-[#2C1810]/30 scale-105"
+                  ? "bg-[#111110] text-white shadow-lg shadow-[#111110]/30 scale-105"
                   : isAvailable
-                  ? "bg-white border border-stone-150 text-stone-700 hover:border-[#2C1810]/30 hover:bg-[#F5F0EA] shadow-sm"
+                  ? "bg-white border border-stone-150 text-stone-700 hover:border-[#111110]/30 hover:bg-[#F7F5F1] shadow-sm"
                   : "bg-stone-50 border border-transparent text-stone-200 cursor-not-allowed"
               )}
             >
@@ -71,7 +71,7 @@ function SlotGroup({ title, slots, selectedTime, onTimeSelect }: {
 
               {/* Popular badge */}
               {slot.label && !isSelected && isAvailable && (
-                <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-px rounded-full bg-amber-500 text-[8px] font-black text-white whitespace-nowrap shadow-sm">
+                <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-px rounded-full bg-[#FBF4E8]0 text-[8px] font-black text-white whitespace-nowrap shadow-sm">
                   {slot.label}
                 </span>
               )}
@@ -105,7 +105,7 @@ export function TimeSlotGrid({ timeSlots, selectedTime, onTimeSelect }: TimeSlot
           <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Ocupado</span>
         </div>
         <div className="flex items-center gap-1.5 ml-auto">
-          <span className="w-3 h-1.5 rounded-full bg-amber-500" />
+          <span className="w-3 h-1.5 rounded-full bg-[#FBF4E8]0" />
           <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Popular</span>
         </div>
       </div>

@@ -29,7 +29,7 @@ interface ClientAppointment {
 }
 
 const STATUS_BADGE = {
-  pending:   { label: "Pendente",   cls: "bg-amber-50 text-amber-700 border border-amber-200"    },
+  pending:   { label: "Pendente",   cls: "bg-[#FBF4E8] text-[#A88B55] border border-[#E8D5B0]"    },
   confirmed: { label: "Confirmado", cls: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
   completed: { label: "Concluído",  cls: "bg-stone-100 text-stone-600 border border-stone-200"   },
   cancelled: { label: "Cancelado",  cls: "bg-red-50 text-red-600 border border-red-200"          },
@@ -100,11 +100,11 @@ export default function AgendamentosPage() {
   if (loading) return <AgendamentosSkeleton />;
 
   return (
-    <div className="min-h-screen bg-[#F5F0EA]">
+    <div className="min-h-screen bg-[#F7F5F1]">
 
       {/* Header dark */}
-      <div className="bg-[#2C1810] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-amber-400/8 blur-2xl translate-x-16 -translate-y-10" />
+      <div className="bg-[#111110] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#C9A96E]/8 blur-2xl translate-x-16 -translate-y-10" />
         <div className="px-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-6 max-w-lg mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-1">
             <button onClick={() => router.push("/cliente")}
@@ -126,14 +126,14 @@ export default function AgendamentosPage() {
               className={cn(
                 "flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-t-xl transition-all duration-200",
                 activeTab === tab.key
-                  ? "bg-[#F5F0EA] text-[#2C1810]"
+                  ? "bg-[#F7F5F1] text-[#111110]"
                   : "text-white/40 hover:text-white/60"
               )}>
               {tab.label}
               {counts[tab.key] > 0 && (
                 <span className={cn(
                   "ml-1.5 text-[8px] px-1.5 py-0.5 rounded-full font-black",
-                  activeTab === tab.key ? "bg-[#2C1810] text-amber-400" : "bg-white/10 text-white/40"
+                  activeTab === tab.key ? "bg-[#111110] text-[#C9A96E]" : "bg-white/10 text-white/40"
                 )}>
                   {counts[tab.key]}
                 </span>
@@ -162,7 +162,7 @@ export default function AgendamentosPage() {
                 {activeTab === "upcoming" ? "Sem horários futuros agendados." : "Nenhum registro neste período."}
               </p>
               <button onClick={() => router.push("/cliente/servicos")}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#2C1810] text-white text-xs font-black uppercase tracking-widest active:scale-95 transition-all">
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#111110] text-white text-xs font-black uppercase tracking-widest active:scale-95 transition-all">
                 <Plus size={13} strokeWidth={3} /> Agendar agora
               </button>
             </motion.div>

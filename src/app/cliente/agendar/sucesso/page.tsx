@@ -81,10 +81,10 @@ function SucessoContent() {
   }, [appointmentId]);
 
   if (loading) return (
-    <div className="min-h-screen bg-[#2C1810] flex items-center justify-center">
+    <div className="min-h-screen bg-[#111110] flex items-center justify-center">
       <div className="flex gap-1.5">
         {[0,1,2].map(i => (
-          <motion.div key={i} className="w-2 h-2 rounded-full bg-amber-400"
+          <motion.div key={i} className="w-2 h-2 rounded-full bg-[#C9A96E]"
             animate={{ scale: [1,1.5,1], opacity: [0.4,1,0.4] }}
             transition={{ duration: 0.8, delay: i*0.15, repeat: Infinity }} />
         ))}
@@ -93,14 +93,14 @@ function SucessoContent() {
   );
 
   if (!appointment) return (
-    <div className="min-h-screen bg-[#F5F0EA] flex items-center justify-center p-6 text-center">
+    <div className="min-h-screen bg-[#F7F5F1] flex items-center justify-center p-6 text-center">
       <div>
         <div className="h-16 w-16 rounded-2xl bg-stone-100 flex items-center justify-center mx-auto mb-4">
           <Calendar size={24} className="text-stone-300" />
         </div>
         <p className="text-sm font-bold text-stone-500 mb-4">Agendamento não encontrado</p>
         <button onClick={() => router.push("/cliente")}
-          className="px-6 py-2.5 rounded-full bg-[#2C1810] text-white text-xs font-black uppercase tracking-widest">
+          className="px-6 py-2.5 rounded-full bg-[#111110] text-white text-xs font-black uppercase tracking-widest">
           Voltar ao início
         </button>
       </div>
@@ -108,10 +108,10 @@ function SucessoContent() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F5F0EA]">
+    <div className="min-h-screen bg-[#F7F5F1]">
 
       {/* ── HERO DARK ─────────────────────────────────────────────── */}
-      <div className="bg-[#2C1810] relative overflow-hidden">
+      <div className="bg-[#111110] relative overflow-hidden">
         {/* Particles */}
         {showParticles && (
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -124,7 +124,7 @@ function SucessoContent() {
           style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
 
         {/* Gold glows */}
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-amber-400/10 blur-3xl translate-x-20 -translate-y-20" />
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#C9A96E]/10 blur-3xl translate-x-20 -translate-y-20" />
         <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-amber-600/8 blur-2xl" />
 
         <div className="relative z-10 px-6 pt-[calc(env(safe-area-inset-top)+2rem)] pb-12 max-w-lg mx-auto text-center">
@@ -134,7 +134,7 @@ function SucessoContent() {
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-            className="h-20 w-20 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-amber-900/40"
+            className="h-20 w-20 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-black/20"
           >
             <CheckCircle size={36} className="text-white" strokeWidth={2.5} />
           </motion.div>
@@ -144,12 +144,12 @@ function SucessoContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
           >
-            <p className="text-[10px] font-black text-amber-400/60 uppercase tracking-[0.4em] mb-2">
+            <p className="text-[10px] font-black text-[#C9A96E]/60 uppercase tracking-[0.4em] mb-2">
               Reserva confirmada
             </p>
             <h1 className="text-3xl font-black text-white leading-tight mb-3">
               Pronto,{" "}
-              <span className="text-amber-400">
+              <span className="text-[#C9A96E]">
                 {appointment.clientName.split(" ")[0]}!
               </span>
             </h1>
@@ -169,19 +169,19 @@ function SucessoContent() {
           className="bg-white rounded-3xl border border-stone-100 shadow-xl shadow-stone-200/60 overflow-hidden"
         >
           {/* Gold accent top */}
-          <div className="h-0.5 bg-gradient-to-r from-[#2C1810]/0 via-amber-500 to-[#2C1810]/0" />
+          <div className="h-0.5 bg-gradient-to-r from-[#111110]/0 via-amber-500 to-[#111110]/0" />
 
           <div className="p-5 space-y-4">
             {/* Service */}
             <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-2xl bg-[#2C1810] flex items-center justify-center shrink-0">
-                <Sparkles size={16} className="text-amber-400" strokeWidth={1.5} />
+              <div className="h-11 w-11 rounded-2xl bg-[#111110] flex items-center justify-center shrink-0">
+                <Sparkles size={16} className="text-[#C9A96E]" strokeWidth={1.5} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Serviço</p>
                 <p className="text-sm font-black text-stone-800 truncate">{appointment.service.name}</p>
               </div>
-              <p className="text-base font-black text-[#2C1810] shrink-0">
+              <p className="text-base font-black text-[#111110] shrink-0">
                 {appointment.service.price}
               </p>
             </div>
@@ -200,9 +200,9 @@ function SucessoContent() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.45 + i * 0.08 }}
-                  className="rounded-2xl bg-[#F5F0EA] p-3 text-center"
+                  className="rounded-2xl bg-[#F7F5F1] p-3 text-center"
                 >
-                  <item.icon size={12} className="text-[#2C1810]/40 mx-auto mb-1.5" />
+                  <item.icon size={12} className="text-[#111110]/40 mx-auto mb-1.5" />
                   <p className="text-[8px] font-bold text-stone-400 uppercase tracking-widest leading-none mb-1">
                     {item.label}
                   </p>
@@ -212,8 +212,8 @@ function SucessoContent() {
             </div>
 
             {/* Full date */}
-            <div className="rounded-2xl bg-amber-50 border border-amber-100 px-4 py-3 text-center">
-              <p className="text-xs font-black text-amber-800 capitalize">
+            <div className="rounded-2xl bg-[#FBF4E8] border border-[#E8D5B0] px-4 py-3 text-center">
+              <p className="text-xs font-black text-[#7C5C2A] capitalize">
                 {format(appointment.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
               </p>
             </div>
@@ -238,7 +238,7 @@ function SucessoContent() {
       >
         <button
           onClick={() => router.push("/cliente/agendamentos")}
-          className="w-full h-14 rounded-2xl bg-[#2C1810] text-white flex items-center justify-center gap-3 font-black text-sm shadow-lg shadow-[#2C1810]/20 active:scale-[0.98] transition-all"
+          className="w-full h-14 rounded-2xl bg-[#111110] text-white flex items-center justify-center gap-3 font-black text-sm shadow-lg shadow-black/15 active:scale-[0.98] transition-all"
         >
           <CalendarDays size={18} />
           Ver meus agendamentos
@@ -254,8 +254,8 @@ function SucessoContent() {
 
         {/* Footer */}
         <div className="flex items-center justify-center gap-2 pt-3 opacity-25">
-          <Sparkles size={9} className="text-[#2C1810]" />
-          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-[#2C1810]">Tessy Nails</span>
+          <Sparkles size={9} className="text-[#111110]" />
+          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-[#111110]">Tessy Nails</span>
         </div>
       </motion.div>
     </div>
@@ -265,10 +265,10 @@ function SucessoContent() {
 export default function SucessoPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#2C1810] flex items-center justify-center">
+      <div className="min-h-screen bg-[#111110] flex items-center justify-center">
         <div className="flex gap-1.5">
           {[0,1,2].map(i => (
-            <motion.div key={i} className="w-2 h-2 rounded-full bg-amber-400"
+            <motion.div key={i} className="w-2 h-2 rounded-full bg-[#C9A96E]"
               animate={{ scale: [1,1.5,1], opacity: [0.4,1,0.4] }}
               transition={{ duration: 0.8, delay: i*0.15, repeat: Infinity }} />
           ))}

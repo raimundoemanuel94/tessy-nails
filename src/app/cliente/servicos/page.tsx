@@ -76,18 +76,18 @@ export default function ServicosPage() {
   if (loading) return <ServicosSkeleton />;
 
   if (error) return (
-    <div className="min-h-screen bg-[#F5F0EA] flex items-center justify-center p-5">
+    <div className="min-h-screen bg-[#F7F5F1] flex items-center justify-center p-5">
       <ErrorState title="Erro" message={error} onRetry={() => window.location.reload()} />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#F5F0EA]">
+    <div className="min-h-screen bg-[#F7F5F1]">
 
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-[#2C1810]">
+      <div className="sticky top-0 z-20 bg-[#111110]">
         <div className="relative overflow-hidden px-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-5 max-w-lg mx-auto">
-          <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-amber-400/8 blur-2xl translate-x-10 -translate-y-10" />
+          <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-[#C9A96E]/8 blur-2xl translate-x-10 -translate-y-10" />
           <div className="flex items-center gap-3 mb-5">
             <button onClick={() => router.back()}
               className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center active:scale-90 transition-all">
@@ -123,7 +123,7 @@ export default function ServicosPage() {
             <button key={cat} onClick={() => setActiveCategory(cat)}
               className={`shrink-0 px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
                 activeCategory === cat
-                  ? "bg-amber-500 text-white shadow-md"
+                  ? "bg-[#FBF4E8]0 text-white shadow-md"
                   : "bg-white/10 text-white/50 hover:bg-white/15"
               }`}>
               {cat}
@@ -155,11 +155,11 @@ export default function ServicosPage() {
               className="w-full text-left"
             >
               <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden shadow-sm hover:shadow-md transition-all group">
-                <div className="h-0.5 bg-gradient-to-r from-[#2C1810]/0 via-[#2C1810]/40 to-[#2C1810]/0 group-hover:via-amber-500 transition-all duration-500" />
+                <div className="h-0.5 bg-gradient-to-r from-[#111110]/0 via-[#111110]/40 to-[#111110]/0 group-hover:via-amber-500 transition-all duration-500" />
                 <div className="p-4 flex items-center gap-4">
                   {/* Icon */}
-                  <div className="h-12 w-12 rounded-xl bg-[#F5F0EA] flex items-center justify-center shrink-0 group-hover:bg-[#2C1810] transition-colors duration-300">
-                    <Sparkles size={18} className="text-[#2C1810]/30 group-hover:text-amber-400 transition-colors duration-300" strokeWidth={1.5} />
+                  <div className="h-12 w-12 rounded-xl bg-[#F7F5F1] flex items-center justify-center shrink-0 group-hover:bg-[#111110] transition-colors duration-300">
+                    <Sparkles size={18} className="text-[#111110]/30 group-hover:text-[#C9A96E] transition-colors duration-300" strokeWidth={1.5} />
                   </div>
                   {/* Info */}
                   <div className="flex-1 min-w-0">
@@ -174,9 +174,9 @@ export default function ServicosPage() {
                   </div>
                   {/* Price + arrow */}
                   <div className="shrink-0 flex flex-col items-end gap-1.5">
-                    <p className="text-sm font-black text-[#2C1810]">{service.price}</p>
-                    <div className="h-7 w-7 rounded-xl bg-[#F5F0EA] group-hover:bg-[#2C1810] flex items-center justify-center transition-colors duration-300">
-                      <ChevronRight size={13} className="text-stone-400 group-hover:text-amber-400 transition-colors duration-300" />
+                    <p className="text-sm font-black text-[#111110]">{service.price}</p>
+                    <div className="h-7 w-7 rounded-xl bg-[#F7F5F1] group-hover:bg-[#111110] flex items-center justify-center transition-colors duration-300">
+                      <ChevronRight size={13} className="text-stone-400 group-hover:text-[#C9A96E] transition-colors duration-300" />
                     </div>
                   </div>
                 </div>

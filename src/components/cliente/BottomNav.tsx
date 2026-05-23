@@ -25,10 +25,10 @@ export function BottomNav() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pointer-events-none max-w-lg mx-auto left-0 right-0">
-      <nav className="flex h-[62px] items-center rounded-[28px] bg-[#2C1810] shadow-2xl shadow-[#2C1810]/40 border border-white/5 pointer-events-auto overflow-hidden relative">
+      <nav className="flex h-[62px] items-center rounded-[28px] bg-[#111110] shadow-2xl shadow-[#111110]/40 border border-white/5 pointer-events-auto overflow-hidden relative">
 
         {/* Shimmer line */}
-        <div className="absolute top-0 left-[15%] right-[15%] h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+        <div className="absolute top-0 left-[15%] right-[15%] h-px bg-gradient-to-r from-transparent via-[#C9A96E]/25 to-transparent" />
 
         {items.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/cliente" && pathname.startsWith(item.href));
@@ -42,7 +42,7 @@ export function BottomNav() {
               >
                 <motion.div
                   whileTap={{ scale: 0.9 }}
-                  className="h-12 w-12 rounded-[18px] bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-900/40"
+                  className="h-12 w-12 rounded-[18px] bg-[#C9A96E] flex items-center justify-center shadow-lg shadow-black/20"
                 >
                   <Plus className="h-6 w-6 text-white" strokeWidth={3} />
                 </motion.div>
@@ -68,12 +68,12 @@ export function BottomNav() {
                 strokeWidth={isActive ? 2.5 : 1.8}
                 className={cn(
                   "transition-all duration-200 relative z-10",
-                  isActive ? "text-amber-400" : "text-white/40"
+                  isActive ? "text-[#C9A96E]" : "text-white/40"
                 )}
               />
               <span className={cn(
                 "text-[9px] font-bold uppercase tracking-widest transition-all duration-200 relative z-10",
-                isActive ? "text-amber-400" : "text-white/30"
+                isActive ? "text-[#C9A96E]" : "text-white/30"
               )}>
                 {item.label}
               </span>

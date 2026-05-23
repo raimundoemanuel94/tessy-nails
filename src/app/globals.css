@@ -12,16 +12,21 @@
   --font-mono: var(--font-geist-mono);
   --font-serif: "Playfair Display", serif;
 
-  /* ── Tessy Nails Premium Tokens ──────────────────────────── */
-  --tn-dark:        #2C1810;
-  --tn-dark-mid:    #3D2315;
-  --tn-dark-light:  #5C3320;
-  --tn-gold:        #F59E0B;
-  --tn-gold-muted:  #D97706;
-  --tn-cream:       #F5F0EA;
-  --tn-cream-dark:  #EDE8E0;
+  /* ── Tessy Nails Premium Tokens — Noir Nubuck Edition ───── */
+  --tn-noir:        #111110;
+  --tn-noir-mid:    #1C1C1A;
+  --tn-noir-soft:   #2A2A28;
+  --tn-champagne:   #C9A96E;
+  --tn-champagne-light: #E8D5B0;
+  --tn-champagne-muted: #A88B55;
+  --tn-linen:       #F7F5F1;
+  --tn-linen-dark:  #EDEAE4;
   --tn-white:       #FFFFFF;
-  --tn-stone-100:   #F5F5F4;
+  --tn-ink-100:     #F0EEE9;
+  --tn-ink-200:     #D9D5CE;
+  --tn-ink-400:     #9A958E;
+  --tn-ink-600:     #5C5852;
+  --tn-ink-800:     #2A2724;
   --tn-stone-200:   #E7E5E4;
   --tn-stone-400:   #A8A29E;
   --tn-stone-600:   #57534E;
@@ -166,30 +171,47 @@
     @apply px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border-none;
   }
 
-  /* ── Cliente Premium ──────────────────────────────────────── */
+  /* ── Cliente Premium — Noir Nubuck ───────────────────────── */
   .tn-card {
-    @apply bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden;
+    @apply bg-white rounded-3xl border border-[#EDEAE4] shadow-sm overflow-hidden;
+  }
+  .tn-card-hover {
+    @apply bg-white rounded-3xl border border-[#EDEAE4] shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300;
   }
   .tn-header {
-    background-color: #2C1810;
+    background-color: var(--tn-noir);
   }
   .tn-bg {
-    background-color: #F5F0EA;
+    background-color: var(--tn-linen);
   }
   .tn-btn-primary {
-    @apply bg-[#2C1810] text-white font-black rounded-2xl active:scale-[0.98] transition-all;
+    background-color: var(--tn-noir);
+    @apply text-white font-black rounded-2xl active:scale-[0.98] transition-all duration-200;
   }
   .tn-btn-ghost {
-    @apply border border-stone-200 text-stone-600 font-bold rounded-2xl active:scale-[0.98] transition-all hover:bg-stone-50;
+    @apply border border-[#D9D5CE] text-[#5C5852] font-bold rounded-2xl active:scale-[0.98] transition-all hover:bg-[#F0EEE9];
+  }
+  .tn-accent {
+    color: var(--tn-champagne);
   }
   .tn-pill {
     @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border;
   }
   .tn-label {
-    @apply text-[9px] font-black text-stone-400 uppercase tracking-[0.25em];
+    @apply text-[9px] font-black uppercase tracking-[0.25em];
+    color: var(--tn-ink-400);
   }
   .tn-dot-pattern {
-    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0);
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.12) 1px, transparent 0);
     background-size: 20px 20px;
+  }
+  .tn-shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(201,169,110,0.15) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: tn-shimmer 2.5s infinite;
+  }
+  @keyframes tn-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
 }
