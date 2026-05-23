@@ -1,24 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { isPast, isToday, format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { isPast } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
-import { appointmentService } from "@/services/appointments";
+import { useClientAppointments, RealtimeAppointment } from "@/hooks/useClientAppointments";
 import { AppointmentCard, Appointment as ApptCard } from "@/components/cliente/AppointmentCard";
+import { appointmentService } from "@/services/appointments";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { AgendamentosSkeleton } from "@/components/cliente/ClienteSkeletons";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Calendar } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, Wifi } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-type ApptStatus = "pending"|"confirmed"|"completed"|"cancelled"|"no_show";
-interface Appt {
-  id:string; service:{id:string;name:string;durationMinutes:number;price?:string;duration?:string};
-  date:Date; time:{id:string;time:string}; status:ApptStatus; observation?:string; createdAt:Date;
-}
 
 const TABS = [
   { key:"upcoming", label:"Próximos"  },
@@ -26,50 +20,45 @@ const TABS = [
   { key:"all",      label:"Todos"     },
 ] as const;
 
+function toCardAppt(a: RealtimeAppointment): ApptCard {
+  return {
+    id: a.id,
+    service: {
+      id: a.service.id,
+      name: a.service.name,
+      price: a.service.priceFormatted,
+      duration: a.service.durationFormatted,
+    },
+    date: a.date,
+    time: a.time,
+    status: a.status,
+    observation: a.observation,
+    createdAt: a.createdAt,
+  };
+}
+
 export default function AgendamentosPage() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
-  const [appts, setAppts]   = useState<Appt[]>([]);
-  const [loading, setLoad]  = useState(true);
-  const [error, setError]   = useState<string|null>(null);
-  const [tab, setTab]       = useState<"upcoming"|"history"|"all">("upcoming");
+  const router  = useRouter();
+  const { user } = useAuth();
+  const { appointments, loading, error } = useClientAppointments(user?.uid);
+  const [tab, setTab] = useState<"upcoming"|"history"|"all">("upcoming");
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user) { setError("Você precisa estar logado."); setLoad(false); return; }
-    appointmentService.getByClientIdWithServices(user.uid)
-      .then(raw => {
-        if (!raw?.length) { setAppts([]); return; }
-        setAppts(raw
-          .filter((a): a is typeof a & {status:ApptStatus} =>
-            ["pending","confirmed","completed","cancelled","no_show"].includes(a.status))
-          .map(a => ({
-            ...a,
-            service: { ...a.service, price:`R$ ${a.service.price.toFixed(2)}`, duration:`${a.service.durationMinutes}min` },
-          })));
-      })
-      .catch(err => setError((err as {code?:string}).code === "permission-denied"
-        ? "Sem permissão para acessar agendamentos."
-        : "Não foi possível carregar seus agendamentos."))
-      .finally(() => setLoad(false));
-  }, [user, authLoading]);
-
-  const shown = appts.filter(a => {
-    const d = new Date(a.date);
-    if (tab === "upcoming") return !isPast(d) && a.status !== "cancelled";
-    if (tab === "history")  return isPast(d) || ["completed","cancelled"].includes(a.status);
+  const shown = appointments.filter(a => {
+    const past = isPast(new Date(a.date));
+    if (tab === "upcoming") return !past && a.status !== "cancelled";
+    if (tab === "history")  return past || ["completed","cancelled"].includes(a.status);
     return true;
   });
 
   const counts = {
-    upcoming: appts.filter(a => !isPast(new Date(a.date)) && a.status !== "cancelled").length,
-    history:  appts.filter(a => isPast(new Date(a.date)) || ["completed","cancelled"].includes(a.status)).length,
-    all:      appts.length,
+    upcoming: appointments.filter(a => !isPast(new Date(a.date)) && a.status !== "cancelled").length,
+    history:  appointments.filter(a => isPast(new Date(a.date)) || ["completed","cancelled"].includes(a.status)).length,
+    all:      appointments.length,
   };
 
   const cancel = (a: ApptCard) => {
     appointmentService.cancel(a.id)
-      .then(() => { setAppts(p => p.map(x => x.id === a.id ? {...x, status:"cancelled"} : x)); toast.success("Cancelado."); })
+      .then(() => toast.success("Agendamento cancelado."))
       .catch(() => toast.error("Não foi possível cancelar."));
   };
 
@@ -77,31 +66,35 @@ export default function AgendamentosPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF8FF]">
-
-      {/* Header */}
-      <div style={{ background: "linear-gradient(145deg, #1E1A2E 0%, #2A2044 100%)" }}>
+      <div style={{ background:"linear-gradient(145deg,#1E1A2E 0%,#2A2044 100%)" }}>
         <div className="px-5 pt-[calc(env(safe-area-inset-top)+1rem)] max-w-lg mx-auto">
-          <div className="flex items-center gap-3 mb-5">
+          <div className="flex items-center gap-3 mb-4">
             <motion.button whileTap={{ scale:0.9 }} onClick={() => router.push("/cliente")}
               className="h-9 w-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
               <ArrowLeft size={15} className="text-white/80" />
             </motion.button>
-            <div className="flex-1">
-              <h1 className="text-base font-black text-white leading-none">Meus Agendamentos</h1>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-base font-black text-white leading-none">Agendamentos</h1>
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/20">
+                  <Wifi size={8} className="text-emerald-400" />
+                  <span className="text-[7px] font-black text-emerald-400 uppercase tracking-widest">ao vivo</span>
+                </div>
+              </div>
               <p className="text-[10px] text-white/40 mt-0.5">{counts.all} no total</p>
             </div>
             <motion.button whileTap={{ scale:0.9 }} onClick={() => router.push("/cliente/servicos")}
-              className="h-9 w-9 rounded-xl bg-[#9D7FD4] flex items-center justify-center shrink-0 shadow-lg">
+              className="h-9 w-9 rounded-xl bg-[#9D7FD4] flex items-center justify-center shrink-0">
               <Plus size={16} className="text-white" strokeWidth={2.5} />
             </motion.button>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-white/8 rounded-2xl p-1 mb-0">
+          <div className="flex gap-1 bg-white/8 rounded-2xl p-1">
             {TABS.map(t => (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={cn(
-                  "flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 flex items-center justify-center gap-1",
+                  "flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1",
                   tab === t.key ? "bg-white text-[#1E1A2E]" : "text-white/40"
                 )}>
                 {t.label}
@@ -109,22 +102,17 @@ export default function AgendamentosPage() {
                   <span className={cn(
                     "text-[8px] px-1.5 py-0.5 rounded-full font-black",
                     tab === t.key ? "bg-[#EDE5FF] text-[#7C5CBF]" : "bg-white/10 text-white/30"
-                  )}>
-                    {counts[t.key]}
-                  </span>
+                  )}>{counts[t.key]}</span>
                 )}
               </button>
             ))}
           </div>
         </div>
-        {/* Wave divider */}
-        <div className="h-3 rounded-t-none" />
+        <div className="h-3" />
       </div>
 
-      {/* Content */}
       <div className="px-5 pt-4 pb-32 max-w-lg mx-auto space-y-3">
         {error && <ErrorState title="Erro" message={error} onRetry={() => window.location.reload()} size="sm" />}
-
         <AnimatePresence mode="popLayout">
           {shown.length === 0 ? (
             <motion.div key="empty" initial={{ opacity:0 }} animate={{ opacity:1 }}
@@ -135,13 +123,13 @@ export default function AgendamentosPage() {
               <div>
                 <p className="text-sm font-black text-[#2A2440] mb-1">Nenhum agendamento aqui</p>
                 <p className="text-xs text-[#9B8FC0]">
-                  {tab === "upcoming" ? "Que tal reservar um horário agora?" : "Nenhum registro neste período."}
+                  {tab === "upcoming" ? "Que tal reservar um horário?" : "Nenhum registro neste período."}
                 </p>
               </div>
               {tab === "upcoming" && (
                 <button onClick={() => router.push("/cliente/servicos")}
                   className="px-5 py-2 rounded-full text-xs font-black text-white uppercase tracking-widest"
-                  style={{ background:"linear-gradient(135deg, #7C5CBF, #9D7FD4)" }}>
+                  style={{ background:"linear-gradient(135deg,#7C5CBF,#9D7FD4)" }}>
                   Agendar agora
                 </button>
               )}
@@ -152,7 +140,7 @@ export default function AgendamentosPage() {
               exit={{ opacity:0, scale:0.97 }}
               transition={{ delay: i * 0.05, type:"spring", stiffness:300, damping:28 }}>
               <AppointmentCard
-                appointment={a as unknown as ApptCard}
+                appointment={toCardAppt(a)}
                 onReschedule={() => router.push("/cliente/agendar")}
                 onCancel={cancel}
               />

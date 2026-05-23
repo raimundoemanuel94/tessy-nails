@@ -171,7 +171,7 @@ function LoginPageContent() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn, signUp, signInWithGoogle, resetPassword, user, loading: authLoading } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithApple, resetPassword, user, loading: authLoading } = useAuth();
 
   const isRegisterMode = searchParams.get("mode") === "register";
   const nextParam = searchParams.get("next");
@@ -199,9 +199,9 @@ function LoginPageContent() {
     e.preventDefault();
     setLoading(true);
     try {
-      const ok = await signIn(email, password);
-      if (ok) toast.success("Bem-vinda de volta!", { icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" /> });
-      else toast.error("Credenciais inválidas.");
+      const { ok, error } = await signIn(email, password);
+      if (ok) toast.success("Bem-vinda de volta! ✨");
+      else toast.error(error ?? "Credenciais inválidas.");
     } catch { toast.error("Erro ao entrar. Tente novamente."); }
     finally { setLoading(false); }
   };
@@ -210,9 +210,9 @@ function LoginPageContent() {
     e.preventDefault();
     setLoading(true);
     try {
-      const ok = await signUp(email, password, name);
-      if (ok) toast.success("Conta criada! Boas-vindas.");
-      else toast.error("Falha ao criar conta.");
+      const { ok, error } = await signUp(email, password, name);
+      if (ok) toast.success("Conta criada! Boas-vindas ✨");
+      else toast.error(error ?? "Falha ao criar conta.");
     } catch { toast.error("Erro ao criar conta."); }
     finally { setLoading(false); }
   };
@@ -220,9 +220,18 @@ function LoginPageContent() {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const ok = await signInWithGoogle();
-      if (ok) toast.success("Acesso realizado!");
+      const { ok, error } = await signInWithGoogle();
+      if (!ok) toast.error(error ?? "Erro no login com Google.");
     } catch { toast.error("Erro no login com Google."); }
+    finally { setLoading(false); }
+  };
+
+  const handleAppleLogin = async () => {
+    setLoading(true);
+    try {
+      const { ok, error } = await signInWithApple();
+      if (!ok) toast.error(error ?? "Erro no login com Apple.");
+    } catch { toast.error("Erro no login com Apple."); }
     finally { setLoading(false); }
   };
 
@@ -477,6 +486,27 @@ function LoginPageContent() {
                       className="h-4 w-4"
                     />
                     Continuar com Google
+                  </button>
+                </motion.div>
+
+                <motion.div {...fadeUp(4, visible)}>
+                  <button
+                    type="button"
+                    onClick={handleAppleLogin}
+                    disabled={loading}
+                    className="w-full h-12 rounded-2xl flex items-center justify-center gap-3 font-bold text-xs uppercase tracking-widest transition-all active:scale-[0.98]"
+                    style={{
+                      background: "#000",
+                      border: "1px solid rgba(0,0,0,0.15)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                      color: "#fff",
+                    }}
+                  >
+                    {/* Apple logo SVG */}
+                    <svg width="16" height="16" viewBox="0 0 814 1000" fill="white">
+                      <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105-37.3-165.9-111.7c-71.6-91-131.5-236.1-131.5-374.4 0-67.5 12.8-134.4 38.4-194.6 37.4-89.3 121.1-145.8 213.3-145.8 75.6 0 127.5 38.8 160.6 38.8 31.8 0 91.3-43.2 171.5-43.2 29.3 0 108.2 2.6 168.5 79.3zm-234.4-191.1c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z" />
+                    </svg>
+                    Continuar com Apple
                   </button>
                 </motion.div>
               </div>

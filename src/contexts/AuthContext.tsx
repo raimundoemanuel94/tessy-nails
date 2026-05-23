@@ -9,7 +9,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
-  sendPasswordResetEmail
+  OAuthProvider,
+  sendPasswordResetEmail,
+  AuthError,
 } from "firebase/auth";
 import { auth, db, isFirebaseConfigured } from "@/lib/firebase";
 import { doc, getDoc, setDoc, collection, query, where, getDocs, writeBatch } from "firebase/firestore";
@@ -23,11 +25,33 @@ interface AuthContextType {
   loading: boolean;
   needsPhoneLink: boolean;
   signOut: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<boolean>;
-  signUp: (email: string, password: string, name: string) => Promise<boolean>;
-  signInWithGoogle: () => Promise<boolean>;
+  signIn: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ ok: boolean; error?: string }>;
+  signInWithGoogle: () => Promise<{ ok: boolean; error?: string }>;
+  signInWithApple: () => Promise<{ ok: boolean; error?: string }>;
   resetPassword: (email: string) => Promise<boolean>;
   linkOrCreateByPhone: (phone: string) => Promise<void>;
+}
+
+// ── Mapeia códigos Firebase → mensagens amigáveis em pt-BR ────────────
+function mapAuthError(err: unknown): string {
+  const code = (err as AuthError)?.code ?? "";
+  const map: Record<string, string> = {
+    "auth/user-not-found":        "E-mail não cadastrado. Crie uma conta primeiro.",
+    "auth/wrong-password":        "Senha incorreta. Verifique e tente novamente.",
+    "auth/invalid-credential":    "E-mail ou senha incorretos.",
+    "auth/invalid-email":         "E-mail inválido. Verifique o endereço.",
+    "auth/email-already-in-use":  "Este e-mail já tem uma conta. Faça login.",
+    "auth/weak-password":         "Senha muito fraca. Use pelo menos 6 caracteres.",
+    "auth/too-many-requests":     "Muitas tentativas. Aguarde alguns minutos.",
+    "auth/network-request-failed":"Sem conexão. Verifique sua internet.",
+    "auth/popup-closed-by-user":  "Login cancelado. Tente novamente.",
+    "auth/cancelled-popup-request":"Outra janela já está aberta.",
+    "auth/popup-blocked":         "Popup bloqueado. Permita pop-ups para este site.",
+    "auth/account-exists-with-different-credential":
+                                  "Este e-mail já foi usado com outro método de login.",
+  };
+  return map[code] ?? "Erro inesperado. Tente novamente.";
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -164,59 +188,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string): Promise<boolean> => {
-    if (!auth) return false;
-    
+  const signIn = async (email: string, password: string): Promise<{ ok: boolean; error?: string }> => {
+    if (!auth) return { ok: false, error: "Firebase não configurado." };
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      return true;
-    } catch (error) {
-      console.error("Sign in error:", error);
-      return false;
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: mapAuthError(err) };
     }
   };
 
-  const signUp = async (email: string, password: string, name: string): Promise<boolean> => {
-    if (!auth) return false;
-    
+  const signUp = async (email: string, password: string, name: string): Promise<{ ok: boolean; error?: string }> => {
+    if (!auth) return { ok: false, error: "Firebase não configurado." };
     try {
-      // ✅ Validações básicas
-      if (!email || !password || !name) {
-        console.error('Missing required fields');
-        return false;
-      }
-      
-      if (name.trim().length < 2) {
-        console.error('Invalid name provided');
-        return false;
-      }
-      
-      if (password.length < 6) {
-        console.error('Password too short');
-        return false;
-      }
-      
+      if (!email || !password || !name) return { ok: false, error: "Preencha todos os campos." };
+      if (name.trim().length < 2)       return { ok: false, error: "Nome muito curto." };
+      if (password.length < 6)          return { ok: false, error: "Senha deve ter pelo menos 6 caracteres." };
+
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const uid = result.user.uid;
-
-      // Criar apenas o documento de usuário; o cliente será criado via fluxo
-      // de vinculação por telefone (needsPhoneLink), acionado pelo onAuthStateChanged.
       const newUser: User = {
-        uid,
-        name: name.trim(),
-        email,
-        role: "client",
-        createdAt: new Date(),
-        isActive: true,
+        uid, name: name.trim(), email, role: "client",
+        createdAt: new Date(), isActive: true,
       };
-
       await setDoc(doc(db, "users", uid), newUser);
-      console.log('User document created; phone link flow will handle client creation.');
-
-      return true;
-    } catch (error) {
-      console.error("Sign up error:", error);
-      return false;
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: mapAuthError(err) };
     }
   };
 
@@ -285,21 +283,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-    const signInWithGoogle = async (): Promise<boolean> => {
-    if (!auth) return false;
-    
-    const provider = new GoogleAuthProvider();
+  const signInWithGoogle = async (): Promise<{ ok: boolean; error?: string }> => {
+    if (!auth) return { ok: false, error: "Firebase não configurado." };
     try {
+      const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      return true;
-    } catch (error) {
-      console.error("Google sign in error:", error);
-      return false;
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: mapAuthError(err) };
+    }
+  };
+
+  const signInWithApple = async (): Promise<{ ok: boolean; error?: string }> => {
+    if (!auth) return { ok: false, error: "Firebase não configurado." };
+    try {
+      const provider = new OAuthProvider("apple.com");
+      provider.addScope("email");
+      provider.addScope("name");
+      // Locale pt-BR para o fluxo Apple
+      provider.setCustomParameters({ locale: "pt_BR" });
+      await signInWithPopup(auth, provider);
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: mapAuthError(err) };
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, firebaseUser, client, loading, needsPhoneLink, signOut, signIn, signUp, signInWithGoogle, linkOrCreateByPhone, resetPassword }}>
+    <AuthContext.Provider value={{ user, firebaseUser, client, loading, needsPhoneLink, signOut, signIn, signUp, signInWithGoogle, signInWithApple, linkOrCreateByPhone, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

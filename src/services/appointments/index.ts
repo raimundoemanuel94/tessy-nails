@@ -9,13 +9,15 @@ import {
   query, 
   where, 
   orderBy,
+  onSnapshot,
   Timestamp,
   startAt,
   endAt,
   limit,
   startAfter,
   DocumentData,
-  QueryDocumentSnapshot
+  QueryDocumentSnapshot,
+  Unsubscribe,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Appointment, AppointmentSchema, AppointmentStatus, PaymentStatus } from "@/types";
@@ -179,6 +181,34 @@ export const appointmentService = {
     );
     const snapshot = await getDocs(q);
     return snapshot.docs.map(mapAppointmentData) as Appointment[];
+  },
+
+  /**
+   * Listener em tempo real para agendamentos do cliente.
+   * Chama callback toda vez que houver mudança no Firestore.
+   * Retorna função de unsubscribe para limpar o listener.
+   */
+  subscribeByClientId(
+    clientId: string,
+    callback: (appointments: Appointment[]) => void,
+    onError?: (error: Error) => void
+  ): Unsubscribe {
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where("clientId", "==", clientId),
+      orderBy("appointmentDate", "desc")
+    );
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const appointments = snapshot.docs.map(mapAppointmentData) as Appointment[];
+        callback(appointments);
+      },
+      (error) => {
+        console.error("Appointment listener error:", error);
+        onError?.(error);
+      }
+    );
   },
 
   /**
