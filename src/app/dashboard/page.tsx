@@ -5,9 +5,12 @@ export const dynamic = "force-dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProtectedRoute } from "@/hooks/useProtectedRoute";
 import { cn, ensureDate } from "@/lib/utils";
 import { getLast30DaysInterval } from "@/lib/analytics-period";
 import { PageShell } from "@/components/shared/PageShell";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { motion, Variants } from "framer-motion";
 import {
   DollarSign, CalendarDays, Users, Plus, Target,
@@ -73,7 +76,8 @@ function getChartInterval(period: ChartPeriod) {
 }
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  // ✅ NOVO: Usar useProtectedRoute para validação segura
+  const { user: protectedUser, loading: authLoading } = useProtectedRoute(['admin', 'professional']);
   const router = useRouter();
 
   const [stats, setStats] = useState({ revenue: 0, today: 0, clients: 0, rate: 0 });
@@ -81,49 +85,67 @@ export default function DashboardPage() {
   const [services, setServices] = useState<SvcItem[]>([]);
   const [chart,    setChart]    = useState<RevPoint[]>([]);
   const [busy,     setBusy]     = useState(true);
+  const [error,    setError]    = useState<string | null>(null);
   const [dialog,   setDialog]   = useState(false);
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>("last30days");
   const [monthlyGoal, setMonthlyGoal] = useState(DEFAULT_MONTHLY_GOAL);
 
   const displayName =
-    user?.name && user.name.trim() !== "" && user.name.trim().toLowerCase() !== "usuario"
-      ? user.name.split(" ")[0]
-      : user?.email?.split("@")[0] || "Tessy";
-
-  useEffect(() => {
-    if (!loading) {
-      if (!user) { router.push("/login"); return; }
-      if (user.role !== "admin" && user.role !== "professional") { router.push("/cliente"); return; }
-    }
-  }, [user, loading, router]);
+    protectedUser?.name && protectedUser.name.trim() !== "" && protectedUser.name.trim().toLowerCase() !== "usuario"
+      ? protectedUser.name.split(" ")[0]
+      : protectedUser?.email?.split("@")[0] || "Tessy";
 
   const fetchData = useCallback(async () => {
-    if (loading || !user || (user.role !== "admin" && user.role !== "professional")) return;
+    if (authLoading || !protectedUser || (protectedUser.role !== "admin" && protectedUser.role !== "professional")) return;
+    
     try {
       setBusy(true);
+      setError(null);
+      
       const { start, end } = getLast30DaysInterval();
-      const [rawAppts, clients, svcs, salonSnap] = await Promise.all([
+      
+      // ✅ MELHORADO: Usar Promise.allSettled para não quebrar se uma requisição falhar
+      const results = await Promise.allSettled([
         appointmentService.getByDateRange(start, end),
         globalStore.fetchRecentClients(false),
         globalStore.fetchServices(false),
         getDoc(doc(db, "settings", "salon")).catch(() => null),
       ]);
+      
+      // Extrair resultados com fallbacks
+      const rawAppts = results[0].status === 'fulfilled' ? results[0].value : [];
+      const clients = results[1].status === 'fulfilled' ? results[1].value : [];
+      const svcs = results[2].status === 'fulfilled' ? results[2].value : [];
+      const salonSnap = results[3].status === 'fulfilled' ? results[3].value : null;
+      
+      // Verificar se houve erros críticos
+      const failedRequests = results.filter(r => r.status === 'rejected');
+      if (failedRequests.length > 0) {
+        console.warn('Algumas requisições falharam, usando dados parciais:', failedRequests);
+      }
+      
       const savedGoal = salonSnap?.exists() ? Number(salonSnap.data().monthlyRevenueGoal) : 0;
       setMonthlyGoal(savedGoal > 0 ? savedGoal : DEFAULT_MONTHLY_GOAL);
+      
       const unknownIds = rawAppts
         .map((a) => a.clientId)
         .filter((id, i, arr) => Boolean(id) && arr.indexOf(id) === i)
         .filter((id) => !clients.some((c) => c.id === id));
-      const extraUsers = unknownIds.length > 0 ? await authService.getUsersByIds(unknownIds) : [];
+      
+      const extraUsers = unknownIds.length > 0 ? await authService.getUsersByIds(unknownIds).catch(() => []) : [];
+      
       const priceById = new Map(svcs.map((s) => [s.id, Number(s.price) || 0]));
       const done      = rawAppts.filter((a) => a.status === "completed");
       const todayAppts = rawAppts.filter(
         (a) => isToday(ensureDate(a.appointmentDate)) && a.status !== "cancelled" && a.status !== "no_show"
       );
+      
       const revenue   = done.reduce((t, a) => t + (priceById.get(a.serviceId) ?? 0), 0);
       const clientSet = new Set(done.map((a) => a.clientId).filter(Boolean)).size;
       const rate      = rawAppts.length > 0 ? Math.round((done.length / rawAppts.length) * 100) : 0;
+      
       setStats({ revenue, today: todayAppts.length, clients: clientSet, rate });
+      
       const upcoming = rawAppts
         .filter((a) => (a.status === "pending" || a.status === "confirmed") &&
           (!isPast(ensureDate(a.appointmentDate)) || isToday(ensureDate(a.appointmentDate))))
@@ -143,11 +165,15 @@ export default function DashboardPage() {
             status: a.status,
           };
         });
+      
       setAppts(upcoming);
+      
       const top = svcs
         .map((s) => ({ name: s.name, count: rawAppts.filter((a) => a.serviceId === s.id && a.status === "completed").length }))
         .sort((a, b) => b.count - a.count).slice(0, 5);
+      
       setServices(top);
+      
       const chartSeed = Array.from({ length: 30 }, (_, i) => {
         const d = startOfDay(subDays(new Date(), 29 - i));
         const dateStr = format(d, "dd/MM");
@@ -158,14 +184,17 @@ export default function DashboardPage() {
             .reduce((t, a) => t + (priceById.get(a.serviceId) ?? 0), 0),
         };
       });
+      
       setChart(chartSeed);
     } catch (err) {
-      console.error(err);
-      toast.error("Erro ao carregar dados do dashboard");
+      const errorMsg = err instanceof Error ? err.message : 'Erro desconhecido ao carregar dashboard';
+      console.error('Dashboard error:', err);
+      setError(errorMsg);
+      toast.error('Erro ao carregar dados do dashboard');
     } finally {
       setBusy(false);
     }
-  }, [loading, user]);
+  }, [authLoading, protectedUser]);
 
   useEffect(() => { void fetchData(); }, [fetchData]);
 
@@ -183,22 +212,34 @@ export default function DashboardPage() {
     });
   }, [chart, chartPeriod]);
 
-  if (loading || busy) {
+  // ✅ NOVO: Se aguardando proteção de rota ou carregando dados, mostrar skeleton melhorado
+  if (authLoading || busy) {
+    return <DashboardSkeleton />;
+  }
+
+  // ✅ NOVO: Se houver erro ao carregar, mostrar ErrorState com retry
+  if (error) {
     return (
       <PageShell className="max-w-none pb-0">
-        <div className="mx-auto max-w-7xl space-y-6 pb-12 animate-pulse">
-          <div className="h-16 rounded-2xl bg-brand-soft/30 w-64" />
-          <div className="grid grid-cols-4 gap-4">
-            {[1,2,3,4].map((i) => <div key={i} className="h-28 rounded-2xl bg-brand-soft/30" />)}
-          </div>
-          <div className="grid grid-cols-3 gap-6">
-            <div className="col-span-2 h-80 rounded-2xl bg-brand-soft/30" />
-            <div className="h-80 rounded-2xl bg-brand-soft/30" />
-          </div>
-          <div className="h-64 rounded-2xl bg-brand-soft/30" />
+        <div className="mx-auto max-w-7xl flex items-center justify-center min-h-96">
+          <ErrorState
+            title="Erro ao carregar dashboard"
+            message={error}
+            onRetry={() => {
+              setError(null);
+              setBusy(true);
+              void fetchData();
+            }}
+            size="md"
+          />
         </div>
       </PageShell>
     );
+  }
+
+  // ✅ Se usuário não passou na validação, não renderizar nada (useProtectedRoute redireciona)
+  if (!protectedUser) {
+    return null;
   }
 
   const goalPct = Math.min(Math.round((stats.revenue / monthlyGoal) * 100), 100);
