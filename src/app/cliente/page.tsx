@@ -66,8 +66,6 @@ export default function ClientePage() {
 
   const firstName = user?.name?.split(" ")[0] || "Cliente";
 
-  const hasService = !!AppointmentStorage.loadSelectedService();
-
   const quickActions = [
     { id: "agenda",   label: "Agenda",    sub: "Meus horários",  icon: Calendar,  href: "/cliente/agendamentos" },
     { id: "services", label: "Serviços",  sub: "Ver catálogo",   icon: Sparkles,  href: "/cliente/servicos"     },
