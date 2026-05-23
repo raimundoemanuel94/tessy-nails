@@ -41,11 +41,29 @@ const withPWA = require("next-pwa")({
 
 const nextConfig: NextConfig = {
   webpack: (config, { isServer }) => {
-    // Adicione configurações personalizadas do webpack aqui, se necessário
     return config;
   },
   turbopack: {},
-  // Removidos os headers agressivos de no-cache para permitir funcionamento offline e carregamento ultra-rápido no Mobile.
+  // ✅ Headers para permitir Google Login popup (Firebase signInWithPopup)
+  async headers() {
+    return [
+      {
+        // Aplicar em todas as rotas
+        source: "/(.*)",
+        headers: [
+          {
+            // same-origin-allow-popups permite Firebase popup auth
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin-allow-popups",
+          },
+          {
+            key: "Cross-Origin-Embedder-Policy",
+            value: "unsafe-none",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withPWA(nextConfig);
