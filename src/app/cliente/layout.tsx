@@ -25,31 +25,61 @@ export default function ClienteLayout({
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-brand-background">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-primary border-t-transparent"></div>
+      <div className="flex min-h-screen items-center justify-center bg-[#F5F0EA]">
+        <div className="flex gap-1.5">
+          {[0,1,2].map(i => (
+            <div
+              key={i}
+              className="w-2 h-2 rounded-full bg-[#2C1810]/30 animate-pulse"
+              style={{ animationDelay: `${i * 150}ms` }}
+            />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="relative h-dvh flex flex-col bg-brand-background overflow-hidden selection:bg-brand-primary/20">
-      {/* Premium Background Gradients */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-        <div className="absolute -top-[10%] -right-[10%] h-[40%] w-[40%] rounded-full bg-brand-primary/5 blur-[120px]" />
-        <div className="absolute top-[20%] -left-[10%] h-[30%] w-[30%] rounded-full bg-brand-accent/10 blur-[100px]" />
-        <div className="absolute -bottom-[10%] right-[20%] h-[25%] w-[25%] rounded-full bg-brand-secondary/5 blur-[80px]" />
+    <div className="relative min-h-dvh flex flex-col bg-[#F5F0EA] selection:bg-[#2C1810]/20">
+
+      {/* Noise texture overlay sutil */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0 opacity-[0.025]"
+        style={{
+          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+          backgroundRepeat: "repeat",
+          backgroundSize: "200px 200px",
+        }}
+      />
+
+      {/* Glow suave café nos cantos */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute -top-32 -right-32 h-72 w-72 rounded-full opacity-20"
+          style={{ background: "radial-gradient(circle, #8B5E3C 0%, transparent 70%)" }} />
+        <div className="absolute -bottom-24 -left-24 h-56 w-56 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, #2C1810 0%, transparent 70%)" }} />
       </div>
 
-      {/* Main Content Shell - Scrollable with hide scrollbar */}
+      {/* Main Content */}
       <main className="relative z-10 flex-1 overflow-y-auto scrollbar-hide pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {children}
       </main>
 
-      {/* Modern Navigation */}
       <BottomNav />
-      
-      {/* Toast Notifications */}
-      <Toaster position="top-center" richColors />
+
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "#2C1810",
+            color: "#FFF8F0",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "16px",
+            fontSize: "12px",
+            fontWeight: "700",
+          },
+        }}
+      />
     </div>
   );
 }

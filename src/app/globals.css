@@ -12,6 +12,21 @@
   --font-mono: var(--font-geist-mono);
   --font-serif: "Playfair Display", serif;
 
+  /* ── Tessy Nails Premium Tokens ──────────────────────────── */
+  --tn-dark:        #2C1810;
+  --tn-dark-mid:    #3D2315;
+  --tn-dark-light:  #5C3320;
+  --tn-gold:        #F59E0B;
+  --tn-gold-muted:  #D97706;
+  --tn-cream:       #F5F0EA;
+  --tn-cream-dark:  #EDE8E0;
+  --tn-white:       #FFFFFF;
+  --tn-stone-100:   #F5F5F4;
+  --tn-stone-200:   #E7E5E4;
+  --tn-stone-400:   #A8A29E;
+  --tn-stone-600:   #57534E;
+  --tn-stone-800:   #292524;
+
   /* Official Global Design System Tokens - Tessy Nails Official Palette */
   --color-brand-primary: #4B2E2B;
   --color-brand-secondary: #6D4C41;
@@ -149,5 +164,32 @@
   }
   .status-badge {
     @apply px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border-none;
+  }
+
+  /* ── Cliente Premium ──────────────────────────────────────── */
+  .tn-card {
+    @apply bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden;
+  }
+  .tn-header {
+    background-color: #2C1810;
+  }
+  .tn-bg {
+    background-color: #F5F0EA;
+  }
+  .tn-btn-primary {
+    @apply bg-[#2C1810] text-white font-black rounded-2xl active:scale-[0.98] transition-all;
+  }
+  .tn-btn-ghost {
+    @apply border border-stone-200 text-stone-600 font-bold rounded-2xl active:scale-[0.98] transition-all hover:bg-stone-50;
+  }
+  .tn-pill {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border;
+  }
+  .tn-label {
+    @apply text-[9px] font-black text-stone-400 uppercase tracking-[0.25em];
+  }
+  .tn-dot-pattern {
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0);
+    background-size: 20px 20px;
   }
 }
