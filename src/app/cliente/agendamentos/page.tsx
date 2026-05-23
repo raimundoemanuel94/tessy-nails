@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { EmptyAppointmentsState } from "@/components/cliente/EmptyAppointmentsState";
 import { AgendamentosHeader } from "@/components/cliente/AgendamentosHeader";
 import { AppointmentTabs } from "@/components/cliente/AppointmentTabs";
-import { AppointmentCard } from "@/components/cliente/AppointmentCard";
+import { AppointmentCard, Appointment as AppointmentCardType } from "@/components/cliente/AppointmentCard";
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { AgendamentosSkeleton } from "@/components/cliente/ClienteSkeletons";
@@ -139,19 +139,20 @@ export default function AgendamentosPage() {
   };
 
   const handleReschedule = () => router.push("/cliente/agendar");
-  const handleCancel = async (appointment: { id: string }) => {
-    try {
-      await appointmentService.cancel(appointment.id);
-      setAppointments((prev) =>
-        prev.map((a) =>
-          a.id === appointment.id ? { ...a, status: "cancelled" } : a
-        )
-      );
-      toast.success("Agendamento cancelado.");
-    } catch (err) {
-      console.error("Erro ao cancelar agendamento:", err);
-      toast.error("Não foi possível cancelar. Tente novamente.");
-    }
+  const handleCancel = (appointment: AppointmentCardType) => {
+    appointmentService.cancel(appointment.id)
+      .then(() => {
+        setAppointments((prev: ClientAppointment[]) =>
+          prev.map((a: ClientAppointment) =>
+            a.id === appointment.id ? { ...a, status: "cancelled" as ClientAppointmentStatus } : a
+          )
+        );
+        toast.success("Agendamento cancelado.");
+      })
+      .catch((err) => {
+        console.error("Erro ao cancelar agendamento:", err);
+        toast.error("Não foi possível cancelar. Tente novamente.");
+      });
   };
   const handleScheduleNew = () => router.push("/cliente/servicos");
   const handleBack = () => router.push("/cliente");
@@ -200,7 +201,7 @@ export default function AgendamentosPage() {
             {filteredAppointments.map((appointment) => (
               <AppointmentCard
                 key={appointment.id}
-                appointment={appointment}
+                appointment={appointment as unknown as AppointmentCardType}
                 onReschedule={handleReschedule}
                 onCancel={handleCancel}
               />
