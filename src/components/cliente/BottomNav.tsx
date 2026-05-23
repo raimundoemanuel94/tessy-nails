@@ -5,68 +5,76 @@ import { usePathname } from "next/navigation";
 import { Home, Calendar, Plus, User, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { motion } from "framer-motion";
 
 export function BottomNav() {
   const pathname = usePathname();
   const { user } = useAuth();
-
-  const isAdmin = user?.role === 'admin' || user?.role === 'professional';
+  const isAdmin = user?.role === "admin" || user?.role === "professional";
 
   const navItems = [
-    { label: "Home",    icon: Home,     href: "/cliente",              active: pathname === "/cliente" },
-    { label: "Agenda",  icon: Calendar, href: "/cliente/agendamentos", active: pathname === "/cliente/agendamentos" },
-    { label: "Agendar", icon: Plus,     href: "/cliente/servicos",     isSpecial: true },
-    { label: "Perfil",  icon: User,     href: "/cliente/perfil",       active: pathname === "/cliente/perfil" },
+    { label: "Home",   icon: Home,     href: "/cliente",              key: "home"   },
+    { label: "Agenda", icon: Calendar, href: "/cliente/agendamentos", key: "agenda" },
+    { label: "Novo",   icon: Plus,     href: "/cliente/servicos",     key: "new", isSpecial: true },
+    { label: "Perfil", icon: User,     href: "/cliente/perfil",       key: "perfil" },
   ];
 
-  // If admin is browsing specialized client pages, show a return button
-  // Admin: troca o botão central (+) por atalho ao painel
   const items = isAdmin
-    ? [...navItems.slice(0, 2), { label: "Painel", icon: LayoutDashboard, href: "/dashboard", active: false }, navItems[3]]
+    ? [navItems[0], navItems[1], { label: "Painel", icon: LayoutDashboard, href: "/dashboard", key: "painel", isSpecial: false }, navItems[3]]
     : navItems;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pointer-events-none lg:hidden max-w-lg mx-auto">
-      <nav className="flex h-16 items-center justify-around gap-1 rounded-full border border-[#EFEAE4]/50 bg-white/80 px-2 shadow-lg backdrop-blur-xl pointer-events-auto">
+    <div className="fixed inset-x-0 bottom-0 z-50 px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pointer-events-none max-w-lg mx-auto left-0 right-0">
+      <nav className="flex h-[62px] items-center rounded-[28px] bg-[#2C1810] shadow-2xl shadow-[#2C1810]/40 border border-white/5 pointer-events-auto overflow-hidden relative">
+
+        {/* Shimmer line */}
+        <div className="absolute top-0 left-[15%] right-[15%] h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+
         {items.map((item) => {
-          if ('isSpecial' in item && item.isSpecial) {
+          const isActive = pathname === item.href || (item.href !== "/cliente" && pathname.startsWith(item.href));
+
+          if ("isSpecial" in item && item.isSpecial) {
             return (
               <Link
-                key={item.label}
+                key={item.key}
                 href={item.href}
-                className="relative -top-5 flex flex-col items-center"
+                className="relative flex flex-1 items-center justify-center"
               >
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-primary p-1 shadow-lg ring-4 ring-white transition-all duration-300 hover:scale-110 active:scale-95">
-                  <Plus className="h-7 w-7 text-white" strokeWidth={3} />
-                </div>
+                <motion.div
+                  whileTap={{ scale: 0.9 }}
+                  className="h-12 w-12 rounded-[18px] bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-900/40"
+                >
+                  <Plus className="h-6 w-6 text-white" strokeWidth={3} />
+                </motion.div>
               </Link>
             );
           }
 
-          const isActive = 'active' in item && item.active;
-
           return (
             <Link
-              key={item.label}
+              key={item.key}
               href={item.href}
-              className="flex flex-1 flex-col items-center justify-center gap-1 transition-all duration-300"
+              className="flex flex-1 flex-col items-center justify-center gap-1 h-full transition-all duration-200 relative"
             >
-              <div
+              {isActive && (
+                <motion.div
+                  layoutId="nav-active"
+                  className="absolute inset-x-3 inset-y-2 rounded-2xl bg-white/8"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+              <item.icon
+                size={19}
+                strokeWidth={isActive ? 2.5 : 1.8}
                 className={cn(
-                  "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
-                  isActive
-                    ? "bg-brand-primary/10 text-brand-primary"
-                    : "text-[#6B6B6B] hover:text-brand-primary hover:bg-brand-primary/5"
+                  "transition-all duration-200 relative z-10",
+                  isActive ? "text-amber-400" : "text-white/40"
                 )}
-              >
-                <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-              </div>
-              <span
-                className={cn(
-                  "text-[11px] font-medium transition-colors duration-300",
-                  isActive ? "text-brand-primary font-semibold" : "text-[#6B6B6B]"
-                )}
-              >
+              />
+              <span className={cn(
+                "text-[9px] font-bold uppercase tracking-widest transition-all duration-200 relative z-10",
+                isActive ? "text-amber-400" : "text-white/30"
+              )}>
                 {item.label}
               </span>
             </Link>

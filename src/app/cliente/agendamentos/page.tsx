@@ -2,37 +2,45 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { isPast } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
+import { isPast, isToday, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { appointmentService } from "@/services/appointments";
-import { toast } from "sonner";
-import { EmptyAppointmentsState } from "@/components/cliente/EmptyAppointmentsState";
-import { AgendamentosHeader } from "@/components/cliente/AgendamentosHeader";
-import { AppointmentTabs } from "@/components/cliente/AppointmentTabs";
 import { AppointmentCard, Appointment as AppointmentCardType } from "@/components/cliente/AppointmentCard";
-import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { AgendamentosSkeleton } from "@/components/cliente/ClienteSkeletons";
-import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import {
+  ArrowLeft, Plus, Calendar, Clock, Sparkles,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
-// ✅ CORRIGIDO: Adicionado no_show que faltava
 type ClientAppointmentStatus = "pending" | "confirmed" | "completed" | "cancelled" | "no_show";
 
 interface ClientAppointment {
   id: string;
-  service: {
-    id: string;
-    name: string;
-    durationMinutes: number;
-    price?: string;
-    duration?: string;
-  };
+  service: { id: string; name: string; durationMinutes: number; price?: string; duration?: string; };
   date: Date;
   time: { id: string; time: string };
   status: ClientAppointmentStatus;
   observation?: string;
   createdAt: Date;
 }
+
+const STATUS_BADGE = {
+  pending:   { label: "Pendente",   cls: "bg-amber-50 text-amber-700 border border-amber-200"    },
+  confirmed: { label: "Confirmado", cls: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
+  completed: { label: "Concluído",  cls: "bg-stone-100 text-stone-600 border border-stone-200"   },
+  cancelled: { label: "Cancelado",  cls: "bg-red-50 text-red-600 border border-red-200"          },
+  no_show:   { label: "Ausente",    cls: "bg-slate-100 text-slate-600 border border-slate-200"   },
+} as const;
+
+const TABS = [
+  { key: "upcoming", label: "Próximos" },
+  { key: "history",  label: "Histórico" },
+  { key: "all",      label: "Todos"     },
+] as const;
 
 export default function AgendamentosPage() {
   const router = useRouter();
@@ -43,193 +51,137 @@ export default function AgendamentosPage() {
   const [activeTab, setActiveTab] = useState<"upcoming" | "history" | "all">("upcoming");
 
   useEffect(() => {
-    const loadAppointments = async () => {
+    const load = async () => {
       if (authLoading) return;
       try {
-        setLoading(true);
-        setError(null);
-
-        if (!user) {
-          setError("Você precisa estar logado para ver seus agendamentos.");
-          return;
-        }
-
-        if (!navigator.onLine) {
-          setError("Sem conexão com a internet. Verifique sua conexão.");
-          return;
-        }
-
-        const appointmentsWithServiceDetails =
-          await appointmentService.getByClientIdWithServices(user.uid);
-
-        if (!appointmentsWithServiceDetails || appointmentsWithServiceDetails.length === 0) {
-          setAppointments([]);
-          setLoading(false);
-          return;
-        }
-
-        const formattedAppointments: ClientAppointment[] = appointmentsWithServiceDetails
-          .filter((apt): apt is typeof apt & { status: ClientAppointmentStatus } =>
-            apt.status === "pending" ||
-            apt.status === "confirmed" ||
-            apt.status === "completed" ||
-            apt.status === "cancelled" ||
-            apt.status === "no_show"  // ✅ CORRIGIDO: incluído no_show
-          )
-          .map((apt) => ({
-            ...apt,
-            service: {
-              ...apt.service,
-              price: `R$ ${apt.service.price.toFixed(2)}`,
-              duration: `${apt.service.durationMinutes}min`,
-            },
+        setLoading(true); setError(null);
+        if (!user) { setError("Você precisa estar logado."); return; }
+        const raw = await appointmentService.getByClientIdWithServices(user.uid);
+        if (!raw?.length) { setAppointments([]); return; }
+        const formatted: ClientAppointment[] = raw
+          .filter((a): a is typeof a & { status: ClientAppointmentStatus } =>
+            ["pending","confirmed","completed","cancelled","no_show"].includes(a.status))
+          .map(a => ({
+            ...a,
+            service: { ...a.service, price: `R$ ${a.service.price.toFixed(2)}`, duration: `${a.service.durationMinutes}min` },
           }));
-
-        setAppointments(formattedAppointments);
+        setAppointments(formatted);
       } catch (err) {
         const code = (err as { code?: string }).code;
-        if (code === "permission-denied") {
-          setError("Sem permissão para acessar seus agendamentos.");
-        } else if (code === "unavailable") {
-          setError("Serviço temporariamente indisponível. Tente novamente.");
-        } else {
-          setError("Não foi possível carregar seus agendamentos.");
-        }
-      } finally {
-        setLoading(false);
-      }
+        setError(code === "permission-denied" ? "Sem permissão para acessar agendamentos." : "Não foi possível carregar seus agendamentos.");
+      } finally { setLoading(false); }
     };
-
-    loadAppointments();
+    load();
   }, [user, authLoading]);
 
-  const filteredAppointments = appointments.filter((appointment) => {
-    const appointmentDate = new Date(appointment.date);
-    switch (activeTab) {
-      case "upcoming":
-        return !isPast(appointmentDate) && appointment.status !== "cancelled";
-      case "history":
-        return (
-          isPast(appointmentDate) ||
-          appointment.status === "completed" ||
-          appointment.status === "cancelled"
-        );
-      default:
-        return true;
-    }
+  const filtered = appointments.filter(a => {
+    const d = new Date(a.date);
+    if (activeTab === "upcoming") return !isPast(d) && a.status !== "cancelled";
+    if (activeTab === "history") return isPast(d) || a.status === "completed" || a.status === "cancelled";
+    return true;
   });
 
   const counts = {
-    upcoming: appointments.filter(
-      (a) => !isPast(new Date(a.date)) && a.status !== "cancelled"
-    ).length,
-    history: appointments.filter(
-      (a) =>
-        isPast(new Date(a.date)) ||
-        a.status === "completed" ||
-        a.status === "cancelled"
-    ).length,
+    upcoming: appointments.filter(a => !isPast(new Date(a.date)) && a.status !== "cancelled").length,
+    history: appointments.filter(a => isPast(new Date(a.date)) || a.status === "completed" || a.status === "cancelled").length,
     all: appointments.length,
   };
 
-  const handleTabChange = (tab: string) => {
-    if (tab === "upcoming" || tab === "history" || tab === "all") {
-      setActiveTab(tab as "upcoming" | "history" | "all");
-    }
-  };
-
-  const handleReschedule = () => router.push("/cliente/agendar");
-  const handleCancel = (appointment: AppointmentCardType) => {
-    appointmentService.cancel(appointment.id)
+  const handleCancel = (appt: AppointmentCardType) => {
+    appointmentService.cancel(appt.id)
       .then(() => {
-        setAppointments((prev: ClientAppointment[]) =>
-          prev.map((a: ClientAppointment) =>
-            a.id === appointment.id ? { ...a, status: "cancelled" as ClientAppointmentStatus } : a
-          )
-        );
+        setAppointments(prev => prev.map(a =>
+          a.id === appt.id ? { ...a, status: "cancelled" as ClientAppointmentStatus } : a));
         toast.success("Agendamento cancelado.");
       })
-      .catch((err) => {
-        console.error("Erro ao cancelar agendamento:", err);
-        toast.error("Não foi possível cancelar. Tente novamente.");
-      });
+      .catch(() => toast.error("Não foi possível cancelar. Tente novamente."));
   };
-  const handleScheduleNew = () => router.push("/cliente/servicos");
-  const handleBack = () => router.push("/cliente");
 
-  if (loading) {
-    return <AgendamentosSkeleton />;
-  }
-
-  if (appointments.length === 0) {
-    return (
-      <EmptyAppointmentsState
-        onScheduleNew={handleScheduleNew}
-        onBack={handleBack}
-      />
-    );
-  }
+  if (loading) return <AgendamentosSkeleton />;
 
   return (
-    <div className="min-h-screen bg-brand-background pb-28">
-      <AgendamentosHeader
-        title="Meus agendamentos"
-        subtitle="Gerencie seus horários e tratamentos"
-        onBack={handleBack}
-      />
+    <div className="min-h-screen bg-[#F5F0EA]">
 
-      <main className="px-5 py-6 max-w-2xl mx-auto">
-        <AppointmentTabs
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          counts={counts}
-        />
+      {/* Header dark */}
+      <div className="bg-[#2C1810] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-amber-400/8 blur-2xl translate-x-16 -translate-y-10" />
+        <div className="px-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-6 max-w-lg mx-auto relative z-10">
+          <div className="flex items-center gap-3 mb-1">
+            <button onClick={() => router.push("/cliente")}
+              className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center active:scale-90 transition-all shrink-0">
+              <ArrowLeft size={16} className="text-white/80" />
+            </button>
+            <div>
+              <h1 className="text-lg font-black text-white">Meus Agendamentos</h1>
+              <p className="text-[10px] text-white/40">{counts.all} agendamento{counts.all !== 1 ? "s" : ""} no total</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex px-5 pb-0 max-w-lg mx-auto relative z-10 gap-1">
+          {TABS.map(tab => (
+            <button key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                "flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-t-xl transition-all duration-200",
+                activeTab === tab.key
+                  ? "bg-[#F5F0EA] text-[#2C1810]"
+                  : "text-white/40 hover:text-white/60"
+              )}>
+              {tab.label}
+              {counts[tab.key] > 0 && (
+                <span className={cn(
+                  "ml-1.5 text-[8px] px-1.5 py-0.5 rounded-full font-black",
+                  activeTab === tab.key ? "bg-[#2C1810] text-amber-400" : "bg-white/10 text-white/40"
+                )}>
+                  {counts[tab.key]}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="px-5 pt-5 pb-32 max-w-lg mx-auto space-y-3">
 
         {error && (
-          <div className="mb-4">
-            <ErrorState
-              title="Erro ao carregar agendamentos"
-              message={error}
-              onRetry={() => window.location.reload()}
-              size="sm"
-            />
-          </div>
+          <ErrorState title="Erro" message={error} onRetry={() => window.location.reload()} size="sm" />
         )}
 
-        {filteredAppointments.length > 0 ? (
-          <div className="space-y-4">
-            {filteredAppointments.map((appointment) => (
-              <AppointmentCard
-                key={appointment.id}
-                appointment={appointment as unknown as AppointmentCardType}
-                onReschedule={handleReschedule}
-                onCancel={handleCancel}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="mb-4 h-16 w-16 rounded-2xl bg-white border border-brand-soft flex items-center justify-center">
-              <span className="text-2xl">📅</span>
-            </div>
-            <h3 className="text-base font-black text-brand-text-main mb-1">
-              Nenhum agendamento aqui
-            </h3>
-            <p className="text-xs text-brand-text-muted mb-6">
-              {activeTab === "upcoming"
-                ? "Você não tem horários futuros."
-                : "Nenhum registro neste período."}
-            </p>
-            <Button
-              onClick={handleScheduleNew}
-              className="h-10 px-6 rounded-full bg-brand-primary hover:bg-brand-secondary text-white text-xs font-bold"
-            >
-              <Plus size={14} className="mr-1.5" strokeWidth={3} />
-              Agendar agora
-            </Button>
-          </div>
-        )}
-      </main>
+        <AnimatePresence mode="popLayout">
+          {filtered.length === 0 ? (
+            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="text-center py-16">
+              <div className="h-16 w-16 rounded-2xl bg-white border border-stone-100 mx-auto mb-4 flex items-center justify-center">
+                <Calendar size={24} className="text-stone-300" />
+              </div>
+              <p className="text-sm font-black text-stone-600 mb-1">Nenhum agendamento aqui</p>
+              <p className="text-xs text-stone-400 mb-6">
+                {activeTab === "upcoming" ? "Sem horários futuros agendados." : "Nenhum registro neste período."}
+              </p>
+              <button onClick={() => router.push("/cliente/servicos")}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#2C1810] text-white text-xs font-black uppercase tracking-widest active:scale-95 transition-all">
+                <Plus size={13} strokeWidth={3} /> Agendar agora
+              </button>
+            </motion.div>
+          ) : (
+            filtered.map((appt, i) => (
+              <motion.div key={appt.id} layout
+                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ delay: i * 0.05, type: "spring", stiffness: 300, damping: 28 }}>
+                <AppointmentCard
+                  appointment={appt as unknown as AppointmentCardType}
+                  onReschedule={() => router.push("/cliente/agendar")}
+                  onCancel={handleCancel}
+                />
+              </motion.div>
+            ))
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
