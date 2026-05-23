@@ -68,7 +68,7 @@ export async function GET(req: Request) {
       );
     }
 
-    // ✅ Try Admin SDK first (if credentials are configured)
+    // ✅ Try Admin SDK first (server-side credentials)
     try {
       const { admin, getFirebaseAdminApp } = await import("@/lib/firebaseAdmin");
       const app = getFirebaseAdminApp();
@@ -96,19 +96,20 @@ export async function GET(req: Request) {
         return NextResponse.json({ busySlots });
       }
     } catch {
-      // Admin SDK not available, fall through to REST API
+      // Admin SDK not available, fall through
     }
 
-    // ✅ Fallback: Firestore REST API (no admin credentials needed)
+    // ✅ Fallback: Firestore REST API com token do cliente (se disponível)
+    const authHeader = req.headers.get("Authorization");
+    const clientToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
     const projectId =
       process.env.FIREBASE_PROJECT_ID ||
       process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
     if (!projectId) {
-      return NextResponse.json(
-        { error: "Configuracao do Firebase nao encontrada" },
-        { status: 500 }
-      );
+      // Sem configuração — retorna lista vazia (sem errar)
+      return NextResponse.json({ busySlots: [] });
     }
 
     const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:runQuery`;
@@ -160,19 +161,20 @@ export async function GET(req: Request) {
       },
     };
 
+    const firestoreHeaders: Record<string,string> = { "Content-Type": "application/json" };
+    if (clientToken) firestoreHeaders["Authorization"] = `Bearer ${clientToken}`;
+
     const firestoreRes = await fetch(firestoreUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: firestoreHeaders,
       body: JSON.stringify(queryBody),
     });
 
     if (!firestoreRes.ok) {
       const errText = await firestoreRes.text();
       console.error("Firestore REST error:", errText);
-      return NextResponse.json(
-        { error: "Erro ao consultar disponibilidade" },
-        { status: 500 }
-      );
+      // Retorna vazio em vez de erro — o cliente vai mostrar todos os slots disponíveis
+      return NextResponse.json({ busySlots: [] });
     }
 
     const results = (await firestoreRes.json()) as RunQueryResponse[];

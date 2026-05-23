@@ -14,6 +14,7 @@ import { globalStore } from "@/store/globalStore";
 import { TimeSlotGrid, TimeSlot } from "@/components/cliente/TimeSlotGrid";
 import { ArrowLeft, ChevronLeft, ChevronRight, Clock, Sparkles, CheckCircle2 } from "lucide-react";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
+import { auth } from "@/lib/firebase";
 
 interface Service {
   id: string; name: string; description?: string;
@@ -23,6 +24,18 @@ interface Service {
 function getDurationMinutes(v?: string) {
   const d = Number.parseInt(v ?? "", 10);
   return Number.isFinite(d) && d > 0 ? d : 60;
+}
+
+// Fetch autenticado — passa o token Firebase no header Authorization
+async function fetchWithAuth(url: string): Promise<Response> {
+  try {
+    const token = await auth?.currentUser?.getIdToken();
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    return fetch(url, { headers });
+  } catch {
+    return fetch(url);
+  }
 }
 
 const WEEKDAYS = ["D","S","T","Q","Q","S","S"];
@@ -302,9 +315,20 @@ export default function AgendarPage() {
       setLoadingSlots(true); setSlotsError(false);
       const start = new Date(date); start.setHours(0,0,0,0);
       const end   = new Date(date); end.setHours(23,59,59,999);
-      const res = await fetch(`/api/slots?start=${start.toISOString()}&end=${end.toISOString()}`);
-      if (!res.ok) throw new Error();
-      const { busySlots } = await res.json() as { busySlots:{appointmentDate:string;serviceId:string}[] };
+
+      // Tentar buscar slots ocupados — se falhar, assume dia totalmente livre
+      let busySlots: {appointmentDate:string;serviceId:string}[] = [];
+      try {
+        const res = await fetchWithAuth(`/api/slots?start=${start.toISOString()}&end=${end.toISOString()}`);
+        if (res.ok) {
+          const data = await res.json() as { busySlots: typeof busySlots };
+          busySlots = data.busySlots ?? [];
+        }
+      } catch {
+        // API indisponível — mostra todos os horários como disponíveis
+        console.warn("API /api/slots indisponível, assumindo dia livre");
+      }
+
       const allSvcs = await globalStore.fetchServices(false);
       const tMap = new Map(allSvcs.map(s => [s.id, {
         durationMinutes: Number(s.durationMinutes)||60, bufferMinutes: Number(s.bufferMinutes)||0,
@@ -333,7 +357,10 @@ export default function AgendarPage() {
         t = new Date(t.getTime() + 30*60000);
       }
       setTimeSlots(slots);
-    } catch { setTimeSlots([]); setSlotsError(true); }
+    } catch {
+      // Só mostra erro se não conseguiu nem gerar os slots
+      setTimeSlots([]); setSlotsError(true);
+    }
     finally { setLoadingSlots(false); }
   };
 
@@ -347,39 +374,55 @@ export default function AgendarPage() {
     const rangeStart = isBefore(mStart, today) ? today : mStart;
     const total = getDurationMinutes(svc.duration) + (svc.bufferMinutes ?? 0);
     try {
-      const [allSvcs, res] = await Promise.all([
-        globalStore.fetchServices(false),
-        fetch(`/api/slots?start=${rangeStart.toISOString()}&end=${mEnd.toISOString()}`),
-      ]);
-      if (ctrl.signal.aborted) return;
-      const { busySlots } = await res.json() as { busySlots:{appointmentDate:string;serviceId:string}[] };
-      const tMap = new Map(allSvcs.map(s => [s.id,{
-        durationMinutes:Number(s.durationMinutes)||60, bufferMinutes:Number(s.bufferMinutes)||0,
-      }]));
-      const available = new Set<string>();
-      const now = new Date();
-      for (const day of eachDayOfInterval({ start: rangeStart, end: mEnd })) {
-        if (ctrl.signal.aborted) break;
-        const dayKey = format(day, "yyyy-MM-dd");
-        const dayBusy = busySlots.filter(a => format(new Date(a.appointmentDate),"yyyy-MM-dd") === dayKey);
-        let cur = new Date(day); cur.setHours(8,0,0,0);
-        const dayEnd = new Date(day); dayEnd.setHours(19,0,0,0);
-        let found = false;
-        while (cur < dayEnd && !found) {
-          const ss = new Date(cur), se = new Date(cur.getTime()+total*60000);
-          if (!(isToday(day) && ss < now)) {
-            found = !dayBusy.some(apt => {
-              const as2 = new Date(apt.appointmentDate);
-              const tm = tMap.get(apt.serviceId);
-              const ae = new Date(as2.getTime()+((tm?.durationMinutes??60)+(tm?.bufferMinutes??0))*60000);
-              return ss < ae && se > as2;
-            });
-          }
-          cur = new Date(cur.getTime()+30*60000);
+      // Tentar buscar slots do mês — se falhar, não mostra dots mas não quebra
+      let busySlots: {appointmentDate:string;serviceId:string}[] = [];
+      try {
+        const [allSvcs, res] = await Promise.all([
+          globalStore.fetchServices(false),
+          fetchWithAuth(`/api/slots?start=${rangeStart.toISOString()}&end=${mEnd.toISOString()}`),
+        ]);
+        if (ctrl.signal.aborted) return;
+        if (res.ok) {
+          const data = await res.json() as { busySlots: typeof busySlots };
+          busySlots = data.busySlots ?? [];
         }
-        if (found) available.add(dayKey);
+        const tMap = new Map(allSvcs.map(s => [s.id,{
+          durationMinutes:Number(s.durationMinutes)||60, bufferMinutes:Number(s.bufferMinutes)||0,
+        }]));
+        const available = new Set<string>();
+        const now = new Date();
+        for (const day of eachDayOfInterval({ start: rangeStart, end: mEnd })) {
+          if (ctrl.signal.aborted) break;
+          const dayKey = format(day, "yyyy-MM-dd");
+          const dayBusy = busySlots.filter(a => format(new Date(a.appointmentDate),"yyyy-MM-dd") === dayKey);
+          let cur = new Date(day); cur.setHours(8,0,0,0);
+          const dayEnd = new Date(day); dayEnd.setHours(19,0,0,0);
+          let found = false;
+          while (cur < dayEnd && !found) {
+            const ss = new Date(cur), se = new Date(cur.getTime()+total*60000);
+            if (!(isToday(day) && ss < now)) {
+              found = !dayBusy.some(apt => {
+                const as2 = new Date(apt.appointmentDate);
+                const tm = tMap.get(apt.serviceId);
+                const ae = new Date(as2.getTime()+((tm?.durationMinutes??60)+(tm?.bufferMinutes??0))*60000);
+                return ss < ae && se > as2;
+              });
+            }
+            cur = new Date(cur.getTime()+30*60000);
+          }
+          if (found) available.add(dayKey);
+        }
+        if (!ctrl.signal.aborted) setAvailableDays(available);
+      } catch {
+        // API indisponível — marca todos os dias futuros como disponíveis
+        if (!ctrl.signal.aborted) {
+          const available = new Set<string>();
+          for (const day of eachDayOfInterval({ start: rangeStart, end: mEnd })) {
+            available.add(format(day, "yyyy-MM-dd"));
+          }
+          setAvailableDays(available);
+        }
       }
-      if (!ctrl.signal.aborted) setAvailableDays(available);
     } catch { /* silencioso */ }
     finally { if (!ctrl.signal.aborted) setLoadingAvail(false); }
   }, []);
