@@ -141,7 +141,7 @@ export class AppointmentStorage {
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error('[AppointmentStorage] Serviço inválido:', error.errors);
+        console.error('[AppointmentStorage] Serviço inválido:', error.issues);
       } else {
         console.error('[AppointmentStorage] Erro ao validar serviço:', error);
       }
