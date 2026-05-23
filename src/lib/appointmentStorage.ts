@@ -139,11 +139,11 @@ export class AppointmentStorage {
       // ✅ USAR ZOD PARA VALIDAÇÃO SEGURA
       ServiceSchema.parse(data);
       return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        console.error('[AppointmentStorage] Serviço inválido:', error.issues);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        console.error('[AppointmentStorage] Serviço inválido:', (err as z.ZodError).issues);
       } else {
-        console.error('[AppointmentStorage] Erro ao validar serviço:', error);
+        console.error('[AppointmentStorage] Erro ao validar serviço:', err);
       }
       return false;
     }
