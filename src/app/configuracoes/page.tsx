@@ -471,54 +471,122 @@ export default function ConfiguracoesPage() {
                 <Separator />
 
                 <div className="space-y-4">
-                  <h3 className="font-bold text-sm uppercase tracking-wider">Horários de Funcionamento</h3>
-                  <div className="space-y-3">
-                    {weekDays.map((day) => (
-                      <div key={day.id} className="flex items-center gap-4 p-4 border rounded-lg bg-muted/20">
-                        <Switch 
-                          checked={salonData.workingDays[day.id as keyof typeof salonData.workingDays].enabled}
-                          onCheckedChange={(checked) => setSalonData({
-                            ...salonData,
-                            workingDays: {
-                              ...salonData.workingDays,
-                              [day.id]: { ...salonData.workingDays[day.id as keyof typeof salonData.workingDays], enabled: checked }
-                            }
-                          })}
-                        />
-                        <span className="font-medium min-w-[120px]">{day.label}</span>
-                        {salonData.workingDays[day.id as keyof typeof salonData.workingDays].enabled && (
-                          <div className="flex items-center gap-2 flex-1">
-                            <Input 
-                              type="time"
-                              value={salonData.workingDays[day.id as keyof typeof salonData.workingDays].start}
-                              onChange={(e) => setSalonData({
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-bold text-sm text-brand-text-main">Horários de Atendimento</h3>
+                      <p className="text-xs text-brand-text-sub mt-0.5">Defina quando você atende — o calendário do cliente vai respeitar esses horários</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {weekDays.map((day) => {
+                      const dayData = salonData.workingDays[day.id as keyof typeof salonData.workingDays];
+                      const isEnabled = dayData.enabled;
+                      return (
+                        <div key={day.id} className={cn(
+                          "rounded-2xl border transition-all duration-200",
+                          isEnabled
+                            ? "bg-white border-brand-accent/20 shadow-sm"
+                            : "bg-muted/30 border-transparent"
+                        )}>
+                          <div className="flex items-center gap-3 px-4 py-3">
+                            {/* Toggle */}
+                            <Switch
+                              checked={isEnabled}
+                              onCheckedChange={(checked) => setSalonData({
                                 ...salonData,
                                 workingDays: {
                                   ...salonData.workingDays,
-                                  [day.id]: { ...salonData.workingDays[day.id as keyof typeof salonData.workingDays], start: e.target.value }
+                                  [day.id]: { ...dayData, enabled: checked }
                                 }
                               })}
-                              className="h-9"
                             />
-                            <span className="text-muted-foreground">até</span>
-                            <Input 
-                              type="time"
-                              value={salonData.workingDays[day.id as keyof typeof salonData.workingDays].end}
-                              onChange={(e) => setSalonData({
-                                ...salonData,
-                                workingDays: {
-                                  ...salonData.workingDays,
-                                  [day.id]: { ...salonData.workingDays[day.id as keyof typeof salonData.workingDays], end: e.target.value }
-                                }
-                              })}
-                              className="h-9"
-                            />
+                            {/* Dia */}
+                            <span className={cn(
+                              "font-bold text-sm min-w-[110px] transition-colors",
+                              isEnabled ? "text-brand-text-main" : "text-brand-text-sub"
+                            )}>
+                              {day.label}
+                            </span>
+
+                            {/* Horários — só mostra se habilitado */}
+                            {isEnabled ? (
+                              <div className="flex items-center gap-2 flex-1">
+                                <div className="flex items-center gap-1.5 flex-1 bg-brand-background rounded-xl px-3 py-1.5">
+                                  <Clock size={12} className="text-brand-primary shrink-0" />
+                                  <input
+                                    type="time"
+                                    value={dayData.start}
+                                    onChange={(e) => setSalonData({
+                                      ...salonData,
+                                      workingDays: {
+                                        ...salonData.workingDays,
+                                        [day.id]: { ...dayData, start: e.target.value }
+                                      }
+                                    })}
+                                    className="bg-transparent text-xs font-bold text-brand-text-main outline-none w-full"
+                                  />
+                                </div>
+                                <span className="text-[10px] font-bold text-brand-text-sub">até</span>
+                                <div className="flex items-center gap-1.5 flex-1 bg-brand-background rounded-xl px-3 py-1.5">
+                                  <Clock size={12} className="text-brand-primary shrink-0" />
+                                  <input
+                                    type="time"
+                                    value={dayData.end}
+                                    onChange={(e) => setSalonData({
+                                      ...salonData,
+                                      workingDays: {
+                                        ...salonData.workingDays,
+                                        [day.id]: { ...dayData, end: e.target.value }
+                                      }
+                                    })}
+                                    className="bg-transparent text-xs font-bold text-brand-text-main outline-none w-full"
+                                  />
+                                </div>
+                                {/* Duração calculada */}
+                                <span className="text-[10px] font-bold text-brand-text-sub min-w-[56px] text-right shrink-0">
+                                  {(() => {
+                                    const [sh,sm] = dayData.start.split(":").map(Number);
+                                    const [eh,em] = dayData.end.split(":").map(Number);
+                                    const mins = (eh*60+em)-(sh*60+sm);
+                                    if (mins <= 0) return "—";
+                                    const h = Math.floor(mins/60), m = mins%60;
+                                    return m > 0 ? `${h}h${m}` : `${h}h`;
+                                  })()}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-brand-text-sub italic">Fechado</span>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Resumo visual */}
+                  <div className="rounded-2xl bg-brand-primary/5 border border-brand-accent/10 p-4">
+                    <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest mb-2">Resumo da semana</p>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {weekDays.map(day => {
+                        const d = salonData.workingDays[day.id as keyof typeof salonData.workingDays];
+                        const shortLabel = day.label.slice(0,3);
+                        return (
+                          <div key={day.id} className={cn(
+                            "px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
+                            d.enabled
+                              ? "bg-brand-primary text-white"
+                              : "bg-brand-soft/50 text-brand-text-sub"
+                          )}>
+                            {shortLabel}
+                            {d.enabled && <span className="ml-1 opacity-70">{d.start.slice(0,5)}–{d.end.slice(0,5)}</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
+
               </div>
             </SectionCard>
           </TabsContent>

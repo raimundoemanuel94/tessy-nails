@@ -38,16 +38,64 @@ async function fetchWithAuth(url: string): Promise<Response> {
   }
 }
 
-const WEEKDAYS = ["D","S","T","Q","Q","S","S"];
+// Horário padrão quando API não retorna configuração
+const DEFAULT_WD = {
+  sunday:    { enabled: false, start: "08:00", end: "18:00" },
+  monday:    { enabled: true,  start: "08:00", end: "18:00" },
+  tuesday:   { enabled: true,  start: "08:00", end: "18:00" },
+  wednesday: { enabled: true,  start: "08:00", end: "18:00" },
+  thursday:  { enabled: true,  start: "08:00", end: "18:00" },
+  friday:    { enabled: true,  start: "08:00", end: "18:00" },
+  saturday:  { enabled: true,  start: "08:00", end: "14:00" },
+} as const;
+
+const DAY_KEYS = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"] as const;
+type DayKey = typeof DAY_KEYS[number];
+type WorkingDays = Record<DayKey, { enabled: boolean; start: string; end: string }>;
+
+function parseMins(t: string) { const [h,m] = t.split(":").map(Number); return h*60+m; }
+
+function buildSlots(date: Date, svc: Service | null, busySlots: {appointmentDate:string;serviceId:string}[], tMap: Map<string,{durationMinutes:number;bufferMinutes:number}>, wd: WorkingDays): TimeSlot[] {
+  const dayKey = DAY_KEYS[date.getDay()];
+  const config = wd[dayKey];
+  if (!config?.enabled) return [];
+
+  const total = getDurationMinutes(svc?.duration) + (svc?.bufferMinutes ?? 0);
+  const slots: TimeSlot[] = [];
+  let t = new Date(date); 
+  const [sh,sm] = config.start.split(":").map(Number);
+  const [eh,em] = config.end.split(":").map(Number);
+  t.setHours(sh,sm,0,0);
+  const endT = new Date(date); endT.setHours(eh,em,0,0);
+  const now = new Date();
+
+  while (t < endT) {
+    const ss = new Date(t), se = new Date(t.getTime()+total*60000);
+    if (se > endT) break; // não ultrapassa o fechamento
+    const isPast = isToday(date) && ss < now;
+    const busy = busySlots.some(apt => {
+      const as2 = new Date(apt.appointmentDate);
+      const tm  = tMap.get(apt.serviceId);
+      const ae  = new Date(as2.getTime()+((tm?.durationMinutes??60)+(tm?.bufferMinutes??0))*60000);
+      return ss < ae && se > as2;
+    });
+    const timeStr = format(ss,"HH:mm");
+    const popular = ["10:00","11:00","15:00","16:00"].includes(timeStr);
+    slots.push({ id:timeStr, time:timeStr, available:!busy&&!isPast, label:popular&&!busy&&!isPast?"Popular":undefined });
+    t = new Date(t.getTime()+30*60000);
+  }
+  return slots;
+}
 const MONTHS_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 // ── Componente de calendário premium ──────────────────────────────────────
 function PremiumCalendar({
-  currentMonth, selectedDate, availableDays, loadingAvailability,
+  currentMonth, selectedDate, availableDays, loadingAvailability, workingDays,
   onDateSelect, onPrevMonth, onNextMonth,
 }: {
   currentMonth: Date; selectedDate: Date | null;
   availableDays: Set<string>; loadingAvailability: boolean;
+  workingDays: WorkingDays;
   onDateSelect: (d: Date) => void;
   onPrevMonth: () => void; onNextMonth: () => void;
 }) {
@@ -115,12 +163,14 @@ function PremiumCalendar({
             {week.map((day, di) => {
               if (!day) return <div key={di} />;
 
-              const dayKey  = format(day, "yyyy-MM-dd");
-              const isPast  = isBefore(startOfDay(day), startOfDay(today));
-              const isTd    = isToday(day);
-              const active  = selectedDate && isSameDay(day, selectedDate);
-              const hasSlots = !isPast && availableDays.has(dayKey);
-              const disabled = isPast && !isTd;
+              const dayKey    = format(day, "yyyy-MM-dd");
+              const isPast    = isBefore(startOfDay(day), startOfDay(today));
+              const isTd      = isToday(day);
+              const active    = selectedDate && isSameDay(day, selectedDate);
+              const dayName   = DAY_KEYS[day.getDay()];
+              const closedDay = !workingDays[dayName]?.enabled;
+              const hasSlots  = !isPast && !closedDay && availableDays.has(dayKey);
+              const disabled  = (isPast && !isTd) || closedDay;
 
               return (
                 <motion.button
@@ -288,15 +338,16 @@ function PremiumTimeSlots({
 // ── Página principal ──────────────────────────────────────────────────────
 export default function AgendarPage() {
   const router = useRouter();
-  const [service, setService]         = useState<Service | null>(null);
+  const [service, setService]           = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [timeSlots, setTimeSlots]     = useState<TimeSlot[]>([]);
+  const [timeSlots, setTimeSlots]       = useState<TimeSlot[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [slotsError, setSlotsError]   = useState(false);
+  const [slotsError, setSlotsError]     = useState(false);
   const [availableDays, setAvailableDays] = useState<Set<string>>(new Set());
   const [loadingAvail, setLoadingAvail] = useState(false);
+  const [workingDays, setWorkingDays]   = useState<WorkingDays>(DEFAULT_WD as WorkingDays);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -316,51 +367,24 @@ export default function AgendarPage() {
       const start = new Date(date); start.setHours(0,0,0,0);
       const end   = new Date(date); end.setHours(23,59,59,999);
 
-      // Tentar buscar slots ocupados — se falhar, assume dia totalmente livre
       let busySlots: {appointmentDate:string;serviceId:string}[] = [];
+      let wd: WorkingDays = workingDays;
+
       try {
         const res = await fetchWithAuth(`/api/slots?start=${start.toISOString()}&end=${end.toISOString()}`);
         if (res.ok) {
-          const data = await res.json() as { busySlots: typeof busySlots };
+          const data = await res.json() as { busySlots: typeof busySlots; workingDays?: WorkingDays };
           busySlots = data.busySlots ?? [];
+          if (data.workingDays) { wd = data.workingDays; setWorkingDays(data.workingDays); }
         }
-      } catch {
-        // API indisponível — mostra todos os horários como disponíveis
-        console.warn("API /api/slots indisponível, assumindo dia livre");
-      }
+      } catch { /* API indisponível — dia totalmente livre */ }
 
       const allSvcs = await globalStore.fetchServices(false);
-      const tMap = new Map(allSvcs.map(s => [s.id, {
-        durationMinutes: Number(s.durationMinutes)||60, bufferMinutes: Number(s.bufferMinutes)||0,
-      }]));
+      const tMap = new Map(allSvcs.map(s => [s.id,{ durationMinutes:Number(s.durationMinutes)||60, bufferMinutes:Number(s.bufferMinutes)||0 }]));
       const cur = svcOverride ?? service;
-      const total = getDurationMinutes(cur?.duration) + (cur?.bufferMinutes ?? 0);
-      const slots: TimeSlot[] = [];
-      let t = new Date(date); t.setHours(8,0,0,0);
-      const endT = new Date(date); endT.setHours(19,0,0,0);
-      const now = new Date();
-      while (t < endT) {
-        const ss = new Date(t), se = new Date(t.getTime() + total*60000);
-        const isPast = isToday(date) && ss < now;
-        const busy = busySlots.some(apt => {
-          const as2 = new Date(apt.appointmentDate);
-          const tm = tMap.get(apt.serviceId);
-          const ae = new Date(as2.getTime()+((tm?.durationMinutes??60)+(tm?.bufferMinutes??0))*60000);
-          return ss < ae && se > as2;
-        });
-        const timeStr = format(ss, "HH:mm");
-        slots.push({
-          id: timeStr, time: timeStr,
-          available: !busy && !isPast,
-          label: ["10:00","11:00","15:00","16:00"].includes(timeStr) && !busy && !isPast ? "Popular" : undefined,
-        });
-        t = new Date(t.getTime() + 30*60000);
-      }
+      const slots = buildSlots(date, cur, busySlots, tMap, wd);
       setTimeSlots(slots);
-    } catch {
-      // Só mostra erro se não conseguiu nem gerar os slots
-      setTimeSlots([]); setSlotsError(true);
-    }
+    } catch { setTimeSlots([]); setSlotsError(true); }
     finally { setLoadingSlots(false); }
   };
 
@@ -369,63 +393,41 @@ export default function AgendarPage() {
     abortRef.current?.abort();
     const ctrl = new AbortController(); abortRef.current = ctrl;
     setLoadingAvail(true);
-    const today = startOfDay(new Date());
+    const today  = startOfDay(new Date());
     const mStart = startOfMonth(month), mEnd = endOfMonth(month);
     const rangeStart = isBefore(mStart, today) ? today : mStart;
-    const total = getDurationMinutes(svc.duration) + (svc.bufferMinutes ?? 0);
+
     try {
-      // Tentar buscar slots do mês — se falhar, não mostra dots mas não quebra
       let busySlots: {appointmentDate:string;serviceId:string}[] = [];
+      let wd: WorkingDays = workingDays;
+
       try {
-        const [allSvcs, res] = await Promise.all([
-          globalStore.fetchServices(false),
-          fetchWithAuth(`/api/slots?start=${rangeStart.toISOString()}&end=${mEnd.toISOString()}`),
-        ]);
+        const res = await fetchWithAuth(`/api/slots?start=${rangeStart.toISOString()}&end=${mEnd.toISOString()}`);
         if (ctrl.signal.aborted) return;
         if (res.ok) {
-          const data = await res.json() as { busySlots: typeof busySlots };
+          const data = await res.json() as { busySlots: typeof busySlots; workingDays?: WorkingDays };
           busySlots = data.busySlots ?? [];
+          if (data.workingDays) { wd = data.workingDays; setWorkingDays(data.workingDays); }
         }
-        const tMap = new Map(allSvcs.map(s => [s.id,{
-          durationMinutes:Number(s.durationMinutes)||60, bufferMinutes:Number(s.bufferMinutes)||0,
-        }]));
-        const available = new Set<string>();
-        const now = new Date();
-        for (const day of eachDayOfInterval({ start: rangeStart, end: mEnd })) {
-          if (ctrl.signal.aborted) break;
-          const dayKey = format(day, "yyyy-MM-dd");
-          const dayBusy = busySlots.filter(a => format(new Date(a.appointmentDate),"yyyy-MM-dd") === dayKey);
-          let cur = new Date(day); cur.setHours(8,0,0,0);
-          const dayEnd = new Date(day); dayEnd.setHours(19,0,0,0);
-          let found = false;
-          while (cur < dayEnd && !found) {
-            const ss = new Date(cur), se = new Date(cur.getTime()+total*60000);
-            if (!(isToday(day) && ss < now)) {
-              found = !dayBusy.some(apt => {
-                const as2 = new Date(apt.appointmentDate);
-                const tm = tMap.get(apt.serviceId);
-                const ae = new Date(as2.getTime()+((tm?.durationMinutes??60)+(tm?.bufferMinutes??0))*60000);
-                return ss < ae && se > as2;
-              });
-            }
-            cur = new Date(cur.getTime()+30*60000);
-          }
-          if (found) available.add(dayKey);
-        }
-        if (!ctrl.signal.aborted) setAvailableDays(available);
-      } catch {
-        // API indisponível — marca todos os dias futuros como disponíveis
-        if (!ctrl.signal.aborted) {
-          const available = new Set<string>();
-          for (const day of eachDayOfInterval({ start: rangeStart, end: mEnd })) {
-            available.add(format(day, "yyyy-MM-dd"));
-          }
-          setAvailableDays(available);
-        }
+      } catch { /* usa defaults */ }
+
+      const allSvcs = await globalStore.fetchServices(false);
+      if (ctrl.signal.aborted) return;
+      const tMap = new Map(allSvcs.map(s => [s.id,{ durationMinutes:Number(s.durationMinutes)||60, bufferMinutes:Number(s.bufferMinutes)||0 }]));
+      const available = new Set<string>();
+
+      for (const day of eachDayOfInterval({ start: rangeStart, end: mEnd })) {
+        if (ctrl.signal.aborted) break;
+        const dayKey = format(day,"yyyy-MM-dd");
+        const dayBusy = busySlots.filter(a => format(new Date(a.appointmentDate),"yyyy-MM-dd") === dayKey);
+        const slots = buildSlots(day, svc, dayBusy, tMap, wd);
+        if (slots.some(s => s.available)) available.add(dayKey);
       }
+
+      if (!ctrl.signal.aborted) setAvailableDays(available);
     } catch { /* silencioso */ }
     finally { if (!ctrl.signal.aborted) setLoadingAvail(false); }
-  }, []);
+  }, [workingDays]);
 
   useEffect(() => {
     if (service) void preloadMonth(currentMonth, service);
@@ -517,6 +519,7 @@ export default function AgendarPage() {
             selectedDate={selectedDate}
             availableDays={availableDays}
             loadingAvailability={loadingAvail}
+            workingDays={workingDays}
             onDateSelect={handleDateSelect}
             onPrevMonth={() => setCurrentMonth(subMonths(currentMonth, 1))}
             onNextMonth={() => setCurrentMonth(addMonths(currentMonth, 1))}
