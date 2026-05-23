@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ensureDate } from "@/lib/utils";
 
 export default function PerfilPage() {
   const router = useRouter();
@@ -24,8 +25,10 @@ export default function PerfilPage() {
     if (!authLoading && !user) setError("Você precisa estar logado.");
   }, [authLoading, user]);
 
-  const handleLogout = () => {
-    signOut();
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch { /* ignora */ }
     router.push("/login");
   };
 
@@ -63,13 +66,13 @@ export default function PerfilPage() {
     </div>
   );
 
-  const name = client?.name || user?.name || "Usuário";
-  const email = client?.email || user?.email || "";
-  const phone = client?.phone || "";
+  const name = String(client?.name || user?.name || "Usuário");
+  const email = String(client?.email || user?.email || "");
+  const phone = String(client?.phone || "");
   const firstName = name.split(" ")[0];
-  const initials = name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
+  const initials = name.split(" ").filter(Boolean).map((n: string) => n[0]).slice(0, 2).join("").toUpperCase() || "U";
   const memberSince = user?.createdAt
-    ? format(new Date(user.createdAt), "MMMM 'de' yyyy", { locale: ptBR })
+    ? (() => { try { return format(ensureDate(user.createdAt), "MMMM 'de' yyyy", { locale: ptBR }); } catch { return null; } })()
     : null;
 
   return (
