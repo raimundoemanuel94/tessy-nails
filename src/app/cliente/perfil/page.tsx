@@ -8,6 +8,7 @@ import { PersonalInfoSection, PersonalInfo } from "@/components/cliente/Personal
 import { ProfileShortcuts } from "@/components/cliente/ProfileShortcuts";
 import { NoProfileDataState } from "@/components/cliente/NoProfileDataState";
 import { useAuth } from "@/contexts/AuthContext";
+import { ErrorState } from "@/components/shared/ErrorState";
 import { toast } from "sonner";
 
 export default function PerfilPage() {
@@ -107,45 +108,38 @@ export default function PerfilPage() {
     router.push('/cliente');
   };
 
-  // Estados de loading
+  // Estados de loading com skeleton
   if (loading || authLoading) {
     return (
-      <div className="min-h-screen bg-brand-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-primary border-t-transparent" />
-          <p className="mt-4 text-brand-text-sub">Carregando perfil...</p>
+      <div className="min-h-screen bg-brand-background pb-28">
+        <div className="bg-brand-primary px-5 pt-14 pb-8">
+          <div className="h-6 w-32 rounded-full bg-white/20 animate-pulse mb-2" />
+          <div className="h-4 w-48 rounded-full bg-white/10 animate-pulse" />
         </div>
+        <main className="px-5 py-6 max-w-2xl mx-auto space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="rounded-2xl bg-white border border-brand-soft p-5 animate-pulse">
+              <div className="h-4 w-32 rounded-full bg-brand-soft/30 mb-3" />
+              <div className="h-3 w-full rounded-full bg-brand-soft/20 mb-2" />
+              <div className="h-3 w-2/3 rounded-full bg-brand-soft/20" />
+            </div>
+          ))}
+        </main>
       </div>
     );
   }
 
-  // Estado de erro
+  // Estado de erro com componente reutilizável
   if (error) {
     return (
-      <div className="min-h-screen bg-brand-background flex items-center justify-center">
-        <div className="text-center p-8">
-          <div className="mb-4">
-            <svg className="h-12 w-12 text-destructive mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-brand-text-main mb-2">Erro no Perfil</h3>
-          <p className="text-brand-text-sub mb-6">{error}</p>
-          <div className="space-x-4">
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-secondary transition-colors"
-            >
-              Tentar Novamente
-            </button>
-            <button
-              onClick={() => router.push('/cliente')}
-              className="px-4 py-2 border border-brand-accent/30 rounded-lg hover:bg-brand-soft/30 transition-colors"
-            >
-              Voltar ao Início
-            </button>
-          </div>
-        </div>
+      <div className="min-h-screen bg-brand-background flex items-center justify-center p-5">
+        <ErrorState
+          title="Erro ao carregar perfil"
+          message={error}
+          onRetry={() => window.location.reload()}
+          onDismiss={() => router.push('/cliente')}
+          size="md"
+        />
       </div>
     );
   }

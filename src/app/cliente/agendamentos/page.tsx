@@ -11,9 +11,12 @@ import { AgendamentosHeader } from "@/components/cliente/AgendamentosHeader";
 import { AppointmentTabs } from "@/components/cliente/AppointmentTabs";
 import { AppointmentCard } from "@/components/cliente/AppointmentCard";
 import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { AgendamentosSkeleton } from "@/components/cliente/ClienteSkeletons";
 import { Plus } from "lucide-react";
 
-type ClientAppointmentStatus = "pending" | "confirmed" | "completed" | "cancelled";
+// ✅ CORRIGIDO: Adicionado no_show que faltava
+type ClientAppointmentStatus = "pending" | "confirmed" | "completed" | "cancelled" | "no_show";
 
 interface ClientAppointment {
   id: string;
@@ -29,32 +32,6 @@ interface ClientAppointment {
   status: ClientAppointmentStatus;
   observation?: string;
   createdAt: Date;
-}
-
-function SkeletonCard() {
-  return (
-    <div className="overflow-hidden rounded-[24px] border border-brand-soft bg-white animate-pulse">
-      <div className="h-1 w-full bg-brand-soft" />
-      <div className="p-5 space-y-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 space-y-2">
-            <div className="h-2.5 w-16 rounded-full bg-brand-soft" />
-            <div className="h-4 w-48 rounded-full bg-brand-soft" />
-          </div>
-          <div className="h-6 w-20 rounded-full bg-brand-soft" />
-        </div>
-        <div className="flex gap-2">
-          <div className="flex-1 h-9 rounded-xl bg-brand-soft" />
-          <div className="flex-1 h-9 rounded-xl bg-brand-soft" />
-        </div>
-        <div className="h-12 rounded-2xl bg-brand-soft" />
-        <div className="grid grid-cols-2 gap-2">
-          <div className="h-11 rounded-2xl bg-brand-soft" />
-          <div className="h-11 rounded-2xl bg-brand-soft" />
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export default function AgendamentosPage() {
@@ -96,7 +73,8 @@ export default function AgendamentosPage() {
             apt.status === "pending" ||
             apt.status === "confirmed" ||
             apt.status === "completed" ||
-            apt.status === "cancelled"
+            apt.status === "cancelled" ||
+            apt.status === "no_show"  // ✅ CORRIGIDO: incluído no_show
           )
           .map((apt) => ({
             ...apt,
@@ -179,24 +157,7 @@ export default function AgendamentosPage() {
   const handleBack = () => router.push("/cliente");
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-brand-background pb-28">
-        <AgendamentosHeader
-          title="Meus agendamentos"
-          subtitle="Gerencie seus horários"
-          onBack={handleBack}
-        />
-        <main className="px-5 py-6 max-w-2xl mx-auto space-y-4">
-          <div className="flex gap-2 mb-5">
-            {["Próximos", "Histórico", "Todos"].map((t) => (
-              <div key={t} className="h-10 w-24 rounded-full bg-white border border-brand-soft animate-pulse" />
-            ))}
-          </div>
-          <SkeletonCard />
-          <SkeletonCard />
-        </main>
-      </div>
-    );
+    return <AgendamentosSkeleton />;
   }
 
   if (appointments.length === 0) {
@@ -224,8 +185,13 @@ export default function AgendamentosPage() {
         />
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-700 text-xs font-bold">
-            {error}
+          <div className="mb-4">
+            <ErrorState
+              title="Erro ao carregar agendamentos"
+              message={error}
+              onRetry={() => window.location.reload()}
+              size="sm"
+            />
           </div>
         )}
 

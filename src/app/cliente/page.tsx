@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import {
   Calendar,
   Clock,
   User as UserIcon,
   Plus,
-  Loader2,
   Sparkles,
   ChevronRight,
 } from "lucide-react";
@@ -20,35 +18,55 @@ import { format, isFuture, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Service } from "@/types";
 import { getGreeting, cn } from "@/lib/utils";
+import { useProtectedRoute } from "@/hooks/useProtectedRoute";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { ClienteHomeSkeleton } from "@/components/cliente/ClienteSkeletons";
 
 export default function ClientePage() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useProtectedRoute("client");
   const router = useRouter();
 
   const [nextAppointment, setNextAppointment] = useState<AppointmentWithService | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     const loadData = async () => {
       try {
         setDataLoading(true);
-        const [appointments, allServices] = await Promise.all([
+        setError(null);
+
+        // ✅ Promise.allSettled para não quebrar se um falhar
+        const [apptResult, servicesResult] = await Promise.allSettled([
           appointmentService.getByClientIdWithServices(user.uid),
           globalStore.fetchServices(false),
         ]);
-        const upcoming = appointments
-          .filter(
-            (apt) =>
-              (isFuture(apt.date) || isToday(apt.date)) &&
-              apt.status !== "cancelled"
-          )
-          .sort((a, b) => a.date.getTime() - b.date.getTime())[0];
-        setNextAppointment(upcoming);
-        setServices(allServices.slice(0, 6));
-      } catch (error) {
-        console.error("Erro ao carregar dados do cliente:", error);
+
+        if (apptResult.status === "fulfilled") {
+          const upcoming = apptResult.value
+            .filter(
+              (apt) =>
+                (isFuture(apt.date) || isToday(apt.date)) &&
+                apt.status !== "cancelled" &&
+                apt.status !== "no_show"
+            )
+            .sort((a, b) => a.date.getTime() - b.date.getTime())[0];
+          setNextAppointment(upcoming ?? null);
+        }
+
+        if (servicesResult.status === "fulfilled") {
+          setServices(servicesResult.value.slice(0, 6));
+        }
+
+        // Só mostra erro se AMBOS falharam
+        if (apptResult.status === "rejected" && servicesResult.status === "rejected") {
+          setError("Não conseguimos carregar seus dados. Verifique sua conexão.");
+        }
+      } catch (err) {
+        console.error("Erro ao carregar dados do cliente:", err);
+        setError("Ocorreu um erro inesperado. Tente novamente.");
       } finally {
         setDataLoading(false);
       }
@@ -56,17 +74,28 @@ export default function ClientePage() {
     loadData();
   }, [user]);
 
-  if (loading || dataLoading) {
+  // ✅ Skeleton melhorado enquanto carrega
+  if (authLoading || dataLoading) {
+    return <ClienteHomeSkeleton />;
+  }
+
+  if (!user) return null;
+
+  // ✅ ErrorState com retry se tudo falhou
+  if (error && !nextAppointment && services.length === 0) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-primary/40" />
+      <div className="min-h-screen bg-brand-background flex items-center justify-center p-5">
+        <ErrorState
+          title="Erro ao carregar"
+          message={error}
+          onRetry={() => window.location.reload()}
+          size="md"
+        />
       </div>
     );
   }
 
   const firstName = user?.name?.split(" ")[0] || "Cliente";
-
-  const hasService = !!AppointmentStorage.loadSelectedService();
 
   const quickActions = [
     { id: "agenda",   label: "Agenda",    sub: "Meus horários",  icon: Calendar,  href: "/cliente/agendamentos" },
