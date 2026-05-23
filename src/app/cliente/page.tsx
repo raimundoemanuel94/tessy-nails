@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { useProtectedRoute } from "@/hooks/useProtectedRoute";
 import {
   Calendar,
   Clock,
@@ -13,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/shared/ErrorState";
 import { appointmentService, AppointmentWithService } from "@/services/appointments";
 import { AppointmentStorage } from "@/lib/appointmentStorage";
 import { globalStore } from "@/store/globalStore";
@@ -22,22 +24,40 @@ import { Service } from "@/types";
 import { getGreeting, cn } from "@/lib/utils";
 
 export default function ClientePage() {
-  const { user, loading } = useAuth();
+  // ✅ PROTEÇÃO DE ROTA - Verifica autenticação e role
+  const { user: protectedUser, loading: authLoading } = useProtectedRoute('client');
+  const { user } = useAuth();
   const router = useRouter();
 
   const [nextAppointment, setNextAppointment] = useState<AppointmentWithService | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Usar usuário protegido se disponível
+  const safeUser = protectedUser || user;
 
   useEffect(() => {
-    if (!user) return;
+    if (!safeUser || authLoading) return;
+
     const loadData = async () => {
       try {
         setDataLoading(true);
+        setError(null);
+
         const [appointments, allServices] = await Promise.all([
-          appointmentService.getByClientIdWithServices(user.uid),
-          globalStore.fetchServices(false),
+          appointmentService.getByClientIdWithServices(safeUser.uid)
+            .catch(err => {
+              console.error('Erro ao buscar agendamentos:', err);
+              throw new Error('Não conseguimos carregar seus agendamentos');
+            }),
+          globalStore.fetchServices(false)
+            .catch(err => {
+              console.error('Erro ao buscar serviços:', err);
+              throw new Error('Não conseguimos carregar os serviços');
+            }),
         ]);
+
         const upcoming = appointments
           .filter(
             (apt) =>
@@ -45,18 +65,23 @@ export default function ClientePage() {
               apt.status !== "cancelled"
           )
           .sort((a, b) => a.date.getTime() - b.date.getTime())[0];
-        setNextAppointment(upcoming);
+
+        setNextAppointment(upcoming || null);
         setServices(allServices.slice(0, 6));
-      } catch (error) {
-        console.error("Erro ao carregar dados do cliente:", error);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+        console.error('Erro ao carregar dados:', err);
+        setError(errorMessage);
       } finally {
         setDataLoading(false);
       }
     };
-    loadData();
-  }, [user]);
 
-  if (loading || dataLoading) {
+    loadData();
+  }, [safeUser, authLoading]);
+
+  // ✅ Mostrar skeleton enquanto carrega
+  if (authLoading || dataLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-brand-primary/40" />
@@ -64,15 +89,32 @@ export default function ClientePage() {
     );
   }
 
-  const firstName = user?.name?.split(" ")[0] || "Cliente";
+  // ✅ Verificar se usuário está autenticado e tem acesso
+  if (!safeUser) {
+    return null; // Será redirecionado pelo useProtectedRoute
+  }
 
-  const hasService = !!AppointmentStorage.loadSelectedService();
+  // ✅ Mostrar erro se houver
+  if (error) {
+    return (
+      <div className="min-h-screen bg-brand-background px-5 py-8">
+        <ErrorState
+          title="Erro ao carregar dados"
+          message={error}
+          onRetry={() => window.location.reload()}
+          icon="alert"
+        />
+      </div>
+    );
+  }
+
+  const firstName = safeUser?.name?.split(" ")[0] || "Cliente";
 
   const quickActions = [
-    { id: "agenda",   label: "Agenda",    sub: "Meus horários",  icon: Calendar,  href: "/cliente/agendamentos" },
-    { id: "services", label: "Serviços",  sub: "Ver catálogo",   icon: Sparkles,  href: "/cliente/servicos"     },
-    { id: "new",      label: "Agendar",   sub: "Novo horário",   icon: Plus,      href: "/cliente/servicos"     },
-    { id: "profile",  label: "Perfil",    sub: "Minha conta",    icon: UserIcon,  href: "/cliente/perfil"       },
+    { id: "agenda", label: "Agenda", sub: "Meus horários", icon: Calendar, href: "/cliente/agendamentos" },
+    { id: "services", label: "Serviços", sub: "Ver catálogo", icon: Sparkles, href: "/cliente/servicos" },
+    { id: "new", label: "Agendar", sub: "Novo horário", icon: Plus, href: "/cliente/servicos" },
+    { id: "profile", label: "Perfil", sub: "Minha conta", icon: UserIcon, href: "/cliente/perfil" },
   ];
 
   const statusLabel: Record<string, string> = {
@@ -80,6 +122,7 @@ export default function ClientePage() {
     pending: "Pendente",
     cancelled: "Cancelado",
   };
+
   const statusColor: Record<string, string> = {
     confirmed: "bg-emerald-500/10 text-emerald-600",
     pending: "bg-amber-500/10 text-amber-600",

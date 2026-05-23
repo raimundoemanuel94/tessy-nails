@@ -1,4 +1,38 @@
-export interface AppointmentData {
+import { z } from 'zod';
+
+// ✅ SCHEMAS ZOD PARA VALIDAÇÃO SEGURA
+const ServiceSchema = z.object({
+  id: z.string().min(1, 'ID do serviço é obrigatório'),
+  name: z.string().min(1, 'Nome do serviço é obrigatório'),
+  description: z.string().optional(),
+  price: z.string(),
+  duration: z.string(),
+  bufferMinutes: z.number().optional(),
+  image: z.string().optional(),
+  rating: z.number().optional(),
+});
+
+const TimeSlotSchema = z.object({
+  id: z.string().min(1),
+  time: z.string().regex(/^\d{2}:\d{2}$/, 'Formato de hora inválido'),
+  available: z.boolean(),
+  label: z.string().optional(),
+});
+
+const AppointmentDataSchema = z.object({
+  service: ServiceSchema,
+  date: z.date(),
+  time: TimeSlotSchema,
+  timeSlots: z.array(TimeSlotSchema),
+  observation: z.string().optional(),
+});
+
+export type AppointmentData = z.infer<typeof AppointmentDataSchema>;
+export type Service = z.infer<typeof ServiceSchema>;
+export type TimeSlot = z.infer<typeof TimeSlotSchema>;
+
+// ✅ Reexportar interfaces antigos para compatibilidade
+export interface AppointmentDataLegacy {
   service: Service;
   date: Date;
   time: TimeSlot;
@@ -6,7 +40,7 @@ export interface AppointmentData {
   observation?: string;
 }
 
-export interface Service {
+export interface ServiceLegacy {
   id: string;
   name: string;
   description?: string;
@@ -17,7 +51,7 @@ export interface Service {
   rating?: number;
 }
 
-export interface TimeSlot {
+export interface TimeSlotLegacy {
   id: string;
   time: string;
   available: boolean;
@@ -101,9 +135,18 @@ export class AppointmentStorage {
   }
 
   private static validateService(data: unknown): data is Service {
-    if (!data || typeof data !== 'object') return false;
-    const record = data as Record<string, unknown>;
-    return typeof record.id === 'string' && typeof record.name === 'string';
+    try {
+      // ✅ USAR ZOD PARA VALIDAÇÃO SEGURA
+      ServiceSchema.parse(data);
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error('[AppointmentStorage] Serviço inválido:', error.errors);
+      } else {
+        console.error('[AppointmentStorage] Erro ao validar serviço:', error);
+      }
+      return false;
+    }
   }
 
   // Salvar dados com validação
