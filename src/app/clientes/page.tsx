@@ -142,7 +142,7 @@ export default function ClientesPage() {
     try {
       if (!silent) setLoading(true);
 
-      const [clientsData, appointmentsData, servicesData] = await Promise.all([
+      const [clientsRes, appointmentsRes, servicesRes2] = await Promise.allSettled([
         clientService.getAll(),
         appointmentService.getAll(),
         globalStore.fetchServices(false),

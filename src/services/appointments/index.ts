@@ -17,7 +17,7 @@ import {
   startAfter,
   DocumentData,
   QueryDocumentSnapshot,
-  Unsubscribe,
+  type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Appointment, AppointmentSchema, AppointmentStatus, PaymentStatus } from "@/types";
@@ -181,34 +181,6 @@ export const appointmentService = {
     );
     const snapshot = await getDocs(q);
     return snapshot.docs.map(mapAppointmentData) as Appointment[];
-  },
-
-  /**
-   * Listener em tempo real para agendamentos do cliente.
-   * Chama callback toda vez que houver mudança no Firestore.
-   * Retorna função de unsubscribe para limpar o listener.
-   */
-  subscribeByClientId(
-    clientId: string,
-    callback: (appointments: Appointment[]) => void,
-    onError?: (error: Error) => void
-  ): Unsubscribe {
-    const q = query(
-      collection(db, COLLECTION_NAME),
-      where("clientId", "==", clientId),
-      orderBy("appointmentDate", "desc")
-    );
-    return onSnapshot(
-      q,
-      (snapshot) => {
-        const appointments = snapshot.docs.map(mapAppointmentData) as Appointment[];
-        callback(appointments);
-      },
-      (error) => {
-        console.error("Appointment listener error:", error);
-        onError?.(error);
-      }
-    );
   },
 
   /**
@@ -422,5 +394,41 @@ export const appointmentService = {
         role: data.role ?? "professional",
       };
     });
-  }
+  },
+
+  /** Listener em tempo real — agendamentos do cliente. */
+  subscribeByClientId(
+    clientId: string,
+    callback: (appointments: Appointment[]) => void,
+    onError?: (error: Error) => void
+  ): Unsubscribe {
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where("clientId", "==", clientId),
+      orderBy("appointmentDate", "desc")
+    );
+    return onSnapshot(q,
+      snap => callback(snap.docs.map(mapAppointmentData) as Appointment[]),
+      err => { console.error("subscribeByClientId error:", err); onError?.(err); }
+    );
+  },
+
+  /** Listener em tempo real — agendamentos por intervalo. Usado na agenda da Tessy. */
+  subscribeByDateRange(
+    start: Date,
+    end: Date,
+    callback: (appointments: Appointment[]) => void,
+    onError?: (error: Error) => void
+  ): Unsubscribe {
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where("appointmentDate", ">=", Timestamp.fromDate(start)),
+      where("appointmentDate", "<=", Timestamp.fromDate(end)),
+      orderBy("appointmentDate", "asc")
+    );
+    return onSnapshot(q,
+      snap => callback(snap.docs.map(mapAppointmentData) as Appointment[]),
+      err => { console.error("subscribeByDateRange error:", err); onError?.(err); }
+    );
+  },
 };

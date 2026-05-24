@@ -61,7 +61,6 @@ import {
 import { format, startOfDay, endOfDay, isSameDay, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { appointmentService, authService } from "@/services";
-import { notificationService } from "@/services/notifications";
 import { Appointment, AppointmentWithDetails, User } from "@/types";
 import { globalStore } from "@/store/globalStore";
 import { AppointmentForm } from "@/features/appointments/components/AppointmentForm";
@@ -87,11 +86,14 @@ export default function AgendaPage() {
       const start = startOfDay(date);
       const end = endOfDay(date);
       
-      const [apps, clients, services] = await Promise.all([
+      const [appsRes, clientsRes, servicesRes] = await Promise.allSettled([
         appointmentService.getByDateRange(start, end),
         globalStore.fetchRecentClients(true),
         globalStore.fetchServices(true)
       ]);
+      const apps     = appsRes.status     === "fulfilled" ? appsRes.value     : [];
+      const clients  = clientsRes.status  === "fulfilled" ? clientsRes.value  : [];
+      const services = servicesRes.status === "fulfilled" ? servicesRes.value : [];
 
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
       const monthEnd = endOfDay(new Date(date.getFullYear(), date.getMonth() + 1, 0));
@@ -146,6 +148,18 @@ export default function AgendaPage() {
     fetchAppointments();
   }, [fetchAppointments]);
 
+  // ✅ Listener em tempo real — atualiza quando cliente cancela/confirma
+  useEffect(() => {
+    const start = startOfDay(date);
+    const end   = endOfDay(date);
+    const unsub = appointmentService.subscribeByDateRange(
+      start, end,
+      () => { void fetchAppointments(); },
+      (err) => console.error("Agenda listener error:", err)
+    );
+    return () => unsub();
+  }, [date, fetchAppointments]);
+
   const validAppointments = useMemo(
     () => appointments.filter((appointment) => appointment.status !== "cancelled" && appointment.status !== "no_show"),
     [appointments]
@@ -197,18 +211,12 @@ export default function AgendaPage() {
     try {
       await appointmentService.confirm(id);
       toast.success("Agendamento confirmado.");
-      const appt = appointments.find(a => a.id === id);
-      if (appt?.clientId) {
-        void notificationService.sendToUser(appt.clientId, {
-          title: "✅ Agendamento confirmado!",
-          body: `${appt.service?.name ?? "Seu agendamento"} está confirmado! Te esperamos. 💜`,
-          url: "/cliente/agendamentos", tag: "appointment-confirmed",
-        }).catch(() => {});
-      }
       await fetchAppointments();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao confirmar.");
-    } finally { setActionLoading(null); }
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const handleConcluir = async (id: string) => {
@@ -216,18 +224,12 @@ export default function AgendaPage() {
     try {
       await appointmentService.complete(id);
       toast.success("Atendimento concluído com sucesso!");
-      const appt = appointments.find(a => a.id === id);
-      if (appt?.clientId) {
-        void notificationService.sendToUser(appt.clientId, {
-          title: "💅 Serviço concluído!",
-          body: `${appt.service?.name ?? "Seu serviço"} foi concluído. Obrigada pela visita!`,
-          url: "/cliente/agendamentos", tag: "appointment-completed",
-        }).catch(() => {});
-      }
       await fetchAppointments();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao concluir atendimento.");
-    } finally { setActionLoading(null); }
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const handleFalta = async (id: string) => {
@@ -238,7 +240,9 @@ export default function AgendaPage() {
       await fetchAppointments();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao registrar falta.");
-    } finally { setActionLoading(null); }
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const handleCancelar = async (id: string) => {
@@ -247,18 +251,12 @@ export default function AgendaPage() {
     try {
       await appointmentService.cancel(id);
       toast.success("Agendamento cancelado.");
-      const appt = appointments.find(a => a.id === id);
-      if (appt?.clientId) {
-        void notificationService.sendToUser(appt.clientId, {
-          title: "❌ Agendamento cancelado",
-          body: `${appt.service?.name ?? "Seu agendamento"} foi cancelado. Entre em contato.`,
-          url: "/cliente/agendamentos", tag: "appointment-cancelled",
-        }).catch(() => {});
-      }
       await fetchAppointments();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao cancelar.");
-    } finally { setActionLoading(null); }
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   return (

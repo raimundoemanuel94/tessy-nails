@@ -182,7 +182,7 @@ export default function RelatoriosPage() {
     void (async () => {
       try {
         setLoading(true);
-        const [appts, svcs, cls] = await Promise.all([
+        const [apptsRes, svcsRes, clsRes] = await Promise.allSettled([
           appointmentService.getAll(),
           globalStore.fetchServices(false),
           clientService.getAll(),
