@@ -25,7 +25,7 @@ export interface Appointment {
   service: Service;
   date: Date;
   time: TimeSlot;
-  status: "pending" | "confirmed" | "completed" | "cancelled";
+  status: "pending" | "confirmed" | "completed" | "cancelled" | "no_show";
   observation?: string;
   createdAt: Date;
 }
@@ -38,10 +38,11 @@ interface AppointmentCardProps {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
-  pending:   { label: "Pendente",   className: "bg-amber-50 text-amber-700 border-amber-200"   },
-  confirmed: { label: "Confirmado", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  completed: { label: "Concluído",  className: "bg-sky-50 text-sky-700 border-sky-200"         },
-  cancelled: { label: "Cancelado",  className: "bg-rose-50 text-rose-700 border-rose-200"      },
+  pending:   { label: "Pendente",         className: "bg-amber-50 text-amber-700 border-amber-200"   },
+  confirmed: { label: "Confirmado",       className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  completed: { label: "Concluído",        className: "bg-sky-50 text-sky-700 border-sky-200"         },
+  cancelled: { label: "Cancelado",        className: "bg-rose-50 text-rose-700 border-rose-200"      },
+  no_show:   { label: "Não Compareceu",   className: "bg-slate-50 text-slate-600 border-slate-200"   },
 };
 
 export function AppointmentCard({
