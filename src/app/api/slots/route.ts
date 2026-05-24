@@ -81,7 +81,7 @@ export async function GET(req: Request) {
           db.collection("settings").doc("salon").get(),
         ]);
 
-        const workingDays = salonSnap.exists()
+        const workingDays = salonSnap.exists
           ? (salonSnap.data()?.workingDays ?? DEFAULT_WORKING_DAYS)
           : DEFAULT_WORKING_DAYS;
 
