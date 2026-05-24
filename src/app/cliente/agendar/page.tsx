@@ -49,6 +49,7 @@ const DEFAULT_WD = {
   saturday:  { enabled: true,  start: "08:00", end: "14:00" },
 } as const;
 
+const WEEKDAYS = ["D","S","T","Q","Q","S","S"];
 const DAY_KEYS = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"] as const;
 type DayKey = typeof DAY_KEYS[number];
 type WorkingDays = Record<DayKey, { enabled: boolean; start: string; end: string }>;
