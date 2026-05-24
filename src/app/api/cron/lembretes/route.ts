@@ -28,7 +28,8 @@ export async function GET(req: Request) {
 
     if (snap.empty) return NextResponse.json({ ok: true, notified: 0 });
 
-    const serviceIds = [...new Set(snap.docs.map(d => d.data().serviceId as string))];
+    const rawIds = snap.docs.map(d => String(d.data().serviceId ?? "")).filter(Boolean);
+    const serviceIds: string[] = Array.from(new Set(rawIds));
     const serviceSnaps = await Promise.allSettled(
       serviceIds.map(id => db.collection("services").doc(id).get())
     );

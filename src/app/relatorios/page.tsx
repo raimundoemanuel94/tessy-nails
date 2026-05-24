@@ -187,6 +187,9 @@ export default function RelatoriosPage() {
           globalStore.fetchServices(false),
           clientService.getAll(),
         ]);
+        const appts = apptsRes.status === "fulfilled" ? apptsRes.value : [];
+        const svcs  = svcsRes.status  === "fulfilled" ? svcsRes.value  : [];
+        const cls   = clsRes.status   === "fulfilled" ? clsRes.value   : [];
         await Promise.resolve();
         setAppointments(appts);
         setServices(svcs);

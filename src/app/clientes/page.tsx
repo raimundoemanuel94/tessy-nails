@@ -147,6 +147,9 @@ export default function ClientesPage() {
         appointmentService.getAll(),
         globalStore.fetchServices(false),
       ]);
+      const clientsData     = clientsRes.status      === "fulfilled" ? clientsRes.value      : [];
+      const appointmentsData = appointmentsRes.status === "fulfilled" ? appointmentsRes.value : [];
+      const servicesData    = servicesRes2.status    === "fulfilled" ? servicesRes2.value    : [];
 
       setClients(clientsData);
       setAppointments(appointmentsData);

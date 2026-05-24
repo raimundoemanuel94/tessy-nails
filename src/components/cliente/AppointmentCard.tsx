@@ -208,16 +208,6 @@ export function AppointmentCard({
 
           {/* actions */}
           <div className="flex flex-col gap-2">
-            {appointment.status === "pending" && !isPast && (
-              <PaymentButton
-                serviceName={appointment.service.name}
-                price={10}
-                appointmentId={appointment.id}
-                isDeposit={true}
-                title="Pagar sinal agora"
-                className="h-11 rounded-2xl bg-brand-primary text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-brand-primary/20"
-              />
-            )}
 
             <div className={cn("grid gap-2", canReschedule && canCancel ? "grid-cols-2" : "grid-cols-1")}>
               {canReschedule && (
