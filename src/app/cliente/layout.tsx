@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { BottomNav } from "@/components/cliente/BottomNav";
+import { InstallBanner } from "@/components/cliente/InstallBanner";
 import { Toaster } from "sonner";
 
 export default function ClienteLayout({
@@ -59,6 +60,9 @@ export default function ClienteLayout({
         <div className="absolute -bottom-24 -left-24 h-56 w-56 rounded-full opacity-10"
           style={{ background: "radial-gradient(circle, #1E1A2E 0%, transparent 70%)" }} />
       </div>
+
+      {/* Install PWA banner */}
+      <InstallBanner />
 
       {/* Main Content */}
       <main className="relative z-10 flex-1 overflow-y-auto scrollbar-hide pb-[calc(5rem+env(safe-area-inset-bottom))]">

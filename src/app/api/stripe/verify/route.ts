@@ -1,6 +1,4 @@
-import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
-import { admin, getFirebaseAdminApp } from "@/lib/firebaseAdmin";
+import { notifyAllStaff, notifyUser } from "@/lib/server/notify";
 import {
   authGuardErrorResponse,
   isAuthGuardError,
@@ -54,11 +52,40 @@ export async function POST(req: Request) {
     }
 
     try {
-      await admin.firestore(app).collection("appointments").doc(appointmentId).update({
+      const apptRef = admin.firestore(app).collection("appointments").doc(appointmentId);
+      await apptRef.update({
         status: "confirmed",
         paymentStatus: stripeSession.metadata?.paymentType === "deposit" ? "deposit_paid" : "fully_paid",
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
+
+      // ✅ Notificações em paralelo — não bloqueiam a resposta
+      const clientId  = stripeSession.metadata?.clientId;
+      const svcName   = stripeSession.metadata?.serviceName ?? "seu serviço";
+      const apptSnap  = await apptRef.get();
+      const apptDate  = apptSnap.data()?.appointmentDate?.toDate?.();
+      const dateStr   = apptDate
+        ? new Intl.DateTimeFormat("pt-BR", { dateStyle:"short", timeStyle:"short" }).format(apptDate)
+        : "";
+
+      void Promise.allSettled([
+        // Notificar Tessy (staff) sobre novo agendamento pago
+        notifyAllStaff({
+          title: "💅 Novo agendamento confirmado!",
+          body: `${svcName}${dateStr ? " — " + dateStr : ""}`,
+          url: "/agenda",
+          tag: "new-appointment",
+        }),
+        // Notificar cliente sobre confirmação
+        clientId && clientId !== "N/A"
+          ? notifyUser(clientId, {
+              title: "✅ Agendamento confirmado!",
+              body: `${svcName} está confirmado. Te esperamos! 💜`,
+              url: "/cliente/agendamentos",
+              tag: "appointment-confirmed",
+            })
+          : Promise.resolve(),
+      ]);
 
       return NextResponse.json({
         success: true,

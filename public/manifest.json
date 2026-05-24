@@ -3,13 +3,22 @@
   "name": "Tessy Nails",
   "short_name": "Tessy",
   "lang": "pt-BR",
-  "description": "Plataforma exclusiva de agendamento e gestao para Tessy Nails.",
-  "start_url": "/",
+  "description": "Agende seu horário na Tessy Nails Studio em Sorriso, MT.",
+  "start_url": "/cliente",
+  "scope": "/",
   "orientation": "portrait",
   "display": "standalone",
-  "background_color": "#FAF7F5",
-  "theme_color": "#4B2E2B",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#FAF8FF",
+  "theme_color": "#1E1A2E",
+  "categories": ["beauty", "lifestyle"],
   "icons": [
+    {
+      "src": "/brand/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/brand/icons/icon-192.png",
       "sizes": "192x192",
@@ -34,5 +43,23 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Agendar",
+      "short_name": "Agendar",
+      "description": "Agende um novo horário",
+      "url": "/cliente/servicos",
+      "icons": [{ "src": "/brand/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Meus Agendamentos",
+      "short_name": "Agenda",
+      "description": "Ver meus horários",
+      "url": "/cliente/agendamentos",
+      "icons": [{ "src": "/brand/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
 }

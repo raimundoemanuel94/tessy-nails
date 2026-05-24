@@ -125,7 +125,7 @@ function SucessoContent() {
 
         {/* Gold glows */}
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#9D7FD4]/10 blur-3xl translate-x-20 -translate-y-20" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-amber-600/8 blur-2xl" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-[#9D7FD4]/8 blur-2xl" />
 
         <div className="relative z-10 px-6 pt-[calc(env(safe-area-inset-top)+2rem)] pb-12 max-w-lg mx-auto text-center">
 
