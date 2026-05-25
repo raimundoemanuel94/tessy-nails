@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// v1.0.3 - Agresive PWA Cache Buster + Optimization
+// v1.1.0 - Admin redesign: Sidebar slate + lavanda, tokens atualizados
 
 const withPWA = require("next-pwa")({
   dest: "public",
