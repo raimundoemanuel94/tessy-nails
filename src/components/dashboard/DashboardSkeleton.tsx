@@ -6,11 +6,11 @@
 import { motion } from 'framer-motion';
 
 function Pulse({ className }: { className: string }) {
-  return <div className={`animate-pulse rounded-full bg-brand-soft/20 ${className}`} />;
+  return <div className={`animate-pulse rounded-full bg-slate-100 ${className}`} />;
 }
 
 function PulseBox({ className }: { className: string }) {
-  return <div className={`animate-pulse rounded-2xl bg-brand-soft/20 ${className}`} />;
+  return <div className={`animate-pulse rounded-2xl bg-slate-100 ${className}`} />;
 }
 
 export function DashboardSkeleton() {
@@ -19,10 +19,10 @@ export function DashboardSkeleton() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="min-h-screen bg-brand-background"
+      className="min-h-screen bg-slate-50"
     >
       {/* Header */}
-      <div className="bg-white border-b border-brand-soft p-6">
+      <div className="bg-white border-b border-slate-100 p-6">
         <div className="max-w-7xl mx-auto flex justify-between items-start">
           <div className="space-y-2">
             <Pulse className="w-48 h-8" />
@@ -43,7 +43,7 @@ export function DashboardSkeleton() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="bg-white rounded-2xl p-6 border border-brand-soft"
+              className="bg-white rounded-2xl p-6 border border-slate-100"
             >
               <Pulse className="w-32 h-3 mb-4" />
               <PulseBox className="h-16 w-full mb-3" />
@@ -60,7 +60,7 @@ export function DashboardSkeleton() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 + i * 0.1 }}
-              className="bg-white rounded-2xl p-6 border border-brand-soft"
+              className="bg-white rounded-2xl p-6 border border-slate-100"
             >
               <Pulse className="w-40 h-4 mb-4" />
               <PulseBox className="h-64 w-full" />
@@ -76,12 +76,12 @@ export function DashboardSkeleton() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 + i * 0.1 }}
-              className="bg-white rounded-2xl p-6 border border-brand-soft"
+              className="bg-white rounded-2xl p-6 border border-slate-100"
             >
               <Pulse className="w-32 h-4 mb-4" />
               <div className="space-y-3">
                 {[...Array(3)].map((_, j) => (
-                  <div key={j} className="p-4 bg-brand-background rounded-xl space-y-2">
+                  <div key={j} className="p-4 bg-slate-50 rounded-xl space-y-2">
                     <Pulse className="w-full h-3" />
                     <Pulse className="w-2/3 h-2" />
                   </div>
@@ -105,10 +105,10 @@ export function CardSkeleton({ count = 3 }: { count?: number }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: i * 0.1 }}
-          className="p-4 bg-white rounded-lg border border-brand-soft space-y-2"
+          className="p-4 bg-white rounded-lg border border-slate-100 space-y-2"
         >
-          <div className="h-4 w-2/3 rounded-full bg-brand-soft/20 animate-pulse" />
-          <div className="h-3 w-1/2 rounded-full bg-brand-soft/20 animate-pulse" />
+          <div className="h-4 w-2/3 rounded-full bg-slate-100 animate-pulse" />
+          <div className="h-3 w-1/2 rounded-full bg-slate-100 animate-pulse" />
         </motion.div>
       ))}
     </div>
@@ -127,7 +127,7 @@ export function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: nu
           className="flex gap-3"
         >
           {[...Array(cols)].map((_, j) => (
-            <div key={j} className="flex-1 h-3 rounded-full bg-brand-soft/20 animate-pulse" />
+            <div key={j} className="flex-1 h-3 rounded-full bg-slate-100 animate-pulse" />
           ))}
         </motion.div>
       ))}

@@ -416,7 +416,7 @@ function AgendamentosContent() {
             }
           />
           <DialogContent className="sm:max-w-[500px] rounded-3xl border-slate-100 shadow-premium-xl bg-white p-0 overflow-hidden">
-            <DialogHeader className="px-8 pt-8 pb-6 border-b border-brand-accent/5">
+            <DialogHeader className="px-8 pt-8 pb-6 border-b border-slate-100">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-xl bg-[#7C5CBF]/10 flex items-center justify-center flex-shrink-0">
                   <Plus className="h-6 w-6 text-[#7C5CBF]" strokeWidth={3} />
@@ -511,7 +511,7 @@ function AgendamentosContent() {
               {/* Filters Section */}
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 {/* Filter Chips */}
-                <div className="flex items-center gap-1.5 p-1.5 bg-white/40 rounded-2xl border border-brand-accent/5 shadow-sm backdrop-blur-md">
+                <div className="flex items-center gap-1.5 p-1.5 bg-white rounded-2xl border border-slate-100 shadow-sm">
                   {["all", "today", "tomorrow", "week", "pending"].map((filter) => (
                     <Button
                       key={filter}
@@ -548,7 +548,7 @@ function AgendamentosContent() {
               ) : (
                 <Table>
                   <TableHeader className="bg-[#EDE5FF]/20">
-                    <TableRow className="hover:bg-transparent border-b border-brand-accent/5">
+                    <TableRow className="hover:bg-transparent border-b border-slate-100">
                       <TableHead className={sortableHeadClass}>
                         <button type="button" onClick={() => toggleSort("datetime")} className="flex items-center gap-1.5 hover:text-[#7C5CBF]">
                           Data & Horario {renderSortIcon("datetime")}
@@ -581,7 +581,7 @@ function AgendamentosContent() {
                     {sortedAppointments.length > 0 ? (
                       sortedAppointments.map((app) => (
                         <TableRow key={app.id} className={cn(
-                          "group hover:bg-white border-b border-brand-accent/5 transition-all duration-300",
+                          "group hover:bg-white border-b border-slate-100 transition-all duration-300",
                           recentlyChangedId === app.id && "bg-emerald-50 ring-1 ring-inset ring-emerald-200"
                         )}>
                           <TableCell className="px-6 py-5">

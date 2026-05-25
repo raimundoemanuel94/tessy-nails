@@ -26,7 +26,7 @@ interface ServiceData {
   value: number;
 }
 
-const COLORS = ['#4B2E2B', '#6D4C41', '#A1887F', '#B08A7A'];
+const COLORS = ['#7C5CBF', '#9D7FD4', '#C4B0E8', '#EDE5FF'];
 
 export function RevenueChart({ data, compact = false }: { data: RevenueData[]; compact?: boolean }) {
   return (
@@ -74,7 +74,7 @@ export function RevenueChart({ data, compact = false }: { data: RevenueData[]; c
               boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
               padding: '12px'
             }}
-            itemStyle={{ color: '#4B2E2B', fontWeight: 900, fontSize: '12px' }}
+            itemStyle={{ color: '#7C5CBF', fontWeight: 900, fontSize: '12px' }}
             labelStyle={{ color: '#64748b', fontWeight: 700, fontSize: '10px', marginBottom: '4px', textTransform: 'uppercase' }}
           />
           <Area

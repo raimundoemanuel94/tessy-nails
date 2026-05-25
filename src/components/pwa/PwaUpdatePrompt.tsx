@@ -129,7 +129,7 @@ export function PwaUpdatePrompt() {
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           className="pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[80] px-4 sm:px-6"
         >
-          <div className="pointer-events-auto mx-auto w-full max-w-md overflow-hidden rounded-[28px] border border-brand-accent/20 bg-white/90 shadow-[0_28px_70px_rgba(75,46,43,0.28)] backdrop-blur-2xl">
+          <div className="pointer-events-auto mx-auto w-full max-w-md overflow-hidden rounded-[28px] border border-[#DDD5F5] bg-white/90 shadow-2xl backdrop-blur-2xl">
             <div className="relative p-5 sm:p-6">
               <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-brand-primary/10 blur-3xl" />
 
@@ -142,7 +142,7 @@ export function PwaUpdatePrompt() {
                 <X size={16} />
               </button>
 
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-brand-accent/20 bg-brand-background/80 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#DDD5F5] bg-white/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#7C5CBF]">
                 <Sparkles size={12} />
                 Nova versao disponivel
               </div>

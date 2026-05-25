@@ -343,7 +343,7 @@ export default function DashboardPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           <motion.div variants={item} className="lg:col-span-2">
             <div className="rounded-2xl border border-slate-100 bg-white shadow-sm h-full flex flex-col">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-brand-accent/5">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl bg-[#7C5CBF]/10 flex items-center justify-center">
                     <Clock size={15} className="text-[#7C5CBF]" />
@@ -368,14 +368,14 @@ export default function DashboardPage() {
                           initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.04 }}
                           onClick={() => router.push("/agendamentos")}
-                          className="flex items-center gap-4 px-6 py-3.5 border-b border-brand-accent/5 last:border-0 hover:bg-[#EDE5FF]/10 cursor-pointer transition-colors">
+                          className="flex items-center gap-4 px-6 py-3.5 border-b border-slate-100 last:border-0 hover:bg-[#EDE5FF]/10 cursor-pointer transition-colors">
                           <div className="text-center w-12 shrink-0">
                             <p className="text-base font-black text-[#7C5CBF] tabular-nums">{a.time}</p>
                             <p className="text-[9px] font-bold text-slate-500 opacity-50 capitalize">
                               {a.isToday ? "hoje" : a.date}
                             </p>
                           </div>
-                          <div className="w-px h-9 bg-brand-accent/10 shrink-0" />
+                          <div className="w-px h-9 bg-slate-100 shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-slate-800 truncate">{a.client}</p>
                             <p className="text-[11px] text-slate-500 opacity-60 truncate mt-0.5">{a.service}</p>
@@ -414,7 +414,7 @@ export default function DashboardPage() {
 
           <motion.div variants={item}>
             <div className="rounded-2xl border border-slate-100 bg-white shadow-sm h-full flex flex-col">
-              <div className="flex items-center gap-2.5 px-5 py-4 border-b border-brand-accent/5">
+              <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-100">
                 <div className="w-8 h-8 rounded-xl bg-[#7C5CBF]/10 flex items-center justify-center">
                   <TrendingUp size={15} className="text-[#7C5CBF]" />
                 </div>

@@ -249,7 +249,7 @@ export default function ServicosPage() {
           <p className="text-xs font-black text-slate-500 opacity-40 uppercase tracking-widest">Carregando serviços...</p>
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white/40 rounded-[2.5rem] border border-slate-100 backdrop-blur-2xl">
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-100">
           <div className="h-20 w-20 rounded-3xl bg-brand-warning/10 flex items-center justify-center mb-6">
             <XCircle className="h-10 w-10 text-brand-warning" />
           </div>
@@ -263,7 +263,7 @@ export default function ServicosPage() {
           </Button>
         </div>
       ) : services.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 bg-white/40 rounded-[2.5rem] border border-slate-100 backdrop-blur-2xl">
+        <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-slate-100">
           <div className="relative mb-8">
             <div className="h-28 w-28 rounded-[2rem] bg-[#EDE5FF]/20 flex items-center justify-center border border-slate-100 shadow-inner">
               <Scissors className="h-12 w-12 text-[#7C5CBF]/40" />
@@ -487,7 +487,7 @@ export default function ServicosPage() {
                 <Card 
                   key={service.id} 
                   className={cn(
-                    "group relative overflow-hidden transition-all duration-500 hover:shadow-premium-xl hover:-translate-y-1 border-brand-accent/5 bg-white/40 backdrop-blur-md rounded-2xl",
+                    "group relative overflow-hidden transition-all duration-500 hover:shadow-premium-xl hover:-translate-y-1 border-brand-accent/5 bg-white rounded-2xl",
                     service.isActive !== false
                       ? "hover:bg-white"
                       : "opacity-60 hover:opacity-100"

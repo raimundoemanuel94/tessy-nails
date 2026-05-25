@@ -790,7 +790,7 @@ export default function ClientesPage() {
           </p>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white/40">
+        <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white">
           <Table>
             <TableHeader>
               <TableRow className="border-slate-100 hover:bg-transparent">
