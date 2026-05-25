@@ -67,12 +67,14 @@ export function Header() {
         {/* Mobile menu */}
         <div className="md:hidden">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon"
-                className="h-9 w-9 rounded-xl text-slate-500 hover:bg-slate-50">
-                <Menu size={18} />
-              </Button>
-            </SheetTrigger>
+            <SheetTrigger
+              render={
+                <Button variant="ghost" size="icon"
+                  className="h-9 w-9 rounded-xl text-slate-500 hover:bg-slate-50">
+                  <Menu size={18} />
+                </Button>
+              }
+            />
             <SheetContent side="left" className="w-72 p-0 border-r border-slate-100"
               style={{ background: "#0F172A" }}>
               <SheetHeader className="p-5 h-16 border-b border-white/5 flex flex-row items-center gap-3">
@@ -143,21 +145,23 @@ export function Header() {
 
         {/* Avatar + dropdown */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2.5 h-9 px-2 rounded-xl hover:bg-slate-50 transition-all">
-              <div className="h-8 w-8 rounded-xl flex items-center justify-center text-[12px] font-black text-white overflow-hidden shrink-0"
-                style={{ background:"linear-gradient(135deg,#7C5CBF,#9D7FD4)" }}>
-                {user?.photoURL
-                  ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
-                  : <span>{initials}</span>
-                }
-              </div>
-              <div className="hidden lg:block text-left">
-                <p className="text-[12px] font-black text-slate-700 leading-none">{user?.name ?? "Admin"}</p>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Administrador</p>
-              </div>
-            </button>
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              <button className="flex items-center gap-2.5 h-9 px-2 rounded-xl hover:bg-slate-50 transition-all">
+                <div className="h-8 w-8 rounded-xl flex items-center justify-center text-[12px] font-black text-white overflow-hidden shrink-0"
+                  style={{ background:"linear-gradient(135deg,#7C5CBF,#9D7FD4)" }}>
+                  {user?.photoURL
+                    ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
+                    : <span>{initials}</span>
+                  }
+                </div>
+                <div className="hidden lg:block text-left">
+                  <p className="text-[12px] font-black text-slate-700 leading-none">{user?.name ?? "Admin"}</p>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Administrador</p>
+                </div>
+              </button>
+            }
+          />
 
           <DropdownMenuContent align="end" className="w-56 rounded-2xl border border-slate-100 shadow-xl p-1.5 mt-1">
             <DropdownMenuLabel className="px-3 py-2">
