@@ -2,90 +2,59 @@
 
 import { cn } from "@/lib/utils";
 import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
-import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 interface MetricCardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
   description?: string;
-  trend?: {
-    value: number;
-    isPositive: boolean;
-  };
-  variant?: "default" | "primary" | "secondary" | "accent" | "success" | "warning";
+  trend?: { value: number; isPositive: boolean };
+  variant?: "default" | "primary" | "success" | "warning" | "danger";
   className?: string;
 }
 
-const variants = {
-  default: "bg-white border-brand-accent/10 shadow-premium",
-  primary: "bg-brand-primary/10 border-brand-primary/20 hover:bg-brand-primary/15",
-  secondary: "bg-brand-secondary/10 border-brand-secondary/20 hover:bg-brand-secondary/15",
-  accent: "bg-brand-accent/10 border-brand-accent/20 hover:bg-brand-accent/15",
-  success: "bg-success/10 border-success/20 hover:bg-success/15",
-  warning: "bg-warning/10 border-warning/20 hover:bg-warning/15",
+const V = {
+  default: { card:"bg-white border-slate-100",        icon:"bg-slate-50 text-slate-500",       val:"text-slate-800" },
+  primary: { card:"bg-white border-[#EDE5FF]",         icon:"bg-[#EDE5FF] text-[#7C5CBF]",     val:"text-[#1E1A2E]" },
+  success: { card:"bg-white border-emerald-100",       icon:"bg-emerald-50 text-emerald-600",   val:"text-slate-800" },
+  warning: { card:"bg-white border-amber-100",         icon:"bg-amber-50 text-amber-600",       val:"text-slate-800" },
+  danger:  { card:"bg-white border-red-100",           icon:"bg-red-50 text-red-500",           val:"text-slate-800" },
 };
 
-const iconColors = {
-  default: "text-brand-text-sub bg-brand-soft/20",
-  primary: "text-brand-primary bg-brand-primary/10",
-  secondary: "text-brand-secondary bg-brand-secondary/10",
-  accent: "text-brand-accent bg-brand-accent/10",
-  success: "text-success bg-success/10",
-  warning: "text-warning bg-warning/10",
-};
-
-export function MetricCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  description, 
-  trend, 
-  variant = "default",
-  className 
-}: MetricCardProps) {
+export function MetricCard({ title, value, icon: Icon, description, trend, variant = "default", className }: MetricCardProps) {
+  const v = V[variant];
   return (
-    <Card className={cn(
-      "border transition-all duration-300",
-      variants[variant],
-      className
+    <div className={cn(
+      "rounded-2xl border p-5 shadow-sm transition-all duration-200 hover:shadow-md",
+      v.card, className
     )}>
-      <CardHeader className="flex flex-row items-center justify-between pb-3 px-6 pt-6">
-        <CardDescription className="text-[10px] font-black text-brand-text-sub uppercase tracking-[2px]">
-          {title}
-        </CardDescription>
-        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm", iconColors[variant])}>
-          <Icon size={24} strokeWidth={2.5} />
+      <div className="flex items-start justify-between mb-4">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{title}</p>
+        <div className={cn("h-9 w-9 rounded-xl flex items-center justify-center shrink-0", v.icon)}>
+          <Icon size={17} strokeWidth={2} />
         </div>
-      </CardHeader>
-      <CardContent className="px-6 pb-6">
-        <div className="text-3xl lg:text-4xl font-black text-brand-text-main tracking-tighter">
-          {value}
+      </div>
+
+      <p className={cn("text-3xl font-black tracking-tight leading-none", v.val)}>{value}</p>
+
+      {(trend || description) && (
+        <div className="flex items-center gap-2 mt-3">
+          {trend && (
+            <span className={cn(
+              "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black",
+              trend.isPositive
+                ? "bg-emerald-50 text-emerald-600"
+                : "bg-red-50 text-red-500"
+            )}>
+              {trend.isPositive ? <TrendingUp size={10} strokeWidth={2.5} /> : <TrendingDown size={10} strokeWidth={2.5} />}
+              {trend.value}%
+            </span>
+          )}
+          {description && (
+            <p className="text-[11px] font-bold text-slate-400 truncate">{description}</p>
+          )}
         </div>
-        {(trend || description) && (
-          <div className="flex items-center gap-2 mt-3">
-            {trend && (
-              <Badge className={cn(
-                "border-0 font-black text-[10px] px-2 py-1 rounded-lg uppercase tracking-wider",
-                trend.isPositive 
-                   ? "bg-success/10 text-success dark:bg-success/20 dark:text-success/80" 
-                   : "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive/80"
-              )}>
-                <div className="flex items-center gap-1">
-                  {trend.isPositive ? <TrendingUp size={10} strokeWidth={3} /> : <TrendingDown size={10} strokeWidth={3} />}
-                  {trend.value}%
-                </div>
-              </Badge>
-            )}
-            {description && (
-              <p className="text-xs font-bold text-brand-text-sub/70 truncate">
-                {description}
-              </p>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }

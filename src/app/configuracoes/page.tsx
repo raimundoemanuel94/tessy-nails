@@ -255,7 +255,7 @@ export default function ConfiguracoesPage() {
       <PageShell>
         <div className="flex flex-col items-center justify-center h-64 gap-4">
           <div className="relative">
-            <div className="h-12 w-12 rounded-full border-b-2 border-brand-primary animate-spin" />
+            <div className="h-12 w-12 rounded-full border-b-2 border-[#9D7FD4] animate-spin" />
           </div>
           <p className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">
             Sincronizando suas preferências...
@@ -288,31 +288,31 @@ export default function ConfiguracoesPage() {
           <TabsList className="mb-8 flex flex-wrap h-auto gap-2 bg-slate-100/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 p-1.5 rounded-2xl backdrop-blur-md">
             <TabsTrigger 
               value="perfil" 
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-brand-primary data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-[#7C5CBF] data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
             >
               <User size={16} className="mr-2" /> Perfil
             </TabsTrigger>
             <TabsTrigger 
               value="salao" 
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-brand-primary data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-[#7C5CBF] data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
             >
               <Store size={16} className="mr-2" /> Salão
             </TabsTrigger>
             <TabsTrigger 
               value="notificacoes" 
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-brand-primary data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-[#7C5CBF] data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
             >
               <Bell size={16} className="mr-2" /> Notificações
             </TabsTrigger>
             <TabsTrigger 
               value="aparencia" 
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-brand-primary data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-[#7C5CBF] data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
             >
               <Moon size={16} className="mr-2" /> Aparência
             </TabsTrigger>
             <TabsTrigger 
               value="seguranca" 
-              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-brand-primary data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
+              className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-[#7C5CBF] data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 dark:data-[state=active]:shadow-none rounded-xl px-5 py-2.5 font-black text-[11px] uppercase tracking-wider transition-all"
             >
               <Shield size={16} className="mr-2" /> Segurança
             </TabsTrigger>
@@ -324,7 +324,7 @@ export default function ConfiguracoesPage() {
               title="Dados Pessoais"
               description="Gerencie suas informações de acesso e perfil público."
               actions={
-                <Button onClick={handleSaveProfile} disabled={saving} className="bg-brand-primary hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5">
+                <Button onClick={handleSaveProfile} disabled={saving} className="bg-[#7C5CBF] hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5">
                   {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" /> : <Save className="mr-2 h-4 w-4 text-white" />}
                   Salvar Perfil
                 </Button>
@@ -379,7 +379,7 @@ export default function ConfiguracoesPage() {
               title="Informações do Salão"
               description="Configure os detalhes e horários do seu estabelecimento."
               actions={
-                <Button onClick={handleSaveSalon} disabled={saving} className="bg-brand-primary hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5">
+                <Button onClick={handleSaveSalon} disabled={saving} className="bg-[#7C5CBF] hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5">
                   {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" /> : <Save className="mr-2 h-4 w-4 text-white" />}
                   Atualizar Salão
                 </Button>
@@ -473,8 +473,8 @@ export default function ConfiguracoesPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-bold text-sm text-brand-text-main">Horários de Atendimento</h3>
-                      <p className="text-xs text-brand-text-sub mt-0.5">Defina quando você atende — o calendário do cliente vai respeitar esses horários</p>
+                      <h3 className="font-bold text-sm text-slate-800">Horários de Atendimento</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">Defina quando você atende — o calendário do cliente vai respeitar esses horários</p>
                     </div>
                   </div>
 
@@ -486,7 +486,7 @@ export default function ConfiguracoesPage() {
                         <div key={day.id} className={cn(
                           "rounded-2xl border transition-all duration-200",
                           isEnabled
-                            ? "bg-white border-brand-accent/20 shadow-sm"
+                            ? "bg-white border-[#DDD5F5] shadow-sm"
                             : "bg-muted/30 border-transparent"
                         )}>
                           <div className="flex items-center gap-3 px-4 py-3">
@@ -504,7 +504,7 @@ export default function ConfiguracoesPage() {
                             {/* Dia */}
                             <span className={cn(
                               "font-bold text-sm min-w-[110px] transition-colors",
-                              isEnabled ? "text-brand-text-main" : "text-brand-text-sub"
+                              isEnabled ? "text-slate-800" : "text-slate-500"
                             )}>
                               {day.label}
                             </span>
@@ -512,8 +512,8 @@ export default function ConfiguracoesPage() {
                             {/* Horários — só mostra se habilitado */}
                             {isEnabled ? (
                               <div className="flex items-center gap-2 flex-1">
-                                <div className="flex items-center gap-1.5 flex-1 bg-brand-background rounded-xl px-3 py-1.5">
-                                  <Clock size={12} className="text-brand-primary shrink-0" />
+                                <div className="flex items-center gap-1.5 flex-1 bg-slate-50 rounded-xl px-3 py-1.5">
+                                  <Clock size={12} className="text-[#7C5CBF] shrink-0" />
                                   <input
                                     type="time"
                                     value={dayData.start}
@@ -524,12 +524,12 @@ export default function ConfiguracoesPage() {
                                         [day.id]: { ...dayData, start: e.target.value }
                                       }
                                     })}
-                                    className="bg-transparent text-xs font-bold text-brand-text-main outline-none w-full"
+                                    className="bg-transparent text-xs font-bold text-slate-800 outline-none w-full"
                                   />
                                 </div>
-                                <span className="text-[10px] font-bold text-brand-text-sub">até</span>
-                                <div className="flex items-center gap-1.5 flex-1 bg-brand-background rounded-xl px-3 py-1.5">
-                                  <Clock size={12} className="text-brand-primary shrink-0" />
+                                <span className="text-[10px] font-bold text-slate-500">até</span>
+                                <div className="flex items-center gap-1.5 flex-1 bg-slate-50 rounded-xl px-3 py-1.5">
+                                  <Clock size={12} className="text-[#7C5CBF] shrink-0" />
                                   <input
                                     type="time"
                                     value={dayData.end}
@@ -540,11 +540,11 @@ export default function ConfiguracoesPage() {
                                         [day.id]: { ...dayData, end: e.target.value }
                                       }
                                     })}
-                                    className="bg-transparent text-xs font-bold text-brand-text-main outline-none w-full"
+                                    className="bg-transparent text-xs font-bold text-slate-800 outline-none w-full"
                                   />
                                 </div>
                                 {/* Duração calculada */}
-                                <span className="text-[10px] font-bold text-brand-text-sub min-w-[56px] text-right shrink-0">
+                                <span className="text-[10px] font-bold text-slate-500 min-w-[56px] text-right shrink-0">
                                   {(() => {
                                     const [sh,sm] = dayData.start.split(":").map(Number);
                                     const [eh,em] = dayData.end.split(":").map(Number);
@@ -556,7 +556,7 @@ export default function ConfiguracoesPage() {
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-xs text-brand-text-sub italic">Fechado</span>
+                              <span className="text-xs text-slate-500 italic">Fechado</span>
                             )}
                           </div>
                         </div>
@@ -565,8 +565,8 @@ export default function ConfiguracoesPage() {
                   </div>
 
                   {/* Resumo visual */}
-                  <div className="rounded-2xl bg-brand-primary/5 border border-brand-accent/10 p-4">
-                    <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest mb-2">Resumo da semana</p>
+                  <div className="rounded-2xl bg-[#7C5CBF]/5 border border-slate-100 p-4">
+                    <p className="text-[10px] font-black text-[#7C5CBF] uppercase tracking-widest mb-2">Resumo da semana</p>
                     <div className="flex gap-1.5 flex-wrap">
                       {weekDays.map(day => {
                         const d = salonData.workingDays[day.id as keyof typeof salonData.workingDays];
@@ -575,8 +575,8 @@ export default function ConfiguracoesPage() {
                           <div key={day.id} className={cn(
                             "px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
                             d.enabled
-                              ? "bg-brand-primary text-white"
-                              : "bg-brand-soft/50 text-brand-text-sub"
+                              ? "bg-[#7C5CBF] text-white"
+                              : "bg-[#EDE5FF]/50 text-slate-500"
                           )}>
                             {shortLabel}
                             {d.enabled && <span className="ml-1 opacity-70">{d.start.slice(0,5)}–{d.end.slice(0,5)}</span>}
@@ -597,7 +597,7 @@ export default function ConfiguracoesPage() {
               title="Preferências de Notificação"
               description="Escolha como e quando deseja receber alertas importantes."
               actions={
-                <Button onClick={handleSaveNotifications} disabled={saving} className="bg-brand-primary hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5">
+                <Button onClick={handleSaveNotifications} disabled={saving} className="bg-[#7C5CBF] hover:opacity-90 text-white font-bold rounded-xl shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5">
                   {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" /> : <Save className="mr-2 h-4 w-4 text-white" />}
                   Salvar Preferências
                 </Button>

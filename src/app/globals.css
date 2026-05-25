@@ -33,14 +33,21 @@
   --tn-stone-800:   #292524;
 
   /* Official Global Design System Tokens - Tessy Nails Official Palette */
-  --color-brand-primary: #4B2E2B;
-  --color-brand-secondary: #6D4C41;
-  --color-brand-accent: #A1887F;
-  --color-brand-soft: rgba(215, 204, 200, 0.4);
-  --color-brand-background: #FAF7F5;
+  --color-brand-primary: #7C5CBF;
+  --color-brand-secondary: #9D7FD4;
+  --color-brand-accent: #5A3F9A;
+  --color-brand-soft: rgba(157, 127, 212, 0.15);
+  --color-brand-background: #F8FAFC;
   --color-brand-card: #FFFFFF;
-  --color-brand-text-main: #2D1F1B;
-  --color-brand-text-sub: #7B6F6A;
+  --color-brand-text-main: #0F172A;
+  --color-brand-text-sub: #64748B;
+
+  /* Admin Slate tokens */
+  --admin-sidebar: #0F172A;
+  --admin-sidebar-hover: #1E293B;
+  --admin-sidebar-active: rgba(157,127,212,0.15);
+  --admin-border: #E2E8F0;
+  --admin-muted: #F1F5F9;
 
   /* Status Tokens */
   --color-success: #7E9C76;
@@ -56,7 +63,8 @@
   --color-muted-foreground: var(--brand-text-sub);
 
   /* Shadow Elevation */
-  --shadow-premium: 0 10px 30px -5px rgba(75, 46, 43, 0.1), 0 4px 12px -4px rgba(75, 46, 43, 0.05);
+  --shadow-premium: 0 4px 16px -2px rgba(15, 23, 42, 0.08), 0 2px 8px -2px rgba(15, 23, 42, 0.04);
+  --shadow-premium-xl: 0 20px 40px -8px rgba(15, 23, 42, 0.12), 0 8px 20px -4px rgba(15, 23, 42, 0.06);
   --shadow-premium-hover: 0 20px 40px -10px rgba(75, 46, 43, 0.2), 0 8px 16px -6px rgba(75, 46, 43, 0.1);
   --shadow-premium-xl: 0 30px 60px -12px rgba(75, 46, 43, 0.25);
 

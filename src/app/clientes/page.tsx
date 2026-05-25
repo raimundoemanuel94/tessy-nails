@@ -548,7 +548,7 @@ export default function ClientesPage() {
     return (
       <PageShell>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9D7FD4]" />
         </div>
       </PageShell>
     );
@@ -632,7 +632,7 @@ export default function ClientesPage() {
         {/* Busca sempre visível */}
         <div className="flex gap-3 items-center mb-4">
           <div className="relative flex-1 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-sub opacity-40 group-focus-within:text-brand-primary transition-colors" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 opacity-40 group-focus-within:text-[#7C5CBF] transition-colors" size={18} />
             <Input
               placeholder="Nome, email, telefone ou ultimo servico"
               value={searchQuery}
@@ -646,8 +646,8 @@ export default function ClientesPage() {
             className={[
               "flex items-center gap-2 h-11 px-4 rounded-xl border text-xs font-black uppercase tracking-widest transition-all shrink-0",
               filtersOpen
-                ? "bg-brand-primary text-white border-brand-primary"
-                : "border-brand-accent/20 text-brand-text-sub hover:border-brand-primary hover:text-brand-primary bg-white/60",
+                ? "bg-[#7C5CBF] text-white border-[#9D7FD4]"
+                : "border-[#DDD5F5] text-slate-500 hover:border-[#9D7FD4] hover:text-[#7C5CBF] bg-white/60",
             ].join(" ")}
           >
             <Search size={14} />
@@ -662,20 +662,20 @@ export default function ClientesPage() {
 
         {/* Filtros avançados recolhíveis */}
         {filtersOpen && (
-          <div className="pt-4 border-t border-brand-accent/10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="pt-4 border-t border-slate-100 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Status</label>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Status</label>
               <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as ClientStatusFilter)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10">
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-4 focus:ring-brand-primary/10">
                 <option value="all">Todas</option>
                 <option value="active">Somente ativas</option>
                 <option value="inactive">Somente inativas</option>
               </select>
             </div>
             <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Segmento</label>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Segmento</label>
               <select value={segmentFilter} onChange={(event) => setSegmentFilter(event.target.value as SegmentFilter)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10">
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-4 focus:ring-brand-primary/10">
                 <option value="all">Todos</option>
                 <option value="new">Novas (30 dias)</option>
                 <option value="vip">Vip recorrentes (5+)</option>
@@ -684,9 +684,9 @@ export default function ClientesPage() {
               </select>
             </div>
             <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Servico</label>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Servico</label>
               <select value={serviceFilter} onChange={(event) => setServiceFilter(event.target.value)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10">
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-4 focus:ring-brand-primary/10">
                 <option value="all">Todos os servicos</option>
                 {services.slice().sort((a, b) => a.name.localeCompare(b.name)).map((service) => (
                   <option key={service.id} value={service.id}>{service.name}</option>
@@ -694,9 +694,9 @@ export default function ClientesPage() {
               </select>
             </div>
             <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Ordenar por</label>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Ordenar por</label>
               <select value={sortBy} onChange={(event) => setSortBy(event.target.value as SortOption)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10">
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-4 focus:ring-brand-primary/10">
                 <option value="last_visit_desc">Ultima visita (mais recente)</option>
                 <option value="last_visit_asc">Ultima visita (mais antiga)</option>
                 <option value="name_asc">Nome (A-Z)</option>
@@ -710,34 +710,34 @@ export default function ClientesPage() {
               </select>
             </div>
             <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Base da data</label>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Base da data</label>
               <select value={dateBaseFilter} onChange={(event) => setDateBaseFilter(event.target.value as DateBaseFilter)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10">
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-4 focus:ring-brand-primary/10">
                 <option value="last_visit">Ultima visita</option>
                 <option value="created_at">Data de cadastro</option>
               </select>
             </div>
             <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Data inicial</label>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Data inicial</label>
               <Input type="date" value={dateStart} onChange={(event) => setDateStart(event.target.value)} className="h-11 rounded-xl bg-white/60" />
             </div>
             <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Data final</label>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Data final</label>
               <Input type="date" value={dateEnd} onChange={(event) => setDateEnd(event.target.value)} className="h-11 rounded-xl bg-white/60" />
             </div>
             <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Linhas por pagina</label>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Linhas por pagina</label>
               <select value={rowsPerPage} onChange={(event) => setRowsPerPage(Number(event.target.value))}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10">
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-4 focus:ring-brand-primary/10">
                 {PAGE_SIZE_OPTIONS.map((size) => <option key={size} value={size}>{size}</option>)}
               </select>
             </div>
             <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Min agendamentos</label>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Min agendamentos</label>
               <Input type="number" min={0} placeholder="Ex: 1" value={minAppointmentsInput} onChange={(event) => setMinAppointmentsInput(event.target.value)} className="h-11 rounded-xl bg-white/60" />
             </div>
             <div>
-              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Max agendamentos</label>
+              <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Max agendamentos</label>
               <Input type="number" min={0} placeholder="Ex: 10" value={maxAppointmentsInput} onChange={(event) => setMaxAppointmentsInput(event.target.value)} className="h-11 rounded-xl bg-white/60" />
             </div>
           </div>
@@ -771,7 +771,7 @@ export default function ClientesPage() {
           value={toCurrency(filteredMetrics.avgTicket)}
           icon={AlertTriangle}
           description={`Receita estimada: ${toCurrency(filteredMetrics.spent)}`}
-          variant="accent"
+          variant="primary"
         />
       </div>
 
@@ -779,35 +779,35 @@ export default function ClientesPage() {
         title="Lista de Clientes Premium"
         description={`Mostrando ${paginatedRows.length} de ${sortedRows.length} clientes filtradas.`}
       >
-        <div className="mb-4 rounded-2xl border border-brand-accent/10 bg-brand-soft/10 p-4">
-          <p className="text-xs font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
+        <div className="mb-4 rounded-2xl border border-slate-100 bg-[#EDE5FF]/10 p-4">
+          <p className="text-xs font-black uppercase tracking-[2px] text-slate-500 opacity-50">
             Insight rapido
           </p>
-          <p className="mt-1 text-sm font-bold text-brand-text-main">
+          <p className="mt-1 text-sm font-bold text-slate-800">
             {topRevenueClient
               ? `${topRevenueClient.client.name} lidera em receita estimada (${toCurrency(topRevenueClient.totalSpent)}).`
               : "Sem dados de receita para exibir no filtro atual."}
           </p>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-brand-accent/10 bg-white/40">
+        <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white/40">
           <Table>
             <TableHeader>
-              <TableRow className="border-brand-accent/10 hover:bg-transparent">
-                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Cliente</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Contato</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Segmento</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Historico</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Ultima visita</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Ultimo servico</TableHead>
-                <TableHead className="text-right text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Receita</TableHead>
-                <TableHead className="text-right text-[10px] font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">Acoes</TableHead>
+              <TableRow className="border-slate-100 hover:bg-transparent">
+                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Cliente</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Contato</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Segmento</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Historico</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Ultima visita</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Ultimo servico</TableHead>
+                <TableHead className="text-right text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Receita</TableHead>
+                <TableHead className="text-right text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Acoes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedRows.length === 0 ? (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={8} className="py-12 text-center text-sm font-bold text-brand-text-sub opacity-60">
+                  <TableCell colSpan={8} className="py-12 text-center text-sm font-bold text-slate-500 opacity-60">
                     Nenhuma cliente encontrada para os filtros aplicados.
                   </TableCell>
                 </TableRow>
@@ -817,20 +817,20 @@ export default function ClientesPage() {
                   const client = row.client;
 
                   return (
-                    <TableRow key={client.id} className="group border-brand-accent/5 hover:bg-brand-soft/10 transition-colors">
+                    <TableRow key={client.id} className="group border-brand-accent/5 hover:bg-[#EDE5FF]/10 transition-colors">
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 rounded-xl border border-brand-accent/10 shadow-sm">
+                          <Avatar className="h-10 w-10 rounded-xl border border-slate-100 shadow-sm">
                             <AvatarImage src={client.photoURL} />
                             <AvatarFallback className="bg-linear-to-br from-brand-primary to-brand-secondary text-white font-black">
                               {client.name.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-black text-brand-text-main group-hover:text-brand-primary transition-colors tracking-tight">
+                            <div className="font-black text-slate-800 group-hover:text-[#7C5CBF] transition-colors tracking-tight">
                               {client.name}
                             </div>
-                            <div className="text-[10px] font-black uppercase tracking-wider text-brand-text-sub opacity-40">
+                            <div className="text-[10px] font-black uppercase tracking-wider text-slate-500 opacity-40">
                               Desde {format(row.createdAt, "MMM yyyy", { locale: ptBR })}
                             </div>
                           </div>
@@ -840,16 +840,16 @@ export default function ClientesPage() {
                       <TableCell>
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-lg bg-brand-soft/20 flex items-center justify-center text-brand-text-sub">
+                            <div className="w-6 h-6 rounded-lg bg-[#EDE5FF]/20 flex items-center justify-center text-slate-500">
                               <Mail size={12} />
                             </div>
-                            <span className="text-xs font-bold text-brand-text-main">{client.email || "Sem email"}</span>
+                            <span className="text-xs font-bold text-slate-800">{client.email || "Sem email"}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-lg bg-brand-soft/20 flex items-center justify-center text-brand-text-sub">
+                            <div className="w-6 h-6 rounded-lg bg-[#EDE5FF]/20 flex items-center justify-center text-slate-500">
                               <Phone size={12} />
                             </div>
-                            <span className="text-xs font-bold text-brand-text-main">{client.phone || "Sem telefone"}</span>
+                            <span className="text-xs font-bold text-slate-800">{client.phone || "Sem telefone"}</span>
                           </div>
                         </div>
                       </TableCell>
@@ -866,7 +866,7 @@ export default function ClientesPage() {
                       </TableCell>
 
                       <TableCell>
-                        <span className="text-xs font-black text-brand-text-main">
+                        <span className="text-xs font-black text-slate-800">
                           {row.completedCount} concluidos / {row.totalAppointments} total
                         </span>
                       </TableCell>
@@ -874,10 +874,10 @@ export default function ClientesPage() {
                       <TableCell>
                         {row.lastVisitDate ? (
                           <div className="space-y-0.5">
-                            <p className="text-xs font-black text-brand-text-main">
+                            <p className="text-xs font-black text-slate-800">
                               {format(row.lastVisitDate, "dd/MM/yyyy", { locale: ptBR })}
                             </p>
-                            <p className="text-[10px] font-bold text-brand-text-sub opacity-60">
+                            <p className="text-[10px] font-bold text-slate-500 opacity-60">
                               {row.daysSinceVisit === null ? "-" : `${row.daysSinceVisit} dias`}
                             </p>
                           </div>
@@ -887,13 +887,13 @@ export default function ClientesPage() {
                       </TableCell>
 
                       <TableCell>
-                        <span className="text-xs font-black text-brand-text-main">
+                        <span className="text-xs font-black text-slate-800">
                           {row.lastServiceName}
                         </span>
                       </TableCell>
 
                       <TableCell className="text-right">
-                        <span className="text-xs font-black text-brand-text-main tabular-nums">
+                        <span className="text-xs font-black text-slate-800 tabular-nums">
                           {toCurrency(row.totalSpent)}
                         </span>
                       </TableCell>
@@ -906,7 +906,7 @@ export default function ClientesPage() {
                                 variant="ghost"
                                 size="icon"
                                 disabled={actionLoading === client.id}
-                                className="h-9 w-9 rounded-xl hover:bg-brand-primary/10 text-brand-text-sub hover:text-brand-primary transition-all"
+                                className="h-9 w-9 rounded-xl hover:bg-[#7C5CBF]/10 text-slate-500 hover:text-[#7C5CBF] transition-all"
                               >
                                 {actionLoading === client.id ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -916,9 +916,9 @@ export default function ClientesPage() {
                               </Button>
                             }
                           />
-                          <DropdownMenuContent align="end" className="rounded-2xl border border-brand-accent/10 p-2 shadow-premium-xl bg-white">
+                          <DropdownMenuContent align="end" className="rounded-2xl border border-slate-100 p-2 shadow-premium-xl bg-white">
                             <DropdownMenuItem onClick={() => handleEdit(client)} className="rounded-xl font-bold cursor-pointer">
-                              <Edit className="h-4 w-4 mr-2 text-brand-primary" />
+                              <Edit className="h-4 w-4 mr-2 text-[#7C5CBF]" />
                               Editar
                             </DropdownMenuItem>
                             {client.isActive !== false ? (
@@ -947,8 +947,8 @@ export default function ClientesPage() {
           </Table>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 border-t border-brand-accent/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs font-black uppercase tracking-[2px] text-brand-text-sub opacity-50">
+        <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs font-black uppercase tracking-[2px] text-slate-500 opacity-50">
             Pagina {currentPage} de {totalPages} · Base real: {baseTotals.total} clientes · Inativas: {baseTotals.inactive}
           </p>
           <div className="flex items-center gap-2">

@@ -279,7 +279,7 @@ export default function AgendaPage() {
             <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) (document.activeElement as HTMLElement)?.blur(); setIsDialogOpen(open); }}>
               <DialogTrigger
                 render={
-                  <Button size="lg" className="h-14 px-8 bg-white text-brand-primary hover:bg-white/90 font-black shadow-premium">
+                  <Button size="lg" className="h-14 px-8 bg-white text-[#7C5CBF] hover:bg-white/90 font-black shadow-premium">
                     <Plus size={24} className="mr-3" />
                     Novo Agendamento
                   </Button>
@@ -330,7 +330,7 @@ export default function AgendaPage() {
             title="Clientes Atendidos"
             value={completedAppointments.length}
             icon={Users}
-            variant="accent"
+            variant="primary"
           />
         </div>
 
@@ -343,10 +343,10 @@ export default function AgendaPage() {
               description={format(ensureDate(date), "EEEE, d 'de' MMMM", { locale: ptBR })}
               actions={
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={prevDay} className="h-10 w-10 rounded-xl border-brand-accent/20 text-brand-primary hover:bg-brand-accent/5">
+                  <Button variant="outline" size="icon" onClick={prevDay} className="h-10 w-10 rounded-xl border-[#DDD5F5] text-[#7C5CBF] hover:bg-brand-accent/5">
                     <ChevronLeft size={18} />
                   </Button>
-                  <Button variant="outline" size="icon" onClick={nextDay} className="h-10 w-10 rounded-xl border-brand-accent/20 text-brand-primary hover:bg-brand-accent/5">
+                  <Button variant="outline" size="icon" onClick={nextDay} className="h-10 w-10 rounded-xl border-[#DDD5F5] text-[#7C5CBF] hover:bg-brand-accent/5">
                     <ChevronRight size={18} />
                   </Button>
                 </div>
@@ -369,15 +369,15 @@ export default function AgendaPage() {
                 ) : appointments.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
                     <div className="relative mb-8">
-                      <div className="absolute inset-0 bg-brand-primary/10 rounded-full blur-2xl animate-pulse" />
-                      <div className="relative flex items-center justify-center w-24 h-24 rounded-2xl bg-white border border-brand-accent/10 shadow-premium">
-                        <Coffee size={40} className="text-brand-primary" />
+                      <div className="absolute inset-0 bg-[#7C5CBF]/10 rounded-full blur-2xl animate-pulse" />
+                      <div className="relative flex items-center justify-center w-24 h-24 rounded-2xl bg-white border border-slate-100 shadow-premium">
+                        <Coffee size={40} className="text-[#7C5CBF]" />
                       </div>
                     </div>
-                    <h3 className="text-2xl font-black text-brand-text-main mb-2">
+                    <h3 className="text-2xl font-black text-slate-800 mb-2">
                       Dia Livre!
                     </h3>
-                    <p className="text-brand-text-sub font-bold max-w-xs mb-8">
+                    <p className="text-slate-500 font-bold max-w-xs mb-8">
                       Aproveite para organizar seu espaço ou descansar um pouco.
                     </p>
                     <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) (document.activeElement as HTMLElement)?.blur(); setIsDialogOpen(open); }}>
@@ -419,13 +419,13 @@ export default function AgendaPage() {
                           className="group flex items-center gap-6 p-6 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all cursor-pointer"
                         >
                           <div 
-                            className="flex flex-col items-center justify-center min-w-[80px] py-4 bg-brand-soft/10 rounded-2xl border border-brand-accent/5 group-hover:border-brand-primary/30 transition-all shadow-sm"
+                            className="flex flex-col items-center justify-center min-w-[80px] py-4 bg-[#EDE5FF]/10 rounded-2xl border border-brand-accent/5 group-hover:border-[#9D7FD4]/30 transition-all shadow-sm"
                             onClick={() => {
                               setEditingAppointment(app);
                               setIsDialogOpen(true);
                             }}
                           >
-                            <span className="text-xl font-black text-brand-text-main group-hover:text-brand-primary transition-colors tabular-nums">
+                            <span className="text-xl font-black text-slate-800 group-hover:text-[#7C5CBF] transition-colors tabular-nums">
                               {(() => {
                                 const aptDate = ensureDate(app.appointmentDate);
                                 if (!isValid(aptDate)) return '09:00';
@@ -433,7 +433,7 @@ export default function AgendaPage() {
                                 return (timeStr === '00:00' && aptDate.getHours() === 0) ? '09:00' : timeStr;
                               })()}
                             </span>
-                            <span className="text-[10px] font-black text-brand-text-sub uppercase tracking-widest mt-1 opacity-50">
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1 opacity-50">
                               {app.service?.durationMinutes}m
                             </span>
                           </div>
@@ -446,7 +446,7 @@ export default function AgendaPage() {
                             }}
                           >
                             <div className="flex items-center justify-between mb-1">
-                              <h4 className="text-[1.05rem] font-bold text-brand-text-main dark:text-white line-clamp-2 leading-snug group-hover:text-brand-primary transition-colors pr-2">
+                              <h4 className="text-[1.05rem] font-bold text-slate-800 dark:text-white line-clamp-2 leading-snug group-hover:text-[#7C5CBF] transition-colors pr-2">
                                 {app.client?.name || clientUsers.find((user) => user.uid === app.clientId)?.name || "Cliente não encontrada"}
                               </h4>
                               <Badge variant={
@@ -461,9 +461,9 @@ export default function AgendaPage() {
                               </Badge>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-[13px] font-bold text-brand-text-sub opacity-80 line-clamp-1">{app.service?.name || "Serviço"}</span>
-                              <span className="text-brand-accent/40 text-xs">•</span>
-                              <span className="text-sm font-black text-brand-text-main">R$ {app.service?.price || 0}</span>
+                              <span className="text-[13px] font-bold text-slate-500 opacity-80 line-clamp-1">{app.service?.name || "Serviço"}</span>
+                              <span className="text-[#9D7FD4]/40 text-xs">•</span>
+                              <span className="text-sm font-black text-slate-800">R$ {app.service?.price || 0}</span>
                             </div>
                           </div>
                           
@@ -471,13 +471,13 @@ export default function AgendaPage() {
                             <DropdownMenuTrigger
                               render={
                                 <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-brand-accent/5 transition-all">
-                                  <MoreVertical size={18} className="text-brand-text-sub" />
+                                  <MoreVertical size={18} className="text-slate-500" />
                                 </Button>
                               }
                             />
-                            <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-brand-accent/10 shadow-premium-xl bg-white">
+                            <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-slate-100 shadow-premium-xl bg-white">
                               <DropdownMenuItem
-                                className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 hover:text-brand-primary hover:bg-brand-primary/5 transition-all"
+                                className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 hover:text-[#7C5CBF] hover:bg-[#7C5CBF]/5 transition-all"
                                 disabled={app.status !== "pending"}
                                 onClick={() => handleConfirmar(app.id!)}
                               >
@@ -493,7 +493,7 @@ export default function AgendaPage() {
                               </DropdownMenuItem>
   
                               <DropdownMenuItem
-                                className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 hover:text-brand-primary hover:bg-brand-primary/5 transition-all"
+                                className="p-3 cursor-pointer rounded-xl font-bold text-slate-600 hover:text-[#7C5CBF] hover:bg-[#7C5CBF]/5 transition-all"
                                 disabled={app.status === "completed" || app.status === "cancelled"}
                                 onClick={() => {
                                   setEditingAppointment(app);
@@ -512,7 +512,7 @@ export default function AgendaPage() {
                               </DropdownMenuItem>
   
                               <DropdownMenuItem
-                                className="p-3 cursor-pointer rounded-xl font-black text-brand-primary hover:bg-brand-primary/5 transition-all"
+                                className="p-3 cursor-pointer rounded-xl font-black text-[#7C5CBF] hover:bg-[#7C5CBF]/5 transition-all"
                                 onClick={() => handleCancelar(app.id!)}
                                 disabled={app.status === "cancelled"}
                               >
@@ -538,14 +538,14 @@ export default function AgendaPage() {
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-brand-text-sub text-[10px] font-black uppercase tracking-wider mb-1 opacity-50">Hoje</p>
-                    <p className="text-2xl font-black text-brand-text-main">
+                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-wider mb-1 opacity-50">Hoje</p>
+                    <p className="text-2xl font-black text-slate-800">
                       R$ {dailyCompletedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
                   <div>
-                    <p className="text-brand-text-sub text-[10px] font-black uppercase tracking-wider mb-1 opacity-50">Mês</p>
-                    <p className="text-2xl font-black text-brand-text-main">
+                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-wider mb-1 opacity-50">Mês</p>
+                    <p className="text-2xl font-black text-slate-800">
                       R$ {monthCompletedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -560,27 +560,27 @@ export default function AgendaPage() {
             <SectionCard
               title="Performance"
               icon={Award}
-              className="border-brand-accent/20 bg-linear-to-r from-brand-accent/5 to-transparent"
+              className="border-[#DDD5F5] bg-linear-to-r from-brand-accent/5 to-transparent"
             >
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center p-3 rounded-2xl bg-brand-accent/10">
-                    <p className="text-2xl font-black text-brand-secondary">
+                    <p className="text-2xl font-black text-[#9D7FD4]">
                       {completedAppointments.length}
                     </p>
-                    <p className="text-brand-text-sub text-[10px] font-black uppercase opacity-60">Atendidos</p>
+                    <p className="text-slate-500 text-[10px] font-black uppercase opacity-60">Atendidos</p>
                   </div>
                   <div className="text-center p-3 rounded-2xl bg-warning/10">
                     <p className="text-2xl font-black text-warning">
                       {openAppointments.length}
                     </p>
-                    <p className="text-brand-text-sub text-[10px] font-black uppercase opacity-60">Em Aberto</p>
+                    <p className="text-slate-500 text-[10px] font-black uppercase opacity-60">Em Aberto</p>
                   </div>
                 </div>
                 <div className="pt-4 border-t border-brand-accent/5">
                   <div className="flex justify-between items-center">
-                    <span className="text-brand-text-sub text-xs font-bold uppercase tracking-wider opacity-60">Taxa de Confirmação</span>
-                    <span className="text-lg font-black text-brand-secondary">
+                    <span className="text-slate-500 text-xs font-bold uppercase tracking-wider opacity-60">Taxa de Confirmação</span>
+                    <span className="text-lg font-black text-[#9D7FD4]">
                       {confirmationRate}%
                     </span>
                   </div>
@@ -588,7 +588,7 @@ export default function AgendaPage() {
               </div>
             </SectionCard>
   
-            <div className="rounded-[2rem] bg-brand-primary p-10 text-white shadow-premium-xl relative overflow-hidden group">
+            <div className="rounded-[2rem] bg-[#7C5CBF] p-10 text-white shadow-premium-xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-[60px] -mr-20 -mt-20 transition-all group-hover:bg-white/20" />
               <div className="relative z-10 flex flex-col gap-8">
                 <div className="flex items-center justify-between">

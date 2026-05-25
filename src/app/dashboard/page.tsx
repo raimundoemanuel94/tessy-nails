@@ -32,7 +32,7 @@ import { db } from "@/lib/firebase";
 
 const RevenueChart = nextDynamic(
   () => import("@/components/dashboard/DashboardCharts").then((m) => m.RevenueChart),
-  { ssr: false, loading: () => <div className="h-[220px] w-full animate-pulse bg-brand-soft/20 rounded-2xl" /> }
+  { ssr: false, loading: () => <div className="h-[220px] w-full animate-pulse bg-[#EDE5FF]/20 rounded-2xl" /> }
 );
 
 const container: Variants = {
@@ -47,7 +47,7 @@ const item: Variants = {
 const STATUS: Record<string, { label: string; cls: string; dot: string }> = {
   confirmed: { label: "Confirmado", cls: "bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" },
   pending:   { label: "Pendente",   cls: "bg-amber-50 text-amber-700",     dot: "bg-amber-400"  },
-  completed: { label: "Concluido",  cls: "bg-brand-soft/40 text-brand-primary", dot: "bg-brand-primary" },
+  completed: { label: "Concluido",  cls: "bg-[#EDE5FF]/40 text-[#7C5CBF]", dot: "bg-[#7C5CBF]" },
 };
 
 function greeting(name: string) {
@@ -255,23 +255,23 @@ export default function DashboardPage() {
         <motion.div variants={item}
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-brand-text-sub mb-1 capitalize">{today}</p>
-            <h1 className="text-2xl lg:text-3xl font-serif font-bold text-brand-text-main">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-1 capitalize">{today}</p>
+            <h1 className="text-2xl lg:text-3xl font-serif font-bold text-slate-800">
               {greeting(displayName)} ✨
             </h1>
-            <p className="text-sm text-brand-text-sub mt-1 opacity-60">
+            <p className="text-sm text-slate-500 mt-1 opacity-60">
               Visao rapida do que importa no seu studio hoje.
             </p>
           </div>
           <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto">
             <Button variant="outline" size="sm"
               onClick={() => router.push("/relatorios")}
-              className="min-w-0 rounded-2xl border-brand-accent/20 px-3 text-brand-text-sub hover:text-brand-primary font-semibold gap-2 h-11 text-[11px] sm:px-4 sm:text-sm">
+              className="min-w-0 rounded-2xl border-[#DDD5F5] px-3 text-slate-500 hover:text-[#7C5CBF] font-semibold gap-2 h-11 text-[11px] sm:px-4 sm:text-sm">
               <BarChart3 size={15} className="shrink-0" />
               <span className="truncate">Relatorios</span>
             </Button>
             <Button onClick={() => setDialog(true)}
-              className="min-w-0 h-11 px-3 bg-brand-primary text-white font-bold rounded-2xl shadow-md hover:opacity-90 active:scale-95 transition-all gap-2 text-[11px] sm:px-6 sm:text-sm">
+              className="min-w-0 h-11 px-3 bg-[#7C5CBF] text-white font-bold rounded-2xl shadow-md hover:opacity-90 active:scale-95 transition-all gap-2 text-[11px] sm:px-6 sm:text-sm">
               <Plus size={16} className="shrink-0" />
               <span className="truncate">Novo Agend.</span>
             </Button>
@@ -280,7 +280,7 @@ export default function DashboardPage() {
 
         {/* 4 KPI CARDS */}
         <motion.div variants={item} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="relative overflow-hidden rounded-2xl bg-brand-primary p-5 text-white shadow-xl col-span-2 lg:col-span-1">
+          <div className="relative overflow-hidden rounded-2xl bg-[#7C5CBF] p-5 text-white shadow-xl col-span-2 lg:col-span-1">
             <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-white/8" />
             <div className="absolute right-2 bottom-2 h-12 w-12 rounded-full bg-white/5" />
             <div className="relative z-10">
@@ -305,35 +305,35 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-brand-accent/10 bg-white p-5 shadow-sm col-span-2 sm:col-span-1">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm col-span-2 sm:col-span-1">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-text-sub">Agend. Hoje</p>
-              <CalendarDays size={16} className="text-brand-primary" />
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Agend. Hoje</p>
+              <CalendarDays size={16} className="text-[#7C5CBF]" />
             </div>
-            <p className="text-3xl font-black tracking-tight text-brand-text-main">{stats.today}</p>
-            <p className="text-[10px] font-bold text-brand-text-sub opacity-50 mt-2">
+            <p className="text-3xl font-black tracking-tight text-slate-800">{stats.today}</p>
+            <p className="text-[10px] font-bold text-slate-500 opacity-50 mt-2">
               {stats.today === 0 ? "nenhum agendamento" : stats.today + " agendamentos"}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-brand-accent/10 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-text-sub">Clientes 30d</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Clientes 30d</p>
               <Users size={16} className="text-emerald-500" />
             </div>
-            <p className="text-3xl font-black tracking-tight text-brand-text-main">{stats.clients}</p>
-            <p className="text-[10px] font-bold text-brand-text-sub opacity-50 mt-2">clientes unicos atendidos</p>
+            <p className="text-3xl font-black tracking-tight text-slate-800">{stats.clients}</p>
+            <p className="text-[10px] font-bold text-slate-500 opacity-50 mt-2">clientes unicos atendidos</p>
           </div>
 
-          <div className="rounded-2xl border border-brand-accent/10 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-text-sub">Taxa Conclusao</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Taxa Conclusao</p>
               <CheckCircle2 size={16} className={stats.rate >= 70 ? "text-emerald-500" : "text-amber-400"} />
             </div>
             <p className={cn("text-3xl font-black tracking-tight", stats.rate >= 70 ? "text-emerald-600" : "text-amber-600")}>
               {stats.rate}%
             </p>
-            <p className="text-[10px] font-bold text-brand-text-sub opacity-50 mt-2">
+            <p className="text-[10px] font-bold text-slate-500 opacity-50 mt-2">
               {stats.rate >= 70 ? "excelente performance" : "pode melhorar"}
             </p>
           </div>
@@ -342,19 +342,19 @@ export default function DashboardPage() {
         {/* MAIN GRID */}
         <div className="grid gap-6 lg:grid-cols-3">
           <motion.div variants={item} className="lg:col-span-2">
-            <div className="rounded-2xl border border-brand-accent/10 bg-white shadow-sm h-full flex flex-col">
+            <div className="rounded-2xl border border-slate-100 bg-white shadow-sm h-full flex flex-col">
               <div className="flex items-center justify-between px-6 py-4 border-b border-brand-accent/5">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center">
-                    <Clock size={15} className="text-brand-primary" />
+                  <div className="w-8 h-8 rounded-xl bg-[#7C5CBF]/10 flex items-center justify-center">
+                    <Clock size={15} className="text-[#7C5CBF]" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-black text-brand-text-main">Proximos Atendimentos</h2>
-                    <p className="text-[10px] font-bold text-brand-text-sub opacity-50">pendentes e confirmados</p>
+                    <h2 className="text-sm font-black text-slate-800">Proximos Atendimentos</h2>
+                    <p className="text-[10px] font-bold text-slate-500 opacity-50">pendentes e confirmados</p>
                   </div>
                 </div>
                 <button onClick={() => router.push("/agendamentos")}
-                  className="flex items-center gap-1 text-[11px] font-bold text-brand-primary hover:underline">
+                  className="flex items-center gap-1 text-[11px] font-bold text-[#7C5CBF] hover:underline">
                   Ver agenda <ChevronRight size={13} />
                 </button>
               </div>
@@ -368,20 +368,20 @@ export default function DashboardPage() {
                           initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.04 }}
                           onClick={() => router.push("/agendamentos")}
-                          className="flex items-center gap-4 px-6 py-3.5 border-b border-brand-accent/5 last:border-0 hover:bg-brand-soft/10 cursor-pointer transition-colors">
+                          className="flex items-center gap-4 px-6 py-3.5 border-b border-brand-accent/5 last:border-0 hover:bg-[#EDE5FF]/10 cursor-pointer transition-colors">
                           <div className="text-center w-12 shrink-0">
-                            <p className="text-base font-black text-brand-primary tabular-nums">{a.time}</p>
-                            <p className="text-[9px] font-bold text-brand-text-sub opacity-50 capitalize">
+                            <p className="text-base font-black text-[#7C5CBF] tabular-nums">{a.time}</p>
+                            <p className="text-[9px] font-bold text-slate-500 opacity-50 capitalize">
                               {a.isToday ? "hoje" : a.date}
                             </p>
                           </div>
                           <div className="w-px h-9 bg-brand-accent/10 shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-brand-text-main truncate">{a.client}</p>
-                            <p className="text-[11px] text-brand-text-sub opacity-60 truncate mt-0.5">{a.service}</p>
+                            <p className="text-sm font-bold text-slate-800 truncate">{a.client}</p>
+                            <p className="text-[11px] text-slate-500 opacity-60 truncate mt-0.5">{a.service}</p>
                           </div>
                           {Number(a.price) > 0 && (
-                            <p className="text-sm font-black text-brand-text-main tabular-nums shrink-0">
+                            <p className="text-sm font-black text-slate-800 tabular-nums shrink-0">
                               R$ {Number(a.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                             </p>
                           )}
@@ -395,15 +395,15 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="px-6 py-8 flex flex-col items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-brand-soft/30 flex items-center justify-center">
-                      <Sparkles size={22} className="text-brand-accent" />
+                    <div className="w-14 h-14 rounded-2xl bg-[#EDE5FF]/30 flex items-center justify-center">
+                      <Sparkles size={22} className="text-[#9D7FD4]" />
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-black text-brand-text-main">Agenda livre agora</p>
-                      <p className="text-xs text-brand-text-sub opacity-50 mt-1">Nenhum atendimento pendente no momento.</p>
+                      <p className="text-sm font-black text-slate-800">Agenda livre agora</p>
+                      <p className="text-xs text-slate-500 opacity-50 mt-1">Nenhum atendimento pendente no momento.</p>
                     </div>
                     <Button size="sm" onClick={() => setDialog(true)}
-                      className="rounded-xl bg-brand-primary text-white hover:opacity-90 text-xs font-bold gap-1.5">
+                      className="rounded-xl bg-[#7C5CBF] text-white hover:opacity-90 text-xs font-bold gap-1.5">
                       <Plus size={13} /> Agendar agora
                     </Button>
                   </div>
@@ -413,21 +413,21 @@ export default function DashboardPage() {
           </motion.div>
 
           <motion.div variants={item}>
-            <div className="rounded-2xl border border-brand-accent/10 bg-white shadow-sm h-full flex flex-col">
+            <div className="rounded-2xl border border-slate-100 bg-white shadow-sm h-full flex flex-col">
               <div className="flex items-center gap-2.5 px-5 py-4 border-b border-brand-accent/5">
-                <div className="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center">
-                  <TrendingUp size={15} className="text-brand-primary" />
+                <div className="w-8 h-8 rounded-xl bg-[#7C5CBF]/10 flex items-center justify-center">
+                  <TrendingUp size={15} className="text-[#7C5CBF]" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-black text-brand-text-main">Top Servicos</h2>
-                  <p className="text-[10px] font-bold text-brand-text-sub opacity-50">concluidos nos ultimos 30d</p>
+                  <h2 className="text-sm font-black text-slate-800">Top Servicos</h2>
+                  <p className="text-[10px] font-bold text-slate-500 opacity-50">concluidos nos ultimos 30d</p>
                 </div>
               </div>
               <div className="flex-1 p-5 space-y-4">
                 {services.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-6 gap-2 opacity-40">
-                    <Target size={24} strokeWidth={1.5} className="text-brand-text-sub" />
-                    <p className="text-xs font-bold text-brand-text-sub">Nenhum servico registrado.</p>
+                    <Target size={24} strokeWidth={1.5} className="text-slate-500" />
+                    <p className="text-xs font-bold text-slate-500">Nenhum servico registrado.</p>
                   </div>
                 ) : (
                   services.map((svc, idx) => {
@@ -436,14 +436,14 @@ export default function DashboardPage() {
                     return (
                       <div key={svc.name} className="space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <p className="text-xs font-bold text-brand-text-main truncate max-w-[75%]">{svc.name}</p>
-                          <span className="text-[10px] font-black text-brand-text-sub">{svc.count}x</span>
+                          <p className="text-xs font-bold text-slate-800 truncate max-w-[75%]">{svc.name}</p>
+                          <span className="text-[10px] font-black text-slate-500">{svc.count}x</span>
                         </div>
-                        <div className="h-1.5 w-full bg-brand-soft/30 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full bg-[#EDE5FF]/30 rounded-full overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }} animate={{ width: pct + "%" }}
                             transition={{ delay: 0.3 + idx * 0.07, duration: 0.8, ease: "easeOut" }}
-                            className="h-full rounded-full bg-brand-primary" />
+                            className="h-full rounded-full bg-[#7C5CBF]" />
                         </div>
                       </div>
                     );
@@ -452,7 +452,7 @@ export default function DashboardPage() {
               </div>
               <div className="px-5 pb-5">
                 <button onClick={() => router.push("/relatorios")}
-                  className="w-full flex items-center justify-center gap-1.5 text-[11px] font-black text-brand-primary hover:underline">
+                  className="w-full flex items-center justify-center gap-1.5 text-[11px] font-black text-[#7C5CBF] hover:underline">
                   Ver relatorio completo <ArrowRight size={12} />
                 </button>
               </div>
@@ -462,17 +462,17 @@ export default function DashboardPage() {
 
         {/* GRAFICO */}
         <motion.div variants={item}>
-          <div className="rounded-2xl border border-brand-accent/10 bg-white shadow-sm p-6">
+          <div className="rounded-2xl border border-slate-100 bg-white shadow-sm p-6">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-text-sub opacity-50">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-50">
                   Receita no periodo
                 </p>
-                <p className="text-sm font-bold text-brand-text-main">
+                <p className="text-sm font-bold text-slate-800">
                   Evolucao dos ultimos {CHART_PERIOD_LABELS[chartPeriod].toLowerCase()}
                 </p>
               </div>
-              <div className="flex w-full gap-1.5 rounded-2xl border border-brand-accent/10 bg-brand-soft/10 p-1 sm:w-auto">
+              <div className="flex w-full gap-1.5 rounded-2xl border border-slate-100 bg-[#EDE5FF]/10 p-1 sm:w-auto">
                 {(Object.keys(CHART_PERIOD_LABELS) as ChartPeriod[]).map((period) => (
                   <Button
                     key={period}
@@ -483,8 +483,8 @@ export default function DashboardPage() {
                     className={cn(
                       "h-8 flex-1 rounded-xl px-3 text-[10px] font-black uppercase tracking-wider sm:flex-none",
                       chartPeriod === period
-                        ? "bg-brand-primary text-white shadow-sm"
-                        : "text-brand-text-sub opacity-60 hover:opacity-100"
+                        ? "bg-[#7C5CBF] text-white shadow-sm"
+                        : "text-slate-500 opacity-60 hover:opacity-100"
                     )}
                   >
                     {CHART_PERIOD_LABELS[period]}
@@ -502,9 +502,9 @@ export default function DashboardPage() {
         if (!open) (document.activeElement as HTMLElement)?.blur();
         setDialog(open);
       }}>
-        <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-brand-accent/20">
+        <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-[#DDD5F5]">
           <DialogHeader>
-            <DialogTitle className="text-xl font-serif font-bold text-brand-primary">Novo Agendamento</DialogTitle>
+            <DialogTitle className="text-xl font-serif font-bold text-[#7C5CBF]">Novo Agendamento</DialogTitle>
           </DialogHeader>
           <AppointmentForm onSuccess={() => {
             setDialog(false);

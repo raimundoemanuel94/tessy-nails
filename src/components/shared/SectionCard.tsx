@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
 
 interface SectionCardProps {
@@ -11,34 +10,34 @@ interface SectionCardProps {
   actions?: React.ReactNode;
   icon?: LucideIcon;
   className?: string;
+  noPadding?: boolean;
 }
 
-export function SectionCard({ title, description, children, actions, icon: Icon, className }: SectionCardProps) {
+export function SectionCard({ title, description, children, actions, icon: Icon, className, noPadding }: SectionCardProps) {
   return (
-    <Card className={cn("transition-all duration-300", className)}>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div className="flex items-center gap-4">
+    <div className={cn("bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden", className)}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-50">
+        <div className="flex items-center gap-3 min-w-0">
           {Icon && (
-            <div className="p-3 rounded-2xl bg-linear-to-br from-brand-primary/10 to-brand-secondary/10 border border-brand-primary/20 dark:border-brand-primary/20 shadow-inner">
-              <Icon size={24} className="text-brand-primary dark:text-brand-accent" />
+            <div className="h-8 w-8 rounded-xl bg-[#EDE5FF] flex items-center justify-center shrink-0">
+              <Icon size={15} className="text-[#7C5CBF]" />
             </div>
           )}
-          <div className="space-y-1">
-            <CardTitle className="text-2xl font-black text-brand-text-main tracking-tight">
-              {title}
-            </CardTitle>
+          <div className="min-w-0">
+            <h3 className="text-[14px] font-black text-slate-800 leading-none truncate">{title}</h3>
             {description && (
-              <CardDescription className="text-sm font-bold text-brand-text-sub">
-                {description}
-              </CardDescription>
+              <p className="text-[11px] font-bold text-slate-400 mt-0.5 truncate">{description}</p>
             )}
           </div>
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
-      </CardHeader>
-      <CardContent>
+        {actions && <div className="flex items-center gap-2 shrink-0 ml-3">{actions}</div>}
+      </div>
+
+      {/* Body */}
+      <div className={noPadding ? "" : "p-6"}>
         {children}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

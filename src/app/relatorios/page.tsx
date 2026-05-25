@@ -124,17 +124,17 @@ function KpiCard({ label, value, sub, trend, color = "neutral" }: {
   trend?: { value: number; isPositive: boolean } | null; color?: "neutral" | "brand" | "success" | "warning" | "danger";
 }) {
   const valueColor = {
-    neutral: "text-brand-text-main",
-    brand: "text-brand-primary",
+    neutral: "text-slate-800",
+    brand: "text-[#7C5CBF]",
     success: "text-emerald-600",
     warning: "text-amber-600",
     danger: "text-red-600",
   };
   return (
-    <div className="rounded-2xl border border-brand-accent/10 bg-white p-4 sm:p-5 flex flex-col gap-1 transition-all hover:shadow-sm">
-      <p className="text-[10px] font-black uppercase tracking-widest leading-none text-brand-text-sub opacity-70">{label}</p>
+    <div className="rounded-2xl border border-slate-100 bg-white p-4 sm:p-5 flex flex-col gap-1 transition-all hover:shadow-sm">
+      <p className="text-[10px] font-black uppercase tracking-widest leading-none text-slate-500 opacity-70">{label}</p>
       <p className={cn("text-2xl font-black leading-tight", valueColor[color])}>{value}</p>
-      {sub && <p className="text-[11px] font-bold text-brand-text-sub opacity-60 leading-none">{sub}</p>}
+      {sub && <p className="text-[11px] font-bold text-slate-500 opacity-60 leading-none">{sub}</p>}
       {trend !== undefined && trend !== null && (
         <div className={cn("flex items-center gap-1 mt-1 text-[11px] font-black", trend.isPositive ? "text-emerald-600" : "text-red-500")}>
           {trend.value === 0 ? <Minus size={12} /> : trend.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
@@ -149,10 +149,10 @@ function SectionTitle({ icon: Icon, title, desc, actions }: { icon?: React.Eleme
   return (
     <div className="flex items-center justify-between mb-5">
       <div className="flex items-center gap-3">
-        {Icon && <div className="h-9 w-9 rounded-xl bg-brand-primary/10 flex items-center justify-center"><Icon size={18} className="text-brand-primary" /></div>}
+        {Icon && <div className="h-9 w-9 rounded-xl bg-[#7C5CBF]/10 flex items-center justify-center"><Icon size={18} className="text-[#7C5CBF]" /></div>}
         <div>
-          <h3 className="text-base font-black text-brand-text-main tracking-tight">{title}</h3>
-          {desc && <p className="text-[11px] font-bold text-brand-text-sub opacity-60">{desc}</p>}
+          <h3 className="text-base font-black text-slate-800 tracking-tight">{title}</h3>
+          {desc && <p className="text-[11px] font-bold text-slate-500 opacity-60">{desc}</p>}
         </div>
       </div>
       {actions && <div className="flex gap-2">{actions}</div>}
@@ -543,16 +543,16 @@ export default function RelatoriosPage() {
     return (
       <PageShell>
         <div className="flex flex-col gap-6 animate-pulse">
-          <div className="h-16 rounded-2xl bg-brand-soft/40" />
+          <div className="h-16 rounded-2xl bg-[#EDE5FF]/40" />
           <div className="grid grid-cols-3 gap-4">
-            {[1,2,3].map((i) => <div key={i} className="h-28 rounded-2xl bg-brand-soft/40" />)}
+            {[1,2,3].map((i) => <div key={i} className="h-28 rounded-2xl bg-[#EDE5FF]/40" />)}
           </div>
           <div className="grid grid-cols-4 gap-4">
-            {[1,2,3,4].map((i) => <div key={i} className="h-24 rounded-2xl bg-brand-soft/40" />)}
+            {[1,2,3,4].map((i) => <div key={i} className="h-24 rounded-2xl bg-[#EDE5FF]/40" />)}
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2 h-72 rounded-2xl bg-brand-soft/40" />
-            <div className="h-72 rounded-2xl bg-brand-soft/40" />
+            <div className="col-span-2 h-72 rounded-2xl bg-[#EDE5FF]/40" />
+            <div className="h-72 rounded-2xl bg-[#EDE5FF]/40" />
           </div>
         </div>
       </PageShell>
@@ -567,25 +567,25 @@ export default function RelatoriosPage() {
         icon={BarChart3}
       >
         <Button onClick={exportPremium} size="sm"
-          className="rounded-xl font-bold gap-2 bg-brand-primary hover:opacity-90 text-white shadow-md">
+          className="rounded-xl font-bold gap-2 bg-[#7C5CBF] hover:opacity-90 text-white shadow-md">
           <Download size={14} /> Exportar Premium
         </Button>
       </PageHeader>
 
       {/* Filtro de periodo */}
-      <div className="mb-6 flex flex-wrap items-center gap-1.5 rounded-2xl border border-brand-accent/10 bg-white p-1.5 shadow-sm">
+      <div className="mb-6 flex flex-wrap items-center gap-1.5 rounded-2xl border border-slate-100 bg-white p-1.5 shadow-sm">
         {FILTERS.map((f) => (
           <button key={f} onClick={() => setActiveFilter(f)}
             className={cn(
               "h-9 rounded-xl px-3 text-[10px] font-black uppercase tracking-wider transition-all",
               activeFilter === f
-                ? "bg-brand-primary text-white shadow-md"
-                : "text-brand-text-sub hover:text-brand-primary hover:bg-brand-primary/5"
+                ? "bg-[#7C5CBF] text-white shadow-md"
+                : "text-slate-500 hover:text-[#7C5CBF] hover:bg-[#7C5CBF]/5"
             )}>
             {PERIOD_LABELS[f]}
           </button>
         ))}
-        <div className="ml-auto pr-2 text-[10px] font-bold text-brand-text-sub opacity-50">
+        <div className="ml-auto pr-2 text-[10px] font-bold text-slate-500 opacity-50">
           {format(activeInterval.start, "dd/MM")} &rarr; {format(activeInterval.end, "dd/MM")}
         </div>
       </div>
@@ -619,7 +619,7 @@ export default function RelatoriosPage() {
         <div className="rounded-xl border border-emerald-200 bg-white p-4">
           <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Concluidos</p>
           <p className="text-xl font-black text-emerald-600">{periodCompleted.length}</p>
-          <p className="text-[10px] text-brand-text-sub opacity-50">{periodOpen.length} em aberto</p>
+          <p className="text-[10px] text-slate-500 opacity-50">{periodOpen.length} em aberto</p>
         </div>
         <div className="rounded-xl border border-red-200 bg-white p-4">
           <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Cancelamentos</p>
@@ -631,42 +631,42 @@ export default function RelatoriosPage() {
           <p className="text-xl font-black text-amber-600">{periodNoShow.length}</p>
           <p className="text-[10px] text-amber-400 font-bold">taxa {noShowRate}%</p>
         </div>
-        <div className="rounded-xl border border-brand-accent/10 bg-white p-4">
-          <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest mb-1">Taxa de Retorno</p>
-          <p className="text-xl font-black text-brand-text-main">{returnRateData}%</p>
-          <p className="text-[10px] text-brand-text-sub opacity-50">em ate 45 dias</p>
+        <div className="rounded-xl border border-slate-100 bg-white p-4">
+          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Taxa de Retorno</p>
+          <p className="text-xl font-black text-slate-800">{returnRateData}%</p>
+          <p className="text-[10px] text-slate-500 opacity-50">em ate 45 dias</p>
         </div>
-        <div className="rounded-xl border border-brand-accent/10 bg-white p-4">
-          <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest mb-1">Intervalo Medio</p>
-          <p className="text-xl font-black text-brand-text-main">{avgReturnDays || "-"}</p>
-          <p className="text-[10px] text-brand-text-sub opacity-50">dias entre visitas</p>
+        <div className="rounded-xl border border-slate-100 bg-white p-4">
+          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Intervalo Medio</p>
+          <p className="text-xl font-black text-slate-800">{avgReturnDays || "-"}</p>
+          <p className="text-[10px] text-slate-500 opacity-50">dias entre visitas</p>
         </div>
-        <div className={cn("rounded-xl border p-4", pendingPayment.length > 0 ? "border-orange-200 bg-orange-50" : "border-brand-accent/10 bg-white")}>
-          <p className={cn("text-[9px] font-black uppercase tracking-widest mb-1", pendingPayment.length > 0 ? "text-orange-500" : "text-brand-text-sub")}>Sinal Pendente</p>
-          <p className={cn("text-xl font-black", pendingPayment.length > 0 ? "text-orange-600" : "text-brand-text-main")}>{pendingPayment.length}</p>
-          <p className={cn("text-[10px] font-bold", pendingPayment.length > 0 ? "text-orange-400" : "text-brand-text-sub opacity-50")}>agend. sem pagamento</p>
+        <div className={cn("rounded-xl border p-4", pendingPayment.length > 0 ? "border-orange-200 bg-orange-50" : "border-slate-100 bg-white")}>
+          <p className={cn("text-[9px] font-black uppercase tracking-widest mb-1", pendingPayment.length > 0 ? "text-orange-500" : "text-slate-500")}>Sinal Pendente</p>
+          <p className={cn("text-xl font-black", pendingPayment.length > 0 ? "text-orange-600" : "text-slate-800")}>{pendingPayment.length}</p>
+          <p className={cn("text-[10px] font-bold", pendingPayment.length > 0 ? "text-orange-400" : "text-slate-500 opacity-50")}>agend. sem pagamento</p>
         </div>
       </div>
 
       {/* Graficos */}
       <div className="grid gap-6 lg:grid-cols-3 mb-8">
-        <div className="lg:col-span-2 bg-white border border-brand-accent/10 rounded-2xl p-6 shadow-sm">
+        <div className="lg:col-span-2 bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
           <SectionTitle icon={TrendingUp} title="Evolucao Financeira" desc={"Faturamento concluido - " + PERIOD_LABELS[activeFilter]} />
           {chartRevenueData.some((d) => d.total > 0) ? (
             <div className="h-[280px]"><RevenueChart data={chartRevenueData} /></div>
           ) : (
-            <div className="h-[280px] flex flex-col items-center justify-center gap-3 text-brand-text-sub opacity-40">
+            <div className="h-[280px] flex flex-col items-center justify-center gap-3 text-slate-500 opacity-40">
               <BarChart3 size={40} strokeWidth={1} />
               <p className="text-sm font-bold">Nenhum atendimento concluido ainda</p>
             </div>
           )}
         </div>
-        <div className="bg-white border border-brand-accent/10 rounded-2xl p-6 shadow-sm">
+        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
           <SectionTitle icon={Target} title="Mix de Servicos" desc="Participacao no periodo" />
           {serviceDistribution.length > 0 ? (
             <div className="h-[240px]"><ServicesDonut data={serviceDistribution} /></div>
           ) : (
-            <div className="h-[240px] flex flex-col items-center justify-center gap-3 text-brand-text-sub opacity-40">
+            <div className="h-[240px] flex flex-col items-center justify-center gap-3 text-slate-500 opacity-40">
               <Target size={36} strokeWidth={1} />
               <p className="text-sm font-bold">Sem dados no periodo</p>
             </div>
@@ -675,7 +675,7 @@ export default function RelatoriosPage() {
       </div>
 
       {/* Pico por dia da semana */}
-      <div className="bg-white border border-brand-accent/10 rounded-2xl p-6 shadow-sm mb-8">
+      <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm mb-8">
         <SectionTitle icon={Clock} title="Horarios de Pico" desc={"Agendamentos por dia da semana - " + PERIOD_LABELS[activeFilter]} />
         <div className="flex items-end gap-3 h-20">
           {DAY_NAMES.map((day, i) => {
@@ -686,51 +686,51 @@ export default function RelatoriosPage() {
               <div key={day} className="flex-1 flex flex-col items-center gap-1">
                 <div className="w-full flex flex-col justify-end" style={{ height: "56px" }}>
                   <div
-                    className={cn("w-full rounded-t-lg transition-all", isTop ? "bg-brand-primary" : "bg-brand-primary/20")}
+                    className={cn("w-full rounded-t-lg transition-all", isTop ? "bg-[#7C5CBF]" : "bg-[#7C5CBF]/20")}
                     style={{ height: Math.max(pct, count > 0 ? 8 : 0) + "%" }}
                   />
                 </div>
-                <span className={cn("text-[9px] font-black uppercase", isTop ? "text-brand-primary" : "text-brand-text-sub opacity-50")}>{day}</span>
-                {count > 0 && <span className="text-[8px] font-bold text-brand-text-sub opacity-40">{count}</span>}
+                <span className={cn("text-[9px] font-black uppercase", isTop ? "text-[#7C5CBF]" : "text-slate-500 opacity-50")}>{day}</span>
+                {count > 0 && <span className="text-[8px] font-bold text-slate-500 opacity-40">{count}</span>}
               </div>
             );
           })}
           {topHour && (
-            <div className="ml-4 pl-4 border-l border-brand-accent/10 flex flex-col justify-center gap-1 shrink-0">
-              <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest">Pico de hora</p>
-              <p className="text-lg font-black text-brand-primary">{topHour.hour}</p>
-              <p className="text-[10px] font-bold text-brand-text-sub opacity-60">{topHour.count} agend.</p>
+            <div className="ml-4 pl-4 border-l border-slate-100 flex flex-col justify-center gap-1 shrink-0">
+              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Pico de hora</p>
+              <p className="text-lg font-black text-[#7C5CBF]">{topHour.hour}</p>
+              <p className="text-[10px] font-bold text-slate-500 opacity-60">{topHour.count} agend.</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Ranking de servicos */}
-      <div className="bg-white border border-brand-accent/10 rounded-2xl p-6 shadow-sm mb-8">
+      <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm mb-8">
         <SectionTitle icon={Scissors} title="Ranking de Servicos" desc={"Performance detalhada - " + PERIOD_LABELS[activeFilter]} />
         {serviceRanking.length === 0 ? (
-          <p className="text-sm font-bold text-brand-text-sub opacity-40 text-center py-8">Sem atendimentos no periodo.</p>
+          <p className="text-sm font-bold text-slate-500 opacity-40 text-center py-8">Sem atendimentos no periodo.</p>
         ) : (
           <>
             <Table>
               <TableHeader>
-                <TableRow className="border-brand-accent/10">
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub">#</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub">Servico</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub text-right">Concluidos</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub text-right">Receita</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub text-right">Ticket Medio</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub text-right">Cancelamentos</TableHead>
+                <TableRow className="border-slate-100">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">#</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Servico</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Concluidos</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Receita</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Ticket Medio</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Cancelamentos</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {(showAllServices ? serviceRanking : serviceRanking.slice(0, 5)).map((s, i) => (
-                  <TableRow key={s.name} className="border-brand-accent/5 hover:bg-brand-background/50">
-                    <TableCell className="text-[11px] font-black text-brand-text-sub w-8">{i + 1}</TableCell>
-                    <TableCell className="text-sm font-bold text-brand-text-main">{s.name}</TableCell>
-                    <TableCell className="text-sm font-black text-brand-text-main text-right">{s.count}</TableCell>
-                    <TableCell className="text-sm font-bold text-brand-text-main text-right">{toCurrency(s.revenue)}</TableCell>
-                    <TableCell className="text-sm font-bold text-brand-text-sub text-right">{toCurrency(s.ticket)}</TableCell>
+                  <TableRow key={s.name} className="border-brand-accent/5 hover:bg-slate-50/50">
+                    <TableCell className="text-[11px] font-black text-slate-500 w-8">{i + 1}</TableCell>
+                    <TableCell className="text-sm font-bold text-slate-800">{s.name}</TableCell>
+                    <TableCell className="text-sm font-black text-slate-800 text-right">{s.count}</TableCell>
+                    <TableCell className="text-sm font-bold text-slate-800 text-right">{toCurrency(s.revenue)}</TableCell>
+                    <TableCell className="text-sm font-bold text-slate-500 text-right">{toCurrency(s.ticket)}</TableCell>
                     <TableCell className="text-right">
                       <span className={cn("text-[11px] font-black px-2 py-0.5 rounded-full",
                         s.cancelRate > 20 ? "bg-red-100 text-red-600" :
@@ -746,7 +746,7 @@ export default function RelatoriosPage() {
             </Table>
             {serviceRanking.length > 5 && (
               <button onClick={() => setShowAllServices((v) => !v)}
-                className="mt-3 w-full flex items-center justify-center gap-1 text-[11px] font-bold text-brand-primary hover:underline">
+                className="mt-3 w-full flex items-center justify-center gap-1 text-[11px] font-bold text-[#7C5CBF] hover:underline">
                 {showAllServices ? <><ChevronUp size={12} /> Ver menos</> : <><ChevronDown size={12} /> Ver todos ({serviceRanking.length})</>}
               </button>
             )}
@@ -756,7 +756,7 @@ export default function RelatoriosPage() {
 
       {/* Insights */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <div className={cn("rounded-2xl border p-5", inactiveClients.length > 0 ? "border-amber-200 bg-amber-50" : "border-brand-accent/10 bg-white")}>
+        <div className={cn("rounded-2xl border p-5", inactiveClients.length > 0 ? "border-amber-200 bg-amber-50" : "border-slate-100 bg-white")}>
           <SectionTitle icon={UserX} title="Clientes Inativos" desc="Sem visita ha 60+ dias" />
           {inactiveClients.length === 0 ? (
             <p className="text-sm font-bold text-emerald-600">Nenhum cliente inativo - otimo!</p>
@@ -769,7 +769,7 @@ export default function RelatoriosPage() {
                 const dias = last ? differenceInDays(now, ensureDate(last.appointmentDate)) : null;
                 return (
                   <div key={c.id} className="flex items-center justify-between">
-                    <p className="text-sm font-bold text-brand-text-main">{c.name}</p>
+                    <p className="text-sm font-bold text-slate-800">{c.name}</p>
                     <span className="text-[10px] font-black text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
                       {dias ? dias + "d atras" : "-"}
                     </span>
@@ -782,7 +782,7 @@ export default function RelatoriosPage() {
             </div>
           )}
         </div>
-        <div className="rounded-2xl border border-brand-accent/10 bg-white p-5">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5">
           <SectionTitle icon={Zap} title="Resumo de Saude" desc="Indicadores do negocio" />
           <div className="space-y-3">
             {[
@@ -792,7 +792,7 @@ export default function RelatoriosPage() {
               { label: "Clientes inativos", value: String(inactiveClients.length), ok: inactiveClients.length === 0 },
             ].map((item) => (
               <div key={item.label} className="flex items-center justify-between">
-                <p className="text-sm font-bold text-brand-text-sub">{item.label}</p>
+                <p className="text-sm font-bold text-slate-500">{item.label}</p>
                 <span className={cn("text-sm font-black", item.ok ? "text-emerald-600" : "text-amber-600")}>{item.value}</span>
               </div>
             ))}
@@ -801,7 +801,7 @@ export default function RelatoriosPage() {
       </div>
 
       {/* Clientes 360 */}
-      <div className="bg-white border border-brand-accent/10 rounded-2xl p-6 shadow-sm mb-8">
+      <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm mb-8">
         <SectionTitle
           icon={UsersRound}
           title="Clientes 360"
@@ -812,7 +812,7 @@ export default function RelatoriosPage() {
                 onClick={() => { setClientSearch(""); setClientStatusFilter("todos"); setClientServiceFilter("todos"); setClientDateMode("last_visit"); setClientStartDate(""); setClientEndDate(""); }}>
                 Limpar
               </Button>
-              <Button size="sm" className="rounded-xl font-bold text-[11px] gap-1.5 bg-brand-primary text-white hover:opacity-90"
+              <Button size="sm" className="rounded-xl font-bold text-[11px] gap-1.5 bg-[#7C5CBF] text-white hover:opacity-90"
                 onClick={exportClients}>
                 <Download size={12} /> Exportar
               </Button>
@@ -822,22 +822,22 @@ export default function RelatoriosPage() {
 
         <div className="flex gap-2 mb-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-text-sub opacity-40" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 opacity-40" size={16} />
             <Input value={clientSearch} onChange={(e) => setClientSearch(e.target.value)}
               placeholder="Nome, telefone ou e-mail"
-              className="pl-9 h-10 rounded-xl bg-brand-background/50 text-sm" />
+              className="pl-9 h-10 rounded-xl bg-slate-50/50 text-sm" />
           </div>
           <Button variant="outline" size="sm"
             onClick={() => setClientFiltersOpen(!clientFiltersOpen)}
             className={cn(
               "h-10 px-3 rounded-xl border font-bold text-[11px] gap-1.5 transition-colors",
-              clientFiltersOpen ? "border-brand-primary bg-brand-primary/5 text-brand-primary" : "border-brand-accent/20 text-brand-text-sub"
+              clientFiltersOpen ? "border-[#9D7FD4] bg-[#7C5CBF]/5 text-[#7C5CBF]" : "border-[#DDD5F5] text-slate-500"
             )}>
             Filtros {clientFiltersOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </Button>
         </div>
         {clientFiltersOpen && (
-          <div className="space-y-3 mb-4 p-3 rounded-2xl border border-brand-accent/10 bg-brand-background/30">
+          <div className="space-y-3 mb-4 p-3 rounded-2xl border border-slate-100 bg-slate-50/30">
             <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
               {[
                 { val: clientStatusFilter, set: setClientStatusFilter as (v: string) => void, opts: [["todos","Todos"],["ativos","Ativos"],["inativos","Inativos"]] },
@@ -846,7 +846,7 @@ export default function RelatoriosPage() {
               ].map((sel, i) => (
                 <select key={i} value={sel.val}
                   onChange={(e) => sel.set(e.target.value)}
-                  className="h-10 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-brand-text-main outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10">
+                  className="h-10 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-2 focus:ring-brand-primary/10">
                   {sel.opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
               ))}
@@ -858,9 +858,9 @@ export default function RelatoriosPage() {
                 { label: "Filtrados", value: filteredClientRows.length },
                 { label: "Receita estimada", value: toCurrency(filteredRev) },
               ].map((m) => (
-                <div key={m.label} className="rounded-xl bg-brand-background/50 border border-brand-accent/10 px-4 py-2 flex flex-col justify-center">
-                  <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest">{m.label}</p>
-                  <p className="text-sm font-black text-brand-text-main">{m.value}</p>
+                <div key={m.label} className="rounded-xl bg-slate-50/50 border border-slate-100 px-4 py-2 flex flex-col justify-center">
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{m.label}</p>
+                  <p className="text-sm font-black text-slate-800">{m.value}</p>
                 </div>
               ))}
             </div>
@@ -874,22 +874,22 @@ export default function RelatoriosPage() {
             { label: "Receita total", value: toCurrency(filteredRev) },
             { label: "Ticket medio",  value: toCurrency(filteredTicket) },
           ].map((m) => (
-            <div key={m.label} className="rounded-xl border border-brand-accent/10 bg-brand-background/30 p-3">
-              <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest mb-1">{m.label}</p>
-              <p className="text-base font-black text-brand-text-main">{m.value}</p>
+            <div key={m.label} className="rounded-xl border border-slate-100 bg-slate-50/30 p-3">
+              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{m.label}</p>
+              <p className="text-base font-black text-slate-800">{m.value}</p>
             </div>
           ))}
         </div>
 
         {filteredClientRows.length === 0 ? (
-          <p className="text-sm font-bold text-brand-text-sub opacity-40 text-center py-10">Nenhum cliente encontrado.</p>
+          <p className="text-sm font-bold text-slate-500 opacity-40 text-center py-10">Nenhum cliente encontrado.</p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-brand-accent/10">
+          <div className="overflow-x-auto rounded-xl border border-slate-100">
             <Table>
               <TableHeader>
-                <TableRow className="border-brand-accent/10 bg-brand-background/30">
+                <TableRow className="border-slate-100 bg-slate-50/30">
                   {["Cliente","Ultimo atendimento","Ultimo servico","Concluidos","Receita","Intervalo medio","Status"].map((h) => (
-                    <TableHead key={h} className="text-[9px] font-black uppercase tracking-widest text-brand-text-sub whitespace-nowrap">{h}</TableHead>
+                    <TableHead key={h} className="text-[9px] font-black uppercase tracking-widest text-slate-500 whitespace-nowrap">{h}</TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
@@ -898,21 +898,21 @@ export default function RelatoriosPage() {
                   const diasSemVisita = r.lastCompletedDate ? differenceInDays(now, r.lastCompletedDate) : null;
                   const inativo = diasSemVisita !== null && diasSemVisita > 60;
                   return (
-                    <TableRow key={r.client.id} className="border-brand-accent/5 hover:bg-brand-background/40">
+                    <TableRow key={r.client.id} className="border-brand-accent/5 hover:bg-slate-50/40">
                       <TableCell>
                         <div>
-                          <p className="text-sm font-bold text-brand-text-main leading-tight">{r.client.name}</p>
-                          <p className="text-[10px] font-bold text-brand-text-sub opacity-50">{r.client.phone ?? r.client.email ?? "-"}</p>
+                          <p className="text-sm font-bold text-slate-800 leading-tight">{r.client.name}</p>
+                          <p className="text-[10px] font-bold text-slate-500 opacity-50">{r.client.phone ?? r.client.email ?? "-"}</p>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm font-bold text-brand-text-sub whitespace-nowrap">
+                      <TableCell className="text-sm font-bold text-slate-500 whitespace-nowrap">
                         {r.lastCompletedDate ? format(r.lastCompletedDate, "dd/MM/yyyy") : "-"}
-                        {diasSemVisita !== null && <span className={cn("ml-1 text-[10px] font-black", inativo ? "text-amber-500" : "text-brand-text-sub opacity-40")}>{diasSemVisita}d</span>}
+                        {diasSemVisita !== null && <span className={cn("ml-1 text-[10px] font-black", inativo ? "text-amber-500" : "text-slate-500 opacity-40")}>{diasSemVisita}d</span>}
                       </TableCell>
-                      <TableCell className="text-sm font-bold text-brand-text-main max-w-[140px] truncate">{r.lastServiceName}</TableCell>
-                      <TableCell className="text-sm font-black text-brand-text-main text-center">{r.completedCount}</TableCell>
-                      <TableCell className="text-sm font-bold text-brand-text-main whitespace-nowrap">{toCurrency(r.totalSpent)}</TableCell>
-                      <TableCell className="text-sm font-bold text-brand-text-sub text-center">
+                      <TableCell className="text-sm font-bold text-slate-800 max-w-[140px] truncate">{r.lastServiceName}</TableCell>
+                      <TableCell className="text-sm font-black text-slate-800 text-center">{r.completedCount}</TableCell>
+                      <TableCell className="text-sm font-bold text-slate-800 whitespace-nowrap">{toCurrency(r.totalSpent)}</TableCell>
+                      <TableCell className="text-sm font-bold text-slate-500 text-center">
                         {r.avgDaysBetweenVisits ? r.avgDaysBetweenVisits + "d" : "-"}
                       </TableCell>
                       <TableCell>
@@ -933,8 +933,8 @@ export default function RelatoriosPage() {
       </div>
 
       <footer className="flex items-center justify-center gap-2 pb-8 opacity-20">
-        <Scissors size={10} className="text-brand-primary" />
-        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-brand-primary">Tessy Nails - Relatorios</span>
+        <Scissors size={10} className="text-[#7C5CBF]" />
+        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#7C5CBF]">Tessy Nails - Relatorios</span>
       </footer>
     </PageShell>
   );

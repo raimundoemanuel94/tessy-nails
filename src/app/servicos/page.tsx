@@ -244,17 +244,17 @@ export default function ServicosPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center h-64 gap-4">
           <div className="relative">
-            <div className="h-12 w-12 rounded-full border-b-2 border-brand-primary animate-spin" />
+            <div className="h-12 w-12 rounded-full border-b-2 border-[#9D7FD4] animate-spin" />
           </div>
-          <p className="text-xs font-black text-brand-text-sub opacity-40 uppercase tracking-widest">Carregando serviços...</p>
+          <p className="text-xs font-black text-slate-500 opacity-40 uppercase tracking-widest">Carregando serviços...</p>
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white/40 rounded-[2.5rem] border border-brand-accent/10 backdrop-blur-2xl">
+        <div className="flex flex-col items-center justify-center py-20 bg-white/40 rounded-[2.5rem] border border-slate-100 backdrop-blur-2xl">
           <div className="h-20 w-20 rounded-3xl bg-brand-warning/10 flex items-center justify-center mb-6">
             <XCircle className="h-10 w-10 text-brand-warning" />
           </div>
-          <h2 className="text-xl font-black text-brand-text-main mb-2 uppercase tracking-tight">Erro ao carregar</h2>
-          <p className="text-sm font-bold text-brand-text-sub opacity-60 mb-8 max-w-md text-center">{error}</p>
+          <h2 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tight">Erro ao carregar</h2>
+          <p className="text-sm font-bold text-slate-500 opacity-60 mb-8 max-w-md text-center">{error}</p>
           <Button 
             onClick={loadData}
             className="bg-brand-warning/80 hover:bg-brand-warning text-white font-bold rounded-xl px-8 h-12 shadow-lg shadow-brand-warning/20 transition-all hover:-translate-y-0.5"
@@ -263,17 +263,17 @@ export default function ServicosPage() {
           </Button>
         </div>
       ) : services.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 bg-white/40 rounded-[2.5rem] border border-brand-accent/10 backdrop-blur-2xl">
+        <div className="flex flex-col items-center justify-center py-24 bg-white/40 rounded-[2.5rem] border border-slate-100 backdrop-blur-2xl">
           <div className="relative mb-8">
-            <div className="h-28 w-28 rounded-[2rem] bg-brand-soft/20 flex items-center justify-center border border-brand-accent/10 shadow-inner">
-              <Scissors className="h-12 w-12 text-brand-primary/40" />
+            <div className="h-28 w-28 rounded-[2rem] bg-[#EDE5FF]/20 flex items-center justify-center border border-slate-100 shadow-inner">
+              <Scissors className="h-12 w-12 text-[#7C5CBF]/40" />
             </div>
-            <div className="absolute -top-2 -right-2 h-8 w-8 rounded-xl bg-brand-primary flex items-center justify-center shadow-premium-xl border-2 border-white animate-bounce">
+            <div className="absolute -top-2 -right-2 h-8 w-8 rounded-xl bg-[#7C5CBF] flex items-center justify-center shadow-premium-xl border-2 border-white animate-bounce">
               <Plus className="h-4 w-4 text-white stroke-3" />
             </div>
           </div>
-          <h2 className="text-2xl font-black text-brand-text-main mb-3 uppercase tracking-tight">Nenhum serviço cadastrado</h2>
-          <p className="text-sm font-bold text-brand-text-sub mb-10 max-w-sm text-center opacity-60">
+          <h2 className="text-2xl font-black text-slate-800 mb-3 uppercase tracking-tight">Nenhum serviço cadastrado</h2>
+          <p className="text-sm font-bold text-slate-500 mb-10 max-w-sm text-center opacity-60">
             Sua lista está vazia. Comece cadastrando seus serviços para que seus clientes possam agendar e sua agenda cresça!
           </p>
           <Button 
@@ -318,15 +318,15 @@ export default function ServicosPage() {
           {/* Search & Filters */}
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <div className="relative flex-1 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-text-sub opacity-40 group-focus-within:text-brand-primary transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 opacity-40 group-focus-within:text-[#7C5CBF] transition-colors" />
               <Input
                 placeholder="Buscar por nome, descrição ou categoria..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 rounded-2xl border-brand-accent/10 bg-white/50 backdrop-blur-sm text-sm font-bold shadow-inner"
+                className="pl-12 h-12 rounded-2xl border-slate-100 bg-white/50 backdrop-blur-sm text-sm font-bold shadow-inner"
               />
             </div>
-            <div className="flex items-center gap-1.5 bg-white/50 backdrop-blur-sm border border-brand-accent/10 rounded-2xl p-1.5">
+            <div className="flex items-center gap-1.5 bg-white/50 backdrop-blur-sm border border-slate-100 rounded-2xl p-1.5">
               {(['all', 'active', 'inactive'] as const).map((filter) => (
                 <Button
                   key={filter}
@@ -336,8 +336,8 @@ export default function ServicosPage() {
                   className={cn(
                     "h-9 px-4 text-xs font-black uppercase tracking-wider rounded-xl transition-all",
                     activeFilter === filter
-                      ? "bg-brand-primary hover:opacity-90 text-white shadow-premium"
-                      : "text-brand-text-sub opacity-60 hover:opacity-100"
+                      ? "bg-[#7C5CBF] hover:opacity-90 text-white shadow-premium"
+                      : "text-slate-500 opacity-60 hover:opacity-100"
                   )}
                 >
                   {filter === 'all' ? `Todos` : filter === 'active' ? `Ativos` : `Inativos`}
@@ -345,7 +345,7 @@ export default function ServicosPage() {
               ))}
             </div>
             {/* Toggle card/tabela */}
-            <div className="flex items-center gap-1 bg-white/50 backdrop-blur-sm border border-brand-accent/10 rounded-2xl p-1.5">
+            <div className="flex items-center gap-1 bg-white/50 backdrop-blur-sm border border-slate-100 rounded-2xl p-1.5">
               <Button
                 variant="ghost"
                 size="sm"
@@ -353,8 +353,8 @@ export default function ServicosPage() {
                 className={cn(
                   "h-9 w-9 rounded-xl p-0 transition-all",
                   viewMode === 'card'
-                    ? "bg-brand-primary text-white shadow-premium"
-                    : "text-brand-text-sub opacity-60 hover:opacity-100"
+                    ? "bg-[#7C5CBF] text-white shadow-premium"
+                    : "text-slate-500 opacity-60 hover:opacity-100"
                 )}
                 title="Visualização em cards"
               >
@@ -367,8 +367,8 @@ export default function ServicosPage() {
                 className={cn(
                   "h-9 w-9 rounded-xl p-0 transition-all",
                   viewMode === 'table'
-                    ? "bg-brand-primary text-white shadow-premium"
-                    : "text-brand-text-sub opacity-60 hover:opacity-100"
+                    ? "bg-[#7C5CBF] text-white shadow-premium"
+                    : "text-slate-500 opacity-60 hover:opacity-100"
                 )}
                 title="Visualização em tabela"
               >
@@ -380,24 +380,24 @@ export default function ServicosPage() {
           {/* Services Grid / Table */}
           {filteredServices.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
-              <div className="h-16 w-16 rounded-2xl bg-brand-soft/20 flex items-center justify-center mb-4">
-                <Search className="h-8 w-8 text-brand-text-sub opacity-30" />
+              <div className="h-16 w-16 rounded-2xl bg-[#EDE5FF]/20 flex items-center justify-center mb-4">
+                <Search className="h-8 w-8 text-slate-500 opacity-30" />
               </div>
-              <p className="text-sm font-black text-brand-text-sub opacity-60">Nenhum serviço encontrado</p>
-              <p className="text-xs text-brand-text-sub opacity-40 mt-1">Tente ajustar os filtros ou a busca</p>
+              <p className="text-sm font-black text-slate-500 opacity-60">Nenhum serviço encontrado</p>
+              <p className="text-xs text-slate-500 opacity-40 mt-1">Tente ajustar os filtros ou a busca</p>
             </div>
           ) : viewMode === 'table' ? (
-            <div className="overflow-x-auto rounded-2xl border border-brand-accent/10">
+            <div className="overflow-x-auto rounded-2xl border border-slate-100">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-brand-soft/20 border-b border-brand-accent/10">
-                    <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Nome</th>
-                    <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Categoria</th>
-                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Preço</th>
-                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Duração</th>
-                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Intervalo</th>
-                    <th className="text-center px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Status</th>
-                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-60">Ações</th>
+                  <tr className="bg-[#EDE5FF]/20 border-b border-slate-100">
+                    <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-60">Nome</th>
+                    <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-60">Categoria</th>
+                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-60">Preço</th>
+                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-60">Duração</th>
+                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-60">Intervalo</th>
+                    <th className="text-center px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-60">Status</th>
+                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-60">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -405,37 +405,37 @@ export default function ServicosPage() {
                     <tr
                       key={service.id}
                       className={cn(
-                        "border-b border-brand-accent/5 last:border-0 transition-colors hover:bg-brand-soft/10",
-                        idx % 2 === 0 ? "bg-white" : "bg-brand-soft/5",
+                        "border-b border-brand-accent/5 last:border-0 transition-colors hover:bg-[#EDE5FF]/10",
+                        idx % 2 === 0 ? "bg-white" : "bg-[#EDE5FF]/5",
                         service.isActive === false && "opacity-60"
                       )}
                     >
-                      <td className="px-4 py-3 font-bold text-brand-text-main">
+                      <td className="px-4 py-3 font-bold text-slate-800">
                         <div className="flex items-center gap-3">
                           <div className={cn(
                             "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
-                            service.isActive !== false ? "bg-brand-primary text-white" : "bg-brand-soft/20 text-brand-text-sub"
+                            service.isActive !== false ? "bg-[#7C5CBF] text-white" : "bg-[#EDE5FF]/20 text-slate-500"
                           )}>
                             <Scissors size={14} strokeWidth={2.5} />
                           </div>
                           <div>
-                            <p className="font-bold text-brand-text-main text-sm">{service.name}</p>
+                            <p className="font-bold text-slate-800 text-sm">{service.name}</p>
                             {service.description && (
-                              <p className="text-[11px] text-brand-text-sub opacity-50 truncate max-w-[200px]">{service.description}</p>
+                              <p className="text-[11px] text-slate-500 opacity-50 truncate max-w-[200px]">{service.description}</p>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-brand-text-sub text-xs font-semibold">
+                      <td className="px-4 py-3 text-slate-500 text-xs font-semibold">
                         {service.category || <span className="opacity-30">—</span>}
                       </td>
-                      <td className="px-4 py-3 text-right font-black text-brand-text-main tabular-nums">
+                      <td className="px-4 py-3 text-right font-black text-slate-800 tabular-nums">
                         R$ {service.price.toFixed(2)}
                       </td>
-                      <td className="px-4 py-3 text-right font-bold text-brand-text-sub tabular-nums">
+                      <td className="px-4 py-3 text-right font-bold text-slate-500 tabular-nums">
                         {formatDuration(service.durationMinutes)}
                       </td>
-                      <td className="px-4 py-3 text-right font-bold text-brand-text-sub tabular-nums">
+                      <td className="px-4 py-3 text-right font-bold text-slate-500 tabular-nums">
                         {service.bufferMinutes ? formatDuration(service.bufferMinutes) : "0min"}
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -451,7 +451,7 @@ export default function ServicosPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg hover:bg-brand-primary/10 hover:text-brand-primary" onClick={() => openEdit(service)}>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg hover:bg-[#7C5CBF]/10 hover:text-[#7C5CBF]" onClick={() => openEdit(service)}>
                             <Edit2 size={14} />
                           </Button>
                           <Button
@@ -511,19 +511,19 @@ export default function ServicosPage() {
                         <div className={cn(
                           "h-12 w-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 shadow-sm",
                           service.isActive !== false
-                            ? "bg-brand-primary text-white"
-                            : "bg-brand-soft/20 text-brand-text-sub"
+                            ? "bg-[#7C5CBF] text-white"
+                            : "bg-[#EDE5FF]/20 text-slate-500"
                         )}>
                           <Scissors className="h-5 w-5" strokeWidth={3} />
                         </div>
                         <div className="min-w-0 pt-1">
-                          <CardTitle className="text-[1.05rem] font-bold text-brand-text-main tracking-tight line-clamp-2 leading-snug group-hover:text-brand-primary transition-colors pr-2">
+                          <CardTitle className="text-[1.05rem] font-bold text-slate-800 tracking-tight line-clamp-2 leading-snug group-hover:text-[#7C5CBF] transition-colors pr-2">
                             {service.name}
                           </CardTitle>
                           {service.category && (
                             <div className="flex items-center gap-1.5 mt-1 opacity-40">
-                              <Tag className="h-3 w-3 text-brand-text-sub" />
-                              <span className="text-[10px] font-black text-brand-text-sub uppercase tracking-[0.2em]">
+                              <Tag className="h-3 w-3 text-slate-500" />
+                              <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
                                 {service.category}
                               </span>
                             </div>
@@ -542,31 +542,31 @@ export default function ServicosPage() {
 
                   <CardContent className="pb-4 relative z-10">
                     {service.description && (
-                      <p className="text-xs text-brand-text-sub font-bold leading-relaxed mb-6 line-clamp-2 opacity-70">
+                      <p className="text-xs text-slate-500 font-bold leading-relaxed mb-6 line-clamp-2 opacity-70">
                         {service.description}
                       </p>
                     )}
                     
                     {/* Price & Duration Row */}
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-2xl bg-brand-soft/10 border border-brand-accent/5">
-                        <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center text-brand-primary shadow-sm">
+                      <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#EDE5FF]/10 border border-brand-accent/5">
+                        <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center text-[#7C5CBF] shadow-sm">
                           <DollarSign className="h-4 w-4" strokeWidth={3} />
                         </div>
                         <div>
-                          <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest opacity-40">Preço</p>
-                          <p className="text-base font-black text-brand-text-main tracking-tight tabular-nums">
+                          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-40">Preço</p>
+                          <p className="text-base font-black text-slate-800 tracking-tight tabular-nums">
                             R$ {service.price.toFixed(0)}
                           </p>
                         </div>
                       </div>
-                      <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-2xl bg-brand-soft/10 border border-brand-accent/5">
-                        <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center text-brand-secondary shadow-sm">
+                      <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#EDE5FF]/10 border border-brand-accent/5">
+                        <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center text-[#9D7FD4] shadow-sm">
                           <Clock className="h-4 w-4" strokeWidth={3} />
                         </div>
                         <div>
-                          <p className="text-[9px] font-black text-brand-text-sub uppercase tracking-widest opacity-40">Duração</p>
-                          <p className="text-base font-black text-brand-text-main tracking-tight">
+                          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-40">Duração</p>
+                          <p className="text-base font-black text-slate-800 tracking-tight">
                             {formatDuration(service.durationMinutes)}
                           </p>
                         </div>
@@ -579,7 +579,7 @@ export default function ServicosPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1 h-11 rounded-xl text-xs font-black uppercase tracking-widest border-brand-accent/20 text-brand-text-sub hover:bg-brand-primary/5 hover:text-brand-primary transition-all shadow-none"
+                        className="flex-1 h-11 rounded-xl text-xs font-black uppercase tracking-widest border-[#DDD5F5] text-slate-500 hover:bg-[#7C5CBF]/5 hover:text-[#7C5CBF] transition-all shadow-none"
                         onClick={() => openEdit(service)}
                       >
                         <Edit2 className="h-3.5 w-3.5 mr-2" />
@@ -589,9 +589,9 @@ export default function ServicosPage() {
                         variant="outline"
                         size="sm"
                         className={cn(
-                          "h-11 rounded-xl text-[10px] font-black uppercase tracking-widest border-brand-accent/20 transition-all shadow-none",
+                          "h-11 rounded-xl text-[10px] font-black uppercase tracking-widest border-[#DDD5F5] transition-all shadow-none",
                           service.isActive !== false
-                            ? "hover:bg-brand-text-sub/5 hover:text-brand-text-sub"
+                            ? "hover:bg-brand-text-sub/5 hover:text-slate-500"
                             : "hover:bg-brand-success/5 hover:text-brand-success"
                         )}
                         disabled={!!actionLoading}
@@ -639,21 +639,21 @@ export default function ServicosPage() {
 
       {/* Dialog Novo / Editar Serviço */}
       <Dialog open={isFormOpen} onOpenChange={(open) => !open && closeForm()}>
-        <DialogContent className="sm:max-w-[480px] rounded-3xl border-brand-accent/10 bg-white p-0 overflow-hidden shadow-premium-xl">
+        <DialogContent className="sm:max-w-[480px] rounded-3xl border-slate-100 bg-white p-0 overflow-hidden shadow-premium-xl">
           <DialogHeader className="px-8 pt-8 pb-6 border-b border-brand-accent/5">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-brand-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="h-12 w-12 rounded-xl bg-[#7C5CBF]/10 flex items-center justify-center flex-shrink-0">
                 {editingService ? (
-                  <Edit2 className="h-6 w-6 text-brand-primary" />
+                  <Edit2 className="h-6 w-6 text-[#7C5CBF]" />
                 ) : (
-                  <Plus className="h-6 w-6 text-brand-primary" strokeWidth={3} />
+                  <Plus className="h-6 w-6 text-[#7C5CBF]" strokeWidth={3} />
                 )}
               </div>
               <div>
-                <DialogTitle className="text-xl font-black text-brand-text-main tracking-tight">
+                <DialogTitle className="text-xl font-black text-slate-800 tracking-tight">
                   {editingService ? "Editar serviço" : "Novo serviço"}
                 </DialogTitle>
-                <p className="text-xs font-bold text-brand-text-sub opacity-50 mt-1">
+                <p className="text-xs font-bold text-slate-500 opacity-50 mt-1">
                   {editingService ? "Atualize as informações do serviço" : "Preencha os dados para cadastrar"}
                 </p>
               </div>
@@ -661,7 +661,7 @@ export default function ServicosPage() {
           </DialogHeader>
           <form onSubmit={handleFormSubmit} className="p-8 space-y-6">
             <div className="space-y-2.5">
-              <Label htmlFor="form-name" className="text-[10px] font-black text-brand-text-sub uppercase tracking-[2px] opacity-50 ml-1">
+              <Label htmlFor="form-name" className="text-[10px] font-black text-slate-500 uppercase tracking-[2px] opacity-50 ml-1">
                 Nome do serviço *
               </Label>
               <Input
@@ -670,11 +670,11 @@ export default function ServicosPage() {
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="Ex: Manicure completa"
                 required
-                className="h-12 rounded-2xl border-brand-accent/10 bg-brand-soft/5 focus-visible:ring-brand-primary/20 font-bold"
+                className="h-12 rounded-2xl border-slate-100 bg-[#EDE5FF]/5 focus-visible:ring-brand-primary/20 font-bold"
               />
             </div>
             <div className="space-y-2.5">
-              <Label htmlFor="form-desc" className="text-[10px] font-black text-brand-text-sub uppercase tracking-[2px] opacity-50 ml-1">
+              <Label htmlFor="form-desc" className="text-[10px] font-black text-slate-500 uppercase tracking-[2px] opacity-50 ml-1">
                 Descrição
               </Label>
               <Textarea
@@ -683,12 +683,12 @@ export default function ServicosPage() {
                 onChange={(e) => setFormDescription(e.target.value)}
                 placeholder="Descreva o que inclui este serviço..."
                 rows={3}
-                className="resize-none rounded-2xl border-brand-accent/10 bg-brand-soft/5 focus-visible:ring-brand-primary/20 font-bold"
+                className="resize-none rounded-2xl border-slate-100 bg-[#EDE5FF]/5 focus-visible:ring-brand-primary/20 font-bold"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2.5">
-                <Label htmlFor="form-duration" className="text-[10px] font-black text-brand-text-sub uppercase tracking-[2px] opacity-50 ml-1">
+                <Label htmlFor="form-duration" className="text-[10px] font-black text-slate-500 uppercase tracking-[2px] opacity-50 ml-1">
                   Duração (min) *
                 </Label>
                 <Input
@@ -697,11 +697,11 @@ export default function ServicosPage() {
                   min={1}
                   value={formDuration}
                   onChange={(e) => setFormDuration(Number(e.target.value) || 0)}
-                  className="h-12 rounded-2xl border-brand-accent/10 bg-brand-soft/5 focus-visible:ring-brand-primary/20 font-black tabular-nums"
+                  className="h-12 rounded-2xl border-slate-100 bg-[#EDE5FF]/5 focus-visible:ring-brand-primary/20 font-black tabular-nums"
                 />
               </div>
               <div className="space-y-2.5">
-                <Label htmlFor="form-buffer" className="text-[10px] font-black text-brand-text-sub uppercase tracking-[2px] opacity-50 ml-1">
+                <Label htmlFor="form-buffer" className="text-[10px] font-black text-slate-500 uppercase tracking-[2px] opacity-50 ml-1">
                   Intervalo pós (min)
                 </Label>
                 <Input
@@ -710,14 +710,14 @@ export default function ServicosPage() {
                   min={0}
                   value={formBuffer}
                   onChange={(e) => setFormBuffer(Number(e.target.value) || 0)}
-                  className="h-12 rounded-2xl border-brand-accent/10 bg-brand-soft/5 focus-visible:ring-brand-primary/20 font-black tabular-nums"
+                  className="h-12 rounded-2xl border-slate-100 bg-[#EDE5FF]/5 focus-visible:ring-brand-primary/20 font-black tabular-nums"
                   title="Tempo de preparo/limpeza após o serviço antes do próximo agendamento"
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2.5">
-                <Label htmlFor="form-price" className="text-[10px] font-black text-brand-text-sub uppercase tracking-[2px] opacity-50 ml-1">
+                <Label htmlFor="form-price" className="text-[10px] font-black text-slate-500 uppercase tracking-[2px] opacity-50 ml-1">
                   Preço (R$) *
                 </Label>
                 <Input
@@ -727,13 +727,13 @@ export default function ServicosPage() {
                   step={0.01}
                   value={formPrice}
                   onChange={(e) => setFormPrice(Number(e.target.value) || 0)}
-                  className="h-12 rounded-2xl border-brand-accent/10 bg-brand-soft/5 focus-visible:ring-brand-primary/20 font-black tabular-nums"
+                  className="h-12 rounded-2xl border-slate-100 bg-[#EDE5FF]/5 focus-visible:ring-brand-primary/20 font-black tabular-nums"
                 />
               </div>
               <div className="space-y-2.5" />
             </div>
             <div className="space-y-2.5">
-              <Label htmlFor="form-category" className="text-[10px] font-black text-brand-text-sub uppercase tracking-[2px] opacity-50 ml-1">
+              <Label htmlFor="form-category" className="text-[10px] font-black text-slate-500 uppercase tracking-[2px] opacity-50 ml-1">
                 Categoria
               </Label>
               <Input
@@ -741,19 +741,19 @@ export default function ServicosPage() {
                 value={formCategory}
                 onChange={(e) => setFormCategory(e.target.value)}
                 placeholder="Ex: Unhas, Estética, Spa..."
-                className="h-12 rounded-2xl border-brand-accent/10 bg-brand-soft/5 focus-visible:ring-brand-primary/20 font-bold"
+                className="h-12 rounded-2xl border-slate-100 bg-[#EDE5FF]/5 focus-visible:ring-brand-primary/20 font-bold"
               />
             </div>
             {editingService && (
-              <div className="flex items-center gap-4 p-4 rounded-2xl bg-brand-soft/5 border border-brand-accent/5">
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#EDE5FF]/5 border border-brand-accent/5">
                 <input
                   type="checkbox"
                   id="form-active"
                   checked={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.checked)}
-                  className="rounded-md border-brand-accent/20 text-brand-primary focus:ring-brand-primary/20 h-5 w-5 transition-all"
+                  className="rounded-md border-[#DDD5F5] text-[#7C5CBF] focus:ring-brand-primary/20 h-5 w-5 transition-all"
                 />
-                <Label htmlFor="form-active" className="cursor-pointer text-sm font-bold text-brand-text-main">
+                <Label htmlFor="form-active" className="cursor-pointer text-sm font-bold text-slate-800">
                   Serviço ativo e visível para clientes
                 </Label>
               </div>
@@ -763,14 +763,14 @@ export default function ServicosPage() {
                 type="button" 
                 variant="outline" 
                 onClick={closeForm}
-                className="rounded-xl px-6 h-12 text-xs font-black uppercase tracking-widest border-brand-accent/20 text-brand-text-sub hover:bg-brand-primary/5 shadow-none"
+                className="rounded-xl px-6 h-12 text-xs font-black uppercase tracking-widest border-[#DDD5F5] text-slate-500 hover:bg-[#7C5CBF]/5 shadow-none"
               >
                 Cancelar
               </Button>
               <Button 
                 type="submit" 
                 disabled={formLoading}
-                className="rounded-xl px-8 h-12 text-xs font-black uppercase tracking-widest bg-brand-primary hover:opacity-90 shadow-premium border-none"
+                className="rounded-xl px-8 h-12 text-xs font-black uppercase tracking-widest bg-[#7C5CBF] hover:opacity-90 shadow-premium border-none"
               >
                 {formLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : editingService ? "Salvar Alterações" : "Cadastrar Serviço"}
               </Button>

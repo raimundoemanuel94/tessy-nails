@@ -266,7 +266,7 @@ function AgendamentosContent() {
   };
 
   const sortableHeadClass =
-    "px-6 py-4 text-[10px] font-black uppercase text-brand-text-sub opacity-60 tracking-widest";
+    "px-6 py-4 text-[10px] font-black uppercase text-slate-500 opacity-60 tracking-widest";
 
   const formatCurrency = (value: number) =>
     `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -415,15 +415,15 @@ function AgendamentosContent() {
               </Button>
             }
           />
-          <DialogContent className="sm:max-w-[500px] rounded-3xl border-brand-accent/10 shadow-premium-xl bg-white p-0 overflow-hidden">
+          <DialogContent className="sm:max-w-[500px] rounded-3xl border-slate-100 shadow-premium-xl bg-white p-0 overflow-hidden">
             <DialogHeader className="px-8 pt-8 pb-6 border-b border-brand-accent/5">
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-brand-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Plus className="h-6 w-6 text-brand-primary" strokeWidth={3} />
+                <div className="h-12 w-12 rounded-xl bg-[#7C5CBF]/10 flex items-center justify-center flex-shrink-0">
+                  <Plus className="h-6 w-6 text-[#7C5CBF]" strokeWidth={3} />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl font-black text-brand-text-main tracking-tight uppercase">Novo Agendamento</DialogTitle>
-                  <p className="text-xs font-bold text-brand-text-sub opacity-50 mt-1">Cadastre um novo horário no sistema</p>
+                  <DialogTitle className="text-xl font-black text-slate-800 tracking-tight uppercase">Novo Agendamento</DialogTitle>
+                  <p className="text-xs font-bold text-slate-500 opacity-50 mt-1">Cadastre um novo horário no sistema</p>
                 </div>
               </div>
             </DialogHeader>
@@ -465,7 +465,7 @@ function AgendamentosContent() {
             value={stats.confirmed}
             icon={CheckCircle2}
             description={formatCurrency(stats.confirmedRevenue)}
-            variant="accent"
+            variant="primary"
           />
           
           <MetricCard
@@ -482,7 +482,7 @@ function AgendamentosContent() {
             icon={DollarSign}
             description={`Em aberto: ${formatCurrency(stats.pendingRevenue + stats.confirmedRevenue)}`}
             variant="primary"
-            className="bg-brand-primary/5 border-brand-primary/10"
+            className="bg-[#7C5CBF]/5 border-[#9D7FD4]/10"
           />
         </div>
         
@@ -497,12 +497,12 @@ function AgendamentosContent() {
             <div className="flex flex-col gap-6">
               {/* Search Input */}
               <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-sub opacity-40 group-focus-within:text-brand-primary transition-colors" size={20} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 opacity-40 group-focus-within:text-[#7C5CBF] transition-colors" size={20} />
                 <Input 
                   id="search-appointments"
                   name="search-appointments"
                   placeholder="Pesquisar por cliente ou serviço..." 
-                  className="pl-12 h-12 rounded-2xl border-brand-accent/10 bg-brand-soft/5 focus:ring-brand-primary/10 focus:border-brand-primary transition-all font-bold"
+                  className="pl-12 h-12 rounded-2xl border-slate-100 bg-[#EDE5FF]/5 focus:ring-brand-primary/10 focus:border-[#9D7FD4] transition-all font-bold"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -520,7 +520,7 @@ function AgendamentosContent() {
                       onClick={() => setActiveFilter(filter)}
                       className={cn(
                         "rounded-xl font-black text-[10px] uppercase tracking-wider px-4 h-9 transition-all",
-                        activeFilter === filter ? "bg-brand-primary text-white shadow-premium" : "text-brand-text-sub opacity-50 hover:opacity-100"
+                        activeFilter === filter ? "bg-[#7C5CBF] text-white shadow-premium" : "text-slate-500 opacity-50 hover:opacity-100"
                       )}
                     >
                       {filter === "all" ? "Todos" : 
@@ -532,49 +532,49 @@ function AgendamentosContent() {
                 </div>
                 
                 {/* Results Count */}
-                <div className="text-[10px] font-black uppercase tracking-widest text-brand-text-sub opacity-40">
-                  <span className="text-brand-primary">{sortedAppointments.length}</span> agendamentos encontrados
+                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-40">
+                  <span className="text-[#7C5CBF]">{sortedAppointments.length}</span> agendamentos encontrados
                 </div>
               </div>
             </div>
 
             {/* Enhanced Table */}
-            <div className="rounded-2xl border border-brand-soft overflow-hidden bg-brand-soft/5">
+            <div className="rounded-2xl border border-brand-soft overflow-hidden bg-[#EDE5FF]/5">
               {loading ? (
                 <div className="flex flex-col items-center justify-center p-20 gap-4">
-                  <Loader2 className="h-10 w-10 animate-spin text-brand-primary/30" />
-                  <p className="text-[10px] font-black text-brand-text-sub opacity-40 uppercase tracking-widest">Sincronizando...</p>
+                  <Loader2 className="h-10 w-10 animate-spin text-[#7C5CBF]/30" />
+                  <p className="text-[10px] font-black text-slate-500 opacity-40 uppercase tracking-widest">Sincronizando...</p>
                 </div>
               ) : (
                 <Table>
-                  <TableHeader className="bg-brand-soft/20">
+                  <TableHeader className="bg-[#EDE5FF]/20">
                     <TableRow className="hover:bg-transparent border-b border-brand-accent/5">
                       <TableHead className={sortableHeadClass}>
-                        <button type="button" onClick={() => toggleSort("datetime")} className="flex items-center gap-1.5 hover:text-brand-primary">
+                        <button type="button" onClick={() => toggleSort("datetime")} className="flex items-center gap-1.5 hover:text-[#7C5CBF]">
                           Data & Horario {renderSortIcon("datetime")}
                         </button>
                       </TableHead>
                       <TableHead className={sortableHeadClass}>
-                        <button type="button" onClick={() => toggleSort("client")} className="flex items-center gap-1.5 hover:text-brand-primary">
+                        <button type="button" onClick={() => toggleSort("client")} className="flex items-center gap-1.5 hover:text-[#7C5CBF]">
                           Cliente {renderSortIcon("client")}
                         </button>
                       </TableHead>
                       <TableHead className={sortableHeadClass}>
-                        <button type="button" onClick={() => toggleSort("service")} className="flex items-center gap-1.5 hover:text-brand-primary">
+                        <button type="button" onClick={() => toggleSort("service")} className="flex items-center gap-1.5 hover:text-[#7C5CBF]">
                           Servico {renderSortIcon("service")}
                         </button>
                       </TableHead>
                       <TableHead className={sortableHeadClass}>
-                        <button type="button" onClick={() => toggleSort("status")} className="flex items-center gap-1.5 hover:text-brand-primary">
+                        <button type="button" onClick={() => toggleSort("status")} className="flex items-center gap-1.5 hover:text-[#7C5CBF]">
                           Status {renderSortIcon("status")}
                         </button>
                       </TableHead>
-                      <TableHead className="px-6 py-4 text-right text-[10px] font-black uppercase text-brand-text-sub opacity-60 tracking-widest">
-                        <button type="button" onClick={() => toggleSort("price")} className="ml-auto flex items-center gap-1.5 hover:text-brand-primary">
+                      <TableHead className="px-6 py-4 text-right text-[10px] font-black uppercase text-slate-500 opacity-60 tracking-widest">
+                        <button type="button" onClick={() => toggleSort("price")} className="ml-auto flex items-center gap-1.5 hover:text-[#7C5CBF]">
                           Valor {renderSortIcon("price")}
                         </button>
                       </TableHead>
-                      <TableHead className="px-6 py-4 text-center text-[10px] font-black uppercase text-brand-text-sub opacity-50 tracking-widest">Ações</TableHead>
+                      <TableHead className="px-6 py-4 text-center text-[10px] font-black uppercase text-slate-500 opacity-50 tracking-widest">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -586,15 +586,15 @@ function AgendamentosContent() {
                         )}>
                           <TableCell className="px-6 py-5">
                             <div className="flex flex-col">
-                              <span className="text-sm font-black text-brand-text-main tabular-nums">{app.date}</span>
-                              <span className="text-[10px] font-black text-brand-text-sub opacity-50 uppercase tracking-tight">{app.time}</span>
+                              <span className="text-sm font-black text-slate-800 tabular-nums">{app.date}</span>
+                              <span className="text-[10px] font-black text-slate-500 opacity-50 uppercase tracking-tight">{app.time}</span>
                             </div>
                           </TableCell>
                           <TableCell className="px-6 py-5">
-                            <span className="font-bold text-brand-text-main text-sm">{app.client}</span>
+                            <span className="font-bold text-slate-800 text-sm">{app.client}</span>
                           </TableCell>
                           <TableCell className="px-6 py-5">
-                            <Badge variant="outline" className="bg-brand-primary/5 text-brand-primary border-brand-primary/10 text-[10px] font-black uppercase px-2 py-0">
+                            <Badge variant="outline" className="bg-[#7C5CBF]/5 text-[#7C5CBF] border-[#9D7FD4]/10 text-[10px] font-black uppercase px-2 py-0">
                               {app.service}
                             </Badge>
                           </TableCell>
@@ -612,7 +612,7 @@ function AgendamentosContent() {
                             </Badge>
                           </TableCell>
                           <TableCell className="px-6 py-5 text-right">
-                            <span className="text-sm font-black text-brand-text-main tabular-nums">{app.price}</span>
+                            <span className="text-sm font-black text-slate-800 tabular-nums">{app.price}</span>
                           </TableCell>
                           <TableCell className="px-6 py-4 text-center">
                             <DropdownMenu>
@@ -636,7 +636,7 @@ function AgendamentosContent() {
                                 <DropdownMenuItem className="rounded-lg font-bold text-xs text-warning" onClick={() => handleFalta(app.id)}>
                                   <CalendarX2 size={14} className="mr-2" /> Marcar Falta
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-lg font-bold text-xs text-brand-primary" onClick={() => handleCancelar(app.id)}>
+                                <DropdownMenuItem className="rounded-lg font-bold text-xs text-[#7C5CBF]" onClick={() => handleCancelar(app.id)}>
                                   <CalendarX2 size={14} className="mr-2" /> Cancelar
                                 </DropdownMenuItem>
                                 <DropdownMenuItem className="rounded-lg font-bold text-xs text-red-600" onClick={() => handleExcluir(app.id)}>
@@ -739,8 +739,8 @@ export default function AgendamentosPage() {
       fallback={
         <PageShell>
           <div className="flex flex-col items-center justify-center p-20 gap-4">
-            <Loader2 className="h-10 w-10 animate-spin text-brand-primary/30" />
-            <p className="text-[10px] font-black text-brand-text-sub opacity-40 uppercase tracking-widest">
+            <Loader2 className="h-10 w-10 animate-spin text-[#7C5CBF]/30" />
+            <p className="text-[10px] font-black text-slate-500 opacity-40 uppercase tracking-widest">
               Sincronizando...
             </p>
           </div>
