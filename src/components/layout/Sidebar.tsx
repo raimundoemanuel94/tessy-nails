@@ -59,22 +59,25 @@ export function Sidebar() {
               transition={{ duration:0.2 }}
               className="flex items-center gap-2.5 min-w-0"
             >
-              <div className="h-8 w-8 rounded-xl shrink-0 flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg,#7C5CBF,#9D7FD4)" }}>
-                <Sparkles size={15} className="text-white" />
+              <div className="h-9 w-9 rounded-xl shrink-0 overflow-hidden border border-[#9D7FD4]/20 bg-[#2A2044]">
+                <img src="/brand/icon.svg" alt="TN" className="w-full h-full object-cover p-0.5" />
               </div>
               <div>
-                <p className="text-[13px] font-black text-white leading-none">Tessy Nails</p>
-                <p className="text-[9px] text-white/30 font-bold uppercase tracking-widest">Studio</p>
+                <p className="text-[14px] text-white leading-none"
+                  style={{ fontFamily:"Georgia,serif", fontStyle:"italic", fontWeight:700 }}>
+                  Tessy Nails
+                </p>
+                <p className="text-[8px] text-white/30 font-bold uppercase tracking-[0.2em] mt-0.5">
+                  Manicure & Pedicure
+                </p>
               </div>
             </motion.div>
           ) : (
             <motion.div key="logo-icon"
               initial={{ opacity:0, scale:0.8 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0, scale:0.8 }}
-              className="mx-auto h-9 w-9 rounded-xl flex items-center justify-center"
-              style={{ background:"linear-gradient(135deg,#7C5CBF,#9D7FD4)" }}
+              className="mx-auto h-10 w-10 rounded-xl overflow-hidden border border-[#9D7FD4]/20 bg-[#2A2044]"
             >
-              <Sparkles size={16} className="text-white" />
+              <img src="/brand/icon.svg" alt="TN" className="w-full h-full object-cover p-0.5" />
             </motion.div>
           )}
         </AnimatePresence>

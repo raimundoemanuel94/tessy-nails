@@ -78,11 +78,13 @@ export function Header() {
             <SheetContent side="left" className="w-72 p-0 border-r border-slate-100"
               style={{ background: "#0F172A" }}>
               <SheetHeader className="p-5 h-16 border-b border-white/5 flex flex-row items-center gap-3">
-                <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background:"linear-gradient(135deg,#7C5CBF,#9D7FD4)" }}>
-                  <Sparkles size={14} className="text-white" />
+                <div className="h-9 w-9 rounded-xl shrink-0 overflow-hidden bg-[#2A2044] border border-[#9D7FD4]/20">
+                  <img src="/brand/icon.svg" alt="TN" className="w-full h-full object-cover p-0.5" />
                 </div>
-                <SheetTitle className="text-[14px] font-black text-white">Tessy Nails</SheetTitle>
+                <SheetTitle className="text-[14px] text-white"
+                  style={{ fontFamily:"Georgia,serif", fontStyle:"italic", fontWeight:700 }}>
+                  Tessy Nails
+                </SheetTitle>
               </SheetHeader>
               <nav className="p-3 space-y-1 mt-2">
                 {NAV_MOBILE.map(item => {

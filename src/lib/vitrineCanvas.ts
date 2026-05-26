@@ -1,50 +1,53 @@
 /**
- * Vitrine do Dia — Canvas Generator v2
- * Tamanho: 1080×1920 (Stories Instagram/WhatsApp)
+ * Vitrine do Dia — Canvas v3
+ * 1080×1920 (Stories) — layout adaptativo sem espaço vazio
  */
 
 export interface VitrineSlot { time: string; occupied: boolean; selected: boolean; }
 export type VitrineTemplate = "dark" | "lavanda" | "minimal";
 
 interface Theme {
-  bg: string; bg2: string;
-  title: string; date: string;
+  bg: string; glowColor: string;
+  title: string; dateColor: string;
   pillBg: string; pillBorder: string; pillText: string;
   pillOcupBg: string; pillOcupText: string;
-  period: string; accent: string; star: string;
-  footerLine: string; footerBrand: string; footerSub: string;
+  periodColor: string; accentColor: string; starColor: string;
+  divider: string; brandColor: string; subColor: string;
+  captionBg: string; captionText: string;
 }
 
 const THEMES: Record<VitrineTemplate, Theme> = {
   dark: {
-    bg: "#0D0D0D", bg2: "#0D0D0D",
-    title: "#FFFFFF", date: "#666666",
-    pillBg: "#1A1A1A", pillBorder: "#2E2E2E", pillText: "#F0E6D3",
-    pillOcupBg: "#111111", pillOcupText: "#2A2A2A",
-    period: "#444444", accent: "#D4A853", star: "#D4A853",
-    footerLine: "#1E1E1E", footerBrand: "#D4A853", footerSub: "#444444",
+    bg: "#0D0D0D", glowColor: "#D4A85315",
+    title: "#FFFFFF", dateColor: "#606060",
+    pillBg: "#1C1C1C", pillBorder: "#303030", pillText: "#F0E6D3",
+    pillOcupBg: "#111111", pillOcupText: "#252525",
+    periodColor: "#484848", accentColor: "#D4A853", starColor: "#D4A853",
+    divider: "#1E1E1E", brandColor: "#D4A853", subColor: "#484848",
+    captionBg: "#161616", captionText: "#686868",
   },
   lavanda: {
-    bg: "#12101E", bg2: "#1A1630",
-    title: "#FFFFFF", date: "#7B70A8",
-    pillBg: "#221D38", pillBorder: "#3A3060", pillText: "#C8B8F0",
-    pillOcupBg: "#161324", pillOcupText: "#2E2850",
-    period: "#5A5280", accent: "#9D7FD4", star: "#9D7FD4",
-    footerLine: "#1E1A30", footerBrand: "#9D7FD4", footerSub: "#5A5280",
+    bg: "#13102A", glowColor: "#9D7FD420",
+    title: "#FFFFFF", dateColor: "#7265A8",
+    pillBg: "#1F1A3A", pillBorder: "#352C58", pillText: "#C8B8F0",
+    pillOcupBg: "#161228", pillOcupText: "#2C2448",
+    periodColor: "#4E4578", accentColor: "#9D7FD4", starColor: "#9D7FD4",
+    divider: "#1A162E", brandColor: "#9D7FD4", subColor: "#4E4578",
+    captionBg: "#1A1630", captionText: "#5E558A",
   },
   minimal: {
-    bg: "#F7F5FF", bg2: "#EDE8FF",
-    title: "#0F0C1E", date: "#9B8FC0",
+    bg: "#F8F5FF", glowColor: "#7C5CBF0A",
+    title: "#120E28", dateColor: "#9B8FC0",
     pillBg: "#FFFFFF", pillBorder: "#DDD5F5", pillText: "#5A3F9A",
     pillOcupBg: "#EDE5FF", pillOcupText: "#C4B0E8",
-    period: "#C4B0E8", accent: "#7C5CBF", star: "#9D7FD4",
-    footerLine: "#E2D8F8", footerBrand: "#7C5CBF", footerSub: "#B0A0D8",
+    periodColor: "#BDB0D8", accentColor: "#7C5CBF", starColor: "#9D7FD4",
+    divider: "#E2D8F8", brandColor: "#7C5CBF", subColor: "#9B8FC0",
+    captionBg: "#EDE5FF", captionText: "#7C68A8",
   },
 };
 
 // ── helpers ─────────────────────────────────────────────────────────────────
-
-function pill(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+function pillPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.lineTo(x + w - r, y);
@@ -58,20 +61,42 @@ function pill(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h:
   ctx.closePath();
 }
 
-function text(ctx: CanvasRenderingContext2D, str: string, x: number, y: number,
-  font: string, color: string, align: CanvasTextAlign = "left", alpha = 1) {
+function drawFlower(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, color: string, alpha = 0.7) {
+  const petals = 5;
+  for (let i = 0; i < petals; i++) {
+    const angle = (i / petals) * Math.PI * 2 - Math.PI / 2;
+    const px = cx + Math.cos(angle) * r * 1.4;
+    const py = cy + Math.sin(angle) * r * 1.4;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  // Centro
   ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = color;
-  ctx.font = font;
-  ctx.textAlign = align;
-  ctx.textBaseline = "alphabetic";
-  ctx.fillText(str, x, y);
+  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = color === "#C4A8E8" ? "#EDE5FF" : "#FFFFFF";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.8, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 
-// ── principal ────────────────────────────────────────────────────────────────
+function drawStar(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string, alpha = 0.6) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.font = `${size}px serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("✦", x, y);
+  ctx.restore();
+}
 
+// ── Gerador principal ─────────────────────────────────────────────────────────
 export function generateVitrineCanvas(
   slots: VitrineSlot[],
   template: VitrineTemplate,
@@ -80,8 +105,9 @@ export function generateVitrineCanvas(
 ): HTMLCanvasElement {
   const W = 1080, H = 1920;
   const th = THEMES[template];
+  const PAD = 88;
 
-  const free = slots.filter(s => s.selected && !s.occupied);
+  const free  = slots.filter(s => s.selected && !s.occupied);
   const manha = free.filter(s => +s.time.split(":")[0] < 12);
   const tarde = free.filter(s => +s.time.split(":")[0] >= 12);
 
@@ -90,173 +116,231 @@ export function generateVitrineCanvas(
   const ctx = canvas.getContext("2d")!;
 
   // ── Fundo ────────────────────────────────────────────────────────────────
-  if (template === "minimal") {
-    const grad = ctx.createLinearGradient(0, 0, W, H);
-    grad.addColorStop(0, "#F7F5FF");
-    grad.addColorStop(1, "#EDE8FF");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
-  } else if (template === "lavanda") {
-    const grad = ctx.createRadialGradient(W * 0.8, H * 0.2, 0, W * 0.8, H * 0.2, W * 1.2);
-    grad.addColorStop(0, "#1F1840");
-    grad.addColorStop(0.5, "#12101E");
-    grad.addColorStop(1, "#0C0A18");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
-  } else {
-    ctx.fillStyle = th.bg;
-    ctx.fillRect(0, 0, W, H);
-  }
-
-  // Barras decorativas no topo/fundo (minimal)
-  if (template === "minimal") {
-    ctx.fillStyle = "#7C5CBF";
-    ctx.fillRect(0, 0, W, 8);
-    ctx.fillRect(0, H - 8, W, 8);
-  }
-
-  // Glow accent canto superior direito
-  const glow = ctx.createRadialGradient(W * 0.9, H * 0.08, 0, W * 0.9, H * 0.08, 600);
-  glow.addColorStop(0, th.accent + "22");
-  glow.addColorStop(1, "transparent");
-  ctx.fillStyle = glow;
+  ctx.fillStyle = th.bg;
   ctx.fillRect(0, 0, W, H);
 
-  // ── Estrelinhas ──────────────────────────────────────────────────────────
-  const stars: [number, number, number, number][] = [
-    [W - 120, 180, 48, 0.7], [W - 200, 280, 28, 0.4],
-    [80, 520, 32, 0.5], [60, 700, 20, 0.3],
-    [W - 100, H * 0.55, 36, 0.4], [140, H * 0.7, 24, 0.3],
-  ];
-  stars.forEach(([sx, sy, sz, sa]) => {
-    ctx.save(); ctx.globalAlpha = sa;
-    ctx.fillStyle = th.star;
-    ctx.font = `${sz}px serif`;
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText("✦", sx, sy);
+  // Gradiente de fundo
+  if (template === "lavanda") {
+    const gr = ctx.createRadialGradient(W * 0.85, H * 0.1, 0, W * 0.85, H * 0.1, W);
+    gr.addColorStop(0, "#1F1840");
+    gr.addColorStop(0.4, "#13102A");
+    gr.addColorStop(1, "#0C0A1A");
+    ctx.fillStyle = gr;
+    ctx.fillRect(0, 0, W, H);
+  } else if (template === "minimal") {
+    const gr = ctx.createLinearGradient(0, 0, W, H);
+    gr.addColorStop(0, "#F8F5FF");
+    gr.addColorStop(1, "#EDE8FF");
+    ctx.fillStyle = gr;
+    ctx.fillRect(0, 0, W, H);
+    // Barras decorativas
+    ctx.fillStyle = "#7C5CBF";
+    ctx.fillRect(0, 0, W, 10);
+    ctx.fillRect(0, H - 10, W, 10);
+    // Círculo decorativo canto
+    ctx.save();
+    ctx.globalAlpha = 0.06;
+    ctx.fillStyle = "#7C5CBF";
+    ctx.beginPath();
+    ctx.arc(W, 0, 500, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
-  });
+  } else {
+    // Dark: glow canto
+    const gr = ctx.createRadialGradient(W * 0.9, H * 0.05, 0, W * 0.9, H * 0.05, 700);
+    gr.addColorStop(0, "#D4A85310");
+    gr.addColorStop(1, "transparent");
+    ctx.fillStyle = gr;
+    ctx.fillRect(0, 0, W, H);
+  }
 
-  // ── Data ─────────────────────────────────────────────────────────────────
-  const PAD = 96;
-  let y = 220;
-  text(ctx, dateLabel.toUpperCase(), PAD, y,
-    "600 38px -apple-system, Helvetica, sans-serif", th.date);
-  y += 16;
+  // ── Flores decorativas ───────────────────────────────────────────────────
+  const flowerColor = template === "dark" ? "#D4A853" : "#C4A8E8";
+  drawFlower(ctx, PAD - 20, 140, 14, flowerColor, 0.4);
+  drawFlower(ctx, W - PAD + 20, 140, 14, flowerColor, 0.4);
+  drawFlower(ctx, PAD - 30, H - 200, 11, flowerColor, 0.25);
+  drawFlower(ctx, W - PAD + 30, H - 200, 11, flowerColor, 0.25);
 
-  // ── Título ───────────────────────────────────────────────────────────────
-  ctx.save();
+  // ── Estrelinhas ──────────────────────────────────────────────────────────
+  drawStar(ctx, W - 160, 220, 52, th.starColor, 0.65);
+  drawStar(ctx, W - 240, 340, 28, th.starColor, 0.35);
+  drawStar(ctx, 100, 600, 32, th.starColor, 0.30);
+  drawStar(ctx, W - 120, H * 0.5, 36, th.starColor, 0.25);
+  drawStar(ctx, 140, H * 0.72, 24, th.starColor, 0.20);
+
+  // ── Linha topo decorativa (minimal) ─────────────────────────────────────
+  if (template !== "minimal") {
+    // Linha brilhante no topo
+    const lr = ctx.createLinearGradient(0, 0, W, 0);
+    lr.addColorStop(0, "transparent");
+    lr.addColorStop(0.3, th.accentColor + "40");
+    lr.addColorStop(0.7, th.accentColor + "40");
+    lr.addColorStop(1, "transparent");
+    ctx.fillStyle = lr;
+    ctx.fillRect(0, 0, W, 3);
+  }
+
+  // ── Corpo do conteúdo — começa em Y = 200 ───────────────────────────────
+  let y = 200;
+
+  // Data
+  ctx.fillStyle = th.dateColor;
+  ctx.font = "600 36px -apple-system, Helvetica, sans-serif";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText(dateLabel.toUpperCase(), PAD, y);
+  y += 22;
+
+  // Título grande
   ctx.fillStyle = th.title;
-  ctx.font = `900 148px -apple-system, Helvetica, sans-serif`;
-  ctx.textAlign = "left"; ctx.textBaseline = "top";
-  ctx.fillText("Horários", PAD, y + 20);
-  ctx.fillText("disponíveis", PAD, y + 185);
-  ctx.restore();
-  y += 370;
+  ctx.font = "900 160px -apple-system, Helvetica, sans-serif";
+  ctx.textBaseline = "top";
+  ctx.fillText("Horários", PAD, y);
+  y += 176;
+  ctx.fillText("disponíveis", PAD, y);
+  y += 190;
 
-  // Emoji nail
-  ctx.font = "100px serif";
-  ctx.textAlign = "left"; ctx.textBaseline = "middle";
-  ctx.fillText("💅", PAD, y + 40);
-  y += 100;
+  // Emoji
+  ctx.font = "110px serif";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.fillText("💅", PAD, y + 50);
+  y += 130;
 
-  // ── Separador ────────────────────────────────────────────────────────────
-  ctx.strokeStyle = th.period + "40";
+  // Divisor
+  const divGrad = ctx.createLinearGradient(PAD, 0, W - PAD, 0);
+  divGrad.addColorStop(0, "transparent");
+  divGrad.addColorStop(0.2, th.divider);
+  divGrad.addColorStop(0.8, th.divider);
+  divGrad.addColorStop(1, "transparent");
+  ctx.strokeStyle = divGrad;
   ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W - PAD, y); ctx.stroke();
-  y += 60;
+  y += 70;
 
-  // ── Função grupo de slots ─────────────────────────────────────────────────
-  const PILL_W = 210, PILL_H = 90, PILL_GAP_X = 24, PILL_GAP_Y = 24, COLS = 4;
-  const totalRowW = COLS * PILL_W + (COLS - 1) * PILL_GAP_X;
-  const startX = (W - totalRowW) / 2;
+  // ── Slots ─────────────────────────────────────────────────────────────────
+  const COLS = 4;
+  const PILL_W = 208, PILL_H = 96, GAP_X = 22, GAP_Y = 22;
+  const totalW = COLS * PILL_W + (COLS - 1) * GAP_X;
+  const startX = (W - totalW) / 2;
 
-  function drawGroup(label: string, group: VitrineSlot[], startY: number): number {
-    // Label do período
-    ctx.save();
-    ctx.fillStyle = th.period;
-    ctx.font = "700 34px -apple-system, Helvetica, sans-serif";
-    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-    ctx.letterSpacing = "0.15em";
-    ctx.fillText(label, PAD, startY);
-    ctx.restore();
-    let cy = startY + 20;
+  function drawGroup(label: string, group: VitrineSlot[], sy: number): number {
+    // Label período
+    ctx.fillStyle = th.periodColor;
+    ctx.font = "700 32px -apple-system, Helvetica, sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText(label, PAD, sy);
+    sy += 55;
 
     for (let i = 0; i < group.length; i += COLS) {
       const row = group.slice(i, i + COLS);
-      cy += PILL_H + PILL_GAP_Y;
-      const rowW = row.length * PILL_W + (row.length - 1) * PILL_GAP_X;
-      // Centralizar linha parcial
-      const rowStartX = row.length === COLS ? startX : (W - rowW) / 2;
+      const rowW = row.length * PILL_W + (row.length - 1) * GAP_X;
+      const rx = row.length === COLS ? startX : (W - rowW) / 2;
 
       row.forEach((slot, idx) => {
-        const px = rowStartX + idx * (PILL_W + PILL_GAP_X);
-        const py = cy - PILL_H;
+        const px = rx + idx * (PILL_W + GAP_X);
+        const py = sy;
 
-        // Sombra suave na pill
-        if (!slot.occupied && template !== "dark") {
+        // Shadow para pill não ocupada
+        if (!slot.occupied) {
           ctx.save();
-          ctx.shadowColor = th.accent + "33";
-          ctx.shadowBlur = 20;
-          ctx.shadowOffsetY = 4;
+          if (template === "minimal") {
+            ctx.shadowColor = "#7C5CBF22";
+            ctx.shadowBlur = 24;
+            ctx.shadowOffsetY = 6;
+          } else {
+            ctx.shadowColor = th.accentColor + "18";
+            ctx.shadowBlur = 16;
+            ctx.shadowOffsetY = 4;
+          }
         }
 
         // Pill bg
         ctx.fillStyle = slot.occupied ? th.pillOcupBg : th.pillBg;
-        pill(ctx, px, py, PILL_W, PILL_H, PILL_H / 2);
+        pillPath(ctx, px, py, PILL_W, PILL_H, PILL_H / 2);
         ctx.fill();
-        if (!slot.occupied) { ctx.restore(); }
+        if (!slot.occupied) ctx.restore();
 
-        // Pill border
+        // Border
         ctx.strokeStyle = slot.occupied ? "transparent" : th.pillBorder;
         ctx.lineWidth = 2.5;
-        pill(ctx, px, py, PILL_W, PILL_H, PILL_H / 2);
+        pillPath(ctx, px, py, PILL_W, PILL_H, PILL_H / 2);
         ctx.stroke();
 
         // Texto
         ctx.fillStyle = slot.occupied ? th.pillOcupText : th.pillText;
-        ctx.font = `${slot.occupied ? "600" : "800"} 40px -apple-system, Helvetica, monospace`;
-        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.font = `${slot.occupied ? "500" : "800"} 42px -apple-system, Helvetica, monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
         ctx.fillText(slot.occupied ? "❤️" : slot.time, px + PILL_W / 2, py + PILL_H / 2);
       });
+
+      sy += PILL_H + GAP_Y;
     }
-    return cy + 50;
+    return sy + 30;
   }
 
   if (manha.length) y = drawGroup("MANHÃ", manha, y);
-  if (tarde.length) {
-    y += 20;
-    y = drawGroup("TARDE", tarde, y);
+  if (tarde.length)  y = drawGroup("TARDE", tarde, y + (manha.length ? 20 : 0));
+
+  // ── Footer — posição fixa no rodapé ─────────────────────────────────────
+  const FOOTER_Y = H - 280;
+
+  // Caption (se houver)
+  if (caption) {
+    const capH = 100;
+    const capY = FOOTER_Y - capH - 40;
+    ctx.fillStyle = th.captionBg;
+    pillPath(ctx, PAD, capY, W - PAD * 2, capH, 20);
+    ctx.fill();
+    ctx.fillStyle = th.captionText;
+    ctx.font = "500 34px -apple-system, Helvetica, sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(caption, PAD + 36, capY + capH / 2);
   }
 
-  // ── Footer ────────────────────────────────────────────────────────────────
-  const footerY = H - 200;
+  // Linha divisória footer
+  const fl = ctx.createLinearGradient(PAD, 0, W - PAD, 0);
+  fl.addColorStop(0, "transparent");
+  fl.addColorStop(0.15, th.divider);
+  fl.addColorStop(0.85, th.divider);
+  fl.addColorStop(1, "transparent");
+  ctx.strokeStyle = fl;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PAD, FOOTER_Y); ctx.lineTo(W - PAD, FOOTER_Y); ctx.stroke();
 
-  // Linha separadora
-  ctx.strokeStyle = th.footerLine;
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(PAD, footerY); ctx.lineTo(W - PAD, footerY); ctx.stroke();
+  // Brand name cursiva
+  ctx.fillStyle = th.brandColor;
+  ctx.font = "italic 900 56px Georgia, 'Times New Roman', serif";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText("Tessy Nails", PAD, FOOTER_Y + 80);
 
-  // Brand
-  ctx.fillStyle = th.footerBrand;
-  ctx.font = "900 52px -apple-system, Helvetica, sans-serif";
-  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-  ctx.letterSpacing = "0.06em";
-  ctx.fillText("TESSY NAILS", PAD, footerY + 70);
+  // Monograma TN pequeno ao lado
+  ctx.fillStyle = th.accentColor;
+  ctx.font = "italic 400 42px Georgia, serif";
+  ctx.textAlign = "left";
+  ctx.fillText("✦", PAD + 360, FOOTER_Y + 72);
+
+  // Subtitle
+  ctx.fillStyle = th.subColor;
+  ctx.font = "500 26px -apple-system, Helvetica, sans-serif";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.letterSpacing = "0.12em";
+  ctx.fillText("MANICURE & PEDICURE", PAD, FOOTER_Y + 124);
   ctx.letterSpacing = "0";
 
-  // Caption
-  if (caption) {
-    ctx.fillStyle = th.footerSub;
-    ctx.font = "500 32px -apple-system, Helvetica, sans-serif";
-    ctx.fillText(caption, PAD, footerY + 118);
-  }
-
-  // Atualizado
-  ctx.fillStyle = th.footerSub;
-  ctx.font = "600 30px -apple-system, Helvetica, sans-serif";
+  // Atualizado (direita)
+  ctx.fillStyle = th.subColor;
+  ctx.font = "600 28px -apple-system, Helvetica, sans-serif";
   ctx.textAlign = "right";
-  ctx.fillText("Atualizado ✦", W - PAD, footerY + 70);
+  ctx.fillText("Atualizado ✦", W - PAD, FOOTER_Y + 80);
+
+  // Florinhas decorativas no footer
+  drawFlower(ctx, W - PAD - 60, FOOTER_Y + 90, 9, template === "dark" ? "#D4A853" : "#C4A8E8", 0.35);
 
   return canvas;
 }
