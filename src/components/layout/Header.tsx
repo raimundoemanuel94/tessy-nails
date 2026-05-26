@@ -22,13 +22,13 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 const NAV_MOBILE = [
-  { icon: LayoutDashboard, label: "Dashboard",   href: "/dashboard"    },
-  { icon: Calendar,        label: "Agenda",       href: "/agenda"       },
-  { icon: ClipboardList,   label: "Agendamentos", href: "/agendamentos" },
-  { icon: BarChart3,       label: "Relatórios",   href: "/relatorios"   },
-  { icon: Users,           label: "Clientes",     href: "/clientes"     },
-  { icon: Sparkles,        label: "Serviços",     href: "/servicos"     },
-  { icon: Settings,        label: "Configurações",href: "/configuracoes"},
+  { icon: LayoutDashboard, label: "Dashboard",     href: "/dashboard"    },
+  { icon: Calendar,        label: "Agenda",         href: "/agenda"       },
+  { icon: ClipboardList,   label: "Agendamentos",   href: "/agendamentos" },
+  { icon: Sparkles,        label: "Vitrine do Dia", href: "/vitrine"      },
+  { icon: BarChart3,       label: "Relatórios",     href: "/relatorios"   },
+  { icon: Users,           label: "Clientes",       href: "/clientes"     },
+  { icon: Settings,        label: "Configurações",  href: "/configuracoes"},
 ];
 
 // Mapear href → título da página

@@ -18,6 +18,7 @@ const NAV = [
       { icon: LayoutDashboard, label: "Dashboard",     href: "/dashboard"    },
       { icon: Calendar,        label: "Agenda",         href: "/agenda"       },
       { icon: ClipboardList,   label: "Agendamentos",   href: "/agendamentos" },
+      { icon: Sparkles,        label: "Vitrine do Dia", href: "/vitrine"      },
       { icon: BarChart3,       label: "Relatórios",     href: "/relatorios"   },
     ],
   },

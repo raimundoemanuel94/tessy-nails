@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { PageShell } from "@/components/shared/PageShell";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { PageHero } from "@/components/shared/PageHero";
@@ -70,6 +71,7 @@ import { cn, ensureDate } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function AgendaPage() {
+  const router = useRouter();
   const [date, setDate] = useState<Date>(new Date());
   const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
   const [clientUsers, setClientUsers] = useState<User[]>([]);
@@ -276,7 +278,17 @@ export default function AgendaPage() {
               ? "1 agendamento hoje" 
               : `${validAppointments.length} agendamentos hoje`}
           actions={
-            <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) (document.activeElement as HTMLElement)?.blur(); setIsDialogOpen(open); }}>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => router.push("/vitrine")}
+                className="h-14 px-6 bg-white/10 border-white/20 text-white hover:bg-white/20 font-black"
+              >
+                <Sparkles size={20} className="mr-2" />
+                Vitrine do Dia
+              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) (document.activeElement as HTMLElement)?.blur(); setIsDialogOpen(open); }}>
               <DialogTrigger
                 render={
                   <Button size="lg" className="h-14 px-8 bg-white text-[#7C5CBF] hover:bg-white/90 font-black shadow-premium">
@@ -300,6 +312,7 @@ export default function AgendaPage() {
                 />
               </DialogContent>
             </Dialog>
+            </div>
           }
         />
 
