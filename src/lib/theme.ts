@@ -1,5 +1,5 @@
 /**
- * Tessy Nails — Design Tokens
+ * Nailit — Design Tokens
  * Lavender Bloom Edition — mais claro, mais vida
  */
 export const TN = {

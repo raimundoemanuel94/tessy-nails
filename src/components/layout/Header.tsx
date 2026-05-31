@@ -56,7 +56,7 @@ export function Header() {
     return () => unsub();
   }, [user]);
 
-  const pageTitle = PAGE_TITLES[pathname] ?? "Tessy Nails";
+  const pageTitle = PAGE_TITLES[pathname] ?? "nailit";
   const initials  = user?.name ? user.name.substring(0, 2).toUpperCase() : "TN";
 
   return (
@@ -79,11 +79,11 @@ export function Header() {
               style={{ background: "#0F172A" }}>
               <SheetHeader className="p-5 h-16 border-b border-white/5 flex flex-row items-center gap-3">
                 <div className="h-9 w-9 rounded-xl shrink-0 overflow-hidden bg-[#2A2044] border border-[#9D7FD4]/20">
-                  <img src="/brand/icon.svg" alt="TN" className="w-full h-full object-cover p-0.5" />
+                  <img src="/brand/nailit/icon.svg" alt="TN" className="w-full h-full object-cover p-0.5" />
                 </div>
                 <SheetTitle className="text-[14px] text-white"
                   style={{ fontFamily:"Georgia,serif", fontStyle:"italic", fontWeight:700 }}>
-                  Tessy Nails
+                  Nailit
                 </SheetTitle>
               </SheetHeader>
               <nav className="p-3 space-y-1 mt-2">

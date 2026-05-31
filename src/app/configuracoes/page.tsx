@@ -93,7 +93,7 @@ export default function ConfiguracoesPage() {
 
   // Estados para Salão
   const [salonData, setSalonData] = useState({
-    name: 'Tessy Nails Studio',
+    name: 'Nailit Studio',
     address: 'Sorriso, MT',
     phone: '(66) 98765-4321',
     email: 'contato@tessynails.com',

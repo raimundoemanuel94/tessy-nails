@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E1830"/>
+      <stop offset="100%" stop-color="#0F0C1E"/>
+    </linearGradient>
+    <linearGradient id="b1" x1="0%" y1="0%" x2="30%" y2="100%">
+      <stop offset="0%" stop-color="#D4BAF0"/>
+      <stop offset="100%" stop-color="#7C5CBF"/>
+    </linearGradient>
+    <linearGradient id="cap" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9D7FD4"/>
+      <stop offset="100%" stop-color="#5A3F9A"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Fundo -->
+  <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+
+  <!-- Glow radial sutil -->
+  <radialGradient id="rg" cx="50%" cy="40%" r="55%">
+    <stop offset="0%" stop-color="#9D7FD4" stop-opacity="0.18"/>
+    <stop offset="100%" stop-color="#9D7FD4" stop-opacity="0"/>
+  </radialGradient>
+  <rect width="512" height="512" rx="110" fill="url(#rg)"/>
+
+  <!-- Esmalte grande centralizado -->
+  <!-- Tampa -->
+  <rect x="196" y="90" width="120" height="100" rx="34" fill="url(#cap)"/>
+  <!-- Conector -->
+  <rect x="208" y="182" width="96" height="22" rx="0" fill="#6B4BAF"/>
+  <!-- Corpo -->
+  <rect x="178" y="196" width="156" height="216" rx="78" fill="url(#b1)"/>
+  <!-- Reflexo lateral esquerdo -->
+  <rect x="192" y="210" width="36" height="160" rx="18" fill="white" opacity="0.18"/>
+  <!-- Brilho topo -->
+  <ellipse cx="224" cy="234" rx="22" ry="14" fill="white" opacity="0.15"/>
+
+  <!-- Estrelinhas -->
+  <text font-family="serif" font-size="44" fill="#C4A8E8" opacity="0.55" x="72"  y="180">✦</text>
+  <text font-family="serif" font-size="26" fill="#9D7FD4" opacity="0.40" x="400" y="150">✦</text>
+  <text font-family="serif" font-size="20" fill="#9D7FD4" opacity="0.30" x="68"  y="420">✦</text>
+  <text font-family="serif" font-size="36" fill="#C4A8E8" opacity="0.35" x="390" y="430">✦</text>
+
+  <!-- Wordmark embaixo -->
+  <text x="256" y="474"
+    text-anchor="middle"
+    font-family="Georgia,'Times New Roman',serif"
+    font-size="60" font-weight="700" font-style="italic"
+    fill="#C4A8E8" opacity="0.9" letter-spacing="-1">nailit</text>
+</svg>

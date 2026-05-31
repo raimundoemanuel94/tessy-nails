@@ -316,7 +316,7 @@ export function generateVitrineCanvas(
   ctx.font = "italic 900 56px Georgia, 'Times New Roman', serif";
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
-  ctx.fillText("Tessy Nails", PAD, FOOTER_Y + 80);
+  ctx.fillText("Nailit", PAD, FOOTER_Y + 80);
 
   // Monograma TN pequeno ao lado
   ctx.fillStyle = th.accentColor;

@@ -14,7 +14,7 @@ function getSessionSecret(): Uint8Array {
   const secret =
     process.env.APP_SESSION_SECRET ||
     process.env.NEXTAUTH_SECRET ||
-    (process.env.NODE_ENV !== "production" ? "tessy-nails-dev-session-secret" : "");
+    (process.env.NODE_ENV !== "production" ? "nailit-dev-session-secret" : "");
 
   if (!secret) {
     throw new Error("APP_SESSION_SECRET is required in production.");

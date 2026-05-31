@@ -12,7 +12,7 @@
   --font-mono: var(--font-geist-mono);
   --font-serif: "Playfair Display", serif;
 
-  /* ── Tessy Nails Premium Tokens — Noir Nubuck Edition ───── */
+  /* ── Nailit Premium Tokens — Noir Nubuck Edition ───── */
   --tn-noir:        #1E1A2E;
   --tn-noir-mid:    #2A2440;
   --tn-noir-soft:   #3D3560;
@@ -32,7 +32,7 @@
   --tn-stone-600:   #57534E;
   --tn-stone-800:   #292524;
 
-  /* Official Global Design System Tokens - Tessy Nails Official Palette */
+  /* Official Global Design System Tokens - Nailit Official Palette */
   --color-brand-primary: #7C5CBF;
   --color-brand-secondary: #9D7FD4;
   --color-brand-accent: #5A3F9A;

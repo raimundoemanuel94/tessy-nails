@@ -60,15 +60,15 @@ export function Sidebar() {
               className="flex items-center gap-2.5 min-w-0"
             >
               <div className="h-9 w-9 rounded-xl shrink-0 overflow-hidden border border-[#9D7FD4]/20 bg-[#2A2044]">
-                <img src="/brand/icon.svg" alt="TN" className="w-full h-full object-cover p-0.5" />
+                <img src="/brand/nailit/icon.svg" alt="TN" className="w-full h-full object-cover p-0.5" />
               </div>
               <div>
                 <p className="text-[14px] text-white leading-none"
                   style={{ fontFamily:"Georgia,serif", fontStyle:"italic", fontWeight:700 }}>
-                  Tessy Nails
+                  Nailit
                 </p>
                 <p className="text-[8px] text-white/30 font-bold uppercase tracking-[0.2em] mt-0.5">
-                  Manicure & Pedicure
+                  Beauty Platform
                 </p>
               </div>
             </motion.div>
@@ -77,7 +77,7 @@ export function Sidebar() {
               initial={{ opacity:0, scale:0.8 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0, scale:0.8 }}
               className="mx-auto h-10 w-10 rounded-xl overflow-hidden border border-[#9D7FD4]/20 bg-[#2A2044]"
             >
-              <img src="/brand/icon.svg" alt="TN" className="w-full h-full object-cover p-0.5" />
+              <img src="/brand/nailit/icon.svg" alt="TN" className="w-full h-full object-cover p-0.5" />
             </motion.div>
           )}
         </AnimatePresence>

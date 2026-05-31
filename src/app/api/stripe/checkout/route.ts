@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     }
 
     const origin = req.headers.get("origin") || req.headers.get("referer");
-    let appUrl = "https://tessy-nails.vercel.app";
+    let appUrl = "https://nailit.vercel.app";
     if (origin) {
       try {
         appUrl = new URL(origin).origin;
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
             currency: "brl",
             product_data: {
               name: isDeposit ? `Sinal / Reserva: ${serviceName}` : `Pagamento: ${serviceName}`,
-              description: `Agendamento no Tessy Nails${appointmentId ? ` (Ref: ${appointmentId})` : ""}`,
+              description: `Agendamento no Nailit${appointmentId ? ` (Ref: ${appointmentId})` : ""}`,
             },
             unit_amount: amountInCents,
           },

@@ -425,7 +425,7 @@ export default function ClientesPage() {
         rows.push(columns.map((value) => toCsvCell(value)).join(";"));
       };
 
-      pushRow("RELATORIO PREMIUM CLIENTES - TESSY NAILS");
+      pushRow("RELATORIO PREMIUM CLIENTES - NAILIT");
       pushRow("Gerado em", format(generatedAt, "dd/MM/yyyy HH:mm"));
       pushRow("Total filtrado", sortedRows.length);
       pushRow("Status", statusFilter);

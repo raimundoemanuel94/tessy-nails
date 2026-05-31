@@ -474,7 +474,7 @@ export default function RelatoriosPage() {
       const now2 = new Date();
       const rows: string[] = [];
       const pr = (...cols: Array<string | number>) => rows.push(cols.map(toCsvCell).join(";"));
-      pr("RELATORIO PREMIUM - TESSY NAILS");
+      pr("RELATORIO PREMIUM - NAILIT");
       pr("Gerado em", format(now2, "dd/MM/yyyy HH:mm"));
       pr("Periodo", PERIOD_LABELS[activeFilter]);
       rows.push("");
@@ -515,7 +515,7 @@ export default function RelatoriosPage() {
       const now2 = new Date();
       const rows: string[] = [];
       const pr = (...cols: Array<string | number>) => rows.push(cols.map(toCsvCell).join(";"));
-      pr("RELATORIO CLIENTES 360 - TESSY NAILS");
+      pr("RELATORIO CLIENTES 360 - NAILIT");
       pr("Gerado em", format(now2, "dd/MM/yyyy HH:mm"));
       rows.push("");
       pr("Cliente", "Telefone", "Email", "Status", "Cadastro", "Ultimo atendimento", "Ultimo servico", "Historico recente", "Concluidos", "Total", "Receita", "Intervalo medio");
@@ -934,7 +934,7 @@ export default function RelatoriosPage() {
 
       <footer className="flex items-center justify-center gap-2 pb-8 opacity-20">
         <Scissors size={10} className="text-[#7C5CBF]" />
-        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#7C5CBF]">Tessy Nails - Relatorios</span>
+        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#7C5CBF]">Nailit - Relatorios</span>
       </footer>
     </PageShell>
   );

@@ -108,16 +108,16 @@ export default function VitrinePage() {
 
   const handleShare = async () => {
     if (!imgUrl) return;
-    const shareText = `${caption}\n\n✦ TESSY NAILS`;
+    const shareText = `${caption}\n\n✦ NAILIT`;
     try {
       const blob  = await (await fetch(imgUrl)).blob();
-      const file  = new File([blob], "tessy-nails.png", { type: "image/png" });
+      const file  = new File([blob], "nailit.png", { type: "image/png" });
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], text: shareText });
       } else {
         // Fallback: download + copiar texto
         const a = document.createElement("a");
-        a.href = imgUrl; a.download = "tessy-nails-horarios.png"; a.click();
+        a.href = imgUrl; a.download = "nailit-horarios.png"; a.click();
         await navigator.clipboard.writeText(shareText);
         toast.success("Imagem baixada + texto copiado! 📋");
       }
@@ -135,7 +135,7 @@ export default function VitrinePage() {
       manha ? `\n🌅 Manhã: ${manha}` : "",
       tarde  ? `\n☀️ Tarde: ${tarde}`  : "",
       `\n\n${caption}`,
-      "\n✦ Tessy Nails",
+      "\n✦ Nailit",
     ].join("");
     await navigator.clipboard.writeText(text);
     toast.success("Texto copiado! Cola no WhatsApp 📋");
@@ -375,7 +375,7 @@ export default function VitrinePage() {
               </div>
 
               {/* Download */}
-              <a href={imgUrl} download="tessy-nails-horarios.png"
+              <a href={imgUrl} download="nailit-horarios.png"
                 className="flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors text-sm font-bold text-slate-500">
                 <Download size={14} /> Baixar imagem
               </a>

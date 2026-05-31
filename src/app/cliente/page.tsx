@@ -277,7 +277,7 @@ export default function ClientePage() {
         {/* Footer */}
         <div className="flex items-center gap-3 pt-1 pb-2 opacity-30">
           <div className="h-px flex-1 bg-[#DDD5F5]" />
-          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-[#9B8FC0]">Tessy Nails</span>
+          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-[#9B8FC0]">Nailit</span>
           <div className="h-px flex-1 bg-[#DDD5F5]" />
         </div>
 

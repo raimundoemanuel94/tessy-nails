@@ -255,7 +255,7 @@ function SucessoContent() {
         {/* Footer */}
         <div className="flex items-center justify-center gap-2 pt-3 opacity-25">
           <Sparkles size={9} className="text-[#1E1A2E]" />
-          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-[#1E1A2E]">Tessy Nails</span>
+          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-[#1E1A2E]">Nailit</span>
         </div>
       </motion.div>
     </div>

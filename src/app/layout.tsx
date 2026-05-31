@@ -18,9 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tessy Nails - Studio de Beleza Premium",
-  description: "Plataforma exclusiva de agendamento e gestão para Tessy Nails.",
-  manifest: "/manifest.json?v=9",
+  title: "Nailit — Beauty Platform",
+  description: "Agende com as melhores manicures. Rápido, fácil e bonito.",
+  manifest: "/manifest.json?v=10",
   icons: {
     icon: "/brand/icons/favicon.png",
     apple: "/brand/icons/apple-touch-icon.png",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Tessy Nails",
+    title: "Nailit",
   },
   formatDetection: {
     telephone: false,
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#1E1A2E",
+  themeColor: "#0F0C1E",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

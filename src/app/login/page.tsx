@@ -66,89 +66,161 @@ function resolvePostLoginTarget(role: string, nextValue: string | null): string 
   return adminRole ? "/dashboard" : "/cliente";
 }
 
-// ── Splash ─────────────────────────────────────────────────────────────
+// ── Splash Nailit ─────────────────────────────────────────────────────────
 const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
   useEffect(() => {
-    const t = setTimeout(onComplete, 2000);
+    const t = setTimeout(onComplete, 3000);
     return () => clearTimeout(t);
   }, [onComplete]);
+
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.05, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }}
+      exit={{ opacity: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }}
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #2a1a18 0%, #3d2420 50%, #1e1210 100%)" }}
+      style={{ background: "#0A0818" }}
     >
-      {/* Animated orbs */}
-      <motion.div
-        animate={{ scale: [1, 1.3, 1], opacity: [0.15, 0.35, 0.15] }}
+      {/* Fundo vivo animado */}
+      <motion.div className="absolute inset-0"
+        animate={{ background: [
+          "radial-gradient(ellipse 90% 70% at 50% -10%, #220D40 0%, #0A0818 65%)",
+          "radial-gradient(ellipse 90% 70% at 60% -5%,  #1A0A38 0%, #0A0818 65%)",
+          "radial-gradient(ellipse 90% 70% at 40% -8%,  #220D40 0%, #0A0818 65%)",
+        ]}}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute top-[-15%] left-[-15%] h-[50vh] w-[50vh] rounded-full"
-        style={{ background: "radial-gradient(circle, #6D4C41 0%, transparent 70%)" }}
-      />
-      <motion.div
-        animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.25, 0.1] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-        className="pointer-events-none absolute bottom-[-10%] right-[-10%] h-[45vh] w-[45vh] rounded-full"
-        style={{ background: "radial-gradient(circle, #A1887F 0%, transparent 70%)" }}
       />
 
+      {/* Glow orbs */}
+      <motion.div className="absolute rounded-full pointer-events-none"
+        style={{ width: 600, height: 600, top: "-20%", left: "-15%",
+          background: "radial-gradient(circle, rgba(157,127,212,0.14) 0%, transparent 70%)" }}
+        animate={{ scale: [1,1.2,1], opacity: [0.6,1,0.6] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div className="absolute rounded-full pointer-events-none"
+        style={{ width: 500, height: 500, bottom: "-15%", right: "-10%",
+          background: "radial-gradient(circle, rgba(124,92,191,0.12) 0%, transparent 70%)" }}
+        animate={{ scale: [1,1.15,1], opacity: [0.5,0.9,0.5] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+      />
+
+      {/* Partículas ✦ */}
+      {[
+        { x:"12%", y:"18%", s:22, d:0   },
+        { x:"82%", y:"12%", s:14, d:0.4 },
+        { x:"22%", y:"72%", s:18, d:0.8 },
+        { x:"78%", y:"68%", s:26, d:0.3 },
+        { x:"8%",  y:"48%", s:12, d:1.1 },
+        { x:"88%", y:"52%", s:16, d:0.6 },
+        { x:"50%", y:"88%", s:10, d:1.4 },
+      ].map((p,i) => (
+        <motion.div key={i}
+          className="absolute select-none pointer-events-none text-[#9D7FD4] font-serif"
+          style={{ left: p.x, top: p.y, fontSize: p.s }}
+          animate={{ y: [0,-14,0], opacity: [0.15,0.55,0.15] }}
+          transition={{ duration: 3.5 + i*0.3, repeat: Infinity, ease: "easeInOut", delay: p.d }}
+        >✦</motion.div>
+      ))}
+
+      {/* Centro */}
       <div className="relative z-10 flex flex-col items-center gap-12">
-        {/* Logo */}
+
+        {/* Ícone com anéis */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: 30 }}
+          initial={{ opacity: 0, scale: 0.4, y: 40 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-          className="relative"
+          className="relative flex items-center justify-center"
         >
-          {/* glow ring behind logo */}
-          <motion.div
-            animate={{ opacity: [0.2, 0.5, 0.2], scale: [0.9, 1.1, 0.9] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-[-24px] rounded-full blur-2xl"
-            style={{ background: "radial-gradient(circle, rgba(161,136,127,0.4) 0%, transparent 70%)" }}
+          {/* Anel 3 — externo */}
+          <motion.div className="absolute rounded-full border border-[#9D7FD4]/10"
+            style={{ width: 200, height: 200 }}
+            animate={{ scale: [1,1.08,1], opacity: [0.3,0.6,0.3] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           />
+          {/* Anel 2 */}
+          <motion.div className="absolute rounded-full border border-[#9D7FD4]/20"
+            style={{ width: 155, height: 155 }}
+            animate={{ scale: [1,1.06,1], opacity: [0.4,0.7,0.4] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+          />
+          {/* Glow pulsante */}
+          <motion.div className="absolute rounded-full"
+            style={{ width: 120, height: 120,
+              background: "radial-gradient(circle, rgba(157,127,212,0.35) 0%, transparent 70%)" }}
+            animate={{ scale: [0.85,1.15,0.85], opacity: [0.4,0.9,0.4] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          {/* Ícone flutuante */}
           <motion.div
             animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="relative z-10 h-24 w-24 rounded-[28px] flex items-center justify-center overflow-hidden"
+            style={{
+              background: "linear-gradient(145deg, #2A1A50, #150E30)",
+              border: "1.5px solid rgba(157,127,212,0.35)",
+              boxShadow: "0 20px 60px rgba(124,92,191,0.4), 0 0 0 1px rgba(157,127,212,0.1)",
+            }}
           >
-            <img
-              src="/brand/logo/logo.svg"
-              alt="Tessy Nails"
-              className="h-[160px] w-auto"
-              style={{ filter: "brightness(0) invert(1) opacity(0.92)" }}
-            />
+            <img src="/brand/nailit/icon.svg" alt="nailit" className="h-[72px] w-[72px] object-contain" />
           </motion.div>
         </motion.div>
 
-        {/* text + bar */}
+        {/* Logo + slogan */}
+        <div className="flex flex-col items-center gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <img src="/brand/nailit/logo-dark.svg" alt="nailit" className="h-10 w-auto" />
+          </motion.div>
+
+          <motion.div
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: 1, opacity: 1 }}
+            transition={{ delay: 1.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            className="h-px w-36 rounded-full"
+            style={{ background: "linear-gradient(90deg, transparent, #9D7FD4, transparent)" }}
+          />
+
+          <motion.p
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 0.45, y: 0 }}
+            transition={{ delay: 1.6, duration: 0.7 }}
+            className="text-[9.5px] font-black uppercase tracking-[0.5em] text-[#9D7FD4]"
+          >
+            Agende. Apareça. Brilhe.
+          </motion.p>
+        </div>
+
+        {/* Loading bar animada */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9, duration: 0.9 }}
-          className="flex flex-col items-center gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2 }}
+          className="flex flex-col items-center gap-2"
         >
-          <p className="text-[11px] font-black uppercase tracking-[0.45em] text-white/50">
-            Manicure & Pedicure
-          </p>
-          <div className="relative h-[1px] w-40 overflow-hidden rounded-full bg-white/10">
+          <div className="relative h-0.5 w-44 rounded-full overflow-hidden bg-white/5">
             <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: "100%" }}
-              transition={{ duration: 2.6, ease: [0.44, 0, 0.56, 1] }}
-              className="absolute inset-0"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)" }}
+              transition={{ duration: 1.4, ease: [0.44, 0, 0.56, 1], delay: 2 }}
+              className="absolute inset-0 rounded-full"
+              style={{ background: "linear-gradient(90deg, transparent, #9D7FD4, #C4A8E8, transparent)" }}
             />
           </div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.35 }}
-            transition={{ delay: 1.6, duration: 0.8 }}
-            className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/40"
-          >
-            Studio de Beleza Premium
-          </motion.p>
+          <motion.div className="flex gap-1.5">
+            {[0,1,2].map(i => (
+              <motion.div key={i}
+                className="h-1 rounded-full bg-[#9D7FD4]"
+                animate={{ width: ["5px","18px","5px"], opacity: [0.3,1,0.3] }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: 2 + i*0.18 }}
+              />
+            ))}
+          </motion.div>
         </motion.div>
+
       </div>
     </motion.div>
   );
@@ -262,296 +334,214 @@ function LoginPageContent() {
 
   return (
     <>
-      <AnimatePresence>{showSplash && <SplashLoader onComplete={() => { sessionStorage.setItem("splashShown", "1"); setShowSplash(false); }} />}</AnimatePresence>
+      <AnimatePresence>{showSplash && <SplashLoader onComplete={() => { sessionStorage.setItem("splashShown","1"); setShowSplash(false); }} />}</AnimatePresence>
 
-      {/* ── Page ── */}
-      <div
-        className="relative min-h-dvh w-full flex flex-col items-center justify-center px-5 py-10 overflow-hidden"
-        style={{ background: "linear-gradient(170deg, #FAF7F5 0%, #F2EDE9 50%, #EDE4DE 100%)" }}
-      >
-        {/* decorative orbs */}
+      <div className="relative min-h-dvh w-full flex flex-col items-center justify-center px-5 py-10 overflow-hidden"
+        style={{ background: "linear-gradient(160deg, #FAF8FF 0%, #F0EBFF 50%, #EDE5FF 100%)" }}>
+
+        {/* Orbs de fundo */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div
-            className="absolute -top-32 -left-20 h-80 w-80 rounded-full opacity-40"
-            style={{ background: "radial-gradient(circle, rgba(75,46,43,0.12) 0%, transparent 70%)", filter: "blur(60px)" }}
-          />
-          <div
-            className="absolute -bottom-20 -right-20 h-72 w-72 rounded-full opacity-30"
-            style={{ background: "radial-gradient(circle, rgba(109,76,65,0.1) 0%, transparent 70%)", filter: "blur(60px)" }}
-          />
-          {/* subtle texture lines */}
-          <div className="absolute inset-0 opacity-[0.015]"
-            style={{ backgroundImage: "repeating-linear-gradient(0deg, #4B2E2B 0px, #4B2E2B 1px, transparent 1px, transparent 40px)" }}
-          />
+          <div className="absolute -top-40 -right-20 h-96 w-96 rounded-full opacity-50"
+            style={{ background: "radial-gradient(circle, rgba(157,127,212,0.25) 0%, transparent 70%)", filter: "blur(60px)" }} />
+          <div className="absolute -bottom-20 -left-20 h-80 w-80 rounded-full opacity-40"
+            style={{ background: "radial-gradient(circle, rgba(124,92,191,0.20) 0%, transparent 70%)", filter: "blur(60px)" }} />
+          {/* Grade pontilhada sutil */}
+          <div className="absolute inset-0 opacity-[0.025]"
+            style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #9D7FD4 1px, transparent 0)", backgroundSize: "28px 28px" }} />
         </div>
 
-        <div className="relative z-10 w-full max-w-[380px] flex flex-col items-center gap-7">
+        <div className="relative z-10 w-full max-w-[390px] flex flex-col items-center gap-6">
 
-          {/* ── Brand mark ── */}
+          {/* Logo */}
           <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            initial={{ opacity: 0, y: -24, scale: 0.92 }}
             animate={visible ? { opacity: 1, y: 0, scale: 1 } : {}}
-            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center gap-3"
           >
             <div className="relative">
-              {/* soft shadow behind logo */}
-              <div
-                className="absolute inset-0 rounded-full blur-2xl opacity-30"
-                style={{ background: "radial-gradient(circle, #6D4C41 0%, transparent 70%)", transform: "scale(1.4)" }}
-              />
-              <img
-                src="/brand/logo/logo.svg"
-                alt="Tessy Nails"
-                className="relative h-20 w-auto drop-shadow-md"
-              />
+              <div className="absolute inset-0 rounded-full blur-2xl opacity-40"
+                style={{ background: "radial-gradient(circle, rgba(157,127,212,0.5) 0%, transparent 70%)", transform: "scale(1.6)" }} />
+              <img src="/brand/nailit/logo.svg" alt="nailit" className="relative h-16 w-auto drop-shadow-lg" />
             </div>
 
-            {/* divider */}
-            <div className="flex items-center gap-3 w-full justify-center">
-              <div className="h-px flex-1 max-w-[40px]" style={{ background: "linear-gradient(90deg, transparent, #4B2E2B)" }} />
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M5 0L5.8 3.8L9.5 5L5.8 6.2L5 10L4.2 6.2L0.5 5L4.2 3.8L5 0Z" fill="#A1887F" />
-              </svg>
-              <div className="h-px flex-1 max-w-[40px]" style={{ background: "linear-gradient(90deg, #4B2E2B, transparent)" }} />
+            {/* Linha ornamental */}
+            <div className="flex items-center gap-3">
+              <div className="h-px w-10" style={{ background: "linear-gradient(90deg, transparent, #9D7FD4)" }} />
+              <svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 0L4.6 3L8 4L4.6 5L4 8L3.4 5L0 4L3.4 3Z" fill="#9D7FD4"/></svg>
+              <div className="h-px w-10" style={{ background: "linear-gradient(90deg, #9D7FD4, transparent)" }} />
             </div>
           </motion.div>
 
-          {/* ── Headline ── */}
+          {/* Headline */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={visible ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.1, duration: 0.7 }}
-            className="text-center space-y-1"
+            transition={{ delay: 0.08, duration: 0.7 }}
+            className="text-center space-y-1.5"
           >
-            <h1 className="text-[2rem] font-black tracking-tight leading-none" style={{ color: "#2a1a18" }}>
-              {isRegisterMode ? "Bem-vinda" : "Boas-vindas"}
+            <h1 className="text-[2.1rem] font-black tracking-tight leading-none text-[#1E1A2E]">
+              {isRegisterMode ? "Bem-vinda ✨" : "Boas-vindas 💜"}
             </h1>
-            <p className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "#9a7060" }}>
-              {isRegisterMode ? "Crie sua conta exclusiva" : "Sua jornada de beleza continua"}
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#9D7FD4]">
+              {isRegisterMode ? "Crie sua conta grátis" : "Agende. Apareça. Brilhe."}
             </p>
           </motion.div>
 
-          {/* ── Form card ── */}
+          {/* Card do formulário */}
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 28 }}
             animate={visible ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.18, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full"
+            transition={{ delay: 0.14, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full rounded-[28px] overflow-hidden"
+            style={{
+              background: "rgba(255,255,255,0.88)",
+              backdropFilter: "blur(32px)",
+              border: "1px solid rgba(157,127,212,0.2)",
+              boxShadow: "0 12px 48px rgba(30,26,46,0.10), 0 1px 0 rgba(255,255,255,1) inset",
+            }}
           >
-            <div
-              className="w-full rounded-[28px] overflow-hidden"
-              style={{
-                background: "rgba(255,255,255,0.75)",
-                backdropFilter: "blur(24px)",
-                border: "1px solid rgba(75,46,43,0.08)",
-                boxShadow: "0 8px 40px rgba(75,46,43,0.10), 0 1px 0 rgba(255,255,255,0.9) inset",
-              }}
-            >
-              <form onSubmit={isRegisterMode ? handleEmailRegister : handleEmailLogin} className="p-6 space-y-3.5">
-                {/* name */}
-                <AnimatePresence mode="wait">
-                  {isRegisterMode && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="space-y-1.5"
-                    >
-                      <label className="text-[11px] font-black uppercase tracking-[0.22em] pl-1" style={{ color: "#9a7060" }}>
-                        Nome Completo
-                      </label>
-                      <div className="relative">
-                        <User size={14} className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40" style={{ color: "#4B2E2B" }} />
-                        <Input
-                          type="text"
-                          autoComplete="name"
-                          placeholder="Como podemos te chamar?"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          required
-                          className="h-12 pl-10 rounded-2xl text-sm font-semibold transition-all"
-                          style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(75,46,43,0.12)" }}
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+            <form onSubmit={isRegisterMode ? handleEmailRegister : handleEmailLogin} className="p-6 space-y-4">
 
-                {/* email */}
-                <motion.div {...fadeUp(0, visible)} className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-[0.22em] pl-1" style={{ color: "#9a7060" }}>
-                    Endereço de E-mail
-                  </label>
-                  <div className="relative">
-                    <Mail size={14} className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40" style={{ color: "#4B2E2B" }} />
-                    <Input
-                      type="email"
-                      placeholder="seu@melhor-email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="h-12 pl-10 rounded-2xl text-sm font-semibold transition-all"
-                      style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(75,46,43,0.12)" }}
-                    />
-                  </div>
-                </motion.div>
-
-                {/* password */}
-                <motion.div {...fadeUp(1, visible)} className="space-y-1.5">
-                  <label className="text-[11px] font-black uppercase tracking-[0.22em] pl-1" style={{ color: "#9a7060" }}>
-                    Senha Segura
-                  </label>
-                  <div className="relative">
-                    <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40" style={{ color: "#4B2E2B" }} />
-                    <Input
-                      type="password"
-                      placeholder="Mínimo 6 caracteres"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      autoComplete={isRegisterMode ? "new-password" : "current-password"}
-                      minLength={6}
-                      className="h-12 pl-10 rounded-2xl text-sm font-semibold transition-all"
-                      style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(75,46,43,0.12)" }}
-                    />
-                  </div>
-                </motion.div>
-
-                {!isRegisterMode && (
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={handleForgotPassword}
-                      disabled={loading}
-                      className="text-[10px] font-black uppercase tracking-[0.2em] transition-colors disabled:opacity-50"
-                      style={{ color: "#9a7060" }}
-                    >
-                      Esqueci minha senha
-                    </button>
-                  </div>
+              {/* Nome (só no cadastro) */}
+              <AnimatePresence mode="wait">
+                {isRegisterMode && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-1.5"
+                  >
+                    <label className="text-[10px] font-black uppercase tracking-[0.22em] pl-1 text-[#9D7FD4]">Nome</label>
+                    <div className="relative">
+                      <User size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9D7FD4] opacity-50" />
+                      <Input type="text" autoComplete="name" placeholder="Como te chamamos?" value={name}
+                        onChange={e => setName(e.target.value)} required
+                        className="h-12 pl-10 rounded-2xl text-sm font-semibold bg-[#FAF8FF] border-[#DDD5F5] focus:border-[#9D7FD4] focus:ring-[#9D7FD4]/20" />
+                    </div>
+                  </motion.div>
                 )}
+              </AnimatePresence>
 
-                {/* CTA */}
-                <motion.div {...fadeUp(2, visible)}>
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full h-13 rounded-2xl font-black uppercase tracking-[0.18em] text-xs text-white transition-all active:scale-[0.98] mt-1 border-0"
-                    style={{
-                      background: "linear-gradient(135deg, #4B2E2B 0%, #6D4C41 100%)",
-                      boxShadow: "0 4px 20px rgba(75,46,43,0.35), 0 1px 0 rgba(255,255,255,0.1) inset",
-                    }}
-                  >
-                    {loading ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 size={16} className="animate-spin" />
-                        <span>Aguarde...</span>
-                      </div>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        {isRegisterMode ? "Criar minha conta" : "Entrar Agora"}
-                        <ArrowRight size={15} />
-                      </span>
-                    )}
-                  </Button>
-                </motion.div>
-              </form>
-
-              {/* divider + google */}
-              <div className="px-6 pb-6 space-y-3.5">
-                <div className="flex items-center gap-3">
-                  <div className="h-px flex-1" style={{ background: "rgba(75,46,43,0.08)" }} />
-                  <span className="text-[11px] font-black uppercase tracking-[0.3em]" style={{ color: "#c4a99a" }}>ou</span>
-                  <div className="h-px flex-1" style={{ background: "rgba(75,46,43,0.08)" }} />
+              {/* Email */}
+              <motion.div {...fadeUp(0, visible)} className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-[0.22em] pl-1 text-[#9D7FD4]">E-mail</label>
+                <div className="relative">
+                  <Mail size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9D7FD4] opacity-50" />
+                  <Input type="email" placeholder="seu@melhor-email.com" value={email}
+                    onChange={e => setEmail(e.target.value)} required
+                    className="h-12 pl-10 rounded-2xl text-sm font-semibold bg-[#FAF8FF] border-[#DDD5F5] focus:border-[#9D7FD4] focus:ring-[#9D7FD4]/20" />
                 </div>
+              </motion.div>
 
-                <motion.div {...fadeUp(3, visible)}>
-                  <button
-                    type="button"
-                    onClick={handleGoogleLogin}
-                    disabled={loading}
-                    className="w-full h-12 rounded-2xl flex items-center justify-center gap-3 font-bold text-xs uppercase tracking-widest transition-all active:scale-[0.98]"
-                    style={{
-                      background: "rgba(255,255,255,0.9)",
-                      border: "1px solid rgba(75,46,43,0.10)",
-                      boxShadow: "0 2px 8px rgba(75,46,43,0.06)",
-                      color: "#4B2E2B",
-                    }}
-                  >
-                    <img
-                      src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                      alt="Google"
-                      className="h-4 w-4"
-                    />
-                    Continuar com Google
-                  </button>
-                </motion.div>
+              {/* Senha */}
+              <motion.div {...fadeUp(1, visible)} className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-[0.22em] pl-1 text-[#9D7FD4]">Senha</label>
+                <div className="relative">
+                  <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9D7FD4] opacity-50" />
+                  <Input type="password" placeholder="Mínimo 6 caracteres" value={password}
+                    onChange={e => setPassword(e.target.value)} required
+                    autoComplete={isRegisterMode ? "new-password" : "current-password"}
+                    minLength={6}
+                    className="h-12 pl-10 rounded-2xl text-sm font-semibold bg-[#FAF8FF] border-[#DDD5F5] focus:border-[#9D7FD4] focus:ring-[#9D7FD4]/20" />
+                </div>
+              </motion.div>
 
-                <motion.div {...fadeUp(4, visible)}>
-                  <button
-                    type="button"
-                    onClick={handleAppleLogin}
-                    disabled={loading}
-                    className="w-full h-12 rounded-2xl flex items-center justify-center gap-3 font-bold text-xs uppercase tracking-widest transition-all active:scale-[0.98]"
-                    style={{
-                      background: "#000",
-                      border: "1px solid rgba(0,0,0,0.15)",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-                      color: "#fff",
-                    }}
-                  >
-                    {/* Apple logo SVG */}
-                    <svg width="16" height="16" viewBox="0 0 814 1000" fill="white">
-                      <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105-37.3-165.9-111.7c-71.6-91-131.5-236.1-131.5-374.4 0-67.5 12.8-134.4 38.4-194.6 37.4-89.3 121.1-145.8 213.3-145.8 75.6 0 127.5 38.8 160.6 38.8 31.8 0 91.3-43.2 171.5-43.2 29.3 0 108.2 2.6 168.5 79.3zm-234.4-191.1c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z" />
-                    </svg>
-                    Continuar com Apple
+              {/* Esqueci senha */}
+              {!isRegisterMode && (
+                <div className="flex justify-end -mt-1">
+                  <button type="button" onClick={handleForgotPassword} disabled={loading}
+                    className="text-[9px] font-black uppercase tracking-[0.2em] text-[#9D7FD4] hover:text-[#7C5CBF] transition-colors disabled:opacity-50">
+                    Esqueci minha senha
                   </button>
-                </motion.div>
+                </div>
+              )}
+
+              {/* Botão principal */}
+              <motion.div {...fadeUp(2, visible)}>
+                <Button type="submit" disabled={loading}
+                  className="w-full h-[52px] rounded-2xl font-black text-xs text-white uppercase tracking-[0.2em] border-0 active:scale-[0.98] transition-all"
+                  style={{
+                    background: "linear-gradient(135deg, #1E1A2E 0%, #5A3F9A 55%, #9D7FD4 100%)",
+                    boxShadow: "0 6px 24px rgba(124,92,191,0.35), 0 1px 0 rgba(255,255,255,0.12) inset",
+                  }}>
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Aguarde...</span>
+                    </div>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      {isRegisterMode ? "Criar minha conta" : "Entrar agora"}
+                      <ArrowRight size={15} />
+                    </span>
+                  )}
+                </Button>
+              </motion.div>
+            </form>
+
+            {/* Divider + Social */}
+            <div className="px-6 pb-6 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-[#EDE5FF]" />
+                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#C4B0E8]">ou</span>
+                <div className="h-px flex-1 bg-[#EDE5FF]" />
               </div>
+
+              <motion.div {...fadeUp(3, visible)}>
+                <button type="button" onClick={handleGoogleLogin} disabled={loading}
+                  className="w-full h-11 rounded-2xl flex items-center justify-center gap-2.5 font-bold text-[11px] uppercase tracking-[0.15em] active:scale-[0.98] transition-all"
+                  style={{ background: "#fff", border: "1.5px solid #EDE5FF", boxShadow: "0 2px 8px rgba(157,127,212,0.10)", color: "#6B6480" }}>
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" className="h-4 w-4" />
+                  Continuar com Google
+                </button>
+              </motion.div>
+
+              <motion.div {...fadeUp(4, visible)}>
+                <button type="button" onClick={handleAppleLogin} disabled={loading}
+                  className="w-full h-11 rounded-2xl flex items-center justify-center gap-2.5 font-bold text-[11px] uppercase tracking-[0.15em] active:scale-[0.98] transition-all text-white"
+                  style={{ background: "#0D0D0D", border: "1.5px solid #1A1A1A", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>
+                  <svg width="15" height="15" viewBox="0 0 814 1000" fill="white">
+                    <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105-37.3-165.9-111.7c-71.6-91-131.5-236.1-131.5-374.4 0-67.5 12.8-134.4 38.4-194.6 37.4-89.3 121.1-145.8 213.3-145.8 75.6 0 127.5 38.8 160.6 38.8 31.8 0 91.3-43.2 171.5-43.2 29.3 0 108.2 2.6 168.5 79.3zm-234.4-191.1c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/>
+                  </svg>
+                  Continuar com Apple
+                </button>
+              </motion.div>
             </div>
           </motion.div>
 
-          {/* toggle mode */}
-          <motion.div
+          {/* Toggle cadastro/login */}
+          <motion.button
+            type="button"
             initial={{ opacity: 0 }}
             animate={visible ? { opacity: 1 } : {}}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="text-center"
+            transition={{ delay: 0.5 }}
+            onClick={() => router.push(buildModeToggleUrl(!isRegisterMode))}
+            className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9D7FD4] hover:text-[#7C5CBF] transition-colors"
           >
-            <button
-              type="button"
-              onClick={() => router.push(buildModeToggleUrl(!isRegisterMode))}
-              className="text-[10px] font-black uppercase tracking-[0.22em] transition-colors"
-              style={{ color: "#9a7060" }}
-            >
-              {isRegisterMode ? "Já tem conta? Entrar" : "Não tem conta? Crie agora"}
-            </button>
+            {isRegisterMode ? "Já tem conta? Entrar →" : "Não tem conta? Crie grátis →"}
+          </motion.button>
+
+          {/* Segurança */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={visible ? { opacity: 0.25 } : {}}
+            transition={{ delay: 0.7 }}
+            className="flex items-center gap-2"
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9D7FD4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#9D7FD4]">Acesso seguro & criptografado</p>
           </motion.div>
 
-          {/* security tag */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={visible ? { opacity: 1 } : {}}
-            transition={{ delay: 0.65, duration: 0.6 }}
-            className="flex items-center gap-2 pb-2"
-            style={{ opacity: 0.3 }}
-          >
-            {/* lock icon inline svg */}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4B2E2B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <p className="text-[11px] font-black uppercase tracking-[0.35em]" style={{ color: "#4B2E2B" }}>
-              Acesso Seguro & Criptografado
-            </p>
-          </motion.div>
         </div>
       </div>
     </>
   );
 }
+
 
 export default function LoginPage() {
   return (

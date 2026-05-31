@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 90" fill="none">
+  <defs>
+    <linearGradient id="ld" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EDE5FF"/>
+      <stop offset="100%" stop-color="#C4A8E8"/>
+    </linearGradient>
+  </defs>
+  <rect x="8"  y="28" width="26" height="42" rx="13" fill="url(#ld)"/>
+  <rect x="12" y="16" width="18" height="16" rx="6"  fill="#EDE5FF" opacity="0.8"/>
+  <rect x="11" y="30" width="7"  height="26" rx="3.5" fill="white" opacity="0.25"/>
+  <text x="46" y="64"
+    font-family="Georgia,'Times New Roman',serif"
+    font-size="52" font-weight="700" font-style="italic"
+    fill="white" letter-spacing="-1.5">nailit</text>
+  <circle cx="183" cy="20" r="6" fill="#EDE5FF"/>
+  <text x="48" y="80"
+    font-family="-apple-system,Helvetica,sans-serif"
+    font-size="9.5" font-weight="600" letter-spacing="0.4em"
+    fill="white" opacity="0.35">BEAUTY PLATFORM</text>
+</svg>
