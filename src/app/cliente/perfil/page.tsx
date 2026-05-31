@@ -81,7 +81,7 @@ export default function PerfilPage() {
       {/* Hero dark */}
       <div className="bg-[#1E1A2E] relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#9D7FD4]/8 blur-3xl translate-x-20 -translate-y-20" />
-        <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full bg-amber-600/6 blur-2xl -translate-x-10 translate-y-10" />
+        <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full bg-[#9D7FD4]/6 blur-2xl -translate-x-10 translate-y-10" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "20px 20px" }} />
 
@@ -126,10 +126,10 @@ export default function PerfilPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-3xl border border-[#EDE5FF] shadow-xl shadow-stone-200/50 overflow-hidden"
+          className="bg-white rounded-3xl border border-[#EDE5FF] shadow-xl shadow-[#DDD5F5]/50 overflow-hidden"
         >
           <div className="h-0.5 bg-gradient-to-r from-[#1E1A2E]/0 via-[#9D7FD4] to-[#1E1A2E]/0" />
-          <div className="divide-y divide-stone-50">
+          <div className="divide-y divide-[#F0EBFF]">
             {[
               { icon: User,     label: "Nome",     value: name },
               { icon: Mail,     label: "E-mail",   value: email || "Não informado" },
@@ -159,7 +159,7 @@ export default function PerfilPage() {
             <p className="text-[9px] font-black text-[#9B8FC0] uppercase tracking-[0.25em] mb-2 px-1">
               {group.group}
             </p>
-            <div className="bg-white rounded-2xl border border-[#EDE5FF] overflow-hidden divide-y divide-stone-50">
+            <div className="bg-white rounded-2xl border border-[#EDE5FF] overflow-hidden divide-y divide-[#F0EBFF]">
               {group.items.map((item, ii) => (
                 <button key={ii} onClick={item.onClick}
                   className="w-full flex items-center gap-4 px-4 py-3.5 active:bg-[#FAF8FF] transition-colors text-left group">

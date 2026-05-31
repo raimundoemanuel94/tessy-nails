@@ -507,7 +507,7 @@ export default function AgendarPage() {
       </div>
 
       {/* ── BODY ────────────────────────────────────────────────── */}
-      <div className="px-5 pt-5 pb-36 max-w-lg mx-auto space-y-4">
+      <div className="px-5 pt-5 pb-[calc(7rem+env(safe-area-inset-bottom))] max-w-lg mx-auto space-y-4">
 
         {/* ── CALENDÁRIO PREMIUM ──────────────────────────────── */}
         <motion.div

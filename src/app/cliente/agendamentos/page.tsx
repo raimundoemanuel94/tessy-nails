@@ -111,7 +111,7 @@ export default function AgendamentosPage() {
         <div className="h-3" />
       </div>
 
-      <div className="px-5 pt-4 pb-32 max-w-lg mx-auto space-y-3">
+      <div className="px-5 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] max-w-lg mx-auto space-y-3">
         {error && <ErrorState title="Erro" message={error} onRetry={() => window.location.reload()} size="sm" />}
         <AnimatePresence mode="popLayout">
           {shown.length === 0 ? (

@@ -124,7 +124,7 @@ export default function ServicosPage() {
       </div>
 
       {/* ── LISTA ──────────────────────────────────────────── */}
-      <div className="px-5 pt-4 pb-32 max-w-lg mx-auto space-y-2.5">
+      <div className="px-5 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] max-w-lg mx-auto space-y-2.5">
         <AnimatePresence mode="popLayout">
           {shown.length === 0 ? (
             <motion.div key="empty" initial={{ opacity:0 }} animate={{ opacity:1 }}

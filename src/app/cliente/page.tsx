@@ -127,7 +127,7 @@ export default function ClientePage() {
         </div>
       </div>
 
-      <div className="px-5 pt-5 pb-36 max-w-lg mx-auto space-y-6">
+      <div className="px-5 pt-5 pb-[calc(7rem+env(safe-area-inset-bottom))] max-w-lg mx-auto space-y-6">
 
         {/* ── PRÓXIMO AGENDAMENTO ──────────────────────────────── */}
         <motion.section initial={{ opacity:0, y:14 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.05 }}>

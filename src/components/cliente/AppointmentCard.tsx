@@ -48,7 +48,7 @@ export function AppointmentCard({ appointment: a, onReschedule, onCancel }: Appo
       <AnimatePresence>
         {modal && (
           <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-6"
+            className="fixed inset-0 z-[200] flex items-end justify-center px-4 pb-[calc(6rem+env(safe-area-inset-bottom))]"
             style={{ backgroundColor:"rgba(30,26,46,0.65)", backdropFilter:"blur(8px)" }}>
             <div className="absolute inset-0" onClick={() => setModal(false)} />
             <motion.div
