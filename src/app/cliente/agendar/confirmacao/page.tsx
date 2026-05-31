@@ -116,7 +116,7 @@ export default function ConfirmacaoPage() {
       </div>
 
       {/* Body */}
-      <div className="px-5 pt-5 pb-36 max-w-lg mx-auto space-y-4">
+      <div className="px-5 pt-5 pb-[calc(9rem+env(safe-area-inset-bottom))] max-w-lg mx-auto space-y-4">
 
         <AnimatePresence>
           {error && (
@@ -151,15 +151,6 @@ export default function ConfirmacaoPage() {
           </div>
         </motion.div>
 
-        {/* Data completa */}
-        <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.12 }}
-          className="rounded-2xl bg-[#EDE5FF] border border-[#DDD5F5] px-4 py-3 flex items-center gap-3">
-          <CalendarCheck size={16} className="text-[#7C5CBF] shrink-0" />
-          <p className="text-xs font-black text-[#5A3F9A] capitalize">
-            {format(data.date,"EEEE, d 'de' MMMM 'de' yyyy",{locale:ptBR})} às {data.time.time}
-          </p>
-        </motion.div>
-
         {/* Observação */}
         <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.18 }}
           className="bg-white rounded-3xl border border-[#EDE5FF] shadow-sm p-5 space-y-3">
@@ -177,7 +168,7 @@ export default function ConfirmacaoPage() {
       </div>
 
       {/* CTA fixo */}
-      <div className="fixed bottom-0 inset-x-0 px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] z-40 bg-gradient-to-t from-[#FAF8FF] via-[#FAF8FF]/90 to-transparent pt-6">
+      <div className="fixed bottom-0 inset-x-0 px-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))] z-[60] bg-gradient-to-t from-[#FAF8FF] via-[#FAF8FF]/95 to-transparent pt-8">
         <div className="max-w-lg mx-auto">
           <motion.button
             whileTap={{ scale:0.98 }}
