@@ -63,6 +63,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [needsPhoneLink, setNeedsPhoneLink] = useState(false);
 
+  // ✅ Timeout de segurança — iOS PWA pode travar no loading
+  // Se em 8s não resolver, força loading=false para não travar o app
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setLoading(prev => {
+        if (prev) {
+          console.warn("[Auth] Timeout de segurança ativado — loading forçado para false");
+          return false;
+        }
+        return prev;
+      });
+    }, 8000);
+    return () => clearTimeout(t);
+  }, []);
+
   const syncServerSession = async (fUser: FirebaseUser | null) => {
     try {
       if (!fUser) {
@@ -94,7 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth!, async (fUser) => {
       console.log('Auth state changed:', { fUser: fUser?.email, uid: fUser?.uid });
       setFirebaseUser(fUser);
-      await syncServerSession(fUser);
+      // ✅ syncServerSession em background — não bloqueia o loading
+      void syncServerSession(fUser);
       
       if (fUser) {
         try {

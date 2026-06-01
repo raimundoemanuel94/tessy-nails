@@ -249,7 +249,7 @@ function LoginPageContent() {
   const nextParam = searchParams.get("next");
   // Pula o splash se já foi exibido nesta sessão (PWA / visita repetida)
   const [showSplash, setShowSplash] = useState(
-    () => !user && typeof sessionStorage !== "undefined" && !sessionStorage.getItem("splashShown")
+    () => !user && typeof sessionStorage !== "undefined" && !localStorage.getItem("nailit_splash_shown")
   );
 
   useEffect(() => {
@@ -334,7 +334,7 @@ function LoginPageContent() {
 
   return (
     <>
-      <AnimatePresence>{showSplash && <SplashLoader onComplete={() => { sessionStorage.setItem("splashShown","1"); setShowSplash(false); }} />}</AnimatePresence>
+      <AnimatePresence>{showSplash && <SplashLoader onComplete={() => { localStorage.setItem("nailit_splash_shown","1"); setShowSplash(false); }} />}</AnimatePresence>
 
       <div className="relative min-h-dvh w-full flex flex-col items-center justify-center px-5 py-10 overflow-hidden"
         style={{ background: "linear-gradient(160deg, #FAF8FF 0%, #F0EBFF 50%, #EDE5FF 100%)" }}>
