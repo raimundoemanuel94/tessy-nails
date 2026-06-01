@@ -65,7 +65,7 @@ export default function AgendamentosPage() {
   if (loading) return <AgendamentosSkeleton />;
 
   return (
-    <div className="min-h-screen bg-[#FAF8FF]">
+    <div className="min-h-dvh bg-[#FAF8FF]">
       <div style={{
         background: "linear-gradient(160deg, #0F0C1E 0%, #1E1A2E 50%, #2A1A4E 100%)",
         paddingTop: "env(safe-area-inset-top)",

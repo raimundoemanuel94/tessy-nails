@@ -13,6 +13,11 @@ const withPWA = require("next-pwa")({
       urlPattern: /^https:\/\/identitytoolkit\.googleapis\.com\/.*/i,
       handler: "NetworkOnly",
     },
+    // Versão do app — sempre fresco, nunca cacheado
+    {
+      urlPattern: /\/api\/version/i,
+      handler: "NetworkOnly",
+    },
     // Firebase Firestore — Network First com fallback
     {
       urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*/i,

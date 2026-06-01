@@ -80,7 +80,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  interactiveWidget: "resizes-visual",
+  // interactiveWidget omitido — pode causar problemas de layout no iOS 16-
 };
 
 export default function RootLayout({

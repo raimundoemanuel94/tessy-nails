@@ -70,13 +70,13 @@ export default function ServicosPage() {
 
   if (loading) return <ServicosSkeleton />;
   if (error)   return (
-    <div className="min-h-screen bg-[#FAF8FF] flex items-center justify-center p-5">
+    <div className="min-h-dvh bg-[#FAF8FF] flex items-center justify-center p-5">
       <ErrorState title="Erro" message={error} onRetry={() => window.location.reload()} />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#FAF8FF]">
+    <div className="min-h-dvh bg-[#FAF8FF]">
 
       {/* ── HEADER ─────────────────────────────────────────── */}
       <div className="sticky top-0 z-20" style={{ background: "linear-gradient(160deg, #0F0C1E 0%, #1E1A2E 50%, #2A1A4E 100%)", paddingTop: "env(safe-area-inset-top)" }}>

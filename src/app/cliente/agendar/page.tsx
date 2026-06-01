@@ -449,7 +449,7 @@ export default function AgendarPage() {
   };
 
   if (!service) return (
-    <div className="min-h-screen bg-[#FAF8FF] flex items-center justify-center p-6 text-center">
+    <div className="min-h-dvh bg-[#FAF8FF] flex items-center justify-center p-6 text-center">
       <div>
         <div className="h-16 w-16 rounded-2xl bg-[#EDE5FF] flex items-center justify-center mx-auto mb-4">
           <Sparkles size={24} className="text-[#9D7FD4]" />
@@ -465,7 +465,7 @@ export default function AgendarPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FAF8FF]">
+    <div className="min-h-dvh bg-[#FAF8FF]">
 
       {/* ── HEADER ──────────────────────────────────────────────── */}
       <div style={{ background:"linear-gradient(145deg,#1E1A2E 0%,#2A2044 100%)" }}

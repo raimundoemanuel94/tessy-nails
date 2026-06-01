@@ -81,7 +81,7 @@ function SucessoContent() {
   }, [appointmentId]);
 
   if (loading) return (
-    <div className="min-h-screen bg-[#1E1A2E] flex items-center justify-center">
+    <div className="min-h-dvh bg-[#1E1A2E] flex items-center justify-center">
       <div className="flex gap-1.5">
         {[0,1,2].map(i => (
           <motion.div key={i} className="w-2 h-2 rounded-full bg-[#9D7FD4]"
@@ -93,7 +93,7 @@ function SucessoContent() {
   );
 
   if (!appointment) return (
-    <div className="min-h-screen bg-[#FAF8FF] flex items-center justify-center p-6 text-center">
+    <div className="min-h-dvh bg-[#FAF8FF] flex items-center justify-center p-6 text-center">
       <div>
         <div className="h-16 w-16 rounded-2xl bg-[#F0EBFF] flex items-center justify-center mx-auto mb-4">
           <Calendar size={24} className="text-[#DDD5F5]" />
@@ -108,7 +108,7 @@ function SucessoContent() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FAF8FF]">
+    <div className="min-h-dvh bg-[#FAF8FF]">
 
       {/* ── HERO DARK ─────────────────────────────────────────────── */}
       <div className="bg-[#1E1A2E] relative overflow-hidden">
@@ -265,7 +265,7 @@ function SucessoContent() {
 export default function SucessoPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#1E1A2E] flex items-center justify-center">
+      <div className="min-h-dvh bg-[#1E1A2E] flex items-center justify-center">
         <div className="flex gap-1.5">
           {[0,1,2].map(i => (
             <motion.div key={i} className="w-2 h-2 rounded-full bg-[#9D7FD4]"

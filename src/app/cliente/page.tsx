@@ -142,7 +142,7 @@ export default function ClientePage() {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-dvh"
       style={{ background: "#FAF8FF" }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}

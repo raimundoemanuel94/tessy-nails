@@ -16,10 +16,6 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RefreshCw } from "lucide-react";
 
-// Versão do app — atualizar a cada deploy para forçar cache bust
-const APP_VERSION_KEY = "nailit_app_version";
-const APP_VERSION     = "1.2.0"; // bump em cada deploy significativo
-
 export function PwaUpdatePrompt() {
   const [updating, setUpdating] = useState(false);
   const reloadRef  = useRef(false);
@@ -27,21 +23,6 @@ export function PwaUpdatePrompt() {
 
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
-
-    // Detectar mudança de versão via localStorage
-    const storedVersion = localStorage.getItem(APP_VERSION_KEY);
-    if (storedVersion && storedVersion !== APP_VERSION) {
-      // Nova versão detectada — limpar caches antigos e recarregar
-      localStorage.setItem(APP_VERSION_KEY, APP_VERSION);
-      clearOldCaches().then(() => {
-        if (!reloadRef.current) {
-          reloadRef.current = true;
-          window.location.reload();
-        }
-      });
-      return;
-    }
-    localStorage.setItem(APP_VERSION_KEY, APP_VERSION);
 
     let isMounted = true;
 

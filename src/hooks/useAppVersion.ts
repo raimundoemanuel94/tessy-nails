@@ -13,7 +13,7 @@
 import { useEffect, useRef } from "react";
 
 const VERSION_KEY     = "nailit_deploy_sha";
-const CHECK_INTERVAL  = 5 * 60 * 1000; // 5 minutos
+const CHECK_INTERVAL  = 60 * 1000; // 1 minuto
 let   lastCheck       = 0;
 
 export function useAppVersion() {
@@ -21,7 +21,7 @@ export function useAppVersion() {
 
   const checkVersion = async () => {
     if (reloading.current) return;
-    if (Date.now() - lastCheck < 30_000) return; // throttle 30s
+    if (Date.now() - lastCheck < 15_000) return; // throttle 15s
     lastCheck = Date.now();
 
     try {

@@ -66,7 +66,7 @@ export default function ClienteLayout({
       <InstallBanner />
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 overflow-y-auto scrollbar-hide pb-[calc(5rem+env(safe-area-inset-bottom))]">
+      <main className="relative z-10 flex-1 overflow-y-auto scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
         <PageTransition>
           {children}
         </PageTransition>

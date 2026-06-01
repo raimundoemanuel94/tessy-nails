@@ -70,7 +70,7 @@ export default function ConfirmacaoPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#1E1A2E] flex items-center justify-center">
+    <div className="min-h-dvh bg-[#1E1A2E] flex items-center justify-center">
       <div className="flex gap-1.5">
         {[0,1,2].map(i => (
           <motion.div key={i} className="w-2 h-2 rounded-full bg-[#9D7FD4]"
@@ -84,7 +84,7 @@ export default function ConfirmacaoPage() {
   if (!data) return null;
 
   return (
-    <div className="min-h-screen bg-[#FAF8FF]">
+    <div className="min-h-dvh bg-[#FAF8FF]">
 
       {/* Header */}
       <div style={{ background:"linear-gradient(145deg,#1E1A2E 0%,#2A2044 100%)" }} className="relative overflow-hidden">

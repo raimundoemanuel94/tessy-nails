@@ -52,7 +52,7 @@ export default function PerfilPage() {
   };
 
   if (authLoading) return (
-    <div className="min-h-screen bg-[#FAF8FF]">
+    <div className="min-h-dvh bg-[#FAF8FF]">
       <div className="h-72 animate-pulse" style={{ background: "#1E1A2E" }} />
       <div className="px-5 -mt-10 space-y-3 max-w-lg mx-auto">
         {[...Array(3)].map((_, i) => (
@@ -95,7 +95,7 @@ export default function PerfilPage() {
   ];
 
   return (
-    <div className="min-h-screen pb-[calc(7rem+env(safe-area-inset-bottom))]" style={{ background: "#FAF8FF" }}>
+    <div className="min-h-dvh pb-[calc(7rem+env(safe-area-inset-bottom))]" style={{ background: "#FAF8FF" }}>
 
       {/* ── Modal de logout ───────────────────────────────────────── */}
       <AnimatePresence>

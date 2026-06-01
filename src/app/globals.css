@@ -126,20 +126,29 @@
   * {
     @apply border-border/60 outline-ring/50;
     -webkit-tap-highlight-color: transparent;
-  }
-  body {
-    @apply bg-background text-foreground antialiased selection:bg-brand-primary/20 selection:text-brand-primary;
-    overscroll-behavior-y: none;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    /* Evitar pull-to-refresh em navegadores mobile */
-    touch-action: pan-x pan-y;
+    -webkit-touch-callout: none;
   }
   html {
-    overscroll-behavior-y: none;
-    /* Garantir que o app ocupe a viewport inteira sem saltos */
+    /* Ocupa viewport inteira no iOS PWA standalone */
     height: 100%;
-    height: 100dvh;
+    height: -webkit-fill-available;
+    overscroll-behavior: none;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+    /* iOS PWA: evita bounce e pull-to-refresh nativo */
+    touch-action: pan-x pan-y;
+    /* Altura correta no iOS (address bar aparece/desaparece) */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
+  }
+  /* Inputs: font-size 16px evita zoom automático no iOS */
+  input, select, textarea {
+    font-size: max(16px, 1em);
   }
 }
 
@@ -224,15 +233,6 @@
   }
 }
 
-  /* ── PWA Mobile Fixes ───────────────────────────────────────────── */
-  /* Evita zoom no iOS ao focar inputs */
-  input, select, textarea {
-    font-size: 16px;
-  }
-  /* Suaviza transições de scroll */
-  * {
-    -webkit-overflow-scrolling: touch;
-  }
   /* Esconde scrollbar mas mantém funcionalidade */
   .scrollbar-hide {
     -ms-overflow-style: none;
@@ -241,8 +241,11 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-  /* 100dvh em vez de 100vh — evita problema de viewport mobile */
+  /* Usar dvh para evitar problema da address bar no mobile */
   .min-h-screen {
+    min-height: 100dvh;
+  }
+  .min-h-dvh {
     min-height: 100dvh;
   }
   /* Cursor pointer em touch devices */
