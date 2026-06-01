@@ -148,12 +148,16 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
-    /* iOS PWA: evita bounce e pull-to-refresh nativo */
     touch-action: pan-x pan-y;
-    /* Altura correta no iOS (address bar aparece/desaparece) */
     min-height: 100vh;
     min-height: -webkit-fill-available;
     min-height: 100dvh;
+    /* Evita flash branco no PWA standalone */
+    background-color: #0A0818;
+  }
+  /* Quando app carregado, body volta ao branco (só páginas internas definem o fundo) */
+  body[data-ready="true"] {
+    background-color: transparent;
   }
   /* Inputs: font-size 16px evita zoom automático no iOS */
   input, select, textarea {

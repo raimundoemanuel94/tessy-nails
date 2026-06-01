@@ -69,158 +69,99 @@ function resolvePostLoginTarget(role: string, nextValue: string | null): string 
 // ── Splash Nailit ─────────────────────────────────────────────────────────
 const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
   useEffect(() => {
-    const t = setTimeout(onComplete, 3000);
+    // 2s — rápido, não frustra o usuário
+    const t = setTimeout(onComplete, 2000);
     return () => clearTimeout(t);
   }, [onComplete]);
 
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden"
+      exit={{ opacity: 0, transition: { duration: 0.5, ease: "easeInOut" } }}
+      className="fixed inset-0 z-[100] flex items-center justify-center"
       style={{ background: "#0A0818" }}
     >
-      {/* Fundo vivo animado */}
-      <motion.div className="absolute inset-0"
-        animate={{ background: [
-          "radial-gradient(ellipse 90% 70% at 50% -10%, #220D40 0%, #0A0818 65%)",
-          "radial-gradient(ellipse 90% 70% at 60% -5%,  #1A0A38 0%, #0A0818 65%)",
-          "radial-gradient(ellipse 90% 70% at 40% -8%,  #220D40 0%, #0A0818 65%)",
-        ]}}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      />
+      {/* Glow de fundo */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, #1E0A38 0%, #0A0818 70%)" }} />
 
-      {/* Glow orbs */}
-      <motion.div className="absolute rounded-full pointer-events-none"
-        style={{ width: 600, height: 600, top: "-20%", left: "-15%",
-          background: "radial-gradient(circle, rgba(157,127,212,0.14) 0%, transparent 70%)" }}
-        animate={{ scale: [1,1.2,1], opacity: [0.6,1,0.6] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div className="absolute rounded-full pointer-events-none"
-        style={{ width: 500, height: 500, bottom: "-15%", right: "-10%",
-          background: "radial-gradient(circle, rgba(124,92,191,0.12) 0%, transparent 70%)" }}
-        animate={{ scale: [1,1.15,1], opacity: [0.5,0.9,0.5] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-      />
-
-      {/* Partículas ✦ */}
+      {/* Partículas leves */}
       {[
-        { x:"12%", y:"18%", s:22, d:0   },
-        { x:"82%", y:"12%", s:14, d:0.4 },
-        { x:"22%", y:"72%", s:18, d:0.8 },
-        { x:"78%", y:"68%", s:26, d:0.3 },
-        { x:"8%",  y:"48%", s:12, d:1.1 },
-        { x:"88%", y:"52%", s:16, d:0.6 },
-        { x:"50%", y:"88%", s:10, d:1.4 },
+        { x:"15%", y:"20%", s:18, d:0   },
+        { x:"80%", y:"15%", s:12, d:0.3 },
+        { x:"20%", y:"75%", s:14, d:0.6 },
+        { x:"78%", y:"70%", s:20, d:0.2 },
       ].map((p,i) => (
-        <motion.div key={i}
-          className="absolute select-none pointer-events-none text-[#9D7FD4] font-serif"
-          style={{ left: p.x, top: p.y, fontSize: p.s }}
-          animate={{ y: [0,-14,0], opacity: [0.15,0.55,0.15] }}
-          transition={{ duration: 3.5 + i*0.3, repeat: Infinity, ease: "easeInOut", delay: p.d }}
-        >✦</motion.div>
+        <motion.span key={i}
+          className="absolute select-none pointer-events-none text-[#9D7FD4]"
+          style={{ left: p.x, top: p.y, fontSize: p.s, fontFamily:"serif" }}
+          animate={{ y: [0,-10,0], opacity: [0.1,0.4,0.1] }}
+          transition={{ duration: 3, repeat: Infinity, ease:"easeInOut", delay: p.d }}
+        >✦</motion.span>
       ))}
 
-      {/* Centro */}
-      <div className="relative z-10 flex flex-col items-center gap-12">
+      {/* Centro — tudo centralizado */}
+      <div className="relative z-10 flex flex-col items-center gap-8">
 
-        {/* Ícone com anéis */}
+        {/* Ícone */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.4, y: 40 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-          className="relative flex items-center justify-center"
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="relative"
         >
-          {/* Anel 3 — externo */}
-          <motion.div className="absolute rounded-full border border-[#9D7FD4]/10"
-            style={{ width: 200, height: 200 }}
-            animate={{ scale: [1,1.08,1], opacity: [0.3,0.6,0.3] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          />
-          {/* Anel 2 */}
-          <motion.div className="absolute rounded-full border border-[#9D7FD4]/20"
-            style={{ width: 155, height: 155 }}
-            animate={{ scale: [1,1.06,1], opacity: [0.4,0.7,0.4] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          />
-          {/* Glow pulsante */}
-          <motion.div className="absolute rounded-full"
-            style={{ width: 120, height: 120,
-              background: "radial-gradient(circle, rgba(157,127,212,0.35) 0%, transparent 70%)" }}
-            animate={{ scale: [0.85,1.15,0.85], opacity: [0.4,0.9,0.4] }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-          />
-          {/* Ícone flutuante */}
-          <motion.div
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="relative z-10 h-24 w-24 rounded-[28px] flex items-center justify-center overflow-hidden"
+          {/* Glow */}
+          <div className="absolute inset-0 rounded-[32px] blur-xl opacity-50"
+            style={{ background: "rgba(157,127,212,0.4)", transform: "scale(1.3)" }} />
+          {/* Ícone */}
+          <div className="relative h-24 w-24 rounded-[28px] flex items-center justify-center overflow-hidden"
             style={{
               background: "linear-gradient(145deg, #2A1A50, #150E30)",
-              border: "1.5px solid rgba(157,127,212,0.35)",
-              boxShadow: "0 20px 60px rgba(124,92,191,0.4), 0 0 0 1px rgba(157,127,212,0.1)",
-            }}
-          >
-            <img src="/brand/nailit/icon.svg" alt="nailit" className="h-[72px] w-[72px] object-contain" />
-          </motion.div>
+              border: "1.5px solid rgba(157,127,212,0.3)",
+              boxShadow: "0 16px 48px rgba(124,92,191,0.4)",
+            }}>
+            <img src="/brand/nailit/icon.svg" alt="nailit"
+              className="h-[72px] w-[72px] object-contain" />
+          </div>
         </motion.div>
 
-        {/* Logo + slogan */}
-        <div className="flex flex-col items-center gap-4">
+        {/* Logo wordmark */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col items-center gap-3"
+        >
+          <img src="/brand/nailit/logo-dark.svg" alt="nailit" className="h-9 w-auto" />
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <img src="/brand/nailit/logo-dark.svg" alt="nailit" className="h-10 w-auto" />
-          </motion.div>
-
-          <motion.div
-            initial={{ scaleX: 0, opacity: 0 }}
-            animate={{ scaleX: 1, opacity: 1 }}
-            transition={{ delay: 1.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="h-px w-36 rounded-full"
+            initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.7, duration: 0.6 }}
+            className="h-px w-24 rounded-full"
             style={{ background: "linear-gradient(90deg, transparent, #9D7FD4, transparent)" }}
           />
-
           <motion.p
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 0.45, y: 0 }}
-            transition={{ delay: 1.6, duration: 0.7 }}
-            className="text-[9.5px] font-black uppercase tracking-[0.5em] text-[#9D7FD4]"
+            initial={{ opacity: 0 }} animate={{ opacity: 0.4 }}
+            transition={{ delay: 0.9 }}
+            className="text-[9px] font-bold uppercase tracking-[0.5em] text-[#9D7FD4]"
           >
             Agende. Apareça. Brilhe.
           </motion.p>
-        </div>
-
-        {/* Loading bar animada */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
-          className="flex flex-col items-center gap-2"
-        >
-          <div className="relative h-0.5 w-44 rounded-full overflow-hidden bg-white/5">
-            <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: "100%" }}
-              transition={{ duration: 1.4, ease: [0.44, 0, 0.56, 1], delay: 2 }}
-              className="absolute inset-0 rounded-full"
-              style={{ background: "linear-gradient(90deg, transparent, #9D7FD4, #C4A8E8, transparent)" }}
-            />
-          </div>
-          <motion.div className="flex gap-1.5">
-            {[0,1,2].map(i => (
-              <motion.div key={i}
-                className="h-1 rounded-full bg-[#9D7FD4]"
-                animate={{ width: ["5px","18px","5px"], opacity: [0.3,1,0.3] }}
-                transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: 2 + i*0.18 }}
-              />
-            ))}
-          </motion.div>
         </motion.div>
 
+        {/* Loading dots simples */}
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          transition={{ delay: 1.2 }}
+          className="flex gap-1.5"
+        >
+          {[0,1,2].map(i => (
+            <motion.div key={i}
+              className="h-1 rounded-full bg-[#9D7FD4]"
+              animate={{ width: ["5px","16px","5px"], opacity:[0.3,1,0.3] }}
+              transition={{ duration: 1, repeat: Infinity, ease:"easeInOut", delay: i*0.15 }}
+            />
+          ))}
+        </motion.div>
       </div>
     </motion.div>
   );

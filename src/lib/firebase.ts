@@ -2,8 +2,6 @@ import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import {
   getFirestore,
-  enableIndexedDbPersistence,
-  CACHE_SIZE_UNLIMITED,
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
@@ -27,32 +25,30 @@ export const isFirebaseConfigured = () =>
     firebaseConfig.appId
   );
 
-if (!isFirebaseConfigured() && process.env.NODE_ENV !== "production") {
-  console.warn("[Nailit] Firebase não configurado. Verifique as variáveis de ambiente.");
-}
-
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth =
-  typeof window !== "undefined" && isFirebaseConfigured() ? getAuth(app) : null;
+  typeof window !== "undefined" && isFirebaseConfigured()
+    ? getAuth(app)
+    : null;
 
-// Firestore com cache offline (IndexedDB)
-// Usa a API moderna persistentLocalCache quando disponível
+// Firestore com cache offline
+// Apenas no browser; no SSR usa getFirestore simples
 let db: ReturnType<typeof getFirestore>;
-try {
-  if (typeof window !== "undefined" && isFirebaseConfigured()) {
+
+if (typeof window !== "undefined" && isFirebaseConfigured()) {
+  try {
     db = initializeFirestore(app, {
       localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager(),
       }),
     });
-  } else {
+  } catch {
+    // Já inicializado (hot reload no dev) — pega instância existente
     db = getFirestore(app);
   }
-} catch {
-  // Se já inicializado (hot reload), pega a instância existente
+} else {
   db = getFirestore(app);
 }
 
-export { db };
-export { app };
+export { db, app };

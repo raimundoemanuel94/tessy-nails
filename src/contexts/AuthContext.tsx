@@ -107,92 +107,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const unsubscribe = onAuthStateChanged(auth!, async (fUser) => {
-      console.log('Auth state changed:', { fUser: fUser?.email, uid: fUser?.uid });
       setFirebaseUser(fUser);
-      // ✅ syncServerSession em background — não bloqueia o loading
       void syncServerSession(fUser);
-      
-      if (fUser) {
-        try {
-          console.log('Fetching user and client documents from Firestore...');
-          
-          // Paralelizar requisições Firestore para reduzir latência de boot pela metade
-          const [userDoc, clientDoc] = await Promise.all([
-             getDoc(doc(db, "users", fUser.uid)),
-             getDoc(doc(db, "clients", fUser.uid))
-          ]);
-          console.log('User document exists:', userDoc.exists());
-          console.log('Client document exists:', clientDoc.exists());
-          
-          if (userDoc.exists()) {
-            const userData = userDoc.data() as User;
-            console.log('User data found:', userData);
-            setUser(userData);
-          } else {
-            console.log('Creating new user document...');
-            // Criar documento do usuário automaticamente com fallback como CLIENTE
-            const newUser: User = {
-              uid: fUser.uid,
-              name: fUser.displayName || "Usuário",
-              email: fUser.email || "",
-              role: "client", // Role padrão seguro agora é CLIENT
-              createdAt: new Date(),
-              isActive: true,
-              ...(fUser.photoURL && { photoURL: fUser.photoURL })
-            };
-            
-            try {
-              await setDoc(doc(db, "users", fUser.uid), newUser);
-              console.log('New user created:', newUser);
-              setUser(newUser);
-            } catch (createError) {
-              console.error('Error creating user document:', createError);
-              // Fallback: usar dados do Firebase Auth sem criar documento
-              const fallbackUser: User = {
-                uid: fUser.uid,
-                name: fUser.displayName || "Usuário",
-                email: fUser.email || "",
-                role: "client",
-                createdAt: new Date(),
-                isActive: true,
-                ...(fUser.photoURL && { photoURL: fUser.photoURL })
-              };
-              setUser(fallbackUser);
-            }
-          }
-          
-          if (clientDoc.exists()) {
-            const clientData = clientDoc.data() as Client;
-            console.log('Client data found:', clientData);
-            setNeedsPhoneLink(false);
-            setClient(clientData);
-          } else {
-            // Não auto-criar: pedir telefone para tentar vincular cadastro existente
-            console.log('No client document found — requesting phone to link or create.');
-            setNeedsPhoneLink(true);
-            setClient(null);
-          }
-        } catch (error) {
-          console.error("Error fetching user/client data:", error);
-          // Fallback: não quebrar o app se Firestore falhar
-          const fallbackUser: User = {
-            uid: fUser.uid,
-            name: fUser.displayName || "Usuário",
-            email: fUser.email || "",
-            role: "client",
-            createdAt: new Date(),
-            isActive: true,
-            ...(fUser.photoURL && { photoURL: fUser.photoURL })
-          };
-          setUser(fallbackUser);
-          setClient(null);
-        }
-      } else {
-        console.log('User logged out');
+
+      if (!fUser) {
         setUser(null);
         setClient(null);
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      // ── Passo 1: liberar UI imediatamente com dados do Firebase Auth ──
+      // O usuário vê a tela sem esperar Firestore
+      const quickUser: User = {
+        uid: fUser.uid,
+        name: fUser.displayName || "Usuário",
+        email: fUser.email || "",
+        role: "client",
+        createdAt: new Date(),
+        isActive: true,
+        ...(fUser.photoURL && { photoURL: fUser.photoURL }),
+      };
+      setUser(quickUser);
+      setLoading(false); // ← LIBERA A UI AQUI, sem esperar Firestore
+
+      // ── Passo 2: enriquecer com dados do Firestore em background ──
+      try {
+        const [userDoc, clientDoc] = await Promise.all([
+          getDoc(doc(db, "users", fUser.uid)),
+          getDoc(doc(db, "clients", fUser.uid)),
+        ]);
+
+        if (userDoc.exists()) {
+          setUser(userDoc.data() as User);
+        } else {
+          // Criar perfil silenciosamente em background
+          setDoc(doc(db, "users", fUser.uid), quickUser).catch(() => {});
+        }
+
+        if (clientDoc.exists()) {
+          setClient(clientDoc.data() as Client);
+          setNeedsPhoneLink(false);
+        } else {
+          setNeedsPhoneLink(true);
+          setClient(null);
+        }
+      } catch {
+        // Firestore falhou — usuário já está logado com dados do Auth, tudo bem
+      }
     });
 
     return () => unsubscribe();
