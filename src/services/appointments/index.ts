@@ -173,11 +173,12 @@ export const appointmentService = {
   /**
    * Busca agendamentos de um cliente específico
    */
-  async getByClientId(clientId: string): Promise<Appointment[]> {
+  async getByClientId(clientId: string, maxResults = 50): Promise<Appointment[]> {
     const q = query(
       collection(db, COLLECTION_NAME),
       where("clientId", "==", clientId),
-      orderBy("appointmentDate", "desc")
+      orderBy("appointmentDate", "desc"),
+      limit(maxResults)
     );
     const snapshot = await getDocs(q);
     return snapshot.docs.map(mapAppointmentData) as Appointment[];
@@ -186,8 +187,8 @@ export const appointmentService = {
   /**
    * Busca agendamentos de um cliente com detalhes dos serviços
    */
-  async getByClientIdWithServices(clientId: string): Promise<AppointmentWithService[]> {
-    const appointments = await this.getByClientId(clientId);
+  async getByClientIdWithServices(clientId: string, maxResults = 50): Promise<AppointmentWithService[]> {
+    const appointments = await this.getByClientId(clientId, maxResults);
     
     // Buscar todos os serviços via Cache
     const allServices = await globalStore.fetchServices(false);

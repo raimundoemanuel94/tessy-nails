@@ -53,8 +53,17 @@ export default function ClientePage() {
 
   useEffect(() => {
     if (!user) return;
+
+    // Mostrar cache imediatamente se disponível
+    const cached = globalStore.getState().services;
+    if (cached?.length) {
+      setServices(cached.slice(0, 8));
+      setLoading(false);
+    }
+
+    // Buscar em paralelo sem bloquear a UI
     Promise.allSettled([
-      appointmentService.getByClientIdWithServices(user.uid),
+      appointmentService.getByClientIdWithServices(user.uid, 20),
       globalStore.fetchServices(false),
     ]).then(([a, s]) => {
       if (a.status === "fulfilled") {
@@ -67,7 +76,7 @@ export default function ClientePage() {
     }).finally(() => setLoading(false));
   }, [user]);
 
-  if (authLoading || loading) return <ClienteHomeSkeleton />;
+  if (authLoading || (loading && services.length === 0)) return <ClienteHomeSkeleton />;
   if (!user) return null;
 
   const name  = user.name?.split(" ")[0] || "Olá";
