@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -8,9 +8,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-serif: "Playfair Display", serif;
+  --font-sans:    var(--font-dm-sans), "DM Sans", -apple-system, sans-serif;
+  --font-mono:    var(--font-dm-mono), "DM Mono", monospace;
+  --font-serif:   var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-display: var(--font-playfair), "Playfair Display", Georgia, serif;
 
   /* ── Nailit Premium Tokens — Noir Nubuck Edition ───── */
   --tn-noir:        #1E1A2E;
@@ -128,6 +129,14 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
   }
+
+  /* Font variables */
+  :root {
+    --font-display: var(--font-playfair), Georgia, serif;
+    --font-body: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: var(--font-dm-mono), "Courier New", monospace;
+  }
+
   html {
     /* Ocupa viewport inteira no iOS PWA standalone */
     height: 100%;

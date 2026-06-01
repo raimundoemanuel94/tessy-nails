@@ -196,7 +196,7 @@ export default function PerfilPage() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-              <h1 className="text-[20px] font-black text-white leading-none">
+              <h1 className="text-[20px] font-bold text-white leading-none" style={{ fontFamily:"var(--font-display)", fontStyle:"italic" }}>
                 {firstName}
                 {lastName && <span className="text-white/50"> {lastName}</span>}
               </h1>
