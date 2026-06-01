@@ -20,9 +20,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Nailit — Beauty Platform",
   description: "Agende com as melhores manicures. Rápido, fácil e bonito.",
-  manifest: "/manifest.json?v=10",
+  manifest: "/manifest.json?v=11",
   icons: {
-    icon: "/brand/icons/favicon.png",
+    icon: [{ url:"/brand/icons/favicon-32.png", sizes:"32x32", type:"image/png" }, { url:"/favicon.ico", sizes:"16x16" }],
     apple: "/brand/icons/apple-touch-icon.png",
   },
   appleWebApp: {
