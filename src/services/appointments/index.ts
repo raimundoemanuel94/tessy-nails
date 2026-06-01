@@ -414,7 +414,7 @@ export const appointmentService = {
     );
   },
 
-  /** Listener em tempo real — agendamentos por intervalo. Usado na agenda da Tessy. */
+  /** Listener em tempo real — agendamentos por intervalo. Usado na agenda da Nailit. */
   subscribeByDateRange(
     start: Date,
     end: Date,

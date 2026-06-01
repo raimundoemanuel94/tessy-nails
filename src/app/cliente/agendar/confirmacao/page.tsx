@@ -54,7 +54,7 @@ export default function ConfirmacaoPage() {
       });
       if (!appointmentId) throw new Error("Falha ao criar agendamento.");
 
-      // Notificar Tessy sobre novo agendamento
+      // Notificar Nailit sobre novo agendamento
       void notificationService.notifyNewAppointment({
         clientName: user.name || "Cliente",
         serviceName: data.service.name,

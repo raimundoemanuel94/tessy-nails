@@ -27,7 +27,7 @@
 
   <!-- Nome -->
   <text x="92" y="33" font-family="Georgia, serif" font-size="26"
-    font-style="italic" fill="#1E1A2E" letter-spacing="1">Tessy Nails</text>
+    font-style="italic" fill="#1E1A2E" letter-spacing="1">Nailit</text>
 
   <!-- Subtítulo -->
   <text x="94" y="54" font-family="-apple-system, Helvetica, sans-serif" font-size="11"

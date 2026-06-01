@@ -271,7 +271,7 @@ export default function AgendaPage() {
         />
 
         <PageHero 
-          title={format(ensureDate(date), "'Olá, Tessy!' - EEEE", { locale: ptBR })}
+          title={format(ensureDate(date), "'Olá, Nailit!' - EEEE", { locale: ptBR })}
           subtitle={validAppointments.length === 0 
             ? "Dia livre para organizar e planejar" 
             : validAppointments.length === 1 

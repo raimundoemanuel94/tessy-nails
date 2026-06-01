@@ -96,7 +96,7 @@ export default function ConfiguracoesPage() {
     name: 'Nailit Studio',
     address: 'Sorriso, MT',
     phone: '(66) 98765-4321',
-    email: 'contato@tessynails.com',
+    email: 'contato@nailit.com.br',
     workingDays: {
       monday: { enabled: true, start: '09:00', end: '18:00' },
       tuesday: { enabled: true, start: '09:00', end: '18:00' },

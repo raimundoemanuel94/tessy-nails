@@ -82,7 +82,15 @@ const withPWA = require("next-pwa")({
   buildExcludes: [/middleware-manifest\.json$/],
 });
 
+// Injetar BUILD_ID único por deploy
+const buildId = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) 
+  || process.env.GITHUB_SHA?.slice(0, 7)
+  || String(Date.now());
+
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_BUILD_ID: buildId,
+  },
   webpack: (config, { isServer }) => config,
   async headers() {
     return [

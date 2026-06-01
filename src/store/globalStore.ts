@@ -34,8 +34,8 @@ if (typeof window !== "undefined") {
         localStorage.removeItem(CACHE_KEY);
       }
     }
-    // Limpar cache antigo do nome "tessy_global_cache"
-    localStorage.removeItem("tessy_global_cache");
+    // Limpar cache antigo do nome "nailit_global_cache"
+    localStorage.removeItem("nailit_global_cache");
   } catch {
     localStorage.removeItem(CACHE_KEY);
   }

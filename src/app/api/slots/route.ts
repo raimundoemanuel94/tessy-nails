@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
  * GET /api/slots?start=ISO&end=ISO
  *
  * Retorna slots ocupados E configuração de horários do salão.
- * Usa settings/salon.workingDays para saber quais dias/horários Tessy atende.
+ * Usa settings/salon.workingDays para saber quais dias/horários Nailit atende.
  * Fallback: 08h–18h, todos os dias exceto domingo.
  */
 

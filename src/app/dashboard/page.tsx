@@ -93,7 +93,7 @@ export default function DashboardPage() {
   const displayName =
     protectedUser?.name && protectedUser.name.trim() !== "" && protectedUser.name.trim().toLowerCase() !== "usuario"
       ? protectedUser.name.split(" ")[0]
-      : protectedUser?.email?.split("@")[0] || "Tessy";
+      : protectedUser?.email?.split("@")[0] || "Nailit";
 
   const fetchData = useCallback(async () => {
     if (authLoading || !protectedUser || (protectedUser.role !== "admin" && protectedUser.role !== "professional")) return;

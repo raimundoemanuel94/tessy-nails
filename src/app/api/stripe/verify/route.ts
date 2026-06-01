@@ -72,7 +72,7 @@ export async function POST(req: Request) {
         : "";
 
       void Promise.allSettled([
-        // Notificar Tessy (staff) sobre novo agendamento pago
+        // Notificar Nailit (staff) sobre novo agendamento pago
         notifyAllStaff({
           title: "💅 Novo agendamento confirmado!",
           body: `${svcName}${dateStr ? " — " + dateStr : ""}`,

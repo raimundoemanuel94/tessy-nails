@@ -5,12 +5,12 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { readFileSync } from 'fs';
 
 // Configuração Firebase Admin
-const serviceAccount = JSON.parse(readFileSync('./tessy-nails-firebase-adminsdk-fbsvc-8ebe8667af.json', 'utf8'));
+const serviceAccount = JSON.parse(readFileSync('./nailit-firebase-adminsdk-fbsvc-8ebe8667af.json', 'utf8'));
 
 // Inicializar Firebase Admin
 const app = initializeApp({
   credential: cert(serviceAccount),
-  projectId: 'tessy-nails'
+  projectId: 'nailit'
 });
 
 const db = getFirestore(app);
