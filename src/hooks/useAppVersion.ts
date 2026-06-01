@@ -1,25 +1,108 @@
 "use client";
 
 /**
- * Detecção de nova versão do app.
- * 
- * Estratégia dupla:
- * 1. BUILD_ID embarcado no JS (disponível imediatamente, sem fetch)
- * 2. /api/version como fallback (para confirmar)
- * 
- * Quando BUILD_ID muda → limpa caches → reload automático
+ * useAppVersion — detecta nova versão e recarrega automaticamente
+ *
+ * Como funciona:
+ * 1. CURRENT_BUILD é embutido no JS pelo next.config (muda a cada deploy)
+ * 2. Na primeira visita: salva o CURRENT_BUILD no localStorage
+ * 3. Em visitas seguintes: compara CURRENT_BUILD com o salvo
+ *    → Se diferente: nova versão detectada → limpa caches → reload
+ * 4. Fallback via fetch /api/version para casos edge
+ * 5. Triggers: mount, visibilitychange, focus, online
  */
 
 import { useEffect, useRef } from "react";
 
-const VERSION_KEY    = "nailit_build_id";
-const CHECK_INTERVAL = 60 * 1000; // 1 minuto
-let   lastCheck      = 0;
+const KEY = "nailit_v";
+const CURRENT = process.env.NEXT_PUBLIC_BUILD_ID ?? "dev";
 
-// BUILD_ID é injetado pelo next.config.ts em cada deploy
-const CURRENT_BUILD = process.env.NEXT_PUBLIC_BUILD_ID || "dev";
+export function useAppVersion() {
+  const reloading = useRef(false);
+  const checked   = useRef(false);
 
-async function clearCaches() {
+  useEffect(() => {
+    const check = async () => {
+      if (reloading.current) return;
+
+      const stored = localStorage.getItem(KEY);
+
+      // ── Verificação 1: BUILD_ID no bundle JS ──────────────
+      if (stored && stored !== CURRENT && CURRENT !== "dev") {
+        console.info(`[Nailit] Versão nova: ${stored} → ${CURRENT}`);
+        reloading.current = true;
+        localStorage.setItem(KEY, CURRENT);
+        await wipeCaches();
+        // Aguardar SW processar antes de recarregar
+        setTimeout(() => window.location.reload(), 400);
+        return;
+      }
+
+      // Primeira visita — apenas salvar
+      if (!stored) {
+        localStorage.setItem(KEY, CURRENT);
+        checked.current = true;
+        return;
+      }
+
+      // ── Verificação 2: /api/version como fallback ─────────
+      // Só faz se já passou > 30s desde a última checagem
+      const lastFetch = Number(sessionStorage.getItem("nailit_last_check") || "0");
+      if (Date.now() - lastFetch < 30_000) return;
+      sessionStorage.setItem("nailit_last_check", String(Date.now()));
+
+      try {
+        const r = await fetch(`/api/version?_=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "pragma": "no-cache", "cache-control": "no-cache" },
+        });
+        if (!r.ok) return;
+        const { buildId } = await r.json() as { buildId: string };
+
+        const storedApi = localStorage.getItem(KEY + "_api");
+        if (!storedApi) {
+          localStorage.setItem(KEY + "_api", buildId);
+          return;
+        }
+
+        if (storedApi !== buildId && buildId !== "unknown") {
+          console.info(`[Nailit] API versão nova: ${storedApi} → ${buildId}`);
+          reloading.current = true;
+          localStorage.setItem(KEY + "_api", buildId);
+          await wipeCaches();
+          setTimeout(() => window.location.reload(), 400);
+        }
+      } catch {
+        // Offline — sem problema
+      }
+    };
+
+    // Executar imediatamente
+    void check();
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void check();
+    };
+    const onFocus  = () => void check();
+    const onOnline = () => void check();
+
+    // Intervalo de 90 segundos
+    const iv = setInterval(check, 90_000);
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("online", onOnline);
+
+    return () => {
+      clearInterval(iv);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("online", onOnline);
+    };
+  }, []);
+}
+
+async function wipeCaches() {
   if (!("caches" in window)) return;
   try {
     const keys = await caches.keys();
@@ -27,92 +110,12 @@ async function clearCaches() {
       keys.filter(k =>
         k.startsWith("nailit-") ||
         k.startsWith("workbox-") ||
-        k.startsWith("next-")
-      ).map(k => caches.delete(k))
+        k.startsWith("next-")   ||
+        k.startsWith("sw-")
+      ).map(k => {
+        console.info(`[Nailit] Removendo cache: ${k}`);
+        return caches.delete(k);
+      })
     );
-    console.log("[Nailit] Caches limpos");
   } catch {}
-}
-
-async function checkAndReload(reloading: React.MutableRefObject<boolean>) {
-  if (reloading.current) return;
-  if (Date.now() - lastCheck < 15_000) return;
-  lastCheck = Date.now();
-
-  const stored = localStorage.getItem(VERSION_KEY);
-
-  // 1. Verificação rápida pelo BUILD_ID embutido no JS
-  if (stored && stored !== CURRENT_BUILD && CURRENT_BUILD !== "dev") {
-    console.log(`[Nailit] Build mudou: ${stored} → ${CURRENT_BUILD}`);
-    reloading.current = true;
-    localStorage.setItem(VERSION_KEY, CURRENT_BUILD);
-    await clearCaches();
-    setTimeout(() => window.location.reload(), 300);
-    return;
-  }
-
-  if (!stored) {
-    localStorage.setItem(VERSION_KEY, CURRENT_BUILD);
-  }
-
-  // 2. Verificação via API (fallback para quando BUILD_ID = "dev")
-  try {
-    const res = await fetch("/api/version", {
-      cache: "no-store",
-      headers: { "pragma": "no-cache", "cache-control": "no-cache" },
-    });
-    if (!res.ok) return;
-    const { buildId } = await res.json() as { buildId: string };
-    const storedApi = localStorage.getItem(VERSION_KEY + "_api");
-
-    if (!storedApi) {
-      localStorage.setItem(VERSION_KEY + "_api", buildId);
-      return;
-    }
-
-    if (storedApi !== buildId) {
-      console.log(`[Nailit] API build mudou: ${storedApi} → ${buildId}`);
-      reloading.current = true;
-      localStorage.setItem(VERSION_KEY + "_api", buildId);
-      await clearCaches();
-      setTimeout(() => window.location.reload(), 300);
-    }
-  } catch {
-    // offline — sem problema
-  }
-}
-
-export function useAppVersion() {
-  const reloading = useRef(false);
-
-  useEffect(() => {
-    // Verificar imediatamente ao montar
-    void checkAndReload(reloading);
-
-    // Ao voltar para o app
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") {
-        void checkAndReload(reloading);
-      }
-    };
-
-    // Ao voltar online
-    const onOnline = () => void checkAndReload(reloading);
-
-    // Ao receber foco (iOS PWA)
-    const onFocus = () => void checkAndReload(reloading);
-
-    const interval = setInterval(() => checkAndReload(reloading), CHECK_INTERVAL);
-
-    document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("online", onOnline);
-    window.addEventListener("focus", onFocus);
-
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("online", onOnline);
-      window.removeEventListener("focus", onFocus);
-    };
-  }, []);
 }

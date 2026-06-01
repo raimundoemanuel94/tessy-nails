@@ -82,10 +82,15 @@ const withPWA = require("next-pwa")({
   buildExcludes: [/middleware-manifest\.json$/],
 });
 
-// Injetar BUILD_ID único por deploy
-const buildId = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) 
-  || process.env.GITHUB_SHA?.slice(0, 7)
-  || String(Date.now());
+// BUILD_ID: ler do arquivo .build-id (gerado pelo prebuild) ou envs do CI
+import { existsSync, readFileSync } from "fs";
+const buildId = (() => {
+  if (process.env.VERCEL_GIT_COMMIT_SHA) return process.env.VERCEL_GIT_COMMIT_SHA.slice(0, 8);
+  if (process.env.GITHUB_SHA)            return process.env.GITHUB_SHA.slice(0, 8);
+  try { if (existsSync(".build-id")) return readFileSync(".build-id", "utf8").trim(); } catch {}
+  return `b${Date.now().toString(36)}`;
+})();
+console.log("[next.config] Build ID:", buildId);
 
 const nextConfig: NextConfig = {
   env: {
