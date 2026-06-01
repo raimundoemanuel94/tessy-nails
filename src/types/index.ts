@@ -140,3 +140,90 @@ export interface AppointmentWithDetails extends Appointment {
   service?: Service;
   specialist?: User;
 }
+
+// ── MULTI-TENANT ────────────────────────────────────────────────────────────
+
+export type PlanId = "free" | "starter" | "pro" | "studio";
+
+export const PlanLimits: Record<PlanId, {
+  maxAppointmentsPerMonth: number;
+  maxServices: number;
+  hasVitrine: boolean;
+  hasReports: boolean;
+  hasPublicLink: boolean;
+  hasPrioritySupport: boolean;
+  maxProfessionals: number;
+  trialDays: number;
+}> = {
+  free: {
+    maxAppointmentsPerMonth: 30,
+    maxServices: 1,
+    hasVitrine: false,
+    hasReports: false,
+    hasPublicLink: false,
+    hasPrioritySupport: false,
+    maxProfessionals: 1,
+    trialDays: 0,
+  },
+  starter: {
+    maxAppointmentsPerMonth: Infinity,
+    maxServices: 10,
+    hasVitrine: true,
+    hasReports: false,
+    hasPublicLink: false,
+    hasPrioritySupport: false,
+    maxProfessionals: 1,
+    trialDays: 3,
+  },
+  pro: {
+    maxAppointmentsPerMonth: Infinity,
+    maxServices: Infinity,
+    hasVitrine: true,
+    hasReports: true,
+    hasPublicLink: true,
+    hasPrioritySupport: true,
+    maxProfessionals: 1,
+    trialDays: 3,
+  },
+  studio: {
+    maxAppointmentsPerMonth: Infinity,
+    maxServices: Infinity,
+    hasVitrine: true,
+    hasReports: true,
+    hasPublicLink: true,
+    hasPrioritySupport: true,
+    maxProfessionals: 3,
+    trialDays: 3,
+  },
+};
+
+export const PlanPrices: Record<PlanId, number> = {
+  free: 0,
+  starter: 19,
+  pro: 29,
+  studio: 59,
+};
+
+export const PlanNames: Record<PlanId, string> = {
+  free: "Free",
+  starter: "Starter",
+  pro: "Pro",
+  studio: "Studio",
+};
+
+// Studio — documento raiz de cada salão/manicure
+export const StudioSchema = z.object({
+  id:        z.string(),
+  name:      z.string().min(2),
+  ownerId:   z.string(),          // Firebase UID do profissional
+  slug:      z.string().optional(), // /book/{slug}
+  phone:     z.string().optional(),
+  address:   z.string().optional(),
+  photoURL:  z.string().optional(),
+  plan:      z.enum(["free","starter","pro","studio"]).default("free"),
+  trialEndsAt: z.date().optional(),  // data fim do trial de 3 dias
+  isActive:  z.boolean().default(true),
+  createdAt: z.date(),
+  updatedAt: z.date().optional(),
+});
+export type Studio = z.infer<typeof StudioSchema>;

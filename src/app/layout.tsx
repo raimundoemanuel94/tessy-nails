@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import { PwaUpdatePrompt } from "@/components/pwa/PwaUpdatePrompt";
 import { AppVersionWatcher } from "@/components/pwa/AppVersionWatcher";
+import { StudioProvider } from "@/contexts/StudioContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -93,12 +94,14 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <AuthProvider>
+            <StudioProvider>
             <TooltipProvider>
               {children}
               <PwaUpdatePrompt />
               <AppVersionWatcher />
               <Toaster position="top-right" richColors closeButton />
             </TooltipProvider>
+            </StudioProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
