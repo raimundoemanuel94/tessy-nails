@@ -223,3 +223,31 @@
     100% { background-position: 200% 0; }
   }
 }
+
+  /* ── PWA Mobile Fixes ───────────────────────────────────────────── */
+  /* Evita zoom no iOS ao focar inputs */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  /* Suaviza transições de scroll */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Esconde scrollbar mas mantém funcionalidade */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  /* 100dvh em vez de 100vh — evita problema de viewport mobile */
+  .min-h-screen {
+    min-height: 100dvh;
+  }
+  /* Cursor pointer em touch devices */
+  @media (hover: none) {
+    button, [role="button"], a {
+      cursor: pointer;
+    }
+  }

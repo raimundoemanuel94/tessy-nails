@@ -3,26 +3,40 @@
   "name": "Nailit — Beauty Platform",
   "short_name": "Nailit",
   "lang": "pt-BR",
+  "dir": "ltr",
   "description": "Agende com as melhores manicures. Rápido, fácil e bonito.",
   "start_url": "/cliente",
   "scope": "/",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#0A0818",
   "theme_color": "#0F0C1E",
-  "categories": ["beauty", "lifestyle"],
+  "categories": ["beauty", "lifestyle", "health"],
+  "iarc_rating_id": "",
   "icons": [
-    { "src": "/brand/nailit/icon.svg",              "sizes": "any",     "type": "image/svg+xml",  "purpose": "any" },
-    { "src": "/brand/icons/icon-72.png",             "sizes": "72x72",   "type": "image/png",      "purpose": "any" },
-    { "src": "/brand/icons/icon-192.png",            "sizes": "192x192", "type": "image/png",      "purpose": "any" },
-    { "src": "/brand/icons/icon-192-maskable.png",   "sizes": "192x192", "type": "image/png",      "purpose": "maskable" },
-    { "src": "/brand/icons/icon-512.png",            "sizes": "512x512", "type": "image/png",      "purpose": "any" },
-    { "src": "/brand/icons/icon-512-maskable.png",   "sizes": "512x512", "type": "image/png",      "purpose": "maskable" }
+    { "src": "/brand/nailit/icon.svg",             "sizes": "any",     "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/brand/icons/icon-72.png",            "sizes": "72x72",   "type": "image/png",     "purpose": "any" },
+    { "src": "/brand/icons/icon-192.png",           "sizes": "192x192", "type": "image/png",     "purpose": "any" },
+    { "src": "/brand/icons/icon-192-maskable.png",  "sizes": "192x192", "type": "image/png",     "purpose": "maskable" },
+    { "src": "/brand/icons/icon-512.png",           "sizes": "512x512", "type": "image/png",     "purpose": "any" },
+    { "src": "/brand/icons/icon-512-maskable.png",  "sizes": "512x512", "type": "image/png",     "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Agendar",             "url": "/cliente/servicos",     "icons": [{ "src": "/brand/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Meus Agendamentos",   "url": "/cliente/agendamentos", "icons": [{ "src": "/brand/icons/icon-192.png", "sizes": "192x192" }] }
+    {
+      "name": "Agendar agora",
+      "short_name": "Agendar",
+      "description": "Agende um novo horário",
+      "url": "/cliente/servicos",
+      "icons": [{ "src": "/brand/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Meus Agendamentos",
+      "short_name": "Agenda",
+      "description": "Ver meus agendamentos",
+      "url": "/cliente/agendamentos",
+      "icons": [{ "src": "/brand/icons/icon-192.png", "sizes": "192x192" }]
+    }
   ],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "edge_side_panel": { "preferred_width": 480 }
 }
