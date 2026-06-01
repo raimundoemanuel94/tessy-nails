@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import { PwaUpdatePrompt } from "@/components/pwa/PwaUpdatePrompt";
+import { AppVersionWatcher } from "@/components/pwa/AppVersionWatcher";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -95,6 +96,7 @@ export default function RootLayout({
             <TooltipProvider>
               {children}
               <PwaUpdatePrompt />
+              <AppVersionWatcher />
               <Toaster position="top-right" richColors closeButton />
             </TooltipProvider>
           </AuthProvider>
