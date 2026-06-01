@@ -117,7 +117,7 @@ export function Header() {
         {/* Page title */}
         <div>
           <h1 className="text-[15px] font-black text-slate-800 leading-none">{pageTitle}</h1>
-          <p className="text-[10px] text-slate-400 font-bold mt-0.5 hidden sm:block">
+          <p className="text-[10px] text-slate-400 font-bold mt-0.5">
             {new Intl.DateTimeFormat("pt-BR", { weekday:"long", day:"numeric", month:"long" }).format(new Date())}
           </p>
         </div>

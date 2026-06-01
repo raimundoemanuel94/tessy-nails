@@ -1,6 +1,7 @@
 "use client";
 
 import { Sidebar } from "./Sidebar";
+import { AdminBottomNav } from "./AdminBottomNav";
 import { Header } from "./Header";
 import { FloatingActionButton } from "../shared/FloatingActionButton";
 import MensagemInicial from "@/components/shared/MensagemInicial";
@@ -52,7 +53,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <Header />
 
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[1600px] p-6 lg:p-8">
+          <div className="mx-auto max-w-[1600px] p-4 md:p-6 lg:p-8 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={pathname}
@@ -68,6 +69,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
+      <AdminBottomNav />
       <FloatingActionButton />
     </div>
   );

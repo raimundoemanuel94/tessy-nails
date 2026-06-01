@@ -249,7 +249,7 @@ export default function DashboardPage() {
   return (
     <PageShell className="max-w-none pb-0">
       <motion.div variants={container} initial="hidden" animate="visible"
-        className="mx-auto max-w-7xl space-y-6 pb-12">
+        className="mx-auto max-w-7xl space-y-5 pb-16">
 
         {/* HEADER */}
         <motion.div variants={item}
@@ -260,7 +260,7 @@ export default function DashboardPage() {
               {greeting(displayName)} ✨
             </h1>
             <p className="text-sm text-slate-500 mt-1 opacity-60">
-              Visao rapida do que importa no seu studio hoje.
+              Visão rápida do que importa hoje.
             </p>
           </div>
           <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto">
@@ -268,7 +268,7 @@ export default function DashboardPage() {
               onClick={() => router.push("/relatorios")}
               className="min-w-0 rounded-2xl border-[#DDD5F5] px-3 text-slate-500 hover:text-[#7C5CBF] font-semibold gap-2 h-11 text-[11px] sm:px-4 sm:text-sm">
               <BarChart3 size={15} className="shrink-0" />
-              <span className="truncate">Relatorios</span>
+              <span className="truncate">Relatórios</span>
             </Button>
             <Button onClick={() => setDialog(true)}
               className="min-w-0 h-11 px-3 bg-[#7C5CBF] text-white font-bold rounded-2xl shadow-md hover:opacity-90 active:scale-95 transition-all gap-2 text-[11px] sm:px-6 sm:text-sm">
@@ -312,7 +312,7 @@ export default function DashboardPage() {
             </div>
             <p className="text-3xl font-black tracking-tight text-slate-800">{stats.today}</p>
             <p className="text-[10px] font-bold text-slate-500 opacity-50 mt-2">
-              {stats.today === 0 ? "nenhum agendamento" : stats.today + " agendamentos"}
+              {stats.today === 0 ? "nenhum hoje" : stats.today + " agendamentos"}
             </p>
           </div>
 
@@ -334,7 +334,7 @@ export default function DashboardPage() {
               {stats.rate}%
             </p>
             <p className="text-[10px] font-bold text-slate-500 opacity-50 mt-2">
-              {stats.rate >= 70 ? "excelente performance" : "pode melhorar"}
+              {stats.rate >= 70 ? "excelente performance" : "pode melhorar 💪"}
             </p>
           </div>
         </motion.div>
