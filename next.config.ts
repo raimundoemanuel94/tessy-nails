@@ -76,9 +76,6 @@ const withPWA = require("next-pwa")({
     },
   ],
   reloadOnOnline: true,
-  fallbacks: {
-    document: '/offline.html',
-  },
   buildExcludes: [/middleware-manifest\.json$/],
 });
 
