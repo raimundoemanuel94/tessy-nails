@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { BottomNav } from "@/components/cliente/BottomNav";
 import { InstallBanner } from "@/components/cliente/InstallBanner";
 import { Toaster } from "sonner";
+import { PageTransition } from "@/components/cliente/PageTransition";
 
 export default function ClienteLayout({
   children,
@@ -66,7 +67,9 @@ export default function ClienteLayout({
 
       {/* Main Content */}
       <main className="relative z-10 flex-1 overflow-y-auto scrollbar-hide pb-[calc(5rem+env(safe-area-inset-bottom))]">
-        {children}
+        <PageTransition>
+          {children}
+        </PageTransition>
       </main>
 
       <BottomNav />
