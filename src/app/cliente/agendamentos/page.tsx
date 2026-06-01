@@ -66,8 +66,11 @@ export default function AgendamentosPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF8FF]">
-      <div style={{ background:"linear-gradient(145deg,#1E1A2E 0%,#2A2044 100%)" }}>
-        <div className="px-5 pt-[calc(env(safe-area-inset-top)+1rem)] max-w-lg mx-auto">
+      <div style={{
+        background: "linear-gradient(160deg, #0F0C1E 0%, #1E1A2E 50%, #2A1A4E 100%)",
+        paddingTop: "env(safe-area-inset-top)",
+      }}>
+        <div className="px-5 pt-4 max-w-lg mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <motion.button whileTap={{ scale:0.9 }} onClick={() => router.push("/cliente")}
               className="h-9 w-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
@@ -109,6 +112,9 @@ export default function AgendamentosPage() {
           </div>
         </div>
         <div className="h-3" />
+        <div className="relative h-5 -mb-px" style={{ background: "linear-gradient(160deg, #0F0C1E, #2A1A4E)" }}>
+          <div className="absolute bottom-0 inset-x-0 h-5 bg-[#FAF8FF] rounded-t-[28px]" />
+        </div>
       </div>
 
       <div className="px-5 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] max-w-lg mx-auto space-y-3">

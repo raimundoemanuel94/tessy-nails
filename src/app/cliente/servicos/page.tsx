@@ -79,7 +79,7 @@ export default function ServicosPage() {
     <div className="min-h-screen bg-[#FAF8FF]">
 
       {/* ── HEADER ─────────────────────────────────────────── */}
-      <div className="sticky top-0 z-20" style={{ background: "linear-gradient(145deg, #1E1A2E 0%, #2A2044 100%)" }}>
+      <div className="sticky top-0 z-20" style={{ background: "linear-gradient(160deg, #0F0C1E 0%, #1E1A2E 50%, #2A1A4E 100%)", paddingTop: "env(safe-area-inset-top)" }}>
         <div className="px-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 max-w-lg mx-auto">
 
           {/* Título */}
