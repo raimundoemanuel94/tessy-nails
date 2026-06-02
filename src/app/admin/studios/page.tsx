@@ -87,6 +87,11 @@ export default function AdminStudiosPage() {
             style={{ fontFamily:"Georgia,serif", fontStyle:"italic" }}>Studios 🏢</h1>
           <p className="text-[11px] text-white/25 mt-0.5">{studios.length} cadastrados</p>
         </div>
+        <Link href="/admin/studios/nova"
+          className="flex items-center gap-2 h-10 px-4 rounded-xl text-[12px] font-black text-white transition-all"
+          style={{ background:"linear-gradient(135deg,#5A3F9A,#9D7FD4)", boxShadow:"0 4px 16px rgba(124,92,191,0.3)" }}>
+          <span className="text-base">+</span> Nova manicure
+        </Link>
       </div>
 
       {/* Filtros + busca */}
