@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useStudio } from "@/contexts/StudioContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProtectedRoute } from "@/hooks/useProtectedRoute";
 import { cn, ensureDate } from "@/lib/utils";
@@ -80,6 +81,7 @@ export default function DashboardPage() {
   const { user: protectedUser, loading: authLoading } = useProtectedRoute(['admin', 'professional']);
   const router = useRouter();
 
+  const { studioId } = useStudio();
   const [stats, setStats] = useState({ revenue: 0, today: 0, clients: 0, rate: 0 });
   const [appts,    setAppts]    = useState<ApptItem[]>([]);
   const [services, setServices] = useState<SvcItem[]>([]);
@@ -106,10 +108,10 @@ export default function DashboardPage() {
       
       // ✅ MELHORADO: Usar Promise.allSettled para não quebrar se uma requisição falhar
       const results = await Promise.allSettled([
-        appointmentService.getByDateRange(start, end),
+        appointmentService.getByDateRange(studioId ?? '', start, end),
         globalStore.fetchRecentClients(false),
         globalStore.fetchServices(false),
-        getDoc(doc(db, "settings", "salon")).catch(() => null),
+        Promise.resolve(null),
       ]);
       
       // Extrair resultados com fallbacks
@@ -124,7 +126,7 @@ export default function DashboardPage() {
         console.warn('Algumas requisições falharam, usando dados parciais:', failedRequests);
       }
       
-      const savedGoal = salonSnap?.exists() ? Number(salonSnap.data().monthlyRevenueGoal) : 0;
+      const savedGoal = 0; // settings via StudioContext
       setMonthlyGoal(savedGoal > 0 ? savedGoal : DEFAULT_MONTHLY_GOAL);
       
       const unknownIds = rawAppts

@@ -69,10 +69,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn, ensureDate } from "@/lib/utils";
 
 import { toast } from "sonner";
+import { useStudio } from "@/contexts/StudioContext";
 
 export default function AgendaPage() {
   const router = useRouter();
   const [date, setDate] = useState<Date>(new Date());
+  const { studioId } = useStudio();
   const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
   const [clientUsers, setClientUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,7 +91,7 @@ export default function AgendaPage() {
       const end = endOfDay(date);
       
       const [appsRes, clientsRes, servicesRes] = await Promise.allSettled([
-        appointmentService.getByDateRange(start, end),
+        appointmentService.getByDateRange(studioId ?? '', start, end),
         globalStore.fetchRecentClients(true),
         globalStore.fetchServices(true)
       ]);
@@ -99,7 +101,7 @@ export default function AgendaPage() {
 
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
       const monthEnd = endOfDay(new Date(date.getFullYear(), date.getMonth() + 1, 0));
-      const monthApps = await appointmentService.getByDateRange(monthStart, monthEnd);
+      const monthApps = await appointmentService.getByDateRange(studioId ?? '', monthStart, monthEnd);
       const servicePriceById = new Map(services.map((service) => [service.id, service.price]));
       
       const dateMap = new Map<string, number>();
@@ -155,9 +157,10 @@ export default function AgendaPage() {
     const start = startOfDay(date);
     const end   = endOfDay(date);
     const unsub = appointmentService.subscribeByDateRange(
-      start, end,
-      () => { void fetchAppointments(); },
-      (err) => console.error("Agenda listener error:", err)
+      studioId ?? '',
+      start,
+      end,
+      (appts) => { setAppointments(appts as unknown as AppointmentWithDetails[]); }
     );
     return () => unsub();
   }, [date, fetchAppointments]);
@@ -211,7 +214,7 @@ export default function AgendaPage() {
   const handleConfirmar = async (id: string) => {
     setActionLoading(id);
     try {
-      await appointmentService.confirm(id);
+      await appointmentService.confirm(studioId ?? '', id);
       toast.success("Agendamento confirmado.");
       await fetchAppointments();
     } catch (error: unknown) {
@@ -224,7 +227,7 @@ export default function AgendaPage() {
   const handleConcluir = async (id: string) => {
     setActionLoading(id);
     try {
-      await appointmentService.complete(id);
+      await appointmentService.complete(studioId ?? '', id);
       toast.success("Atendimento concluído com sucesso!");
       await fetchAppointments();
     } catch (error: unknown) {
@@ -237,7 +240,7 @@ export default function AgendaPage() {
   const handleFalta = async (id: string) => {
     setActionLoading(id);
     try {
-      await appointmentService.noShow(id);
+      await appointmentService.noShow(studioId ?? '', id);
       toast.success("Falta registrada.");
       await fetchAppointments();
     } catch (error: unknown) {
@@ -251,7 +254,7 @@ export default function AgendaPage() {
     if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
     setActionLoading(id);
     try {
-      await appointmentService.cancel(id);
+      await appointmentService.cancel(studioId ?? '', id);
       toast.success("Agendamento cancelado.");
       await fetchAppointments();
     } catch (error: unknown) {

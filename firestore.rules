@@ -1,85 +1,90 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ✅ Função auxiliar para verificar se é Admin ou Profissional
-    function isStaff() {
-      return request.auth != null && (
-        request.auth.token.role in ['admin', 'professional'] ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'professional'])
-      );
+
+    // ── Funções helpers ──────────────────────────────────────────
+    function isAuth()        { return request.auth != null; }
+    function uid()           { return request.auth.uid; }
+    function userRole()      {
+      return get(/databases/$(database)/documents/users/$(uid())).data.role;
+    }
+    function isSuperAdmin()  { return isAuth() && userRole() == "superadmin"; }
+    function isOwner(sid)    {
+      return isAuth() &&
+        get(/databases/$(database)/documents/studios/$(sid)).data.ownerId == uid();
     }
 
-    // ✅ Regras para usuários (admin/profissional)
+    // ── /users/{uid} ──────────────────────────────────────────────
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && (request.auth.uid == userId || isStaff());
+      allow read:   if isAuth() && (uid() == userId || isSuperAdmin());
+      allow create: if isAuth() && uid() == userId;
+      allow update: if isAuth() && (uid() == userId || isSuperAdmin());
+      allow delete: if isSuperAdmin();
     }
-    
-    // ✅ Regras para clientes
+
+    // ── /studios/{studioId} ───────────────────────────────────────
+    match /studios/{studioId} {
+      allow read:   if isAuth() && (isOwner(studioId) || isSuperAdmin());
+      allow create: if isAuth();
+      allow update: if isAuth() && (isOwner(studioId) || isSuperAdmin());
+      allow delete: if isSuperAdmin();
+
+      // Serviços — owner escreve, clientes leem
+      match /services/{serviceId} {
+        allow read:   if isAuth();
+        allow write:  if isOwner(studioId) || isSuperAdmin();
+      }
+
+      // Agendamentos — owner e o cliente do agendamento
+      match /appointments/{apptId} {
+        allow read:   if isAuth() && (
+          isOwner(studioId) ||
+          isSuperAdmin() ||
+          resource.data.clientId == uid()
+        );
+        allow create: if isAuth();
+        allow update: if isAuth() && (
+          isOwner(studioId) ||
+          isSuperAdmin() ||
+          resource.data.clientId == uid()
+        );
+        allow delete: if isOwner(studioId) || isSuperAdmin();
+      }
+
+      // Clientes — só o owner e superadmin
+      match /clients/{clientId} {
+        allow read, write: if isOwner(studioId) || isSuperAdmin();
+      }
+
+      // Settings — owner lê/escreve, clientes só leem
+      match /settings/{doc} {
+        allow read:  if isAuth();
+        allow write: if isOwner(studioId) || isSuperAdmin();
+      }
+    }
+
+    // ── /clients (legado global) — manter leitura para migração ──
     match /clients/{clientId} {
-      // Leitura: O próprio ou staff
-      allow read: if request.auth != null && (request.auth.uid == clientId || isStaff());
-      // Criação: Próprio (ID coincide) ou staff (qualquer ID, ex: addDoc)
-      allow create: if request.auth != null && (request.auth.uid == clientId || isStaff());
-      // Update/Delete: Próprio ou staff
-      allow update, delete: if request.auth != null && (request.auth.uid == clientId || isStaff());
+      allow read:  if isAuth();
+      allow write: if isAuth();
     }
-    
-    // ✅ Regras para serviços
+
+    // ── /appointments (legado global) ─────────────────────────────
+    match /appointments/{apptId} {
+      allow read:  if isAuth();
+      allow write: if isAuth();
+    }
+
+    // ── /services (legado global) ─────────────────────────────────
     match /services/{serviceId} {
-      allow read: if true;
-      allow write: if isStaff();
+      allow read:  if isAuth();
+      allow write: if isAuth();
     }
-    
-    // ✅ Regras para agendamentos
-    match /appointments/{appointmentId} {
-      // Leitura: O próprio cliente indicado no dado ou staff
-      allow read: if request.auth != null && (
-        (resource != null && request.auth.uid == resource.data.clientId) || isStaff()
-      );
-      
-      // Criação: O próprio cliente ou staff
-      allow create: if request.auth != null && (
-        request.auth.uid == request.resource.data.clientId || isStaff()
-      );
-      
-      // Update/Delete: staff ou o próprio cliente (se for cancelamento, mas staff tem prioridade)
-      allow update, delete: if isStaff() || (
-        resource != null && request.auth.uid == resource.data.clientId
-      );
-    }
-    
-    // ✅ Regras para vendas
-    match /sales/{saleId} {
-      allow read, write: if isStaff();
-    }
-    
-    // ✅ Regras para relatórios
-    match /reports/{reportId} {
-      allow read, write: if isStaff();
-    }
-    
-    // ✅ Regras para configuração do salão
-    match /salonConfig/{configId} {
-      allow read: if true;
-      allow write: if isStaff();
-    }
-    
-    // ✅ Regras para configurações gerais (settings)
-    match /settings/{settingId} {
-      // Leitura: Qualquer usuário autenticado
-      allow read: if request.auth != null;
-      // Escrita: Apenas staff (admin/profissional)
-      allow write: if isStaff();
-    }
-    
-    // ✅ Regras para tokens FCM (notificações)
-    match /fcmTokens/{tokenId} {
-      // Leitura: Próprio usuário ou staff
-      allow read: if request.auth != null && (request.auth.uid == tokenId || isStaff());
-      // Escrita: Próprio usuário (para salvar seu token)
-      allow write: if request.auth != null && request.auth.uid == tokenId;
+
+    // ── /settings (legado global) ─────────────────────────────────
+    match /settings/{doc} {
+      allow read:  if isAuth();
+      allow write: if isAuth();
     }
   }
 }

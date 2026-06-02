@@ -89,7 +89,7 @@ export default function ClientePage() {
     const cached = globalStore.getState().services;
     if (cached?.length && !force) { setServices(cached.slice(0,8)); setLoading(false); }
     const [a, s] = await Promise.allSettled([
-      appointmentService.getByClientIdWithServices(user.uid, 20),
+      appointmentService.getByClientIdLegacy(user.uid, 20),
       globalStore.fetchServices(force),
     ]);
     if (a.status === "fulfilled") {

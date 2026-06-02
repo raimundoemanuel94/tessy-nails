@@ -1,81 +1,103 @@
 /**
- * Script de migração — Single-tenant → Multi-tenant
+ * Migração definitiva: Single-tenant → Multi-tenant
  * 
- * O que faz:
- * 1. Cria /studios/{defaultStudioId} para a Tessy
- * 2. Copia todos os appointments para /studios/{id}/appointments
- * 3. Copia todos os services para /studios/{id}/services
- * 4. Copia todos os clients para /studios/{id}/clients
- * 5. Copia settings/salon para /studios/{id}/settings/salon
+ * USO:
+ * 1. Baixe service-account.json do Firebase Console
+ * 2. Coloque na raiz do projeto
+ * 3. Preencha OWNER_UID abaixo
+ * 4. npm run migrate
  * 
- * SEGURO: não deleta os dados originais — só copia.
- * Roda uma vez. Idempotente.
- * 
- * Uso: npx ts-node scripts/migrate-to-multitenant.ts
+ * SEGURO: não deleta dados originais — apenas copia.
+ * Idempotente: pode rodar várias vezes sem duplicar.
  */
 
+// ─── CONFIGURAR ────────────────────────────────────────────────
+const OWNER_UID        = ""; // ← UID da Tessy no Firebase Auth
+const STUDIO_NAME      = "Nailit Studio";
+const DEFAULT_STUDIO   = "nailit-default";
+// ──────────────────────────────────────────────────────────────
+
 import { initializeApp, cert } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import { readFileSync, existsSync } from "fs";
 
-// Configurar com service account
-// initializeApp({ credential: cert("./service-account.json") });
-// const db = getFirestore();
-
-const DEFAULT_STUDIO_ID = "nailit-default";
-const OWNER_UID = ""; // UID da Tessy no Firebase Auth
-
-async function migrate() {
-  console.log("🚀 Iniciando migração para multi-tenant...\n");
-
-  // 1. Criar studio da Tessy
-  // await db.collection("studios").doc(DEFAULT_STUDIO_ID).set({
-  //   name: "Nailit Studio",
-  //   ownerId: OWNER_UID,
-  //   slug: "nailit-studio",
-  //   plan: "pro",
-  //   isActive: true,
-  //   createdAt: new Date(),
-  // });
-  // console.log("✓ Studio criado:", DEFAULT_STUDIO_ID);
-
-  // 2. Migrar appointments
-  // const appts = await db.collection("appointments").get();
-  // for (const doc of appts.docs) {
-  //   await db.collection("studios").doc(DEFAULT_STUDIO_ID)
-  //     .collection("appointments").doc(doc.id)
-  //     .set({ ...doc.data(), studioId: DEFAULT_STUDIO_ID });
-  // }
-  // console.log(`✓ ${appts.size} appointments migrados`);
-
-  // 3. Migrar services
-  // const services = await db.collection("services").get();
-  // for (const doc of services.docs) {
-  //   await db.collection("studios").doc(DEFAULT_STUDIO_ID)
-  //     .collection("services").doc(doc.id)
-  //     .set({ ...doc.data(), studioId: DEFAULT_STUDIO_ID });
-  // }
-  // console.log(`✓ ${services.size} services migrados`);
-
-  // 4. Migrar clients
-  // const clients = await db.collection("clients").get();
-  // for (const doc of clients.docs) {
-  //   await db.collection("studios").doc(DEFAULT_STUDIO_ID)
-  //     .collection("clients").doc(doc.id)
-  //     .set({ ...doc.data(), studioId: DEFAULT_STUDIO_ID });
-  // }
-  // console.log(`✓ ${clients.size} clients migrados`);
-
-  // 5. Migrar settings
-  // const settings = await db.collection("settings").doc("salon").get();
-  // if (settings.exists) {
-  //   await db.collection("studios").doc(DEFAULT_STUDIO_ID)
-  //     .collection("settings").doc("salon")
-  //     .set(settings.data()!);
-  //   console.log("✓ Settings migrados");
-  // }
-
-  console.log("\n✅ Migração concluída!");
-  console.log("📝 Próximo passo: atualizar as queries nos services para usar studioId");
+if (!existsSync("./service-account.json")) {
+  console.error("❌ service-account.json não encontrado!");
+  process.exit(1);
+}
+if (!OWNER_UID) {
+  console.error("❌ Preencha OWNER_UID antes de rodar!");
+  process.exit(1);
 }
 
-migrate().catch(console.error);
+initializeApp({ credential: cert(JSON.parse(readFileSync("./service-account.json", "utf8"))) });
+const db = getFirestore();
+
+async function copyCollection(from: string, to: string, studioId: string) {
+  const src = await db.collection(from).get();
+  let count = 0;
+  for (const d of src.docs) {
+    const dest = db.collection("studios").doc(studioId).collection(to).doc(d.id);
+    const existing = await dest.get();
+    if (!existing.exists) {
+      await dest.set({ ...d.data(), studioId, migratedAt: Timestamp.now() });
+      count++;
+    }
+  }
+  return { total: src.size, migrated: count };
+}
+
+async function run() {
+  console.log("\n🚀 Nailit — Migração Multi-tenant\n");
+
+  // 1. Criar/verificar studio
+  const studioRef = db.collection("studios").doc(DEFAULT_STUDIO);
+  const studioSnap = await studioRef.get();
+  if (!studioSnap.exists) {
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 30); // 30 dias para a Tessy
+    await studioRef.set({
+      name: STUDIO_NAME, ownerId: OWNER_UID,
+      slug: "nailit-studio", plan: "pro",
+      trialEndsAt: Timestamp.fromDate(trialEndsAt),
+      isActive: true, createdAt: Timestamp.now(),
+    });
+    console.log("✓ Studio criado:", DEFAULT_STUDIO);
+  } else {
+    console.log("  Studio já existe — pulando criação");
+  }
+
+  // 2. Migrar coleções
+  for (const [from, to] of [
+    ["appointments", "appointments"],
+    ["services",     "services"],
+    ["clients",      "clients"],
+  ]) {
+    const r = await copyCollection(from, to, DEFAULT_STUDIO);
+    console.log(`✓ ${to}: ${r.migrated} migrados (${r.total - r.migrated} já existiam)`);
+  }
+
+  // 3. Migrar settings
+  const settings = await db.collection("settings").doc("salon").get();
+  if (settings.exists) {
+    const dest = db.collection("studios").doc(DEFAULT_STUDIO).collection("settings").doc("salon");
+    if (!(await dest.get()).exists) {
+      await dest.set({ ...settings.data(), studioId: DEFAULT_STUDIO });
+      console.log("✓ settings/salon migrado");
+    }
+  }
+
+  // 4. Atualizar /users/{uid}
+  await db.collection("users").doc(OWNER_UID).set({
+    studioId: DEFAULT_STUDIO,
+    role: "professional",
+    updatedAt: Timestamp.now(),
+  }, { merge: true });
+  console.log("✓ User profile atualizado");
+
+  console.log("\n✅ Migração concluída!");
+  console.log("⚠️  Os dados originais foram mantidos como backup.");
+  console.log(`📍 Studio: /studios/${DEFAULT_STUDIO}`);
+}
+
+run().catch(e => { console.error("❌", e); process.exit(1); });

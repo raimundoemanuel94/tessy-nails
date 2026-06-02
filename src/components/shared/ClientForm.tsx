@@ -13,6 +13,7 @@ import { Client } from "@/types";
 import { toast } from "sonner";
 import { Loader2, User, Phone, Mail, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useStudio } from "@/contexts/StudioContext";
 
 // Helper functions for normalization
 const normalizeName = (name: string): string => {
@@ -66,6 +67,7 @@ interface ClientFormProps {
 }
 
 export function ClientForm({ client, onSuccess, onCancel }: ClientFormProps) {
+  const { studioId } = useStudio();
   const [loading, setLoading] = useState(false);
 
   const {
@@ -96,7 +98,7 @@ export function ClientForm({ client, onSuccess, onCancel }: ClientFormProps) {
       // Check for duplicate phone (only if it's a new client or the phone has changed)
       const currentPhone = client?.phone ? sanitizePhone(client.phone) : "";
       if (!client?.id || sanitizedData.phone !== currentPhone) {
-        const existing = await clientService.getByPhone(sanitizedData.phone);
+        const existing = await clientService.findByPhone(studioId ?? '', sanitizedData.phone);
         if (existing) {
           toast.error("Já existe um cliente com este telefone", {
             icon: <AlertCircle className="w-5 h-5 text-red-500" />,
@@ -108,16 +110,19 @@ export function ClientForm({ client, onSuccess, onCancel }: ClientFormProps) {
       }
 
       if (client?.id) {
-        await clientService.update(client.id, sanitizedData as Parameters<typeof clientService.update>[1]);
+        await clientService.update(studioId ?? '', client.id, sanitizedData as Partial<import('@/types').Client>);
         toast.success("Cliente atualizado com sucesso!", {
           icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
         });
       } else {
-        await clientService.create({
+        await clientService.create(studioId ?? '', {
           ...sanitizedData,
           totalAppointments: 0,
+          totalVisits: 0,
+          totalSpent: 0,
           isActive: true,
-        } as Parameters<typeof clientService.create>[0]);
+          studioId: studioId ?? '',
+        });
         toast.success("Cliente cadastrado com sucesso!", {
           icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
         });

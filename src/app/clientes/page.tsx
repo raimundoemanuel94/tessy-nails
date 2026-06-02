@@ -41,6 +41,7 @@ import { globalStore } from "@/store/globalStore";
 import { Appointment, Client, Service } from "@/types";
 import { ensureDate } from "@/lib/utils";
 import { toast } from "sonner";
+import { useStudio } from "@/contexts/StudioContext";
 
 type ClientStatusFilter = "all" | "active" | "inactive";
 type SegmentFilter = "all" | "new" | "vip" | "at_risk" | "no_appointments";
@@ -114,6 +115,7 @@ function getSegment(row: ClientInsightRow): { label: string; variant: "success" 
 }
 
 export default function ClientesPage() {
+  const { studioId } = useStudio();
   const [clients, setClients] = useState<Client[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -142,9 +144,10 @@ export default function ClientesPage() {
     try {
       if (!silent) setLoading(true);
 
-      const [clientsRes, appointmentsRes, servicesRes2] = await Promise.allSettled([
-        clientService.getAll(),
-        appointmentService.getAll(),
+      const { studioId } = useStudio();
+  const [clientsRes, appointmentsRes, servicesRes2] = await Promise.allSettled([
+        studioId ? clientService.getAll(studioId) : Promise.resolve([]),
+        studioId ? appointmentService.getAll(studioId) : Promise.resolve([]),
         globalStore.fetchServices(false),
       ]);
       const clientsData     = clientsRes.status      === "fulfilled" ? clientsRes.value      : [];
@@ -504,7 +507,7 @@ export default function ClientesPage() {
     if (!confirm("Tem certeza que deseja desativar esta cliente?")) return;
     setActionLoading(id);
     try {
-      await clientService.deactivate(id);
+      await clientService.delete(studioId ?? '', id);
       toast.success("Cliente desativada com sucesso.");
       await reloadData(true);
     } catch (error) {
@@ -518,7 +521,7 @@ export default function ClientesPage() {
   const handleReactivate = async (id: string) => {
     setActionLoading(id);
     try {
-      await clientService.update(id, { isActive: true });
+      await clientService.update(studioId ?? '', id, { isActive: true });
       toast.success("Cliente reativada com sucesso.");
       await reloadData(true);
     } catch (error) {
@@ -533,7 +536,7 @@ export default function ClientesPage() {
     if (!confirm("ATENCAO: exclusao permanente. Deseja continuar?")) return;
     setActionLoading(id);
     try {
-      await clientService.hardDelete(id);
+      await clientService.delete(studioId ?? '', id);
       toast.success("Cliente removida permanentemente.");
       await reloadData(true);
     } catch (error) {

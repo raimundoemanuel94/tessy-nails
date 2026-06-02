@@ -40,6 +40,7 @@ import {
   getPrevious30DaysInterval,
 } from "@/lib/analytics-period";
 import { ensureDate, cn } from "@/lib/utils";
+import { useStudio } from "@/contexts/StudioContext";
 
 // tipos locais
 type PeriodKey = "hoje" | "semana" | "mes" | "last30days";
@@ -162,6 +163,7 @@ function SectionTitle({ icon: Icon, title, desc, actions }: { icon?: React.Eleme
 
 // pagina principal
 export default function RelatoriosPage() {
+  const { studioId } = useStudio();
   const now = useMemo(() => new Date(), []);
 
   const [loading, setLoading]           = useState(true);
@@ -183,9 +185,9 @@ export default function RelatoriosPage() {
       try {
         setLoading(true);
         const [apptsRes, svcsRes, clsRes] = await Promise.allSettled([
-          appointmentService.getAll(),
+          studioId ? appointmentService.getAll(studioId) : Promise.resolve([]),
           globalStore.fetchServices(false),
-          clientService.getAll(),
+          studioId ? clientService.getAll(studioId) : Promise.resolve([]),
         ]);
         const appts = apptsRes.status === "fulfilled" ? apptsRes.value : [];
         const svcs  = svcsRes.status  === "fulfilled" ? svcsRes.value  : [];

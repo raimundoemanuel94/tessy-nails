@@ -34,6 +34,7 @@ import { ptBR } from "date-fns/locale";
 import { CalendarIcon, Loader2, Clock, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStudio } from "@/contexts/StudioContext";
 
 interface AppointmentFormProps {
   onSuccess: () => void;
@@ -63,6 +64,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function AppointmentForm({ onSuccess, initialDate, appointment }: AppointmentFormProps) {
   const { user } = useAuth();
+  const { studioId } = useStudio();
   const [clients, setClients] = useState<Client[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(false);
@@ -117,7 +119,7 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
       
       try {
         setIsSearchingClient(true);
-        const results = await clientService.searchByName(debouncedSearch, 10);
+        const results = await clientService.search(studioId ?? '', debouncedSearch);
         
         // Mantém o cliente selecionado na lista mesmo que a busca o exclua
         setClients((prev) => {
@@ -159,7 +161,7 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
         if (appointment && appointment.clientId) {
           const existing = finalClients.find(c => c.id === appointment.clientId);
           if (!existing) {
-            const specificClient = await clientService.getById(appointment.clientId);
+            const specificClient = await clientService.getById(studioId ?? '', appointment.clientId);
             if (specificClient) finalClients = [specificClient, ...finalClients];
           }
         }
@@ -188,13 +190,17 @@ export function AppointmentForm({ onSuccess, initialDate, appointment }: Appoint
       const { time, ...appointmentData } = data;
 
       if (appointment?.id) {
-        await appointmentService.update(appointment.id, {
+        await appointmentService.update(studioId ?? '', appointment.id, {
           ...appointmentData,
           appointmentDate,
         });
         toast.success("Agendamento atualizado com sucesso!");
       } else {
-        await appointmentService.create({
+        await appointmentService.create(studioId ?? "", {
+        serviceName: "",
+        timeSlotId: "",
+        studioId: studioId ?? "",
+        price: 0,
           ...appointmentData,
           appointmentDate,
         });

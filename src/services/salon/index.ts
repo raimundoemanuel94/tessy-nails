@@ -1,129 +1,80 @@
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy,
-  Timestamp
+/**
+ * salonService (services) — Multi-tenant
+ * /studios/{studioId}/services
+ */
+import {
+  collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
+  query, where, orderBy, Timestamp, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Service, ServiceSchema } from "@/types";
+import { Service } from "@/types";
 
-const COLLECTION_NAME = "services";
+const col  = (sid: string) => collection(db!, "studios", sid, "services");
+const dref = (sid: string, id: string) => doc(db!, "studios", sid, "services", id);
 
-function omitUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([, value]) => value !== undefined)
-  ) as Partial<T>;
-}
+const toService = (id: string, d: Record<string, unknown>): Service => ({
+  id,
+  name:            String(d.name || ""),
+  description:     d.description ? String(d.description) : undefined,
+  price:           Number(d.price || 0),
+  durationMinutes: Number(d.durationMinutes || 30),
+  bufferMinutes:   Number(d.bufferMinutes || 0),
+  isActive:        d.isActive !== false,
+  category:        d.category ? String(d.category) : undefined,
+  createdAt:       d.createdAt instanceof Timestamp ? d.createdAt.toDate() : new Date(),
+  updatedAt:       d.updatedAt instanceof Timestamp ? d.updatedAt.toDate() : undefined,
+  studioId:        String(d.studioId || ""),
+});
 
 export const salonService = {
-  /**
-   * Lista todos os serviços ativos
-   */
-  async getAll(): Promise<Service[]> {
-    // ✅ Remover query que precisa de index - buscar todos e filtrar no client
-    const snapshot = await getDocs(collection(db, COLLECTION_NAME));
-    const allServices = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-    })) as Service[];
-    // ✅ Filtrar apenas serviços ativos e ordenar no client side
-    return allServices
-      .filter(service => service.isActive !== false)
-      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
+  async getAll(studioId: string): Promise<Service[]> {
+    const snap = await getDocs(query(col(studioId), where("isActive", "==", true), orderBy("name")));
+    return snap.docs.map(d => toService(d.id, d.data() as Record<string, unknown>));
   },
 
-  /**
-   * Lista todos os serviços (incluindo inativos)
-   */
-  async getAllWithInactive(): Promise<Service[]> {
-    // ✅ Remover orderBy que precisa de index - buscar todos e ordenar no client
-    const snapshot = await getDocs(collection(db, COLLECTION_NAME));
-    const allServices = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
-    })) as Service[];
-    // ✅ Ordenar no client side
-    return allServices.sort((a, b) => a.name.localeCompare(b.name));
+  async getAllWithInactive(studioId: string): Promise<Service[]> {
+    const snap = await getDocs(query(col(studioId), orderBy("name")));
+    return snap.docs.map(d => toService(d.id, d.data() as Record<string, unknown>));
   },
 
-  /**
-   * Busca um serviço pelo ID
-   */
-  async getById(id: string): Promise<Service | null> {
-    const d = await getDoc(doc(db, COLLECTION_NAME, id));
-    if (!d.exists()) return null;
-    return {
-      id: d.id,
-      ...d.data(),
-      createdAt: d.data().createdAt?.toDate(),
-      updatedAt: d.data().updatedAt?.toDate(),
-    } as Service;
+  async getById(studioId: string, id: string): Promise<Service | null> {
+    const snap = await getDoc(dref(studioId, id));
+    if (!snap.exists()) return null;
+    return toService(snap.id, snap.data() as Record<string, unknown>);
   },
 
-  /**
-   * Cria um novo serviço
-   * Schema de entrada não exige id e createdAt; id vem do doc ref e createdAt é gerado aqui.
-   */
-  async create(data: Omit<Service, "id" | "createdAt">): Promise<string> {
-    const validatedData = ServiceSchema.omit({ id: true, createdAt: true, updatedAt: true }).parse(data);
-
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      ...omitUndefined(validatedData as Record<string, unknown>),
-      createdAt: Timestamp.now(),
+  async create(studioId: string, data: Omit<Service, "id" | "createdAt">): Promise<string> {
+    const ref = await addDoc(col(studioId), {
+      ...data, studioId, isActive: true, createdAt: serverTimestamp(),
     });
-
-    return docRef.id;
+    return ref.id;
   },
 
-  /**
-   * Atualiza um serviço
-   */
-  async update(id: string, data: Partial<Service>): Promise<void> {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, {
-      ...omitUndefined(data as Record<string, unknown>),
-      updatedAt: Timestamp.now(),
-    });
+  async update(studioId: string, id: string, data: Partial<Service>): Promise<void> {
+    await updateDoc(dref(studioId, id), { ...data, updatedAt: serverTimestamp() });
   },
 
-  /**
-   * Exclui um serviÃ§o (hard delete)
-   */
-  async delete(id: string): Promise<void> {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await deleteDoc(docRef);
+  async delete(studioId: string, id: string): Promise<void> {
+    await deleteDoc(dref(studioId, id));
   },
 
-  /**
-   * Desativa (soft delete) um serviço
-   */
-  async deactivate(id: string): Promise<void> {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, { 
-      isActive: false,
-      updatedAt: Timestamp.now(),
-    });
+  async deactivate(studioId: string, id: string): Promise<void> {
+    await updateDoc(dref(studioId, id), { isActive: false, updatedAt: serverTimestamp() });
   },
 
-  /**
-   * Reativa um serviço
-   */
-  async activate(id: string): Promise<void> {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, { 
-      isActive: true,
-      updatedAt: Timestamp.now(),
-    });
-  }
+  async activate(studioId: string, id: string): Promise<void> {
+    await updateDoc(dref(studioId, id), { isActive: true, updatedAt: serverTimestamp() });
+  },
+
+  // Legado sem studioId (para não quebrar enquanto migra)
+  async getAllLegacy(): Promise<Service[]> {
+    try {
+      const { getDocs: gd, collection: cl, query: q, where: w, orderBy: ob } = await import("firebase/firestore");
+      const snap = await gd(q(cl(db!, "services"), w("isActive", "==", true), ob("name")));
+      return snap.docs.map(d => toService(d.id, d.data() as Record<string, unknown>));
+    } catch { return []; }
+  },
 };
+
+export default salonService;

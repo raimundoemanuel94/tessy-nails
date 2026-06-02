@@ -47,6 +47,7 @@ import { cn, ensureDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { CalendarX2 } from "lucide-react";
+import { useStudio } from "@/contexts/StudioContext";
 
 const timeSlots = [
   "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -96,6 +97,7 @@ function AgendamentosContent() {
   const [remarcarTime, setRemarcarTime] = useState<string>("09:00");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [recentlyChangedId, setRecentlyChangedId] = useState<string | null>(null);
+  const { studioId } = useStudio();
   const [sortKey, setSortKey] = useState<SortKey>("datetime");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
@@ -112,7 +114,7 @@ function AgendamentosContent() {
 
       try {
         const { start, end } = getLast30DaysInterval();
-        apps = await appointmentService.getByDateRange(start, end);
+        apps = studioId ? await appointmentService.getByDateRange(studioId, start, end) : [];
       } catch (e) {
         console.error("❌ Erro ao buscar APPOINTMENTS:", e);
       }
@@ -130,7 +132,7 @@ function AgendamentosContent() {
       }
 
       try {
-        specialistsData = await (appointmentService.getSpecialists ? appointmentService.getSpecialists() : Promise.resolve([]));
+        specialistsData = [];
       } catch (e) {
         console.error("❌ Erro ao buscar SPECIALISTS (users):", e);
       }
@@ -305,7 +307,7 @@ function AgendamentosContent() {
   const handleConfirmar = async (id: string) => {
     setActionLoading(id);
     try {
-      await appointmentService.confirm(id);
+      await appointmentService.confirm(studioId ?? "", id);
       toast.success("Agendamento confirmado.");
       await loadData();
       flashChanged(id);
@@ -319,7 +321,7 @@ function AgendamentosContent() {
   const handleConcluir = async (id: string) => {
     setActionLoading(id);
     try {
-      await appointmentService.complete(id);
+      await appointmentService.complete(studioId ?? "", id);
       toast.success("Atendimento concluído com sucesso!");
       await loadData();
       flashChanged(id);
@@ -333,7 +335,7 @@ function AgendamentosContent() {
   const handleFalta = async (id: string) => {
     setActionLoading(id);
     try {
-      await appointmentService.noShow(id);
+      await appointmentService.noShow(studioId ?? "", id);
       toast.success("Falta registrada.");
       await loadData();
       flashChanged(id);
@@ -348,7 +350,7 @@ function AgendamentosContent() {
     if (!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
     setActionLoading(id);
     try {
-      await appointmentService.cancel(id);
+      await appointmentService.cancel(studioId ?? "", id);
       toast.success("Agendamento cancelado.");
       await loadData();
       flashChanged(id);
@@ -363,7 +365,7 @@ function AgendamentosContent() {
     if (!confirm("Tem certeza que deseja excluir permanentemente este agendamento? Esta ação não pode ser desfeita.")) return;
     setActionLoading(id);
     try {
-      await appointmentService.delete(id);
+      await appointmentService.delete(studioId ?? "", id);
       toast.success("Agendamento excluído com sucesso.");
       await loadData();
     } catch (error: unknown) {
@@ -389,7 +391,7 @@ function AgendamentosContent() {
       const [hours, minutes] = remarcarTime.split(":").map(Number);
       const newDate = new Date(remarcarDate);
       newDate.setHours(hours, minutes, 0, 0);
-      await appointmentService.update(remarcarAppointment.id, { appointmentDate: newDate });
+      await appointmentService.update(studioId ?? "", remarcarAppointment.id, { appointmentDate: newDate });
       toast.success("Agendamento remarcado.");
       setRemarcarAppointment(null);
       await loadData();

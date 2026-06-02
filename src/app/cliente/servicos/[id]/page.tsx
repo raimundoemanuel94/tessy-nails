@@ -27,7 +27,7 @@ export default function ServicoDetalhePage() {
 
   useEffect(() => {
     if (!id) return;
-    salonService.getById(id)
+    salonService.getById("", id)
       .then(s => { if (s) setSvc(s); else setError(true); })
       .catch(() => setError(true))
       .finally(() => setLoading(false));

@@ -65,7 +65,7 @@ export const globalStore = {
   fetchServices: async (force = false): Promise<Service[]> => {
     const age = Date.now() - state._cachedAt;
     if (state.services && !force && age < CACHE_TTL) return state.services;
-    const data = await salonService.getAllWithInactive();
+    const data = await salonService.getAllLegacy();
     globalStore.setState({ services: data });
     return data;
   },
@@ -74,7 +74,7 @@ export const globalStore = {
   fetchRecentClients: async (force = false): Promise<Client[]> => {
     const age = Date.now() - state._cachedAt;
     if (state.clients && !force && age < CACHE_TTL) return state.clients;
-    const { clients } = await clientService.getPaginated(50);
+    const clients = await clientService.getAll('').catch(() => []);
     globalStore.setState({ clients });
     return clients;
   },

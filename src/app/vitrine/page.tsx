@@ -16,6 +16,7 @@ import { globalStore } from "@/store/globalStore";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { generateVitrineCanvas, type VitrineTemplate } from "@/lib/vitrineCanvas";
+import { useStudio } from "@/contexts/StudioContext";
 
 interface Slot { time: string; occupied: boolean; selected: boolean; }
 
@@ -33,6 +34,7 @@ const CAPTIONS = [
 ];
 
 export default function VitrinePage() {
+  const { studioId } = useStudio();
   const router = useRouter();
 
   const [date, setDate]             = useState(new Date());
@@ -50,7 +52,7 @@ export default function VitrinePage() {
     try {
       const [svcsRes, apptsRes] = await Promise.allSettled([
         globalStore.fetchServices(false),
-        appointmentService.getByDateRange(startOfDay(d), endOfDay(d)),
+        appointmentService.getByDateRange(studioId ?? '', startOfDay(d), endOfDay(d)),
       ]);
 
       const appts = apptsRes.status === "fulfilled" ? apptsRes.value : [];

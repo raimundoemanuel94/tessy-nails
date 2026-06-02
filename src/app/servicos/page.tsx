@@ -35,8 +35,10 @@ import { salonService } from "@/services/salon";
 import { Service } from "@/types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useStudio } from "@/contexts/StudioContext";
 
 export default function ServicosPage() {
+  const { studioId } = useStudio();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -113,7 +115,7 @@ export default function ServicosPage() {
     setFormLoading(true);
     try {
       if (editingService) {
-        await salonService.update(editingService.id, {
+        await salonService.update(studioId ?? '', editingService.id, {
           name,
           description: formDescription.trim() || undefined,
           durationMinutes: formDuration,
@@ -124,7 +126,8 @@ export default function ServicosPage() {
         });
         toast.success("Serviço atualizado.");
       } else {
-        await salonService.create({
+        await salonService.create(studioId ?? '', {
+          studioId: studioId ?? '',
           name,
           description: formDescription.trim() || undefined,
           durationMinutes: formDuration,
@@ -152,7 +155,7 @@ export default function ServicosPage() {
         setError("Sem conexão com a internet. Verifique sua conexão.");
         return;
       }
-      const data = await salonService.getAllWithInactive();
+      const data = await (studioId ? salonService.getAllWithInactive(studioId) : Promise.resolve([]));
       const valid = (data || []).filter(
         (s) => s.id && s.name != null && s.price != null && s.durationMinutes != null
       );
@@ -193,7 +196,7 @@ export default function ServicosPage() {
   const handleActivate = async (id: string) => {
     setActionLoading(`activate:${id}`);
     try {
-      await salonService.activate(id);
+      await salonService.activate(studioId ?? '', id);
       toast.success("Serviço ativado.");
       await loadData();
     } catch (err: unknown) {
@@ -206,7 +209,7 @@ export default function ServicosPage() {
   const handleDeactivate = async (id: string) => {
     setActionLoading(`deactivate:${id}`);
     try {
-      await salonService.deactivate(id);
+      await salonService.deactivate(studioId ?? '', id);
       toast.success("Serviço desativado.");
       await loadData();
     } catch (err: unknown) {
@@ -222,7 +225,7 @@ export default function ServicosPage() {
 
     setActionLoading(`delete:${id}`);
     try {
-      await salonService.delete(id);
+      await salonService.delete(studioId ?? '', id);
       toast.success("ServiÃ§o excluÃ­do.");
       await loadData();
     } catch (err: unknown) {

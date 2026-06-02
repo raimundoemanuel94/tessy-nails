@@ -36,7 +36,7 @@ export default function PerfilPage() {
 
   useEffect(() => {
     if (!user) return;
-    appointmentService.getByClientId(user.uid, 200).then(appts => {
+    appointmentService.getByClientIdLegacy(user.uid, 200).then(appts => {
       const concluidos = appts.filter(a => a.status === "completed").length;
       const meses = user.createdAt
         ? differenceInMonths(new Date(), ensureDate(user.createdAt)) + 1

@@ -43,7 +43,11 @@ export default function ConfirmacaoPage() {
     const [h, m] = (data.time?.time || "").split(":").map(Number);
     const dt = new Date(data.date); dt.setHours(h || 0, m || 0, 0, 0);
     try {
-      const appointmentId = await appointmentService.create({
+      const appointmentId = await appointmentService.create("", {
+        serviceName: data.service?.name ?? "",
+        timeSlotId: data.time?.id ?? "",
+        studioId: "",
+        price: 0,
         clientId: user.uid,
         serviceId: data.service.id,
         specialistId: "unassigned",

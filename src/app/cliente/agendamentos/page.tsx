@@ -57,7 +57,7 @@ export default function AgendamentosPage() {
   };
 
   const cancel = (a: ApptCard) => {
-    appointmentService.cancel(a.id)
+    appointmentService.cancel("", a.id)
       .then(() => toast.success("Agendamento cancelado."))
       .catch(() => toast.error("Não foi possível cancelar."));
   };

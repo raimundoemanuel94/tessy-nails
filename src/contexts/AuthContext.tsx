@@ -206,7 +206,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const uid = firebaseUser.uid;
     const sanitized = phone.replace(/\D/g, "");
 
-    const existing = await clientService.getByPhone(sanitized);
+    const existing = await clientService.findByPhone('', sanitized);
 
     if (existing && existing.id !== uid) {
       // Migrar: copiar dados para clients/{uid}
@@ -239,6 +239,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...(firebaseUser.email ? { email: firebaseUser.email } : {}),
         phone: sanitized,
         totalAppointments: 0,
+        totalVisits: 0,
+        totalSpent: 0,
+        studioId: "",
         createdAt: new Date(),
         isActive: true,
       };

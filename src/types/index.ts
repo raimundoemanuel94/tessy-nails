@@ -18,16 +18,20 @@ export type UserRole = z.infer<typeof UserRoleEnum>;
 
 // Client Schema & Type
 export const ClientSchema = z.object({
-  id: z.string(), // Firestore auto-generated ID or Auth UID
-  email: z.string().email().optional(),
-  name: z.string().min(2),
-  phone: z.string().optional(),
-  totalAppointments: z.number().default(0),
-  lastVisit: z.date().optional(),
-  notes: z.string().optional(),
-  isActive: z.boolean().default(true),
-  photoURL: z.string().optional(),
-  createdAt: z.date(),
+  id:               z.string(),
+  email:            z.string().email().optional(),
+  name:             z.string().min(2),
+  phone:            z.string().optional(),
+  photoURL:         z.string().optional(),
+  birthDate:        z.date().optional(),
+  totalAppointments:z.number().default(0),
+  totalVisits:      z.number().default(0),
+  totalSpent:       z.number().default(0),
+  lastVisit:        z.date().optional(),
+  notes:            z.string().optional(),
+  isActive:         z.boolean().default(true),
+  studioId:         z.string().default(""),
+  createdAt:        z.date(),
   updatedAt: z.date().optional(),
 });
 
@@ -35,12 +39,13 @@ export type Client = z.infer<typeof ClientSchema>;
 
 // Service Schema & Type
 export const ServiceSchema = z.object({
-  id: z.string(), // Firestore auto-generated ID
-  name: z.string().min(2),
-  description: z.string().optional(),
+  id:              z.string(),
+  name:            z.string().min(2),
+  description:     z.string().optional(),
   durationMinutes: z.number().min(1),
-  bufferMinutes: z.number().min(0).default(0), // intervalo de preparo após o serviço
-  price: z.number().min(0),
+  bufferMinutes:   z.number().min(0).default(0),
+  price:           z.number().min(0),
+  studioId:        z.string().default(""),
   category: z.string().optional(),
   isActive: z.boolean().default(true),
   createdAt: z.date(),
@@ -54,18 +59,24 @@ export const AppointmentStatusEnum = z.enum(['pending', 'confirmed', 'completed'
 export const PaymentStatusEnum = z.enum(['unpaid', 'deposit_paid', 'fully_paid']);
 
 export const AppointmentSchema = z.object({
-  id: z.string().optional(), // Firestore auto-generated ID
-  clientId: z.string(), // Firebase Auth UID
-  serviceId: z.string(), // Service ID
-  specialistId: z.string(), // User UID
+  id:              z.string().optional(),
+  clientId:        z.string(),
+  clientName:      z.string().optional(),
+  serviceId:       z.string(),
+  serviceName:     z.string().default(""),
+  specialistId:    z.string().default(""),
+  timeSlotId:      z.string().default(""),
+  studioId:        z.string().default(""),
   appointmentDate: z.date(),
-  status: AppointmentStatusEnum.default('pending'),
-  paymentStatus: PaymentStatusEnum.default('unpaid'),
-  notes: z.string().nullable().optional(), // ✅ Aceita null ou undefined
-  createdAt: z.date().optional(), // ✅ Opcional - gerado pelo serviço
-  updatedAt: z.date().optional(),
-  completedAt: z.date().optional(),
-  cancelledAt: z.date().optional(),
+  status:          AppointmentStatusEnum.default("pending"),
+  paymentStatus:   PaymentStatusEnum.default("unpaid"),
+  price:           z.number().default(0),
+  observation:     z.string().optional(),
+  notes:           z.string().nullable().optional(),
+  createdAt:       z.date().optional(),
+  updatedAt:       z.date().optional(),
+  completedAt:     z.date().optional(),
+  cancelledAt:     z.date().optional(),
 });
 
 export type Appointment = z.infer<typeof AppointmentSchema>;

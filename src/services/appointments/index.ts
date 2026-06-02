@@ -1,30 +1,16 @@
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy,
-  onSnapshot,
-  Timestamp,
-  startAt,
-  endAt,
-  limit,
-  startAfter,
-  DocumentData,
-  QueryDocumentSnapshot,
+/**
+ * appointmentService — Multi-tenant
+ * Todos os dados em /studios/{studioId}/appointments
+ */
+import {
+  collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
+  query, where, orderBy, onSnapshot, Timestamp, limit,
   type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Appointment, AppointmentSchema, AppointmentStatus, PaymentStatus } from "@/types";
-import { globalStore } from "@/store/globalStore";
+import { Appointment, AppointmentStatus } from "@/types";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { z } from "zod";
 
 export interface AppointmentWithService {
   id: string;
@@ -32,6 +18,8 @@ export interface AppointmentWithService {
   date: Date;
   time: { id: string; time: string };
   status: string;
+  clientId?: string;
+  clientName?: string;
   observation?: string;
   createdAt: Date;
 }
@@ -43,393 +31,226 @@ export interface BusySlot {
   serviceId: string;
 }
 
-const COLLECTION_NAME = "appointments";
+// Referências
+const col  = (studioId: string) => collection(db!, "studios", studioId, "appointments");
+const dref = (studioId: string, id: string) => doc(db!, "studios", studioId, "appointments", id);
 
-const parseFirestoreDate = (value: unknown): Date | null => {
-  if (!value) return null;
-  if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
-  if (
-    typeof value === "object" &&
-    value !== null &&
-    "toDate" in value &&
-    typeof (value as { toDate?: unknown }).toDate === "function"
-  ) {
-    const parsed = (value as { toDate: () => Date }).toDate();
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }
-  const parsed = new Date(value as string | number);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+const parseDate = (v: unknown): Date => {
+  if (v instanceof Timestamp)          return v.toDate();
+  if (v instanceof Date)               return v;
+  if (typeof v === "string" || typeof v === "number") return new Date(v);
+  return new Date();
 };
 
-const mapAppointmentData = (doc: QueryDocumentSnapshot<DocumentData>) => {
-  const data = doc.data();
-  const fallbackDate = new Date(0);
-  const createdAt = parseFirestoreDate(data.createdAt) ?? fallbackDate;
-  const appointmentDate = parseFirestoreDate(data.appointmentDate) ?? parseFirestoreDate(data.createdAt) ?? fallbackDate;
-  const updatedAt = parseFirestoreDate(data.updatedAt) ?? undefined;
-  return {
-    id: doc.id,
-    ...data,
-    appointmentDate,
-    createdAt,
-    updatedAt,
-  };
-};
+const toAppt = (id: string, d: Record<string, unknown>): Appointment => ({
+  id,
+  clientId:        String(d.clientId || ""),
+  clientName:      String(d.clientName || ""),
+  serviceId:       String(d.serviceId || ""),
+  serviceName:     String(d.serviceName || ""),
+  specialistId:    String(d.specialistId || ""),
+  appointmentDate: parseDate(d.appointmentDate),
+  timeSlotId:      String(d.timeSlotId || ""),
+  status:          (d.status as AppointmentStatus) || "pending",
+  paymentStatus:   (d.paymentStatus as "unpaid" | "deposit_paid" | "fully_paid") || "unpaid",
+  price:           Number(d.price || 0),
+  observation:     d.observation ? String(d.observation) : undefined,
+  createdAt:       parseDate(d.createdAt),
+  updatedAt:       d.updatedAt ? parseDate(d.updatedAt) : undefined,
+  studioId:        String(d.studioId || ""),
+});
 
 export const appointmentService = {
-  /**
-   * Lista todos os agendamentos ordenados por data (mais recente primeiro)
-   * ⚠️ AVISO: Uso restrito. Prefira getPaginated ou getByDateRange para de evitar estouro de memória e reads.
-   */
-  async getAll(): Promise<Appointment[]> {
-    try {
-      const q = query(collection(db, COLLECTION_NAME), orderBy("appointmentDate", "desc"));
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(mapAppointmentData) as Appointment[];
-    } catch (error) {
-      console.error("🔥 Error in appointmentService.getAll:", error);
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        (error as { code?: string }).code === "permission-denied"
-      ) {
-        console.warn("⚠️ Firestore Permission Denied. Check rules for collection 'appointments'.");
-      }
-      throw error;
-    }
+
+  // ── Leitura ─────────────────────────────────────────────────────
+
+  async getAll(studioId: string): Promise<Appointment[]> {
+    const snap = await getDocs(query(col(studioId), orderBy("appointmentDate", "desc"), limit(200)));
+    return snap.docs.map(d => toAppt(d.id, d.data() as Record<string, unknown>));
   },
 
-  /**
-   * ✅ OTIMIZAÇÃO: Busca paginada para listas grandes (Mobile Native Feel)
-   */
-  async getPaginated(pageSize: number = 20, lastDoc?: QueryDocumentSnapshot<DocumentData>): Promise<{ appointments: Appointment[], lastVisible: QueryDocumentSnapshot<DocumentData> | null }> {
-    try {
-      let q = query(
-        collection(db, COLLECTION_NAME),
-        orderBy("appointmentDate", "desc"),
-        limit(pageSize)
-      );
-
-      if (lastDoc) {
-        q = query(
-          collection(db, COLLECTION_NAME),
-          orderBy("appointmentDate", "desc"),
-          startAfter(lastDoc),
-          limit(pageSize)
-        );
-      }
-
-      const snapshot = await getDocs(q);
-      const appointments = snapshot.docs.map(mapAppointmentData) as Appointment[];
-      const lastVisible = snapshot.docs[snapshot.docs.length - 1] || null;
-
-      return { appointments, lastVisible };
-    } catch (error) {
-      console.error("🔥 Error in getPaginated:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Busca agendamentos em um intervalo de datas
-   */
-  async getByDateRange(start: Date, end: Date): Promise<Appointment[]> {
-    const q = query(
-      collection(db, COLLECTION_NAME),
+  async getByDateRange(studioId: string, start: Date, end: Date): Promise<Appointment[]> {
+    const snap = await getDocs(query(
+      col(studioId),
       where("appointmentDate", ">=", Timestamp.fromDate(start)),
       where("appointmentDate", "<=", Timestamp.fromDate(end)),
-      orderBy("appointmentDate", "asc")
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(mapAppointmentData) as Appointment[];
+      orderBy("appointmentDate", "asc"),
+    ));
+    return snap.docs.map(d => toAppt(d.id, d.data() as Record<string, unknown>));
   },
 
-  /**
-   * ✅ NOVO: Busca slots ocupados via API Server-Side (Ignora regras de segurança do Firestore)
-   */
-  async getBusySlots(start: Date, end: Date): Promise<BusySlot[]> {
-    try {
-      const response = await fetch(
-        `/api/appointments/availability?start=${start.toISOString()}&end=${end.toISOString()}`
-      );
-
-      if (!response.ok) {
-        throw new Error("Falha ao buscar disponibilidade");
-      }
-
-      const data = (await response.json()) as { busySlots?: BusySlot[] };
-      if (!Array.isArray(data.busySlots)) {
-        throw new Error("Resposta de disponibilidade invalida");
-      }
-
-      return data.busySlots;
-    } catch (error) {
-      console.error("🔥 Error in getBusySlots:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Busca agendamentos de um cliente específico
-   */
-  async getByClientId(clientId: string, maxResults = 50): Promise<Appointment[]> {
-    const q = query(
-      collection(db, COLLECTION_NAME),
+  async getByClientId(studioId: string, clientId: string, max = 50): Promise<Appointment[]> {
+    const snap = await getDocs(query(
+      col(studioId),
       where("clientId", "==", clientId),
       orderBy("appointmentDate", "desc"),
-      limit(maxResults)
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(mapAppointmentData) as Appointment[];
+      limit(max),
+    ));
+    return snap.docs.map(d => toAppt(d.id, d.data() as Record<string, unknown>));
   },
 
-  /**
-   * Busca agendamentos de um cliente com detalhes dos serviços
-   */
-  async getByClientIdWithServices(clientId: string, maxResults = 50): Promise<AppointmentWithService[]> {
-    const appointments = await this.getByClientId(clientId, maxResults);
-    
-    // Buscar todos os serviços via Cache
-    const allServices = await globalStore.fetchServices(false);
-    
-    // Mapear detalhes
-    const appointmentsWithServices = appointments.map((apt) => {
-      const service = allServices.find(s => s.id === apt.serviceId);
-      
-      if (service) {
-        return {
-          id: apt.id || '',
-          service: {
-            id: apt.serviceId,
-            name: service.name,
-            price: service.price,
-            durationMinutes: service.durationMinutes
-          },
-          date: apt.appointmentDate,
-          time: { 
-            id: apt.id || '', 
-            time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
-          },
-          status: apt.status,
-          observation: apt.notes || undefined,
-          createdAt: apt.createdAt || new Date()
-        };
-      } else {
-        return {
-          id: apt.id || '',
-          service: {
-            id: apt.serviceId,
-            name: `Serviço ${apt.serviceId}`,
-            price: 0,
-            durationMinutes: 60
-          },
-          date: apt.appointmentDate,
-          time: { 
-            id: apt.id || '', 
-            time: format(new Date(apt.appointmentDate), 'HH:mm', { locale: ptBR })
-          },
-          status: apt.status,
-          observation: apt.notes || undefined,
-          createdAt: apt.createdAt || new Date()
-        };
-      }
-    });
-    
-    return appointmentsWithServices;
+  async getByClientIdWithServices(
+    studioId: string, clientId: string, max = 50
+  ): Promise<AppointmentWithService[]> {
+    const appts = await appointmentService.getByClientId(studioId, clientId, max);
+    return appts.map(a => ({
+      id:          a.id ?? "",
+      service:     { id: a.serviceId, name: a.serviceName || "Serviço", price: a.price || 0, durationMinutes: 0 },
+      date:        a.appointmentDate,
+      time:        { id: a.timeSlotId || "", time: format(a.appointmentDate, "HH:mm", { locale: ptBR }) },
+      status:      a.status,
+      clientId:    a.clientId,
+      clientName:  a.clientName,
+      observation: a.observation,
+      createdAt:   a.createdAt,
+    })) as AppointmentWithService[];
   },
 
-  /**
-   * Busca agendamentos de um profissional específico
-   */
-  async getBySpecialistId(specialistId: string): Promise<Appointment[]> {
-    const q = query(
-      collection(db, COLLECTION_NAME),
-      where("specialistId", "==", specialistId),
-      orderBy("appointmentDate", "desc")
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(mapAppointmentData) as Appointment[];
+  async getById(studioId: string, id: string): Promise<Appointment | null> {
+    const snap = await getDoc(dref(studioId, id));
+    if (!snap.exists()) return null;
+    return toAppt(snap.id, snap.data() as Record<string, unknown>);
   },
 
-  /**
-   * Cria um novo agendamento com validação
-   */
-  async create(data: Omit<Appointment, "id" | "createdAt" | "updatedAt">): Promise<string> {
-    // ✅ Remover campos que não pertencem ao schema antes da validação
-    const { time, ...toValidate } = data as Appointment & { time?: string };
-    
-    try {
-      const validatedData = AppointmentSchema.parse({
-        ...toValidate,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-
-      const cleanData = {
-        ...validatedData,
-        notes: validatedData.notes || null,
-      };
-
-      const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-        ...cleanData,
-        appointmentDate: Timestamp.fromDate(cleanData.appointmentDate),
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-      });
-
-      return docRef.id;
-    } catch (error) {
-      console.error("❌ Erro de validação/criação no AppointmentService:", error);
-      if (error instanceof z.ZodError) {
-        console.error("Validação falhou:", (error as z.ZodError).issues);
-      }
-      throw error;
-    }
+  async getUpcoming(studioId: string, max = 20): Promise<Appointment[]> {
+    const snap = await getDocs(query(
+      col(studioId),
+      where("appointmentDate", ">=", Timestamp.fromDate(new Date())),
+      where("status", "in", ["pending","confirmed"]),
+      orderBy("appointmentDate", "asc"),
+      limit(max),
+    ));
+    return snap.docs.map(d => toAppt(d.id, d.data() as Record<string, unknown>));
   },
 
-  /**
-   * Atualiza o status de um agendamento
-   */
-  async updateStatus(id: string, status: AppointmentStatus): Promise<void> {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, { 
-      status,
-      updatedAt: Timestamp.now(),
-    });
-  },
-
-  /**
-   * Atualiza o status de pagamento de um agendamento
-   */
-  async updatePaymentStatus(id: string, paymentStatus: PaymentStatus): Promise<void> {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, { 
-      paymentStatus,
-      updatedAt: Timestamp.now(),
-    });
-  },
-
-  /**
-   * Cancela um agendamento
-   */
-  async cancel(id: string): Promise<void> {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, { 
-      status: "cancelled",
-      cancelledAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    });
-  },
-
-  /**
-   * Confirma um agendamento
-   */
-  async confirm(id: string): Promise<void> {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, { 
-      status: "confirmed",
-      updatedAt: Timestamp.now(),
-    });
-  },
-
-  /**
-   * Marca um agendamento como concluído
-   */
-  async complete(id: string): Promise<void> {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, { 
-      status: "completed",
-      completedAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    });
-  },
-
-  /**
-   * Marca um agendamento como falta (não compareceu)
-   */
-  async noShow(id: string): Promise<void> {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, { 
-      status: "no_show",
-      updatedAt: Timestamp.now(),
-    });
-  },
-
-  /**
-   * Atualiza dados de um agendamento
-   */
-  async update(id: string, data: Partial<Appointment>): Promise<void> {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    const updateData: Record<string, unknown> = { ...data };
-    
-    if (data.appointmentDate) {
-      updateData.appointmentDate = Timestamp.fromDate(new Date(data.appointmentDate));
-    }
-
-    await updateDoc(docRef, updateData);
-  },
-
-  /**
-   * Exclui permanentemente um agendamento
-   */
-  async delete(id: string): Promise<void> {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await deleteDoc(docRef);
-  },
-
-  /**
-   * Busca todos os especialistas (admins e profissionais)
-   */
-  async getSpecialists(): Promise<{ uid: string; name: string; role: string }[]> {
-    const q = query(
-      collection(db, "users"),
-      where("role", "in", ["admin", "professional"])
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => {
-      const data = doc.data() as { name?: string; role?: string };
-      return {
-        uid: doc.id,
-        name: data.name ?? "Profissional",
-        role: data.role ?? "professional",
-      };
-    });
-  },
-
-  /** Listener em tempo real — agendamentos do cliente. */
-  subscribeByClientId(
-    clientId: string,
-    callback: (appointments: Appointment[]) => void,
-    onError?: (error: Error) => void
-  ): Unsubscribe {
-    const q = query(
-      collection(db, COLLECTION_NAME),
-      where("clientId", "==", clientId),
-      orderBy("appointmentDate", "desc")
-    );
-    return onSnapshot(q,
-      snap => callback(snap.docs.map(mapAppointmentData) as Appointment[]),
-      err => { console.error("subscribeByClientId error:", err); onError?.(err); }
-    );
-  },
-
-  /** Listener em tempo real — agendamentos por intervalo. Usado na agenda da Nailit. */
-  subscribeByDateRange(
-    start: Date,
-    end: Date,
-    callback: (appointments: Appointment[]) => void,
-    onError?: (error: Error) => void
-  ): Unsubscribe {
-    const q = query(
-      collection(db, COLLECTION_NAME),
+  async getBusySlots(studioId: string, date: string): Promise<BusySlot[]> {
+    const start = new Date(date + "T00:00:00");
+    const end   = new Date(date + "T23:59:59");
+    const snap  = await getDocs(query(
+      col(studioId),
       where("appointmentDate", ">=", Timestamp.fromDate(start)),
       where("appointmentDate", "<=", Timestamp.fromDate(end)),
-      orderBy("appointmentDate", "asc")
-    );
-    return onSnapshot(q,
-      snap => callback(snap.docs.map(mapAppointmentData) as Appointment[]),
-      err => { console.error("subscribeByDateRange error:", err); onError?.(err); }
+      where("status", "in", ["pending","confirmed"]),
+    ));
+    return snap.docs.map(d => ({
+      id:              d.id,
+      appointmentDate: parseDate((d.data() as Record<string, unknown>).appointmentDate),
+      status:          String((d.data() as Record<string, unknown>).status),
+      serviceId:       String((d.data() as Record<string, unknown>).serviceId),
+    }));
+  },
+
+  // ── Escrita ──────────────────────────────────────────────────────
+
+  async create(studioId: string, data: Omit<Appointment, "id" | "createdAt">): Promise<string> {
+    const ref = await addDoc(col(studioId), {
+      ...data,
+      studioId,
+      createdAt:  Timestamp.now(),
+      updatedAt:  Timestamp.now(),
+    });
+    return ref.id;
+  },
+
+  async updateStatus(studioId: string, id: string, status: AppointmentStatus): Promise<void> {
+    await updateDoc(dref(studioId, id), { status, updatedAt: Timestamp.now() });
+  },
+
+  async update(studioId: string, id: string, data: Partial<Appointment>): Promise<void> {
+    await updateDoc(dref(studioId, id), { ...data, updatedAt: Timestamp.now() });
+  },
+
+  async delete(studioId: string, id: string): Promise<void> {
+    await deleteDoc(dref(studioId, id));
+  },
+
+  // ── Tempo real ──────────────────────────────────────────────────
+
+  subscribe(studioId: string, cb: (a: Appointment[]) => void): Unsubscribe {
+    return onSnapshot(
+      query(col(studioId), orderBy("appointmentDate", "desc"), limit(100)),
+      snap => cb(snap.docs.map(d => toAppt(d.id, d.data() as Record<string, unknown>)))
     );
   },
+
+
+  async confirm(studioId: string, id: string): Promise<void> {
+    await appointmentService.updateStatus(studioId, id, "confirmed");
+  },
+
+  async complete(studioId: string, id: string): Promise<void> {
+    await appointmentService.updateStatus(studioId, id, "completed");
+  },
+
+  async noShow(studioId: string, id: string): Promise<void> {
+    await appointmentService.updateStatus(studioId, id, "no_show");
+  },
+
+  async cancel(studioId: string, id: string): Promise<void> {
+    await appointmentService.updateStatus(studioId, id, "cancelled");
+  },
+
+  subscribeByDateRange(
+    studioId: string,
+    start: Date,
+    end: Date,
+    cb: (a: Appointment[]) => void
+  ): Unsubscribe {
+    return onSnapshot(
+      query(
+        col(studioId),
+        where("appointmentDate", ">=", Timestamp.fromDate(start)),
+        where("appointmentDate", "<=", Timestamp.fromDate(end)),
+        orderBy("appointmentDate", "asc"),
+      ),
+      snap => cb(snap.docs.map(d => toAppt(d.id, d.data() as Record<string, unknown>)))
+    );
+  },
+
+
+  subscribeByClientId(
+    clientId: string,
+    cb: (a: Appointment[]) => void,
+    onError?: (e: Error) => void
+  ): Unsubscribe {
+    // Para clientes — busca em coleções legado global
+    // (até /book/[slug] estar pronto, clientes usam coleção global)
+    return onSnapshot(
+      query(
+        collection(db!, "appointments"),
+        where("clientId", "==", clientId),
+        orderBy("appointmentDate", "desc"),
+        limit(50),
+      ),
+      snap => cb(snap.docs.map(d => toAppt(d.id, d.data() as Record<string, unknown>)))
+    );
+  },
+
+  // ── Compatibilidade legado (sem studioId) ───────────────────────
+  async getByClientIdLegacy(clientId: string, max = 50): Promise<AppointmentWithService[]> {
+    try {
+      const { getDocs: gd, collection: cl, query: q, where: w,
+              orderBy: ob, limit: li } = await import("firebase/firestore");
+      const snap = await gd(q(
+        cl(db!, "appointments"),
+        w("clientId", "==", clientId),
+        ob("appointmentDate", "desc"),
+        li(max),
+      ));
+      return snap.docs.map(d => {
+        const data = d.data() as Record<string, unknown>;
+        const date = parseDate(data.appointmentDate);
+        return {
+          id:      d.id,
+          service: { id: String(data.serviceId || ""), name: String(data.serviceName || ""), price: Number(data.price || 0), durationMinutes: 0 },
+          date,
+          time:    { id: String(data.timeSlotId || ""), time: format(date, "HH:mm", { locale: ptBR }) },
+          status:  String(data.status || "pending"),
+          createdAt: parseDate(data.createdAt),
+        };
+      });
+    } catch { return []; }
+  },
 };
+
+export default appointmentService;
