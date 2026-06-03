@@ -71,7 +71,7 @@ function resolvePostLoginTarget(role: string, nextValue: string | null): string 
 const SplashLoader = ({ onComplete }: { onComplete: () => void }) => {
   useEffect(() => {
     // 2s — rápido, não frustra o usuário
-    const t = setTimeout(onComplete, 2000);
+    const t = setTimeout(onComplete, 1000);
     return () => clearTimeout(t);
   }, [onComplete]);
 
