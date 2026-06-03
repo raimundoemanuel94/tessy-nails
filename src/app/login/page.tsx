@@ -185,7 +185,7 @@ function LoginPageContent() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn, signUp, signInWithGoogle, signInWithApple, resetPassword, user, loading: authLoading } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithApple, resetPassword, user, loading: authLoading, firestoreLoaded } = useAuth();
 
   const isRegisterMode = searchParams.get("mode") === "register";
   const nextParam = searchParams.get("next");
@@ -205,11 +205,25 @@ function LoginPageContent() {
   );
 
   useEffect(() => {
-    if (user && !authLoading) {
-      const targetPath = resolvePostLoginTarget(user.role, nextParam);
-      router.replace(targetPath);
+    if (!user || authLoading) return;
+
+    const SUPERADMIN_EMAILS = [
+      "raimundoemanuel94@gmail.com",
+      "raiiimundoemanuel2018@gmail.com",
+    ];
+
+    // Se é email de superadmin → vai para /admin imediatamente sem esperar Firestore
+    if (SUPERADMIN_EMAILS.includes(user.email ?? "")) {
+      router.replace("/admin");
+      return;
     }
-  }, [user, authLoading, router, nextParam]);
+
+    // Para outros usuários, aguardar Firestore carregar o role correto
+    if (!firestoreLoaded) return;
+
+    const targetPath = resolvePostLoginTarget(user.role, nextParam);
+    router.replace(targetPath);
+  }, [user, authLoading, firestoreLoaded, router, nextParam]);
 
   const buildModeToggleUrl = (registerMode: boolean): string => {
     const params = new URLSearchParams();
