@@ -27,7 +27,7 @@ const ADMIN_ROOTS = [
 ] as const;
 
 function isAdminRole(role: string): boolean {
-  return role === "admin" || role === "professional";
+  return role === "admin" || role === "professional" || role === "superadmin";
 }
 
 function isAdminPath(pathname: string): boolean {
@@ -63,6 +63,7 @@ function resolvePostLoginTarget(role: string, nextValue: string | null): string 
     if (!adminRole && isClientPath(parsedNext.pathname)) return parsedNext.fullPath;
   }
 
+  if (role === "superadmin") return "/admin";
   return adminRole ? "/dashboard" : "/cliente";
 }
 

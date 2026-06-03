@@ -175,8 +175,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setClient(clientDoc.data() as Client);
           setNeedsPhoneLink(false);
         } else {
-          // Superadmin e profissionais não precisam vincular telefone
-          const role = userDoc.exists() ? (userDoc.data() as Record<string,unknown>).role : "client";
+          // Verificar role — superadmin/professional NUNCA precisam de phone
+          const role = userDoc.exists()
+            ? (userDoc.data() as Record<string,unknown>).role
+            : quickRole; // fallback para o quickRole baseado no email
+
           if (role === "superadmin" || role === "professional" || role === "admin") {
             setNeedsPhoneLink(false);
           } else {
