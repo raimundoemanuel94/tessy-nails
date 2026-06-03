@@ -24,6 +24,7 @@ interface AuthContextType {
   client: Client | null;
   loading: boolean;
   needsPhoneLink: boolean;
+  firestoreLoaded: boolean;
   signOut: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   signUp: (email: string, password: string, name: string) => Promise<{ ok: boolean; error?: string }>;
@@ -62,6 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
   const [needsPhoneLink, setNeedsPhoneLink] = useState(false);
+  const [firestoreLoaded, setFirestoreLoaded] = useState(false);
 
   // ✅ Timeout de segurança — iOS PWA pode travar no loading
   // Se em 8s não resolver, força loading=false para não travar o app
@@ -163,6 +165,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch {
         // Firestore falhou — usuário já está logado com dados do Auth, tudo bem
+      } finally {
+        setFirestoreLoaded(true);
       }
     });
 
@@ -300,7 +304,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, firebaseUser, client, loading, needsPhoneLink, signOut, signIn, signUp, signInWithGoogle, signInWithApple, linkOrCreateByPhone, resetPassword }}>
+    <AuthContext.Provider value={{ user, firebaseUser, client, loading, needsPhoneLink, firestoreLoaded, signOut, signIn, signUp, signInWithGoogle, signInWithApple, linkOrCreateByPhone, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

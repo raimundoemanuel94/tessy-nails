@@ -13,7 +13,7 @@ export default function ClienteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading, needsPhoneLink } = useAuth();
+  const { user, loading, needsPhoneLink, firestoreLoaded } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -23,10 +23,11 @@ export default function ClienteLayout({
     // Superadmin e profissionais não pertencem ao /cliente
     if (user.role === "superadmin") { router.push("/admin"); return; }
     if (user.role === "professional" || user.role === "admin") { router.push("/dashboard"); return; }
-    if (needsPhoneLink && pathname !== "/cliente/vincular-telefone") {
+    // Só redirecionar para vincular-telefone DEPOIS do Firestore confirmar
+    if (firestoreLoaded && needsPhoneLink && pathname !== "/cliente/vincular-telefone") {
       router.push("/cliente/vincular-telefone"); return;
     }
-  }, [user, loading, needsPhoneLink, pathname, router]);
+  }, [user, loading, needsPhoneLink, firestoreLoaded, pathname, router]);
 
   if (loading) {
     return (
