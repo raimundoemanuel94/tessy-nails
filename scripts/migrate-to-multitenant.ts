@@ -12,9 +12,9 @@
  */
 
 // ─── CONFIGURAR ────────────────────────────────────────────────
-const OWNER_UID        = ""; // ← UID da Tessy no Firebase Auth
-const STUDIO_NAME      = "Nailit Studio";
-const DEFAULT_STUDIO   = "nailit-default";
+const OWNER_UID        = "O1ei4o6KCehqd3bR8Bw2phPGCrU2"; // UID da Tessy
+const STUDIO_NAME      = "Tessy Nails";
+const DEFAULT_STUDIO   = "O1ei4o6KCehqd3bR8Bw2phPGCrU2"; // studioId = uid da Tessy
 // ──────────────────────────────────────────────────────────────
 
 import { initializeApp, cert } from "firebase-admin/app";

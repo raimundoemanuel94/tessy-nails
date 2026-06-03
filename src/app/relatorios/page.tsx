@@ -30,7 +30,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { RevenueChart, ServicesDonut } from "@/components/dashboard/DashboardCharts";
+import { RevenueChart, ServicesDonut, TopServicesChart, ServiceRevenueChart } from "@/components/dashboard/DashboardCharts";
 import { appointmentService } from "@/services/appointments";
 import { clientService } from "@/services/clients";
 import { Appointment, Client, Service } from "@/types";
@@ -45,7 +45,7 @@ import { useStudio } from "@/contexts/StudioContext";
 // tipos locais
 type PeriodKey = "hoje" | "semana" | "mes" | "last30days";
 type Interval = { start: Date; end: Date };
-type ServiceMixItem = { name: string; value: number };
+type ServiceMixItem = { name: string; value: number; count?: number; revenue?: number };
 type MonthRevenueItem = { date: string; total: number };
 type ClientDateMode = "last_visit" | "created_at";
 type ClientStatusFilter = "todos" | "ativos" | "inativos";
@@ -392,16 +392,23 @@ export default function RelatoriosPage() {
   }, [periodCompleted, serviceById, activeInterval]);
 
   const serviceDistribution = useMemo<ServiceMixItem[]>(() => {
-    const counts = new Map<string, number>();
+    const counts  = new Map<string, number>();
+    const revenue = new Map<string, number>();
     periodCompleted.forEach((a) => {
       const name = serviceById.get(a.serviceId)?.name ?? "Removido";
-      counts.set(name, (counts.get(name) ?? 0) + 1);
+      counts.set(name,  (counts.get(name)  ?? 0) + 1);
+      revenue.set(name, (revenue.get(name) ?? 0) + (a.price || 0));
     });
     const total = Array.from(counts.values()).reduce((t, v) => t + v, 0);
     if (total === 0) return [];
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => ({ name, value: Number(((count / total) * 100).toFixed(1)) }));
+      .map(([name, count]) => ({
+        name,
+        value:   Number(((count / total) * 100).toFixed(1)),
+        count,
+        revenue: revenue.get(name) ?? 0,
+      }));
   }, [periodCompleted, serviceById]);
 
   // tabela clientes 360
@@ -666,7 +673,31 @@ export default function RelatoriosPage() {
         <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
           <SectionTitle icon={Target} title="Mix de Servicos" desc="Participacao no periodo" />
           {serviceDistribution.length > 0 ? (
-            <div className="h-[240px]"><ServicesDonut data={serviceDistribution} /></div>
+            <div className="space-y-5">
+              {/* Ranking horizontal — top 5 serviços */}
+              <div>
+                <p className="text-[8px] font-black uppercase tracking-[0.25em] text-[#9B8FC0] mb-3">
+                  ✦ Ranking por volume
+                </p>
+                <TopServicesChart data={serviceDistribution} />
+              </div>
+              {/* Donut */}
+              <div>
+                <p className="text-[8px] font-black uppercase tracking-[0.25em] text-[#9B8FC0] mb-2">
+                  ✦ Mix de serviços
+                </p>
+                <div className="h-[220px]"><ServicesDonut data={serviceDistribution} /></div>
+              </div>
+              {/* Barras de receita por serviço */}
+              {serviceDistribution.some(s => (s.revenue ?? 0) > 0) && (
+                <div>
+                  <p className="text-[8px] font-black uppercase tracking-[0.25em] text-[#9B8FC0] mb-2">
+                    ✦ Receita por serviço
+                  </p>
+                  <ServiceRevenueChart data={serviceDistribution} />
+                </div>
+              )}
+            </div>
           ) : (
             <div className="h-[240px] flex flex-col items-center justify-center gap-3 text-slate-500 opacity-40">
               <Target size={36} strokeWidth={1} />
