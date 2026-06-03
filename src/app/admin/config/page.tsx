@@ -98,6 +98,68 @@ const SUPER_ADMIN_UID = "TXRAIYsikRYTahOQS8cFXji4qSb2";
 const TESSY_UID       = "O1ei4o6KCehqd3bR8Bw2phPGCrU2";
 
 
+// ── Seed dados da Tessy ────────────────────────────────────────
+function SeedTessy() {
+  const [loading, setLoading] = useState(false);
+  const [result,  setResult]  = useState<Record<string,string> | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
+
+  const run = async () => {
+    setLoading(true); setResult(null); setError(null);
+    try {
+      const res  = await fetch("/api/admin/seed-tessy", {
+        method: "POST",
+        headers: { "x-setup-secret": "nailit-setup-2024" },
+      });
+      const data = await res.json() as { success: boolean; results?: Record<string,string>; error?: string };
+      if (data.success) setResult(data.results ?? {});
+      else              setError(data.error ?? "Erro");
+    } catch (e) { setError(String(e)); }
+    setLoading(false);
+  };
+
+  if (result) return (
+    <div className="rounded-2xl p-5" style={{ background:"rgba(74,222,128,0.06)", border:"1px solid rgba(74,222,128,0.2)" }}>
+      <div className="flex items-center gap-2 mb-3">
+        <CheckCircle2 size={16} className="text-emerald-400" />
+        <p className="text-[13px] font-black text-emerald-400">Tessy configurada!</p>
+      </div>
+      {Object.entries(result).map(([k, v]) => (
+        <div key={k} className="flex justify-between text-[10px] py-1">
+          <span className="text-white/40 capitalize">{k}</span>
+          <span className="text-white/70">{v}</span>
+        </div>
+      ))}
+      <p className="text-[9px] text-white/20 mt-3">A Tessy já pode entrar e ver os serviços no dashboard.</p>
+    </div>
+  );
+
+  return (
+    <div className="rounded-2xl p-5 space-y-4" style={{ background:"rgba(251,191,36,0.06)", border:"1px solid rgba(251,191,36,0.2)" }}>
+      <div className="flex items-center gap-2.5">
+        <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ background:"rgba(251,191,36,0.15)" }}>
+          <span className="text-lg">💅</span>
+        </div>
+        <div>
+          <p className="text-[13px] font-black text-white">Configurar Tessy (1ª manicure)</p>
+          <p className="text-[9px] text-white/30 mt-0.5">Cria studio, 8 serviços e settings padrão</p>
+        </div>
+      </div>
+      {error && (
+        <div className="rounded-xl p-3" style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)" }}>
+          <p className="text-[10px] text-red-300/70 break-all">{error}</p>
+        </div>
+      )}
+      <button onClick={run} disabled={loading}
+        className="w-full h-12 rounded-xl text-[12px] font-black text-white uppercase tracking-widest disabled:opacity-40"
+        style={{ background:"linear-gradient(135deg,#92400e,#d97706)" }}>
+        {loading ? "Configurando..." : "▶ Configurar Tessy"}
+      </button>
+    </div>
+  );
+}
+
+
 // ── Componente para promover usuário a superadmin ──────────────
 function PromoteUser() {
   const [uid,     setUid]     = useState("");
@@ -327,6 +389,9 @@ export default function AdminConfigPage() {
 
       {/* Setup inicial */}
       <SetupInicial />
+
+      {/* Seed Tessy */}
+      <SeedTessy />
 
       {/* Promover usuário a superadmin */}
       <PromoteUser />
