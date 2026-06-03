@@ -168,6 +168,59 @@ function SeedTessy() {
 }
 
 
+// ── Criar serviços da Tessy ────────────────────────────────────
+function CreateServices() {
+  const [loading, setLoading] = useState(false);
+  const [result,  setResult]  = useState<{created:number;total:number} | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
+  const { firebaseUser } = useAuth();
+
+  const run = async () => {
+    setLoading(true); setResult(null); setError(null);
+    try {
+      const idToken = firebaseUser ? await getIdToken(firebaseUser) : "";
+      const res = await fetch("/api/admin/create-services", {
+        method: "POST",
+        headers: { "x-setup-secret": "nailit-setup-2024", "x-id-token": idToken },
+      });
+      const data = await res.json() as { success: boolean; created: number; total: number; errors?: string[] };
+      if (data.success) setResult({ created: data.created, total: data.total });
+      else setError(data.errors?.join(", ") ?? "Erro");
+    } catch (e) { setError(String(e)); }
+    setLoading(false);
+  };
+
+  if (result) return (
+    <div className="rounded-2xl p-5" style={{ background:"rgba(74,222,128,0.06)", border:"1px solid rgba(74,222,128,0.2)" }}>
+      <div className="flex items-center gap-2">
+        <CheckCircle2 size={16} className="text-emerald-400" />
+        <p className="text-[13px] font-black text-emerald-400">
+          {result.created} serviços criados! ✅
+        </p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="rounded-2xl p-5 space-y-4" style={{ background:"rgba(255,200,50,0.06)", border:"1px solid rgba(255,200,50,0.2)" }}>
+      <div className="flex items-center gap-2.5">
+        <span className="text-xl">💅</span>
+        <div>
+          <p className="text-[13px] font-black text-white">Criar 7 serviços restantes da Tessy</p>
+          <p className="text-[9px] text-white/30 mt-0.5">Pedicure, gel, spa, nail art... (Manicure simples já existe)</p>
+        </div>
+      </div>
+      {error && <p className="text-[10px] text-red-300/70 break-all">{error}</p>}
+      <button onClick={run} disabled={loading}
+        className="w-full h-12 rounded-xl text-[12px] font-black text-white uppercase tracking-widest disabled:opacity-40"
+        style={{ background:"linear-gradient(135deg,#7a5c00,#d4a017)" }}>
+        {loading ? "Criando..." : "▶ Criar serviços da Tessy"}
+      </button>
+    </div>
+  );
+}
+
+
 // ── Componente para promover usuário a superadmin ──────────────
 function PromoteUser() {
   const [uid,     setUid]     = useState("");
@@ -400,6 +453,9 @@ export default function AdminConfigPage() {
 
       {/* Seed Tessy */}
       <SeedTessy />
+
+      {/* Criar serviços */}
+      <CreateServices />
 
       {/* Promover usuário a superadmin */}
       <PromoteUser />
