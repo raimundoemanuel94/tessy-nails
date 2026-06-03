@@ -118,12 +118,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // ── Passo 1: liberar UI imediatamente com dados do Firebase Auth ──
-      // O usuário vê a tela sem esperar Firestore
+      // Se o email for do superadmin, dar role correto imediatamente
+      const SUPERADMIN_EMAIL = "raimundoemanuel94@gmail.com";
+      const quickRole = fUser.email === SUPERADMIN_EMAIL ? "superadmin" : "client";
       const quickUser: User = {
         uid: fUser.uid,
         name: fUser.displayName || "Usuário",
         email: fUser.email || "",
-        role: "client",
+        role: quickRole as "superadmin" | "client",
         createdAt: new Date(),
         isActive: true,
         ...(fUser.photoURL && { photoURL: fUser.photoURL }),
@@ -141,15 +143,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (userDoc.exists()) {
           setUser(userDoc.data() as User);
         } else {
-          // Criar perfil silenciosamente em background
-          setDoc(doc(db, "users", fUser.uid), quickUser).catch(() => {});
+          // Criar perfil — se for superadmin email, salvar com role correto
+          const profileToSave = { ...quickUser };
+          setDoc(doc(db, "users", fUser.uid), profileToSave).catch(() => {});
         }
 
         if (clientDoc.exists()) {
           setClient(clientDoc.data() as Client);
           setNeedsPhoneLink(false);
         } else {
-          setNeedsPhoneLink(true);
+          // Superadmin e profissionais não precisam vincular telefone
+          const role = userDoc.exists() ? (userDoc.data() as Record<string,unknown>).role : "client";
+          if (role === "superadmin" || role === "professional" || role === "admin") {
+            setNeedsPhoneLink(false);
+          } else {
+            setNeedsPhoneLink(true);
+          }
           setClient(null);
         }
       } catch {

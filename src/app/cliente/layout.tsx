@@ -20,6 +20,9 @@ export default function ClienteLayout({
   useEffect(() => {
     if (loading) return;
     if (!user) { router.push("/login"); return; }
+    // Superadmin e profissionais não pertencem ao /cliente
+    if (user.role === "superadmin") { router.push("/admin"); return; }
+    if (user.role === "professional" || user.role === "admin") { router.push("/dashboard"); return; }
     if (needsPhoneLink && pathname !== "/cliente/vincular-telefone") {
       router.push("/cliente/vincular-telefone"); return;
     }
