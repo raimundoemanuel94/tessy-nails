@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getFirebaseAdminApp, admin } from "@/lib/firebaseAdmin";
 
-const PROJECT_ID = "nailit-792a7";
-const TESSY_UID  = "O1ei4o6KCehqd3bR8Bw2phPGCrU2";
-const BASE_URL   = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+const TESSY_UID = "GGa8qA08whMNfvs3V5AOG65NmfC3";
 
 const SERVICES = [
   { name: "Pedicure simples",   price: 40,  durationMinutes: 60  },
@@ -19,28 +18,49 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const idToken = req.headers.get("x-id-token");
-  if (!idToken) return NextResponse.json({ error: "idToken required" }, { status: 400 });
+  const app = getFirebaseAdminApp();
+  if (!app) {
+    return NextResponse.json({ error: "Firebase Admin não configurado. Verifique FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL e FIREBASE_PRIVATE_KEY nas env vars." }, { status: 500 });
+  }
+
+  const db = admin.firestore(app);
+  const servicesRef = db.collection("studios").doc(TESSY_UID).collection("services");
+
+  // Checa serviços já existentes para evitar duplicatas
+  const existing = await servicesRef.get();
+  const existingNames = new Set(existing.docs.map(d => d.data().name as string));
 
   let created = 0;
+  let skipped = 0;
   const errors: string[] = [];
 
   for (const svc of SERVICES) {
-    const res = await fetch(`${BASE_URL}/studios/${TESSY_UID}/services`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${idToken}` },
-      body: JSON.stringify({ fields: {
-        name:            { stringValue:  svc.name },
-        price:           { integerValue: String(svc.price) },
-        durationMinutes: { integerValue: String(svc.durationMinutes) },
-        bufferMinutes:   { integerValue: "0" },
-        isActive:        { booleanValue: true },
-        studioId:        { stringValue:  TESSY_UID },
-      }}),
-    });
-    if (res.ok) created++;
-    else errors.push(`${svc.name}: ${(await res.json() as {error?:{message?:string}}).error?.message ?? "erro"}`);
+    if (existingNames.has(svc.name)) {
+      skipped++;
+      continue;
+    }
+    try {
+      await servicesRef.add({
+        name: svc.name,
+        price: svc.price,
+        durationMinutes: svc.durationMinutes,
+        bufferMinutes: 0,
+        isActive: true,
+        studioId: TESSY_UID,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      created++;
+    } catch (e) {
+      errors.push(`${svc.name}: ${String(e)}`);
+    }
   }
 
-  return NextResponse.json({ success: created > 0, created, total: SERVICES.length, errors });
+  return NextResponse.json({
+    success: errors.length === 0,
+    created,
+    skipped,
+    total: SERVICES.length,
+    tessyUid: TESSY_UID,
+    errors,
+  });
 }
