@@ -1,12 +1,109 @@
 "use client";
 
 import { useState } from "react";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   Database, CheckCircle2, AlertCircle,
-  RefreshCw, Shield,
+  RefreshCw, Shield, UserPlus, Search,
 } from "lucide-react";
+
+
+// ── Componente para promover usuário a superadmin ──────────────
+function PromoteUser() {
+  const [uid,     setUid]     = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result,  setResult]  = useState<string | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
+
+  const promote = async () => {
+    if (!uid.trim()) return;
+    setLoading(true);
+    setResult(null);
+    setError(null);
+    try {
+      const userRef  = doc(db!, "users", uid.trim());
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        setError("Usuário não encontrado. Verifique o UID.");
+        setLoading(false);
+        return;
+      }
+
+      const data = userSnap.data() as Record<string, unknown>;
+      await setDoc(userRef, {
+        ...data,
+        role:      "superadmin",
+        updatedAt: serverTimestamp(),
+      });
+
+      setResult(`✓ ${String(data.name || data.email || uid)} agora é superadmin!`);
+    } catch (e) {
+      setError(String(e));
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="rounded-2xl p-5 space-y-4"
+      style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)" }}>
+
+      <div className="flex items-center gap-2.5">
+        <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background:"rgba(96,165,250,0.15)" }}>
+          <UserPlus size={15} className="text-blue-400" />
+        </div>
+        <div>
+          <p className="text-[13px] font-black text-white">Promover a Super Admin</p>
+          <p className="text-[9px] text-white/30 mt-0.5">
+            Cole o UID do usuário para dar acesso total
+          </p>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+          <input
+            value={uid}
+            onChange={e => setUid(e.target.value)}
+            placeholder="Cole o UID do Firebase aqui..."
+            className="w-full h-11 pl-8 pr-3 rounded-xl text-[12px] font-mono text-white placeholder-white/15 outline-none"
+            style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)" }}
+          />
+        </div>
+        <button onClick={promote} disabled={loading || !uid.trim()}
+          className="h-11 px-4 rounded-xl text-[11px] font-black text-white disabled:opacity-40 transition-all shrink-0"
+          style={{ background:"linear-gradient(135deg,#1E3A5F,#3B82F6)" }}>
+          {loading ? "..." : "Promover"}
+        </button>
+      </div>
+
+      {result && (
+        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
+          style={{ background:"rgba(74,222,128,0.1)", border:"1px solid rgba(74,222,128,0.2)" }}>
+          <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+          <p className="text-[11px] font-bold text-emerald-400">{result}</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
+          style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)" }}>
+          <AlertCircle size={13} className="text-red-400 shrink-0" />
+          <p className="text-[10px] text-red-300/70">{error}</p>
+        </div>
+      )}
+
+      <p className="text-[8px] text-white/15">
+        ⚠️ Use com cuidado — superadmin tem acesso total à plataforma.
+      </p>
+    </div>
+  );
+}
 
 export default function AdminConfigPage() {
   const [migrating, setMigrating]   = useState(false);
@@ -140,6 +237,9 @@ export default function AdminConfigPage() {
           </p>
         )}
       </div>
+
+      {/* Promover usuário a superadmin */}
+      <PromoteUser />
 
       {/* Outras configs futuras */}
       <div className="rounded-2xl p-5 space-y-3"
