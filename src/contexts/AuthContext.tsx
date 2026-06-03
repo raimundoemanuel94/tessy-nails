@@ -8,8 +8,6 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
   GoogleAuthProvider,
   OAuthProvider,
   sendPasswordResetEmail,
@@ -108,20 +106,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       })();
       return;
-    }
-
-    // Capturar resultado do redirect do Google (mobile)
-    // Precisa rodar ANTES do onAuthStateChanged para garantir que o user está setado
-    if (auth) {
-      getRedirectResult(auth)
-        .then((result) => {
-          if (result?.user) {
-            console.log("[Auth] Redirect result captured:", result.user.email);
-          }
-        })
-        .catch((error) => {
-          console.error("[Auth] Redirect error:", error.code);
-        });
     }
 
     const unsubscribe = onAuthStateChanged(auth!, async (fUser) => {
@@ -305,13 +289,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!auth) return { ok: false, error: "Firebase não configurado." };
     try {
       const provider = new GoogleAuthProvider();
-      // Mobile: redirect (não precisa de domínio autorizado)
-      // Desktop: popup
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
-        await signInWithRedirect(auth!, provider);
-        return { ok: true };
-      }
       await signInWithPopup(auth!, provider);
       return { ok: true };
     } catch (err) {
