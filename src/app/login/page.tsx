@@ -244,9 +244,16 @@ function LoginPageContent() {
     setLoading(true);
     try {
       const { ok, error } = await signInWithGoogle();
-      if (!ok) toast.error(error ?? "Erro no login com Google.");
-    } catch { toast.error("Erro no login com Google."); }
-    finally { setLoading(false); }
+      if (!ok) {
+        toast.error(error ?? "Erro no login com Google.");
+        setLoading(false);
+      }
+      // No mobile com redirect, a página vai embora — não setar loading(false)
+      // O loading some quando o app volta do redirect
+    } catch {
+      toast.error("Erro no login com Google.");
+      setLoading(false);
+    }
   };
 
   const handleAppleLogin = async () => {

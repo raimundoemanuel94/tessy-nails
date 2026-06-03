@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         return prev;
       });
-    }, 8000);
+    }, 15000); // 15s para dar tempo ao redirect do Google
     return () => clearTimeout(t);
   }, []);
 
@@ -111,8 +111,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Capturar resultado do redirect do Google (mobile)
+    // Precisa rodar ANTES do onAuthStateChanged para garantir que o user está setado
     if (auth) {
-      getRedirectResult(auth).catch(() => {});
+      getRedirectResult(auth)
+        .then((result) => {
+          if (result?.user) {
+            console.log("[Auth] Redirect result captured:", result.user.email);
+          }
+        })
+        .catch((error) => {
+          console.error("[Auth] Redirect error:", error.code);
+        });
     }
 
     const unsubscribe = onAuthStateChanged(auth!, async (fUser) => {
