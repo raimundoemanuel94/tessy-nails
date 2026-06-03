@@ -17,8 +17,15 @@ const formatPhone = (value: string) => {
 };
 
 export default function VincularTelefonePage() {
-  const { linkOrCreateByPhone } = useAuth();
+  const { linkOrCreateByPhone, user } = useAuth();
   const router = useRouter();
+
+  // Superadmin e professional não precisam vincular telefone
+  if (user && (user.role === "superadmin" || user.role === "professional" || user.role === "admin")) {
+    if (user.role === "superadmin") router.replace("/admin");
+    else router.replace("/dashboard");
+    return null;
+  }
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

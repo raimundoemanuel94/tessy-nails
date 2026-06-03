@@ -137,8 +137,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // ── Passo 1: liberar UI imediatamente com dados do Firebase Auth ──
       // Se o email for do superadmin, dar role correto imediatamente
-      const SUPERADMIN_EMAIL = "raimundoemanuel94@gmail.com";
-      const quickRole = fUser.email === SUPERADMIN_EMAIL ? "superadmin" : "client";
+      // Emails que são superadmin por padrão (antes do Firestore carregar)
+      const SUPERADMIN_EMAILS = [
+        "raimundoemanuel94@gmail.com",
+        "raiiimundoemanuel2018@gmail.com",
+      ];
+      const SUPERADMIN_EMAIL = SUPERADMIN_EMAILS[0]; // compat
+      const quickRole = SUPERADMIN_EMAILS.includes(fUser.email ?? "") ? "superadmin" : "client";
       const quickUser: User = {
         uid: fUser.uid,
         name: fUser.displayName || "Usuário",

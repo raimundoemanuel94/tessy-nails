@@ -16,7 +16,9 @@ export async function POST(req: NextRequest) {
   try {
     // 1. Superadmin (Raimundo)
     await setDoc(doc(db!, "users", SUPER_ADMIN_UID), {
-      uid: SUPER_ADMIN_UID, name: "Admin Nailit",
+      uid: SUPER_ADMIN_UID, name: "Raimundo",
+      email: "raimundoemanuel94@gmail.com",
+      phone: "97991394382",
       role: "superadmin", isActive: true, createdAt: serverTimestamp(),
     }, { merge: true });
     results.superadmin = "✓ criado";
