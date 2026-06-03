@@ -300,11 +300,11 @@ function LoginPageContent() {
     }
   };
 
-  const visible = !showSplash;
+  const visible = true;
 
   return (
     <>
-      <AnimatePresence>{showSplash && <SplashLoader onComplete={() => { try { sessionStorage.setItem("nailit_splash_v2","1"); } catch {} setShowSplash(false); }} />}</AnimatePresence>
+      {/* Splash removido */}
 
       <div className="relative min-h-dvh w-full flex flex-col items-center justify-center px-5 py-10 overflow-hidden"
         style={{ background: "linear-gradient(160deg, #FAF8FF 0%, #F0EBFF 50%, #EDE5FF 100%)" }}>
