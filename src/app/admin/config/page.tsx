@@ -7,8 +7,95 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   Database, CheckCircle2, AlertCircle,
-  RefreshCw, Shield, UserPlus, Search,
+  RefreshCw, Shield, UserPlus, Search, Sparkles,
 } from "lucide-react";
+
+
+// ── Setup inicial do projeto ───────────────────────────────────
+function SetupInicial() {
+  const [loading, setLoading] = useState(false);
+  const [result,  setResult]  = useState<Record<string,string> | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
+
+  const run = async () => {
+    setLoading(true); setResult(null); setError(null);
+    try {
+      const res  = await fetch("/api/admin/setup", {
+        method: "POST",
+        headers: { "x-setup-secret": "nailit-setup-2024" },
+      });
+      const data = await res.json() as { success: boolean; results?: Record<string,string>; error?: string };
+      if (data.success) { setResult(data.results ?? {}); }
+      else              { setError(data.error ?? "Erro"); }
+    } catch (e) { setError(String(e)); }
+    setLoading(false);
+  };
+
+  if (result) return (
+    <div className="rounded-2xl p-5"
+      style={{ background:"rgba(74,222,128,0.06)", border:"1px solid rgba(74,222,128,0.2)" }}>
+      <div className="flex items-center gap-2 mb-3">
+        <CheckCircle2 size={16} className="text-emerald-400" />
+        <p className="text-[13px] font-black text-emerald-400">Setup concluído!</p>
+      </div>
+      {Object.entries(result).map(([k, v]) => (
+        <div key={k} className="flex justify-between text-[10px] py-1">
+          <span className="text-white/40 capitalize">{k.replace("_"," ")}</span>
+          <span className="text-white/70">{v}</span>
+        </div>
+      ))}
+      <p className="text-[9px] text-white/20 mt-3">
+        Agora feche e abra o app — você já é superadmin! ✨
+      </p>
+    </div>
+  );
+
+  return (
+    <div className="rounded-2xl p-5 space-y-4"
+      style={{ background:"rgba(157,127,212,0.08)", border:"1.5px solid rgba(157,127,212,0.3)" }}>
+      <div className="flex items-center gap-2.5">
+        <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background:"rgba(157,127,212,0.2)" }}>
+          <Sparkles size={15} className="text-[#9D7FD4]" />
+        </div>
+        <div>
+          <p className="text-[13px] font-black text-white">Setup inicial do Nailit</p>
+          <p className="text-[9px] text-white/30 mt-0.5">
+            Configura superadmin + studio da Tessy no novo projeto Firebase
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-2 text-[10px] text-white/40">
+        {[
+          `Cria /users/${SUPER_ADMIN_UID.slice(0,8)}... → role: superadmin`,
+          `Cria /users/${TESSY_UID.slice(0,8)}... → role: professional`,
+          `Cria /studios/${TESSY_UID.slice(0,8)}... → plano Pro 30 dias`,
+        ].map((item, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <div className="h-1.5 w-1.5 rounded-full bg-[#9D7FD4] opacity-50 shrink-0" />
+            <span className="font-mono">{item}</span>
+          </div>
+        ))}
+      </div>
+
+      {error && (
+        <div className="rounded-xl p-3" style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)" }}>
+          <p className="text-[10px] text-red-300/70 font-mono break-all">{error}</p>
+        </div>
+      )}
+
+      <button onClick={run} disabled={loading}
+        className="w-full h-12 rounded-xl text-[12px] font-black text-white uppercase tracking-widest disabled:opacity-40"
+        style={{ background:"linear-gradient(135deg,#5A3F9A,#9D7FD4)" }}>
+        {loading ? "Configurando..." : "▶ Executar Setup"}
+      </button>
+    </div>
+  );
+}
+
+const SUPER_ADMIN_UID = "TXRAIYsikRYTahOQS8cFXji4qSb2";
+const TESSY_UID       = "O1ei4o6KCehqd3bR8Bw2phPGCrU2";
 
 
 // ── Componente para promover usuário a superadmin ──────────────
@@ -237,6 +324,9 @@ export default function AdminConfigPage() {
           </p>
         )}
       </div>
+
+      {/* Setup inicial */}
+      <SetupInicial />
 
       {/* Promover usuário a superadmin */}
       <PromoteUser />
