@@ -21,19 +21,26 @@ const NAV = [
   { icon: Settings,        label: "Config",     href: "/admin/config" },
 ];
 
+const SUPERADMIN_EMAILS = ["raimundoemanuel94@gmail.com", "raiiimundoemanuel2018@gmail.com"];
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, firestoreLoaded, signOut } = useAuth();
   const router   = useRouter();
   const pathname = usePathname();
 
+  const isSuperAdmin = user?.role === "superadmin" || 
+    SUPERADMIN_EMAILS.includes(user?.email ?? "");
+
   useEffect(() => {
     if (loading) return;
-    if (!user || user.role !== "superadmin") {
-      router.replace("/login");
-    }
-  }, [user, loading]);
+    if (!user) { router.replace("/login"); return; }
+    // Aguarda Firestore OU verifica pelo email
+    if (!firestoreLoaded && !SUPERADMIN_EMAILS.includes(user?.email ?? "")) return;
+    if (!isSuperAdmin) router.replace("/login");
+  }, [user, loading, firestoreLoaded, isSuperAdmin]);
 
-  if (loading || !user || user.role !== "superadmin") {
+  // Mostrar loading só se não consegue confirmar superadmin
+  if (loading || !user || (!isSuperAdmin && !firestoreLoaded)) {
     return (
       <div className="min-h-screen flex items-center justify-center"
         style={{ background:"#0A0818" }}>

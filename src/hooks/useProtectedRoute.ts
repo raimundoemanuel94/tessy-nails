@@ -6,26 +6,35 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export type AllowedRole = "client" | "admin" | "professional";
 
+const PROFESSIONAL_EMAILS = ["tessynails.contato@gmail.com", "tessy@nails.com"];
+const SUPERADMIN_EMAILS   = ["raimundoemanuel94@gmail.com", "raiiimundoemanuel2018@gmail.com"];
+
 export function useProtectedRoute(allowed: AllowedRole | AllowedRole[]) {
-  const { user, loading } = useAuth();
+  const { user, loading, firestoreLoaded } = useAuth();
   const router   = useRouter();
   const roles    = Array.isArray(allowed) ? allowed : [allowed];
   const didCheck = useRef(false);
 
   useEffect(() => {
     if (loading) return;
-    if (didCheck.current) return; // evitar loops de redirect no iOS
+    if (didCheck.current) return;
+
+    if (!user) { router.replace("/login"); return; }
+
+    // Determinar role real: email conhecido OR Firestore carregado
+    let effectiveRole = user.role;
+    if (SUPERADMIN_EMAILS.includes(user.email ?? "")) effectiveRole = "superadmin";
+    else if (PROFESSIONAL_EMAILS.includes(user.email ?? "")) effectiveRole = "professional";
+    else if (!firestoreLoaded) return; // aguardar Firestore para usuários desconhecidos
+
     didCheck.current = true;
 
-    if (!user) {
-      router.replace("/login");
-      return;
+    if (!roles.includes(effectiveRole as AllowedRole)) {
+      if (effectiveRole === "superadmin") router.replace("/admin");
+      else if (effectiveRole === "professional" || effectiveRole === "admin") router.replace("/dashboard");
+      else router.replace("/cliente");
     }
-
-    if (!roles.includes(user.role as AllowedRole)) {
-      router.replace(user.role === "client" ? "/cliente" : "/dashboard");
-    }
-  }, [user, loading]);
+  }, [user, loading, firestoreLoaded]);
 
   return { user, loading };
 }
