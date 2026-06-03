@@ -21,18 +21,29 @@ async function patch(path: string, data: Record<string, unknown>) {
   return res.ok;
 }
 
-async function post(path: string, data: Record<string, unknown>) {
+async function post(path: string, data: Record<string, unknown>, idToken?: string) {
   const fields: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(data)) {
     if (typeof v === "string")       fields[k] = { stringValue: v };
     else if (typeof v === "boolean") fields[k] = { booleanValue: v };
     else if (typeof v === "number")  fields[k] = { doubleValue: v };
   }
-  const res = await fetch(`${BASE_URL}/${path}?key=${API_KEY}`, {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
+  
+  const url = idToken 
+    ? `${BASE_URL}/${path}`
+    : `${BASE_URL}/${path}?key=${API_KEY}`;
+    
+  const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ fields }),
   });
+  if (!res.ok) {
+    const err = await res.text();
+    console.error(`[seed-tessy] POST ${path} failed:`, err);
+  }
   return res.ok;
 }
 
@@ -52,21 +63,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const idToken = req.headers.get("x-id-token") ?? undefined;
   const results: Record<string, string> = {};
-  const trial = new Date(); trial.setDate(trial.getDate() + 30);
 
-  // User + Studio
-  await patch(`users/${TESSY_UID}`, { uid: TESSY_UID, name: "Tessy", email: "tessy@nails.com", role: "professional", studioId: TESSY_UID, isActive: true });
+  // User + Studio via PATCH (funciona com API key)
+  await patch(`users/${TESSY_UID}`, { uid: TESSY_UID, name: "Tessy", email: "tessynails.contato@gmail.com", role: "professional", studioId: TESSY_UID, isActive: true });
   await patch(`studios/${TESSY_UID}`, { name: "Tessy Nails", ownerId: TESSY_UID, slug: "tessy-nails", plan: "pro", isActive: true });
   results.studio = "✓";
 
-  // Serviços
+  // Serviços via POST com idToken
   let svcOk = 0;
   for (const svc of SERVICES) {
-    const ok = await post(`studios/${TESSY_UID}/services`, { ...svc, isActive: true, studioId: TESSY_UID, bufferMinutes: 0 });
+    const ok = await post(`studios/${TESSY_UID}/services`, { ...svc, isActive: true, studioId: TESSY_UID, bufferMinutes: 0 }, idToken);
     if (ok) svcOk++;
   }
-  results.services = `✓ ${svcOk}/${SERVICES.length} criados`;
+  results.services = svcOk > 0 ? `✓ ${svcOk}/${SERVICES.length} criados` : `⚠️ 0/${SERVICES.length} — envie x-id-token`;
 
   // Settings
   await patch(`studios/${TESSY_UID}/settings/salon`, {

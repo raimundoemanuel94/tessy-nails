@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { getIdToken } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { motion } from "framer-motion";
@@ -104,12 +106,18 @@ function SeedTessy() {
   const [result,  setResult]  = useState<Record<string,string> | null>(null);
   const [error,   setError]   = useState<string | null>(null);
 
+  const { firebaseUser } = useAuth();
+
   const run = async () => {
     setLoading(true); setResult(null); setError(null);
     try {
+      const idToken = firebaseUser ? await getIdToken(firebaseUser) : "";
       const res  = await fetch("/api/admin/seed-tessy", {
         method: "POST",
-        headers: { "x-setup-secret": "nailit-setup-2024" },
+        headers: { 
+          "x-setup-secret": "nailit-setup-2024",
+          "x-id-token": idToken,
+        },
       });
       const data = await res.json() as { success: boolean; results?: Record<string,string>; error?: string };
       if (data.success) setResult(data.results ?? {});
