@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { Phone, Loader2, ChevronRight, AlertCircle } from "lucide-react";
@@ -17,15 +17,33 @@ const formatPhone = (value: string) => {
 };
 
 export default function VincularTelefonePage() {
-  const { linkOrCreateByPhone, user } = useAuth();
+  const { linkOrCreateByPhone, user, firestoreLoaded } = useAuth();
   const router = useRouter();
+  const [redirecting, setRedirecting] = useState(false);
 
-  // Superadmin e professional não precisam vincular telefone
-  if (user && (user.role === "superadmin" || user.role === "professional" || user.role === "admin")) {
-    if (user.role === "superadmin") router.replace("/admin");
-    else router.replace("/dashboard");
-    return null;
-  }
+  // Redirecionar superadmin/professional — aguarda Firestore para ter certeza do role
+  React.useEffect(() => {
+    if (!user) return;
+    const role = user.role;
+    if (role === "superadmin") {
+      setRedirecting(true);
+      router.replace("/admin");
+    } else if (role === "professional" || role === "admin") {
+      setRedirecting(true);
+      router.replace("/dashboard");
+    }
+  }, [user?.role, firestoreLoaded]);
+
+  if (redirecting) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#FAF8FF]">
+      <div className="flex gap-1.5">
+        {[0,1,2].map(i => (
+          <div key={i} className="w-2 h-2 rounded-full bg-[#7C5CBF] animate-pulse"
+            style={{ animationDelay: `${i*150}ms` }} />
+        ))}
+      </div>
+    </div>
+  );
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
