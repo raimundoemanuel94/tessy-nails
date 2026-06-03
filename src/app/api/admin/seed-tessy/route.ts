@@ -1,19 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
-import { doc, setDoc, getDoc, serverTimestamp, Timestamp, collection, getDocs, addDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
-const TESSY_UID = "O1ei4o6KCehqd3bR8Bw2phPGCrU2";
-const STUDIO_ID = "O1ei4o6KCehqd3bR8Bw2phPGCrU2";
+const PROJECT_ID = "nailit-792a7";
+const API_KEY    = "AIzaSyCyi190uiOnAO_xlZ8TcgXd-DcCBVgMwpc";
+const BASE_URL   = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+const TESSY_UID  = "O1ei4o6KCehqd3bR8Bw2phPGCrU2";
+
+async function patch(path: string, data: Record<string, unknown>) {
+  const fields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (typeof v === "string")       fields[k] = { stringValue: v };
+    else if (typeof v === "boolean") fields[k] = { booleanValue: v };
+    else if (typeof v === "number")  fields[k] = { doubleValue: v };
+    else if (v instanceof Date)      fields[k] = { timestampValue: v.toISOString() };
+  }
+  const res = await fetch(`${BASE_URL}/${path}?key=${API_KEY}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fields }),
+  });
+  return res.ok;
+}
+
+async function post(path: string, data: Record<string, unknown>) {
+  const fields: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (typeof v === "string")       fields[k] = { stringValue: v };
+    else if (typeof v === "boolean") fields[k] = { booleanValue: v };
+    else if (typeof v === "number")  fields[k] = { doubleValue: v };
+  }
+  const res = await fetch(`${BASE_URL}/${path}?key=${API_KEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fields }),
+  });
+  return res.ok;
+}
 
 const SERVICES = [
-  { name: "Manicure simples",    price: 35,  durationMinutes: 45  },
-  { name: "Pedicure simples",    price: 40,  durationMinutes: 60  },
-  { name: "Manicure em gel",     price: 80,  durationMinutes: 90  },
-  { name: "Pedicure em gel",     price: 90,  durationMinutes: 90  },
-  { name: "Alongamento em gel",  price: 150, durationMinutes: 120 },
-  { name: "Esmaltação em gel",   price: 60,  durationMinutes: 60  },
-  { name: "Spa dos pés",         price: 70,  durationMinutes: 75  },
-  { name: "Nail art",            price: 15,  durationMinutes: 30  },
+  { name: "Manicure simples",   price: 35,  durationMinutes: 45  },
+  { name: "Pedicure simples",   price: 40,  durationMinutes: 60  },
+  { name: "Manicure em gel",    price: 80,  durationMinutes: 90  },
+  { name: "Pedicure em gel",    price: 90,  durationMinutes: 90  },
+  { name: "Alongamento em gel", price: 150, durationMinutes: 120 },
+  { name: "Esmaltação em gel",  price: 60,  durationMinutes: 60  },
+  { name: "Spa dos pés",        price: 70,  durationMinutes: 75  },
+  { name: "Nail art",           price: 15,  durationMinutes: 30  },
 ];
 
 export async function POST(req: NextRequest) {
@@ -22,59 +53,26 @@ export async function POST(req: NextRequest) {
   }
 
   const results: Record<string, string> = {};
+  const trial = new Date(); trial.setDate(trial.getDate() + 30);
 
-  try {
-    // User
-    await setDoc(doc(db!, "users", TESSY_UID), {
-      uid: TESSY_UID, name: "Tessy", email: "tessy@nails.com",
-      role: "professional", studioId: STUDIO_ID, isActive: true,
-    }, { merge: true });
-    results.user = "✓";
+  // User + Studio
+  await patch(`users/${TESSY_UID}`, { uid: TESSY_UID, name: "Tessy", email: "tessy@nails.com", role: "professional", studioId: TESSY_UID, isActive: true });
+  await patch(`studios/${TESSY_UID}`, { name: "Tessy Nails", ownerId: TESSY_UID, slug: "tessy-nails", plan: "pro", isActive: true });
+  results.studio = "✓";
 
-    // Studio
-    const trial = new Date();
-    trial.setDate(trial.getDate() + 30);
-    await setDoc(doc(db!, "studios", STUDIO_ID), {
-      name: "Tessy Nails", ownerId: TESSY_UID, slug: "tessy-nails",
-      plan: "pro", trialEndsAt: Timestamp.fromDate(trial), isActive: true,
-    }, { merge: true });
-    results.studio = "✓";
-
-    // Serviços — só cria se não tiver
-    const svcsCol = collection(db!, "studios", STUDIO_ID, "services");
-    const existing = await getDocs(svcsCol);
-    if (existing.empty) {
-      for (const svc of SERVICES) {
-        await addDoc(svcsCol, { ...svc, isActive: true, studioId: STUDIO_ID, bufferMinutes: 0, createdAt: serverTimestamp() });
-      }
-      results.services = `✓ ${SERVICES.length} criados`;
-    } else {
-      results.services = `já tem ${existing.size} serviços`;
-    }
-
-    // Settings
-    const settRef = doc(db!, "studios", STUDIO_ID, "settings", "salon");
-    if (!(await getDoc(settRef)).exists()) {
-      await setDoc(settRef, {
-        studioId: STUDIO_ID, name: "Tessy Nails", slotDuration: 30,
-        advanceDays: 30, cancelHours: 2, autoConfirm: true,
-        workingDays: {
-          seg: { open: true,  start: "09:00", end: "18:00" },
-          ter: { open: true,  start: "09:00", end: "18:00" },
-          qua: { open: true,  start: "09:00", end: "18:00" },
-          qui: { open: true,  start: "09:00", end: "18:00" },
-          sex: { open: true,  start: "09:00", end: "18:00" },
-          sab: { open: true,  start: "09:00", end: "13:00" },
-          dom: { open: false, start: "09:00", end: "18:00" },
-        },
-      });
-      results.settings = "✓";
-    } else {
-      results.settings = "já existe";
-    }
-
-    return NextResponse.json({ success: true, results });
-  } catch (e) {
-    return NextResponse.json({ success: false, error: String(e) }, { status: 500 });
+  // Serviços
+  let svcOk = 0;
+  for (const svc of SERVICES) {
+    const ok = await post(`studios/${TESSY_UID}/services`, { ...svc, isActive: true, studioId: TESSY_UID, bufferMinutes: 0 });
+    if (ok) svcOk++;
   }
+  results.services = `✓ ${svcOk}/${SERVICES.length} criados`;
+
+  // Settings
+  await patch(`studios/${TESSY_UID}/settings/salon`, {
+    studioId: TESSY_UID, name: "Tessy Nails", slotDuration: 30, advanceDays: 30, cancelHours: 2, autoConfirm: true,
+  });
+  results.settings = "✓";
+
+  return NextResponse.json({ success: true, results });
 }
