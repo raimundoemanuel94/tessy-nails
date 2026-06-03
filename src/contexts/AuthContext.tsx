@@ -126,8 +126,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         "raimundoemanuel94@gmail.com",
         "raiiimundoemanuel2018@gmail.com",
       ];
+      // Emails conhecidos como profissionais
+      const PROFESSIONAL_EMAILS = [
+        "tessy@nails.com",
+      ];
       const SUPERADMIN_EMAIL = SUPERADMIN_EMAILS[0]; // compat
-      const quickRole = SUPERADMIN_EMAILS.includes(fUser.email ?? "") ? "superadmin" : "client";
+      const quickRole = SUPERADMIN_EMAILS.includes(fUser.email ?? "")
+        ? "superadmin"
+        : PROFESSIONAL_EMAILS.includes(fUser.email ?? "")
+        ? "professional"
+        : "client";
       const quickUser: User = {
         uid: fUser.uid,
         name: fUser.displayName || "Usuário",

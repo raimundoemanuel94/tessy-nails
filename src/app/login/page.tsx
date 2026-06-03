@@ -190,19 +190,7 @@ function LoginPageContent() {
   const isRegisterMode = searchParams.get("mode") === "register";
   const nextParam = searchParams.get("next");
   // Pula o splash se já foi exibido nesta sessão (PWA / visita repetida)
-  const [showSplash, setShowSplash] = useState(
-    () => {
-      if (typeof window === "undefined") return false;
-      if (user) return false;
-      // Splash aparece uma vez por sessão do browser
-      // sessionStorage é limpo quando fecha o app/aba (correto para PWA)
-      try {
-        return !sessionStorage.getItem("nailit_splash_v2");
-      } catch {
-        return true;
-      }
-    }
-  );
+  const [showSplash, setShowSplash] = useState(false); // Splash desativado
 
   useEffect(() => {
     if (!user || authLoading) return;
@@ -211,10 +199,19 @@ function LoginPageContent() {
       "raimundoemanuel94@gmail.com",
       "raiiimundoemanuel2018@gmail.com",
     ];
+    const PROFESSIONAL_EMAILS = [
+      "tessy@nails.com",
+    ];
 
-    // Se é email de superadmin → vai para /admin imediatamente sem esperar Firestore
+    // Se é email de superadmin → vai para /admin imediatamente
     if (SUPERADMIN_EMAILS.includes(user.email ?? "")) {
       router.replace("/admin");
+      return;
+    }
+
+    // Se é email de professional conhecido → vai para /dashboard imediatamente
+    if (PROFESSIONAL_EMAILS.includes(user.email ?? "")) {
+      router.replace("/dashboard");
       return;
     }
 
