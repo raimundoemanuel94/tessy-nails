@@ -129,6 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Emails conhecidos como profissionais
       const PROFESSIONAL_EMAILS = [
         "tessy@nails.com",
+        "tessynails.contato@gmail.com",
       ];
       const SUPERADMIN_EMAIL = SUPERADMIN_EMAILS[0]; // compat
       const quickRole = SUPERADMIN_EMAILS.includes(fUser.email ?? "")
