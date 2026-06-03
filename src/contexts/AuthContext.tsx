@@ -8,6 +8,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   OAuthProvider,
   sendPasswordResetEmail,
@@ -106,6 +108,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       })();
       return;
+    }
+
+    // Capturar resultado do redirect do Google (mobile)
+    if (auth) {
+      getRedirectResult(auth).catch(() => {});
     }
 
     const unsubscribe = onAuthStateChanged(auth!, async (fUser) => {
@@ -281,7 +288,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!auth) return { ok: false, error: "Firebase não configurado." };
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      // Mobile: redirect (não precisa de domínio autorizado)
+      // Desktop: popup
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        await signInWithRedirect(auth!, provider);
+        return { ok: true };
+      }
+      await signInWithPopup(auth!, provider);
       return { ok: true };
     } catch (err) {
       return { ok: false, error: mapAuthError(err) };
