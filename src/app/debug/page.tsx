@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { doc, getDoc, getDocFromServer, collection, getDocs, getDocsFromServer, query, where } from "firebase/firestore";
 
 export default function DebugPage() {
   const [log, setLog] = useState<string[]>([]);
@@ -14,6 +14,8 @@ export default function DebugPage() {
       if (!u) { add("❌ NÃO LOGADO"); return; }
       add(`✅ Logado: ${u.email}`);
       add(`UID: ${u.uid}`);
+      add(`🔧 CLIENT projectId: ${(db as any)?._databaseId?.projectId ?? "?"}`);
+      add(`🔧 authDomain: ${auth?.app?.options?.authDomain ?? "?"}`);
 
       // Teste 1: ler próprio user doc
       try {
@@ -21,16 +23,16 @@ export default function DebugPage() {
         add(`users/${u.uid}: ${ud.exists() ? "EXISTE — role=" + (ud.data() as any).role + " studioId=" + (ud.data() as any).studioId : "NÃO EXISTE"}`);
       } catch (e) { add(`❌ users read ERRO: ${(e as Error).message}`); }
 
-      // Teste 2: ler studio pelo doc ID
+      // Teste 2: ler studio pelo doc ID (FORÇA SERVIDOR, ignora cache)
       try {
-        const sd = await getDoc(doc(db!, "studios", u.uid));
-        add(`studios/${u.uid}: ${sd.exists() ? "EXISTE — ownerId=" + (sd.data() as any).ownerId + " active=" + (sd.data() as any).isActive : "NÃO EXISTE"}`);
+        const sd = await getDocFromServer(doc(db!, "studios", u.uid));
+        add(`studios/${u.uid} [SERVER]: ${sd.exists() ? "EXISTE — ownerId=" + (sd.data() as any).ownerId + " active=" + (sd.data() as any).isActive : "NÃO EXISTE"}`);
       } catch (e) { add(`❌ studio read ERRO: ${(e as Error).message}`); }
 
-      // Teste 3: listar serviços
+      // Teste 3: listar serviços (FORÇA SERVIDOR)
       try {
-        const svc = await getDocs(collection(db!, "studios", u.uid, "services"));
-        add(`services: ${svc.size} encontrados — ${svc.docs.map(d => (d.data() as any).name).join(", ")}`);
+        const svc = await getDocsFromServer(collection(db!, "studios", u.uid, "services"));
+        add(`services [SERVER]: ${svc.size} encontrados — ${svc.docs.map(d => (d.data() as any).name).join(", ")}`);
       } catch (e) { add(`❌ services read ERRO: ${(e as Error).message}`); }
 
       // Teste 4: query por ownerId
