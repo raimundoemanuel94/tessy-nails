@@ -197,7 +197,6 @@ function LoginPageContent() {
 
     const SUPERADMIN_EMAILS = [
       "raimundoemanuel94@gmail.com",
-      "raiiimundoemanuel2018@gmail.com",
     ];
     const PROFESSIONAL_EMAILS = [
       "tessy@nails.com",

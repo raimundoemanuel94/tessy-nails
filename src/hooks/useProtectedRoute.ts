@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export type AllowedRole = "client" | "admin" | "professional";
 
 const PROFESSIONAL_EMAILS = ["tessynails.contato@gmail.com", "tessy@nails.com"];
-const SUPERADMIN_EMAILS   = ["raimundoemanuel94@gmail.com", "raiiimundoemanuel2018@gmail.com"];
+const SUPERADMIN_EMAILS   = ["raimundoemanuel94@gmail.com"];
 
 export function useProtectedRoute(allowed: AllowedRole | AllowedRole[]) {
   const { user, loading, firestoreLoaded } = useAuth();

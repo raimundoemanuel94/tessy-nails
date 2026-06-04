@@ -124,7 +124,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Emails que são superadmin por padrão (antes do Firestore carregar)
       const SUPERADMIN_EMAILS = [
         "raimundoemanuel94@gmail.com",
-        "raiiimundoemanuel2018@gmail.com",
       ];
       // Emails conhecidos como profissionais
       const PROFESSIONAL_EMAILS = [

@@ -21,7 +21,7 @@ const NAV = [
   { icon: Settings,        label: "Config",     href: "/admin/config" },
 ];
 
-const SUPERADMIN_EMAILS = ["raimundoemanuel94@gmail.com", "raiiimundoemanuel2018@gmail.com"];
+const SUPERADMIN_EMAILS = ["raimundoemanuel94@gmail.com"];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, firestoreLoaded, signOut } = useAuth();
