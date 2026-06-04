@@ -7,31 +7,29 @@ import {
   persistentMultipleTabManager,
 } from "firebase/firestore";
 
-// Projeto Firebase: nailit-792a7
 const firebaseConfig = {
-  apiKey:            "AIzaSyCyi190uiOnAO_xlZ8TcgXd-DcCBVgMwpc",
-  authDomain:        "nailit-792a7.firebaseapp.com",
-  projectId:         "nailit-792a7",
-  storageBucket:     "nailit-792a7.firebasestorage.app",
-  messagingSenderId: "100933488815",
-  appId:             "1:100933488815:web:3593b3af889f8b367d845a",
+  apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain:        process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId:         process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket:     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId:             process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId:     process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-export const isFirebaseConfigured = () => true;
+export const isFirebaseConfigured = () =>
+  Boolean(firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId && firebaseConfig.appId);
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth =
-  typeof window !== "undefined" ? getAuth(app) : null;
+  typeof window !== "undefined" && isFirebaseConfigured() ? getAuth(app) : null;
 
 let db: ReturnType<typeof getFirestore>;
-
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && isFirebaseConfigured()) {
   try {
     db = initializeFirestore(app, {
-      localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager(),
-      }),
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
     });
   } catch {
     db = getFirestore(app);
