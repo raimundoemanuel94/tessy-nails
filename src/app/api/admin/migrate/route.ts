@@ -5,8 +5,8 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-const OWNER_UID   = "O1ei4o6KCehqd3bR8Bw2phPGCrU2";
-const STUDIO_ID   = "O1ei4o6KCehqd3bR8Bw2phPGCrU2";
+const OWNER_UID   = "alCK5NQbJSVSK1k6sjMAYOKBoR83";
+const STUDIO_ID   = "alCK5NQbJSVSK1k6sjMAYOKBoR83";
 const STUDIO_NAME = "Tessy Nails";
 
 export async function POST(req: NextRequest) {

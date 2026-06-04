@@ -10,7 +10,7 @@ export type FirebaseIdTokenPayload = JWTPayload & {
 };
 
 export function getFirebaseProjectId(): string {
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID;
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "nailit-792a7";
   if (!projectId) {
     throw new Error("Firebase project id is missing in environment variables.");
   }

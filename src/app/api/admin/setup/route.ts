@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PROJECT_ID = process.env.FIREBASE_PROJECT_ID ?? "nailit-792a7";
+const PROJECT_ID = "nailit-792a7";
 const API_KEY    = process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "";
 const BASE_URL   = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 

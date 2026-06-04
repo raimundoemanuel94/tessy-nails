@@ -104,7 +104,7 @@ export async function GET(req: Request) {
     // ── 2. Fallback: Firestore REST API com token do cliente ─────────────
     const authHeader  = req.headers.get("Authorization");
     const clientToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-    const projectId   = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    const projectId   = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "nailit-792a7";
 
     if (!projectId) return NextResponse.json({ busySlots: [], workingDays: DEFAULT_WORKING_DAYS });
 

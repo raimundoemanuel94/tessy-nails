@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     }
 
     const origin = req.headers.get("origin") || req.headers.get("referer");
-    let appUrl = "https://nailit.vercel.app";
+    let appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://tessy-nails.vercel.app";
     if (origin) {
       try {
         appUrl = new URL(origin).origin;

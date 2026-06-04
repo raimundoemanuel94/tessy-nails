@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // Hardcodado para garantir projeto correto independente de env vars
-const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "tessy-nails";
+const PROJECT_ID = "nailit-792a7";
 const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 const TESSY_UID = "alCK5NQbJSVSK1k6sjMAYOKBoR83";
 
