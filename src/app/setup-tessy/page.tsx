@@ -25,7 +25,7 @@ export default function SetupTessyPage() {
 
   return (
     <div style={{ padding: 30, fontFamily: "monospace", background: "#111", color: "#0f0", minHeight: "100vh" }}>
-      <h2 style={{ color: "#fff" }}>Setup Tessy — UID alCK5NQbJSVSK1k6sjMAYOKBoR83</h2>
+      <h2 style={{ color: "#fff" }}>Setup Tessy — UID lfnfXyrloMWHqDMTQjPwac8s7va2</h2>
       <button onClick={run} disabled={loading}
         style={{ padding: "12px 24px", fontSize: 16, background: "#7c3aed", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", margin: "20px 0" }}>
         {loading ? "Criando..." : "▶ CRIAR USER + STUDIO + 8 SERVIÇOS"}

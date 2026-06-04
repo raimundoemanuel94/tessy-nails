@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as admin from "firebase-admin";
 
-const TESSY_UID = "alCK5NQbJSVSK1k6sjMAYOKBoR83";
+const TESSY_UID = "lfnfXyrloMWHqDMTQjPwac8s7va2";
 const APP_NAME  = "fix-tessy-v2";
 
 function getApp(): admin.app.App {

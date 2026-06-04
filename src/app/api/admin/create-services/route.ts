@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Hardcodado para garantir projeto correto independente de env vars
 const PROJECT_ID = "nailit-792a7";
 const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
-const TESSY_UID = "alCK5NQbJSVSK1k6sjMAYOKBoR83";
+const TESSY_UID = "lfnfXyrloMWHqDMTQjPwac8s7va2";
 
 const SERVICES = [
   { name: "Manicure simples",   price: 35,  durationMinutes: 45  },

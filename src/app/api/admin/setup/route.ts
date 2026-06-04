@@ -5,7 +5,7 @@ const API_KEY    = process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "";
 const BASE_URL   = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
 const SUPER_ADMIN_UID = "TXRAIYsikRYTahOQS8cFXji4qSb2";
-const TESSY_UID       = "alCK5NQbJSVSK1k6sjMAYOKBoR83";
+const TESSY_UID       = "lfnfXyrloMWHqDMTQjPwac8s7va2";
 
 async function firestoreSet(path: string, data: Record<string, unknown>) {
   const fields: Record<string, unknown> = {};
