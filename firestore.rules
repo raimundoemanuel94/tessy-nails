@@ -2,17 +2,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Funções helpers ──────────────────────────────────────────
-    function isAuth()        { return request.auth != null; }
-    function uid()           { return request.auth.uid; }
-    function userRole()      {
-      return get(/databases/$(database)/documents/users/$(uid())).data.role;
-    }
-    function isSuperAdmin()  { return isAuth() && userRole() == "superadmin"; }
-    function isOwner(sid)    {
+    function isAuth()       { return request.auth != null; }
+    function uid()          { return request.auth.uid; }
+    function isSuperAdmin() {
       return isAuth() &&
-        get(/databases/$(database)/documents/studios/$(sid)).data.ownerId == uid();
+        get(/databases/$(database)/documents/users/$(uid())).data.role == "superadmin";
     }
+    // isOwner: usa uid()==sid (studioId == ownerId neste sistema)
+    // Evita get() em doc inexistente que causa permission-denied
+    function isOwner(sid)   { return isAuth() && uid() == sid; }
 
     // ── /users/{uid} ──────────────────────────────────────────────
     match /users/{userId} {
@@ -29,62 +27,38 @@ service cloud.firestore {
       allow update: if isAuth() && (isOwner(studioId) || isSuperAdmin());
       allow delete: if isSuperAdmin();
 
-      // Serviços — owner escreve, clientes leem
       match /services/{serviceId} {
-        allow read:   if isAuth();
-        allow write:  if isOwner(studioId) || isSuperAdmin();
+        allow read:  if isAuth();
+        allow write: if isOwner(studioId) || isSuperAdmin();
       }
 
-      // Agendamentos — owner e o cliente do agendamento
       match /appointments/{apptId} {
-        allow read:   if isAuth() && (
-          isOwner(studioId) ||
-          isSuperAdmin() ||
+        allow read:  if isAuth() && (
+          isOwner(studioId) || isSuperAdmin() ||
           resource.data.clientId == uid()
         );
         allow create: if isAuth();
         allow update: if isAuth() && (
-          isOwner(studioId) ||
-          isSuperAdmin() ||
+          isOwner(studioId) || isSuperAdmin() ||
           resource.data.clientId == uid()
         );
         allow delete: if isOwner(studioId) || isSuperAdmin();
       }
 
-      // Clientes — só o owner e superadmin
       match /clients/{clientId} {
         allow read, write: if isOwner(studioId) || isSuperAdmin();
       }
 
-      // Settings — owner lê/escreve, clientes só leem
       match /settings/{doc} {
         allow read:  if isAuth();
         allow write: if isOwner(studioId) || isSuperAdmin();
       }
     }
 
-    // ── /clients (legado global) — manter leitura para migração ──
-    match /clients/{clientId} {
-      allow read:  if isAuth();
-      allow write: if isAuth();
-    }
-
-    // ── /appointments (legado global) ─────────────────────────────
-    match /appointments/{apptId} {
-      allow read:  if isAuth();
-      allow write: if isAuth();
-    }
-
-    // ── /services (legado global) ─────────────────────────────────
-    match /services/{serviceId} {
-      allow read:  if isAuth();
-      allow write: if isAuth();
-    }
-
-    // ── /settings (legado global) ─────────────────────────────────
-    match /settings/{doc} {
-      allow read:  if isAuth();
-      allow write: if isAuth();
-    }
+    // ── legado global ─────────────────────────────────────────────
+    match /clients/{clientId}     { allow read, write: if isAuth(); }
+    match /appointments/{apptId}  { allow read, write: if isAuth(); }
+    match /services/{serviceId}   { allow read, write: if isAuth(); }
+    match /settings/{doc}         { allow read, write: if isAuth(); }
   }
 }
