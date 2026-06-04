@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PROJECT_ID = "nailit-792a7";
-const API_KEY    = "AIzaSyCyi190uiOnAO_xlZ8TcgXd-DcCBVgMwpc";
+const PROJECT_ID = process.env.FIREBASE_PROJECT_ID ?? "nailit-792a7";
+const API_KEY    = process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "";
 const BASE_URL   = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
 const SUPER_ADMIN_UID = "TXRAIYsikRYTahOQS8cFXji4qSb2";
-const TESSY_UID       = "O1ei4o6KCehqd3bR8Bw2phPGCrU2";
+const TESSY_UID       = "alCK5NQbJSVSK1k6sjMAYOKBoR83";
 
 async function firestoreSet(path: string, data: Record<string, unknown>) {
   const fields: Record<string, unknown> = {};
@@ -24,7 +24,7 @@ async function firestoreSet(path: string, data: Record<string, unknown>) {
 }
 
 export async function POST(req: NextRequest) {
-  if (req.headers.get("x-setup-secret") !== "nailit-setup-2024") {
+  if (req.headers.get("x-setup-secret") !== process.env.SETUP_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Tessy user
     const ok2 = await firestoreSet(`users/${TESSY_UID}`, {
-      uid: TESSY_UID, name: "Tessy", email: "tessy@nails.com",
+      uid: TESSY_UID, name: "Tessy", email: "tessynails.contato@gmail.com",
       role: "professional", studioId: TESSY_UID, isActive: true,
     });
     results.tessy_user = ok2 ? "✓ criado" : "✗ erro";
