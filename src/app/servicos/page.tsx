@@ -172,7 +172,7 @@ export default function ServicosPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [studioId]);
 
   useEffect(() => {
     loadData();
