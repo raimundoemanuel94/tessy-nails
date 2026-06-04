@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as admin from "firebase-admin";
 
+// Hardcodado para garantir projeto correto independente de env vars
+const PROJECT_ID = "nailit-792a7";
+const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 const TESSY_UID = "alCK5NQbJSVSK1k6sjMAYOKBoR83";
-const APP_NAME  = "create-svc-v5";
 
 const SERVICES = [
   { name: "Manicure simples",   price: 35,  durationMinutes: 45  },
@@ -15,20 +16,26 @@ const SERVICES = [
   { name: "Nail art",           price: 15,  durationMinutes: 30  },
 ];
 
-function getAdminApp(): admin.app.App {
-  const existing = admin.apps.find(a => a?.name === APP_NAME);
-  if (existing) return existing;
+function toFields(data: Record<string, unknown>) {
+  const f: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (typeof v === "string")  f[k] = { stringValue: v };
+    if (typeof v === "boolean") f[k] = { booleanValue: v };
+    if (typeof v === "number")  f[k] = { doubleValue: v };
+  }
+  return f;
+}
 
-  const privateKey = (process.env.FIREBASE_PRIVATE_KEY ?? "").replace(/\\n/g, "\n");
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
-    ?? "firebase-adminsdk-fbsvc@nailit-792a7.iam.gserviceaccount.com";
-  const projectId = process.env.FIREBASE_PROJECT_ID ?? "nailit-792a7";
-
-  if (!privateKey) throw new Error("FIREBASE_PRIVATE_KEY não configurada");
-
-  return admin.initializeApp({
-    credential: admin.credential.cert({ projectId, clientEmail, privateKey }),
-  }, APP_NAME);
+async function fsReq(method: string, path: string, body: unknown, idToken: string) {
+  const r = await fetch(`${BASE}/${path}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${idToken}`,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return { ok: r.ok, status: r.status, data: await r.json() };
 }
 
 export async function POST(req: NextRequest) {
@@ -36,70 +43,51 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  try {
-    const db  = admin.firestore(getAdminApp());
-    const now = admin.firestore.FieldValue.serverTimestamp();
-    const trialEndsAt = new Date();
-    trialEndsAt.setDate(trialEndsAt.getDate() + 30);
-
-    // 1. user
-    await db.collection("users").doc(TESSY_UID).set({
-      uid: TESSY_UID, name: "Tessy Nails",
-      email: "tessynails.contato@gmail.com",
-      role: "professional", studioId: TESSY_UID,
-      isActive: true, updatedAt: now,
-    }, { merge: true });
-
-    // 2. studio
-    await db.collection("studios").doc(TESSY_UID).set({
-      name: "Tessy Nails", ownerId: TESSY_UID,
-      slug: "tessy-nails", plan: "pro", isActive: true,
-      trialEndsAt: admin.firestore.Timestamp.fromDate(trialEndsAt),
-      updatedAt: now,
-    }, { merge: true });
-
-    // 3. settings
-    await db.collection("studios").doc(TESSY_UID)
-      .collection("settings").doc("salon").set({
-        studioId: TESSY_UID, name: "Tessy Nails",
-        slotDuration: 30, advanceDays: 30,
-        cancelHours: 2, autoConfirm: true,
-        workingHours: {
-          monday:    { open: "09:00", close: "18:00", isOpen: true },
-          tuesday:   { open: "09:00", close: "18:00", isOpen: true },
-          wednesday: { open: "09:00", close: "18:00", isOpen: true },
-          thursday:  { open: "09:00", close: "18:00", isOpen: true },
-          friday:    { open: "09:00", close: "18:00", isOpen: true },
-          saturday:  { open: "09:00", close: "13:00", isOpen: true },
-          sunday:    { open: "09:00", close: "18:00", isOpen: false },
-        },
-        updatedAt: now,
-      }, { merge: true });
-
-    // 4. serviços (sem duplicar)
-    const ref = db.collection("studios").doc(TESSY_UID).collection("services");
-    const existing = await ref.get();
-    const existingNames = new Set(existing.docs.map(d => d.data().name as string));
-
-    let created = 0, skipped = 0;
-    for (const svc of SERVICES) {
-      if (existingNames.has(svc.name)) { skipped++; continue; }
-      await ref.add({
-        ...svc, bufferMinutes: 0,
-        isActive: true, studioId: TESSY_UID, createdAt: now,
-      });
-      created++;
-    }
-
-    return NextResponse.json({
-      success: true,
-      project: process.env.FIREBASE_PROJECT_ID ?? "nailit-792a7",
-      tessyUid: TESSY_UID,
-      created, skipped, total: SERVICES.length,
-    });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.error("[create-services]", msg);
-    return NextResponse.json({ error: msg }, { status: 500 });
+  const idToken = req.headers.get("x-id-token");
+  if (!idToken) {
+    return NextResponse.json({ error: "x-id-token obrigatório" }, { status: 400 });
   }
+
+  const errors: string[] = [];
+  let created = 0, skipped = 0;
+
+  // 1. Studio
+  const sr = await fsReq("PATCH", `studios/${TESSY_UID}`, {
+    fields: toFields({ name: "Tessy Nails", ownerId: TESSY_UID, slug: "tessy-nails", plan: "pro", isActive: true }),
+  }, idToken);
+  if (!sr.ok) errors.push(`studio(${sr.status}): ${JSON.stringify((sr.data as {error?:{message?:string}}).error?.message)}`);
+
+  // 2. User
+  await fsReq("PATCH", `users/${TESSY_UID}`, {
+    fields: toFields({ uid: TESSY_UID, name: "Tessy Nails", email: "tessynails.contato@gmail.com", role: "professional", studioId: TESSY_UID, isActive: true }),
+  }, idToken);
+
+  // 3. Settings
+  await fsReq("PATCH", `studios/${TESSY_UID}/settings/salon`, {
+    fields: toFields({ studioId: TESSY_UID, name: "Tessy Nails", slotDuration: 30, advanceDays: 30, cancelHours: 2, autoConfirm: true }),
+  }, idToken);
+
+  // 4. Serviços existentes
+  const listR = await fsReq("GET", `studios/${TESSY_UID}/services`, null, idToken);
+  const existingNames = new Set<string>(
+    (listR.ok ? (listR.data as {documents?: Array<{fields?: {name?: {stringValue?: string}}}>}).documents ?? [] : [])
+      .map(d => d.fields?.name?.stringValue ?? "")
+  );
+
+  // 5. Cria serviços
+  for (const svc of SERVICES) {
+    if (existingNames.has(svc.name)) { skipped++; continue; }
+    const r = await fsReq("POST", `studios/${TESSY_UID}/services`, {
+      fields: toFields({ ...svc, bufferMinutes: 0, isActive: true, studioId: TESSY_UID }),
+    }, idToken);
+    if (r.ok) created++;
+    else errors.push(`${svc.name}: ${JSON.stringify((r.data as {error?:{message?:string}}).error?.message)}`);
+  }
+
+  return NextResponse.json({
+    success: errors.length === 0 || created > 0,
+    project: PROJECT_ID,
+    created, skipped, total: SERVICES.length,
+    errors: errors.length ? errors : undefined,
+  });
 }
