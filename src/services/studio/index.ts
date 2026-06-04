@@ -37,10 +37,14 @@ export const studioService = {
   },
 
   async getByOwner(ownerId: string): Promise<Studio | null> {
+    // 1. Tenta buscar pelo doc ID (padrão multi-tenant: studioId == ownerId)
+    const direct = await getDoc(doc(db!, STUDIOS_COL, ownerId));
+    if (direct.exists()) return toStudio(direct.id, direct.data());
+
+    // 2. Fallback: query por ownerId (sem filtro isActive para não perder docs)
     const q = query(
       collection(db!, STUDIOS_COL),
       where("ownerId", "==", ownerId),
-      where("isActive", "==", true)
     );
     const snap = await getDocs(q);
     if (snap.empty) return null;
