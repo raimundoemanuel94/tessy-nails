@@ -37,18 +37,15 @@ export const studioService = {
   },
 
   async getByOwner(ownerId: string): Promise<Studio | null> {
-    // 1. Tenta buscar pelo doc ID (padrão multi-tenant: studioId == ownerId)
-    const direct = await getDoc(doc(db!, STUDIOS_COL, ownerId));
-    if (direct.exists()) return toStudio(direct.id, direct.data());
-
-    // 2. Fallback: query por ownerId (sem filtro isActive para não perder docs)
-    const q = query(
-      collection(db!, STUDIOS_COL),
-      where("ownerId", "==", ownerId),
-    );
-    const snap = await getDocs(q);
-    if (snap.empty) return null;
-    return toStudio(snap.docs[0].id, snap.docs[0].data());
+    // Neste sistema multi-tenant: studioId == ownerId sempre
+    // Não usar query (gera permission-denied nas rules) — só direct lookup
+    try {
+      const direct = await getDoc(doc(db!, STUDIOS_COL, ownerId));
+      if (direct.exists()) return toStudio(direct.id, direct.data());
+      return null;
+    } catch {
+      return null;
+    }
   },
 
   async update(studioId: string, data: Partial<Studio>): Promise<void> {
