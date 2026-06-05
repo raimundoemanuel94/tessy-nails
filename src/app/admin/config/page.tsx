@@ -316,6 +316,7 @@ function PromoteUser() {
 }
 
 export default function AdminConfigPage() {
+  const { firebaseUser } = useAuth();
   const [migrating, setMigrating]   = useState(false);
   const [migResult, setMigResult]   = useState<Record<string, unknown> | null>(null);
   const [migError,  setMigError]    = useState<string | null>(null);
