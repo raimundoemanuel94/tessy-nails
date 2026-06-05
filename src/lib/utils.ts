@@ -1,39 +1,24 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
-export function ensureDate(date: unknown): Date {
-  if (!date) return new Date();
-  if (date instanceof Date) return date;
-  if (typeof date === 'object' && date !== null && 'toDate' in date && typeof (date as {toDate: unknown}).toDate === 'function') return (date as {toDate: () => Date}).toDate();
-  if (typeof date === 'object' && date !== null && 'seconds' in date) {
-    return new Date((date as {seconds: number}).seconds * 1000);
-  }
-  const parsed = new Date(date as string | number);
-  return isNaN(parsed.getTime()) ? new Date() : parsed;
+export function formatCurrency(value: number): string {
+  return `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-// Timezone de Sorriso-MT (America/Cuiaba - UTC-4)
-export const SALON_TIMEZONE = 'America/Cuiaba';
-
-// Obter hora atual no timezone do salão
-export function getSalonTime(): Date {
-  return new Date(new Date().toLocaleString('en-US', { timeZone: SALON_TIMEZONE }));
+export function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes}min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h${m}min` : `${h}h`;
 }
 
-// Saudação dinâmica baseada no horário
-export function getGreeting(): string {
-  const now = getSalonTime();
-  const hour = now.getHours();
-  
-  if (hour >= 5 && hour < 12) {
-    return 'Bom dia';
-  } else if (hour >= 12 && hour < 18) {
-    return 'Boa tarde';
-  } else {
-    return 'Boa noite';
-  }
+export function formatPhone(phone: string): string {
+  const d = phone.replace(/\D/g, "");
+  if (d.length === 11) return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+  return phone;
 }

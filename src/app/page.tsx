@@ -1,33 +1,14 @@
-"use client";
+// @ts-nocheck
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import { Loader2 } from "lucide-react";
+export default async function Root() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
-export default function RootPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { data: profile } = await supabase.from("profiles").select("studio_id").eq("id", user.id).single();
+  if (!profile?.studio_id) redirect("/setup");
 
-  useEffect(() => {
-    if (!loading) {
-      if (user) {
-        if (user.role === 'admin' || user.role === 'professional') {
-          router.push("/dashboard");
-        } else {
-          router.push("/cliente");
-        }
-      } else {
-        router.push("/login");
-      }
-    }
-  }, [user, loading, router]);
-
-  return (
-    <div className="flex h-screen w-full items-center justify-center bg-slate-50 dark:bg-slate-950">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
-      </div>
-    </div>
-  );
+  redirect("/dashboard");
 }
