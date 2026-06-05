@@ -3,77 +3,82 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, Calendar, Users, Scissors, BarChart3, Settings, LogOut, Sparkles, CalendarDays } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { LayoutDashboard, Calendar, Users, Scissors, BarChart3, Settings, LogOut, Sparkles, CalendarDays, Shield } from "lucide-react";
 
 const NAV = [
-  { href: "/dashboard",      icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/agenda",         icon: Calendar,        label: "Agenda" },
-  { href: "/agendamentos",   icon: CalendarDays,    label: "Agendamentos" },
-  { href: "/clientes",       icon: Users,           label: "Clientes" },
-  { href: "/servicos",       icon: Scissors,        label: "Serviços" },
-  { href: "/relatorios",     icon: BarChart3,       label: "Relatórios" },
-  { href: "/configuracoes",  icon: Settings,        label: "Configurações" },
+  { href: "/dashboard",     icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/agenda",        icon: Calendar,        label: "Agenda" },
+  { href: "/agendamentos",  icon: CalendarDays,    label: "Agendamentos" },
+  { href: "/clientes",      icon: Users,           label: "Clientes" },
+  { href: "/servicos",      icon: Scissors,        label: "Serviços" },
+  { href: "/relatorios",    icon: BarChart3,       label: "Relatórios" },
+  { href: "/configuracoes", icon: Settings,        label: "Configurações" },
 ];
 
-export function Sidebar({ profile }: { profile: Record<string, unknown> | null }) {
-  const pathname = usePathname();
-  const router = useRouter();
+export function Sidebar({ profile }: { profile: any }) {
+  const pathname     = usePathname();
+  const router       = useRouter();
+  const isSuperadmin = profile?.role === "superadmin";
+  const studio       = profile?.studios;
 
   async function signOut() {
-    const sb = createClient();
-    await sb.auth.signOut();
+    await createClient().auth.signOut();
     router.push("/login");
     router.refresh();
   }
 
-  const studio = profile?.studios as Record<string, unknown> | null;
-
   return (
     <>
-      {/* Desktop sidebar */}
+      {/* Desktop */}
       <aside className="fixed left-0 top-0 h-full w-64 flex-col hidden md:flex z-10"
         style={{ background: "var(--surface)", borderRight: "1px solid var(--border)" }}>
-        {/* Logo */}
+
         <div className="p-5 border-b" style={{ borderColor: "var(--border)" }}>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "var(--brand)" }}>
-              <Sparkles size={16} color="#fff" />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: isSuperadmin ? "#f59e0b" : "var(--brand)" }}>
+              {isSuperadmin
+                ? <Shield size={16} color="#000" />
+                : <Sparkles size={16} color="#fff" />}
             </div>
             <div>
               <p className="text-sm font-black" style={{ color: "var(--text)" }}>
-                {studio ? String(studio.name ?? "Meu Studio") : "Nailit"}
+                {studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio")}
               </p>
               <p className="text-xs" style={{ color: "var(--muted)" }}>
-                {String((studio as Record<string,unknown>)?.plan ?? "Pro")}
+                {isSuperadmin ? "Superadmin" : (studio?.plan ?? "Pro")}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Nav */}
+        {isSuperadmin && (
+          <div className="px-3 pt-3">
+            <Link href="/admin"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-black w-full"
+              style={{ background: "#f59e0b20", color: "#f59e0b", border: "1px solid #f59e0b40" }}>
+              <Shield size={16} /> Painel Admin
+            </Link>
+          </div>
+        )}
+
         <nav className="flex-1 p-3 flex flex-col gap-1">
           {NAV.map(({ href, icon: Icon, label }) => (
             <Link key={href} href={href}
-              className={cn("flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all",
-                pathname === href
-                  ? "text-white" : "hover:text-white")}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
               style={pathname === href
                 ? { background: "var(--brand)", color: "#fff" }
                 : { color: "var(--muted)" }}>
-              <Icon size={17} />
-              {label}
+              <Icon size={17} /> {label}
             </Link>
           ))}
         </nav>
 
-        {/* User */}
         <div className="p-3 border-t" style={{ borderColor: "var(--border)" }}>
           <button onClick={signOut}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-semibold transition-all hover:text-white"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-semibold"
             style={{ color: "var(--muted)" }}>
-            <LogOut size={17} />
-            Sair
+            <LogOut size={17} /> Sair
           </button>
         </div>
       </aside>
@@ -81,12 +86,14 @@ export function Sidebar({ profile }: { profile: Record<string, unknown> | null }
       {/* Mobile bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 md:hidden z-10 flex"
         style={{ background: "var(--surface)", borderTop: "1px solid var(--border)" }}>
-        {NAV.slice(0, 5).map(({ href, icon: Icon, label }) => (
+        {(isSuperadmin
+          ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 4)]
+          : NAV.slice(0, 5)
+        ).map(({ href, icon: Icon, label }) => (
           <Link key={href} href={href}
             className="flex-1 flex flex-col items-center gap-1 py-3 text-[10px] font-bold"
-            style={{ color: pathname === href ? "var(--brand-light)" : "var(--muted)" }}>
-            <Icon size={20} />
-            {label.split(" ")[0]}
+            style={{ color: pathname.startsWith(href) ? "var(--brand-light)" : "var(--muted)" }}>
+            <Icon size={20} /> {label.split(" ")[0]}
           </Link>
         ))}
       </nav>
