@@ -82,7 +82,7 @@ export default function VitrinePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [studioId]);
 
   useEffect(() => { void loadSlots(date); }, [date, loadSlots]);
 

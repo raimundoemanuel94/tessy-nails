@@ -223,6 +223,49 @@ function CreateServices() {
 
 // ── Componente para promover usuário a superadmin ──────────────
 
+
+function DedupStudios() {
+  const { firebaseUser } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<Record<string,unknown> | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const run = async () => {
+    if (!confirm('Isso vai deletar studios duplicados do Tessy Nails. Continuar?')) return;
+    setLoading(true); setResult(null); setError(null);
+    try {
+      const idToken = firebaseUser ? await getIdToken(firebaseUser) : '';
+      const res = await fetch('/api/admin/dedup-studios', {
+        method: 'POST',
+        headers: { 'x-setup-secret': 'nailit-setup-2024', 'x-id-token': idToken },
+      });
+      const data = await res.json() as Record<string,unknown>;
+      if (data.success) { setResult(data); toast.success('Studios duplicados removidos!'); }
+      else setError(String(data.error ?? 'Erro'));
+    } catch (e) { setError(String(e)); }
+    setLoading(false);
+  };
+
+  return (
+    <div className='rounded-2xl p-5' style={{ background:'rgba(239,68,68,0.06)', border:'1px solid rgba(239,68,68,0.2)' }}>
+      <div className='flex items-center gap-3 mb-3'>
+        <span className='text-xl'>🗑️</span>
+        <div>
+          <p className='text-[13px] font-black text-white'>Remover studios duplicados</p>
+          <p className='text-[11px] text-white/50'>Mantém só o studio lfnfXyrl — deleta os extras</p>
+        </div>
+      </div>
+      {result && <div className='mb-3 text-[11px] text-green-400'>✓ {(result.deleted as string[]).length} deletados, {(result.kept as string[]).length} mantidos</div>}
+      {error  && <div className='mb-3 text-[11px] text-red-400'>Erro: {error}</div>}
+      <button onClick={run} disabled={loading}
+        className='w-full py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all'
+        style={{ background: loading ? 'rgba(239,68,68,0.3)' : 'rgba(239,68,68,0.8)', color: '#fff' }}>
+        {loading ? 'Removendo...' : '🗑️ REMOVER STUDIOS DUPLICADOS'}
+      </button>
+    </div>
+  );
+}
+
 function DedupServices() {
   const { firebaseUser } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -501,7 +544,10 @@ export default function AdminConfigPage() {
       {/* Criar serviços */}
       <CreateServices />
 
-      {/* Limpar duplicados */}
+      {/* Limpar studios duplicados */}
+      <DedupStudios />
+
+      {/* Limpar serviços duplicados */}
       <DedupServices />
 
       {/* Promover usuário a superadmin */}
