@@ -2,12 +2,25 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
-import { format, startOfDay, endOfDay, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, DollarSign, Users, TrendingUp, Shield } from "lucide-react";
+import { Calendar, DollarSign, Users, TrendingUp, Shield, Plus, ArrowRight, Clock } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
+
+function StatusDot({ status }: { status: string }) {
+  const colors: Record<string, string> = {
+    pending: "#f5c842", confirmed: "#22d47b",
+    completed: "#9D7FD4", cancelled: "#f55a5a", no_show: "#6B6585"
+  };
+  return <span style={{ width: 8, height: 8, borderRadius: "50%", background: colors[status] ?? "#6B6585", display: "inline-block", flexShrink: 0 }} />;
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Pendente", confirmed: "Confirmado",
+  completed: "Concluído", cancelled: "Cancelado", no_show: "Faltou"
+};
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -20,40 +33,52 @@ export default async function DashboardPage() {
   const isSuperadmin = profile?.role === "superadmin";
   const studioId = profile?.studio_id;
 
-  // Superadmin sem studio → resumo da plataforma
+  // ── Superadmin sem studio ────────────────────────────────────────────────
   if (isSuperadmin && !studioId) {
     const [{ data: studios }, { data: appts }] = await Promise.all([
       supabase.from("studios").select("id, is_active"),
       supabase.from("appointments").select("price, status"),
     ]);
     const rev = (appts ?? []).filter(a => a.status === "completed").reduce((s, a) => s + (a.price ?? 0), 0);
+    const active = (studios ?? []).filter(s => s.is_active).length;
 
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#f59e0b" }}>
-            <Shield size={20} color="#000" />
-          </div>
-          <div>
-            <h1 className="text-xl font-black" style={{ color: "var(--text)" }}>
-              Olá, {profile?.name?.split(" ")[0]} 👋
-            </h1>
-            <p className="text-sm" style={{ color: "var(--muted)" }}>Você controla toda a plataforma</p>
+      <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 4 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 16, background: "linear-gradient(135deg, #f59e0b 0%, #fcd34d 100%)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 20px rgba(245,158,11,0.35)" }}>
+              <Shield size={22} color="#000" />
+            </div>
+            <div>
+              <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)" }}>
+                Olá, {profile?.name?.split(" ")[0]} 👋
+              </h1>
+              <p style={{ fontSize: 13, color: "var(--muted)" }}>Você controla toda a plataforma Nailit</p>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div className="card"><p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--muted)" }}>Studios ativos</p>
-            <p className="text-2xl font-black" style={{ color: "#f59e0b" }}>{(studios ?? []).filter(s => s.is_active).length}</p></div>
-          <div className="card"><p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--muted)" }}>Agendamentos</p>
-            <p className="text-2xl font-black" style={{ color: "var(--text)" }}>{(appts ?? []).length}</p></div>
-          <div className="card"><p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--muted)" }}>Receita total</p>
-            <p className="text-2xl font-black" style={{ color: "#4ade80" }}>{formatCurrency(rev)}</p></div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
+          {[
+            { label: "Studios ativos", value: String(active), sub: `de ${studios?.length ?? 0} total`, color: "#f59e0b" },
+            { label: "Agendamentos", value: String(appts?.length ?? 0), sub: "na plataforma", color: "#9D7FD4" },
+            { label: "Receita total", value: formatCurrency(rev), sub: "concluídos", color: "#22d47b" },
+          ].map(({ label, value, sub, color }) => (
+            <div key={label} className="kpi-card" style={{ "--accent-color": color } as any}>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: "var(--muted)", marginBottom: 10 }}>{label}</p>
+              <p style={{ fontSize: 26, fontWeight: 900, color: "var(--text)" }}>{value}</p>
+              <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>{sub}</p>
+            </div>
+          ))}
         </div>
 
-        <Link href="/admin" className="btn-primary w-full justify-center"
-          style={{ background: "#f59e0b", color: "#000" }}>
-          <Shield size={16} /> Abrir Painel Admin
+        <Link href="/admin" style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+          padding: "16px 24px", borderRadius: 16, textDecoration: "none",
+          background: "linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(252,211,77,0.08) 100%)",
+          border: "1px solid rgba(245,158,11,0.3)", color: "#f59e0b", fontWeight: 700, fontSize: 15
+        }}>
+          <Shield size={18} /> Abrir Painel Admin <ArrowRight size={16} />
         </Link>
       </div>
     );
@@ -62,7 +87,7 @@ export default async function DashboardPage() {
   if (!studioId) redirect("/setup");
 
   const now = new Date();
-  const [todayAppts, monthAppts, clients] = await Promise.all([
+  const [todayAppts, monthAppts, clients, week7] = await Promise.all([
     supabase.from("appointments").select("id,client_name,service_name,appointment_date,status,price")
       .eq("studio_id", studioId).gte("appointment_date", startOfDay(now).toISOString())
       .lte("appointment_date", endOfDay(now).toISOString()).order("appointment_date"),
@@ -71,77 +96,46 @@ export default async function DashboardPage() {
       .lte("appointment_date", endOfMonth(now).toISOString()),
     supabase.from("clients").select("id", { count: "exact", head: true })
       .eq("studio_id", studioId).eq("is_active", true),
+    supabase.from("appointments").select("price,status,appointment_date")
+      .eq("studio_id", studioId).gte("appointment_date", subDays(now, 6).toISOString()),
   ]);
 
   const todayList    = todayAppts.data ?? [];
-  const monthRevenue = (monthAppts.data ?? []).filter(a => a.status === "completed").reduce((s, a) => s + (a.price ?? 0), 0);
+  const monthList    = monthAppts.data ?? [];
+  const monthRevenue = monthList.filter(a => a.status === "completed").reduce((s, a) => s + (a.price ?? 0), 0);
   const pendingToday = todayList.filter(a => ["pending","confirmed"].includes(a.status)).length;
+  const completedMonth = monthList.filter(a => a.status === "completed").length;
 
-  const STATUS_MAP = {
-    pending:   { label: "Pendente",   cls: "badge-yellow" },
-    confirmed: { label: "Confirmado", cls: "badge-green"  },
-    completed: { label: "Concluído",  cls: "badge-purple" },
-    cancelled: { label: "Cancelado",  cls: "badge-red"    },
-    no_show:   { label: "Faltou",     cls: "badge-gray"   },
-  };
+  // Mini sparkline data (last 7 days revenue)
+  const days7 = Array.from({ length: 7 }, (_, i) => {
+    const d = subDays(now, 6 - i);
+    const key = format(d, "yyyy-MM-dd");
+    const rev = (week7.data ?? [])
+      .filter(a => a.status === "completed" && a.appointment_date?.startsWith(key))
+      .reduce((s, a) => s + (a.price ?? 0), 0);
+    return { day: format(d, "EEE", { locale: ptBR }).slice(0, 3), rev };
+  });
+  const maxRev = Math.max(...days7.map(d => d.rev), 1);
+
+  const KPI = [
+    { label: "Hoje",           value: `${todayList.length}`,         sub: `${pendingToday} pendente${pendingToday !== 1 ? "s" : ""}`, icon: Calendar,   color: "#9D7FD4" },
+    { label: "Receita do mês", value: formatCurrency(monthRevenue),  sub: `${completedMonth} concluídos`,                             icon: DollarSign, color: "#22d47b" },
+    { label: "Clientes",       value: String(clients.count ?? 0),    sub: "ativas no studio",                                         icon: Users,      color: "#5a9ef5" },
+    { label: "Tendência",      value: `${monthList.length}`,          sub: "agendamentos no mês",                                      icon: TrendingUp, color: "#f5c842" },
+  ];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-xl font-black" style={{ color: "var(--text)" }}>
-          Olá, {profile?.name?.split(" ")[0]} 👋
+    <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)" }}>
+          Olá, {profile?.name?.split(" ")[0]} ✨
         </h1>
-        <p className="text-sm mt-0.5" style={{ color: "var(--muted)" }}>
-          {format(now, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+        <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 2 }}>
+          {format(now, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Hoje",        value: `${todayList.length} aptos`, icon: Calendar,   color: "#818cf8" },
-          { label: "Pendentes",   value: String(pendingToday),         icon: TrendingUp, color: "#facc15" },
-          { label: "Receita/mês", value: formatCurrency(monthRevenue), icon: DollarSign, color: "#4ade80" },
-          { label: "Clientes",    value: String(clients.count ?? 0),   icon: Users,      color: "#f472b6" },
-        ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="card flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--muted)" }}>{label}</span>
-              <Icon size={16} style={{ color }} />
-            </div>
-            <p className="text-lg font-black" style={{ color: "var(--text)" }}>{value}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-black uppercase tracking-wider" style={{ color: "var(--text)" }}>Agenda de Hoje</h2>
-          <Link href="/agenda" className="text-xs font-bold" style={{ color: "var(--brand-light)" }}>Ver tudo →</Link>
-        </div>
-        {todayList.length === 0 ? (
-          <p className="text-sm text-center py-6" style={{ color: "var(--muted)" }}>Nenhum agendamento hoje.</p>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {todayList.map(appt => {
-              const st = STATUS_MAP[appt.status] ?? { label: appt.status, cls: "badge-gray" };
-              return (
-                <div key={appt.id} className="flex items-center gap-3 p-3 rounded-xl"
-                  style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
-                  <div className="text-sm font-black w-12 shrink-0" style={{ color: "var(--brand-light)" }}>
-                    {format(new Date(appt.appointment_date), "HH:mm")}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate" style={{ color: "var(--text)" }}>{appt.client_name}</p>
-                    <p className="text-xs truncate" style={{ color: "var(--muted)" }}>{appt.service_name}</p>
-                  </div>
-                  <span className="text-xs font-bold shrink-0" style={{ color: "var(--text)" }}>{formatCurrency(appt.price)}</span>
-                  <span className={`badge ${st.cls} shrink-0`}>{st.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+      {/* KPI Cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 
