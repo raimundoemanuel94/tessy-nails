@@ -325,9 +325,10 @@ export default function AdminConfigPage() {
     setMigResult(null);
     setMigError(null);
     try {
+      const idTokenMigrate = firebaseUser ? await getIdToken(firebaseUser) : "";
       const res = await fetch("/api/admin/migrate", {
         method: "POST",
-        headers: { "x-migrate-secret": "nailit-migrate-2024" },
+        headers: { "x-migrate-secret": "nailit-migrate-2024", "x-id-token": idTokenMigrate },
       });
       const data = await res.json() as { success: boolean; results?: Record<string, unknown>; error?: string };
       if (data.success) {
