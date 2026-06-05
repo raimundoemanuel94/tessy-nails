@@ -95,4 +95,4 @@ export function Sidebar({ profile }: { profile: any }) {
                 transition: "all .15s",
                 background: active ? "rgba(124,92,191,0.15)" : "transparent",
                 border: active ? "1px solid rgba(124,92,191,0.25)" : "1px solid transparent",
-                color: active ? "var(--brand-l
+                color: active ? "var(--brand-light)" : "var(--muted)",

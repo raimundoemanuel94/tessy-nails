@@ -123,4 +123,4 @@ export default function LoginPage() {
                 style={{ paddingRight: 46 }} />
               <button type="button" onClick={() => setShowPass(v => !v)}
                 style={{
-                  position: "absolute", right: 14, top: "50%", transform: "transl
+                  position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
