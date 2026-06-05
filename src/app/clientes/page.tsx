@@ -89,7 +89,7 @@ function toCsvCell(value: string | number): string {
 function normalizeText(value: string): string {
   return value
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
     .trim();
 }
@@ -140,19 +140,20 @@ export default function ClientesPage() {
   const [rowsPerPage, setRowsPerPage] = useState(12);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // FIX: useStudio() removido de dentro do useCallback (violação de regras de hooks)
+  // studioId já está disponível no escopo do componente acima
   const reloadData = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
 
-      const { studioId } = useStudio();
-  const [clientsRes, appointmentsRes, servicesRes2] = await Promise.allSettled([
+      const [clientsRes, appointmentsRes, servicesRes2] = await Promise.allSettled([
         studioId ? clientService.getAll(studioId) : Promise.resolve([]),
         studioId ? appointmentService.getAll(studioId) : Promise.resolve([]),
         globalStore.fetchServices(false),
       ]);
-      const clientsData     = clientsRes.status      === "fulfilled" ? clientsRes.value      : [];
+      const clientsData      = clientsRes.status      === "fulfilled" ? clientsRes.value      : [];
       const appointmentsData = appointmentsRes.status === "fulfilled" ? appointmentsRes.value : [];
-      const servicesData    = servicesRes2.status    === "fulfilled" ? servicesRes2.value    : [];
+      const servicesData     = servicesRes2.status    === "fulfilled" ? servicesRes2.value    : [];
 
       setClients(clientsData);
       setAppointments(appointmentsData);
@@ -163,7 +164,7 @@ export default function ClientesPage() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, []);
+  }, [studioId]); // FIX: studioId nas deps
 
   useEffect(() => {
     reloadData(false);
@@ -475,7 +476,7 @@ export default function ClientesPage() {
         });
       }
 
-      const csv = `\uFEFF${rows.join("\n")}`;
+      const csv = `﻿${rows.join("\n")}`;
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
@@ -632,7 +633,6 @@ export default function ClientesPage() {
           ) : undefined
         }
       >
-        {/* Busca sempre visível */}
         <div className="flex gap-3 items-center mb-4">
           <div className="relative flex-1 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 opacity-40 group-focus-within:text-[#7C5CBF] transition-colors" size={18} />
@@ -663,13 +663,12 @@ export default function ClientesPage() {
           </button>
         </div>
 
-        {/* Filtros avançados recolhíveis */}
         {filtersOpen && (
           <div className="pt-4 border-t border-slate-100 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div>
               <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Status</label>
               <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as ClientStatusFilter)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-4 focus:ring-brand-primary/10">
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4]">
                 <option value="all">Todas</option>
                 <option value="active">Somente ativas</option>
                 <option value="inactive">Somente inativas</option>
@@ -678,7 +677,7 @@ export default function ClientesPage() {
             <div>
               <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Segmento</label>
               <select value={segmentFilter} onChange={(event) => setSegmentFilter(event.target.value as SegmentFilter)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-4 focus:ring-brand-primary/10">
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4]">
                 <option value="all">Todos</option>
                 <option value="new">Novas (30 dias)</option>
                 <option value="vip">Vip recorrentes (5+)</option>
@@ -689,7 +688,7 @@ export default function ClientesPage() {
             <div>
               <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Servico</label>
               <select value={serviceFilter} onChange={(event) => setServiceFilter(event.target.value)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-4 focus:ring-brand-primary/10">
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4]">
                 <option value="all">Todos os servicos</option>
                 {services.slice().sort((a, b) => a.name.localeCompare(b.name)).map((service) => (
                   <option key={service.id} value={service.id}>{service.name}</option>
@@ -699,7 +698,7 @@ export default function ClientesPage() {
             <div>
               <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Ordenar por</label>
               <select value={sortBy} onChange={(event) => setSortBy(event.target.value as SortOption)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-4 focus:ring-brand-primary/10">
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4]">
                 <option value="last_visit_desc">Ultima visita (mais recente)</option>
                 <option value="last_visit_asc">Ultima visita (mais antiga)</option>
                 <option value="name_asc">Nome (A-Z)</option>
@@ -715,7 +714,7 @@ export default function ClientesPage() {
             <div>
               <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Base da data</label>
               <select value={dateBaseFilter} onChange={(event) => setDateBaseFilter(event.target.value as DateBaseFilter)}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-4 focus:ring-brand-primary/10">
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4]">
                 <option value="last_visit">Ultima visita</option>
                 <option value="created_at">Data de cadastro</option>
               </select>
@@ -731,7 +730,7 @@ export default function ClientesPage() {
             <div>
               <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-[2px] text-slate-500 opacity-50">Linhas por pagina</label>
               <select value={rowsPerPage} onChange={(event) => setRowsPerPage(Number(event.target.value))}
-                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4] focus:ring-4 focus:ring-brand-primary/10">
+                className="h-11 w-full rounded-xl border border-brand-accent/15 bg-white/60 px-3 text-sm font-bold text-slate-800 outline-none focus:border-[#9D7FD4]">
                 {PAGE_SIZE_OPTIONS.map((size) => <option key={size} value={size}>{size}</option>)}
               </select>
             </div>
@@ -748,34 +747,10 @@ export default function ClientesPage() {
       </SectionCard>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          title="Total filtrado"
-          value={filteredMetrics.total}
-          icon={Users}
-          description="Clientes no resultado atual"
-          variant="primary"
-        />
-        <MetricCard
-          title="Ativas no filtro"
-          value={filteredMetrics.active}
-          icon={UserCheck}
-          description={`${filteredMetrics.withAppointments} com historico`}
-          variant="success"
-        />
-        <MetricCard
-          title="Concluidos"
-          value={filteredMetrics.completed}
-          icon={Sparkles}
-          description="Atendimentos concluidos no historico filtrado"
-          variant="warning"
-        />
-        <MetricCard
-          title="Ticket medio"
-          value={toCurrency(filteredMetrics.avgTicket)}
-          icon={AlertTriangle}
-          description={`Receita estimada: ${toCurrency(filteredMetrics.spent)}`}
-          variant="primary"
-        />
+        <MetricCard title="Total filtrado" value={filteredMetrics.total} icon={Users} description="Clientes no resultado atual" variant="primary" />
+        <MetricCard title="Ativas no filtro" value={filteredMetrics.active} icon={UserCheck} description={`${filteredMetrics.withAppointments} com historico`} variant="success" />
+        <MetricCard title="Concluidos" value={filteredMetrics.completed} icon={Sparkles} description="Atendimentos concluidos no historico filtrado" variant="warning" />
+        <MetricCard title="Ticket medio" value={toCurrency(filteredMetrics.avgTicket)} icon={AlertTriangle} description={`Receita estimada: ${toCurrency(filteredMetrics.spent)}`} variant="primary" />
       </div>
 
       <SectionCard
@@ -783,9 +758,7 @@ export default function ClientesPage() {
         description={`Mostrando ${paginatedRows.length} de ${sortedRows.length} clientes filtradas.`}
       >
         <div className="mb-4 rounded-2xl border border-slate-100 bg-[#EDE5FF]/10 p-4">
-          <p className="text-xs font-black uppercase tracking-[2px] text-slate-500 opacity-50">
-            Insight rapido
-          </p>
+          <p className="text-xs font-black uppercase tracking-[2px] text-slate-500 opacity-50">Insight rapido</p>
           <p className="mt-1 text-sm font-bold text-slate-800">
             {topRevenueClient
               ? `${topRevenueClient.client.name} lidera em receita estimada (${toCurrency(topRevenueClient.totalSpent)}).`
@@ -830,114 +803,73 @@ export default function ClientesPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-black text-slate-800 group-hover:text-[#7C5CBF] transition-colors tracking-tight">
-                              {client.name}
-                            </div>
+                            <div className="font-black text-slate-800 group-hover:text-[#7C5CBF] transition-colors tracking-tight">{client.name}</div>
                             <div className="text-[10px] font-black uppercase tracking-wider text-slate-500 opacity-40">
                               Desde {format(row.createdAt, "MMM yyyy", { locale: ptBR })}
                             </div>
                           </div>
                         </div>
                       </TableCell>
-
                       <TableCell>
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-lg bg-[#EDE5FF]/20 flex items-center justify-center text-slate-500">
-                              <Mail size={12} />
-                            </div>
+                            <div className="w-6 h-6 rounded-lg bg-[#EDE5FF]/20 flex items-center justify-center text-slate-500"><Mail size={12} /></div>
                             <span className="text-xs font-bold text-slate-800">{client.email || "Sem email"}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-lg bg-[#EDE5FF]/20 flex items-center justify-center text-slate-500">
-                              <Phone size={12} />
-                            </div>
+                            <div className="w-6 h-6 rounded-lg bg-[#EDE5FF]/20 flex items-center justify-center text-slate-500"><Phone size={12} /></div>
                             <span className="text-xs font-bold text-slate-800">{client.phone || "Sem telefone"}</span>
                           </div>
                         </div>
                       </TableCell>
-
                       <TableCell>
                         <div className="flex flex-col gap-1.5">
                           <Badge variant={client.isActive !== false ? "success" : "neutral"} size="xs" className="font-black">
                             {client.isActive !== false ? "Ativa" : "Inativa"}
                           </Badge>
-                          <Badge variant={segment.variant} size="xs" className="font-black">
-                            {segment.label}
-                          </Badge>
+                          <Badge variant={segment.variant} size="xs" className="font-black">{segment.label}</Badge>
                         </div>
                       </TableCell>
-
                       <TableCell>
-                        <span className="text-xs font-black text-slate-800">
-                          {row.completedCount} concluidos / {row.totalAppointments} total
-                        </span>
+                        <span className="text-xs font-black text-slate-800">{row.completedCount} concluidos / {row.totalAppointments} total</span>
                       </TableCell>
-
                       <TableCell>
                         {row.lastVisitDate ? (
                           <div className="space-y-0.5">
-                            <p className="text-xs font-black text-slate-800">
-                              {format(row.lastVisitDate, "dd/MM/yyyy", { locale: ptBR })}
-                            </p>
-                            <p className="text-[10px] font-bold text-slate-500 opacity-60">
-                              {row.daysSinceVisit === null ? "-" : `${row.daysSinceVisit} dias`}
-                            </p>
+                            <p className="text-xs font-black text-slate-800">{format(row.lastVisitDate, "dd/MM/yyyy", { locale: ptBR })}</p>
+                            <p className="text-[10px] font-bold text-slate-500 opacity-60">{row.daysSinceVisit === null ? "-" : `${row.daysSinceVisit} dias`}</p>
                           </div>
                         ) : (
                           <Badge variant="neutral" size="xs">Nunca</Badge>
                         )}
                       </TableCell>
-
-                      <TableCell>
-                        <span className="text-xs font-black text-slate-800">
-                          {row.lastServiceName}
-                        </span>
-                      </TableCell>
-
-                      <TableCell className="text-right">
-                        <span className="text-xs font-black text-slate-800 tabular-nums">
-                          {toCurrency(row.totalSpent)}
-                        </span>
-                      </TableCell>
-
+                      <TableCell><span className="text-xs font-black text-slate-800">{row.lastServiceName}</span></TableCell>
+                      <TableCell className="text-right"><span className="text-xs font-black text-slate-800 tabular-nums">{toCurrency(row.totalSpent)}</span></TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             render={
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                disabled={actionLoading === client.id}
-                                className="h-9 w-9 rounded-xl hover:bg-[#7C5CBF]/10 text-slate-500 hover:text-[#7C5CBF] transition-all"
-                              >
-                                {actionLoading === client.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <MoreHorizontal className="h-5 w-5" />
-                                )}
+                              <Button variant="ghost" size="icon" disabled={actionLoading === client.id}
+                                className="h-9 w-9 rounded-xl hover:bg-[#7C5CBF]/10 text-slate-500 hover:text-[#7C5CBF] transition-all">
+                                {actionLoading === client.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-5 w-5" />}
                               </Button>
                             }
                           />
                           <DropdownMenuContent align="end" className="rounded-2xl border border-slate-100 p-2 shadow-premium-xl bg-white">
                             <DropdownMenuItem onClick={() => handleEdit(client)} className="rounded-xl font-bold cursor-pointer">
-                              <Edit className="h-4 w-4 mr-2 text-[#7C5CBF]" />
-                              Editar
+                              <Edit className="h-4 w-4 mr-2 text-[#7C5CBF]" />Editar
                             </DropdownMenuItem>
                             {client.isActive !== false ? (
                               <DropdownMenuItem className="rounded-xl font-bold text-amber-600 focus:text-amber-600 cursor-pointer" onClick={() => client.id && handleDeactivate(client.id)}>
-                                <UserMinus className="h-4 w-4 mr-2" />
-                                Desativar
+                                <UserMinus className="h-4 w-4 mr-2" />Desativar
                               </DropdownMenuItem>
                             ) : (
                               <DropdownMenuItem className="rounded-xl font-bold text-emerald-600 focus:text-emerald-600 cursor-pointer" onClick={() => client.id && handleReactivate(client.id)}>
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Reativar
+                                <UserPlus className="h-4 w-4 mr-2" />Reativar
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem className="rounded-xl font-black text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-950/20 cursor-pointer" onClick={() => client.id && handleHardDelete(client.id)}>
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Excluir Permanente
+                            <DropdownMenuItem className="rounded-xl font-black text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer" onClick={() => client.id && handleHardDelete(client.id)}>
+                              <Trash2 className="h-4 w-4 mr-2" />Excluir Permanente
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -955,22 +887,8 @@ export default function ClientesPage() {
             Pagina {currentPage} de {totalPages} · Base real: {baseTotals.total} clientes · Inativas: {baseTotals.inactive}
           </p>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage <= 1}
-              className="rounded-xl px-4 font-bold"
-            >
-              Anterior
-            </Button>
-            <Button
-              variant="default"
-              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-              disabled={currentPage >= totalPages}
-              className="rounded-xl px-4 font-bold"
-            >
-              Proxima
-            </Button>
+            <Button variant="outline" onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))} disabled={currentPage <= 1} className="rounded-xl px-4 font-bold">Anterior</Button>
+            <Button variant="default" onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))} disabled={currentPage >= totalPages} className="rounded-xl px-4 font-bold">Proxima</Button>
           </div>
         </div>
       </SectionCard>
