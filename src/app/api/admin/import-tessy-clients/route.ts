@@ -9,22 +9,30 @@ const NEW_UID     = "lfnfXyrloMWHqDMTQjPwac8s7va2";
 
 type FsDoc = { name: string; fields: Record<string, unknown> };
 
-async function listDocs(base: string, col: string, auth?: string): Promise<FsDoc[]> {
+async function listDocs(url: string, auth?: string): Promise<FsDoc[]> {
   const headers: Record<string, string> = {};
   if (auth) headers.Authorization = `Bearer ${auth}`;
-  const r = await fetch(`${base}/${col}?pageSize=200`, { headers });
-  if (!r.ok) return [];
-  const d = await r.json() as { documents?: FsDoc[] };
-  return d.documents ?? [];
+  try {
+    const r = await fetch(`${url}?pageSize=200`, { headers });
+    if (!r.ok) return [];
+    const d = await r.json() as { documents?: FsDoc[] };
+    return d.documents ?? [];
+  } catch {
+    return [];
+  }
 }
 
 async function writeDoc(path: string, fields: Record<string, unknown>, idToken: string) {
-  const r = await fetch(`${NEW_BASE}/${path}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
-    body: JSON.stringify({ fields }),
-  });
-  return r.ok;
+  try {
+    const r = await fetch(`${NEW_BASE}/${path}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+      body: JSON.stringify({ fields }),
+    });
+    return r.ok;
+  } catch {
+    return false;
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -37,24 +45,23 @@ export async function POST(req: NextRequest) {
   const OLD_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY_OLD ?? "";
   const results: Record<string, unknown> = { oldProject: OLD_PROJECT, newProject: NEW_PROJECT };
 
-  // Tenta todos os caminhos onde podem estar os clientes
   const allDocs: FsDoc[] = [];
 
-  // 1. studio antigo com UID antigo
-  const d1 = await listDocs(`${OLD_BASE}/studios/${OLD_UID}/clients`, undefined);
-  results.path1 = d1.length;
+  // 1. studio antigo (sem auth — pode falhar por rules)
+  const d1 = await listDocs(`${OLD_BASE}/studios/${OLD_UID}/clients`);
+  results.path1_noauth = d1.length;
   allDocs.push(...d1);
 
-  // 2. coleção global do projeto antigo
-  const d2 = await listDocs(`${OLD_BASE}/clients`, undefined);
-  results.path2 = d2.length;
+  // 2. coleção global (sem auth)
+  const d2 = await listDocs(`${OLD_BASE}/clients`);
+  results.path2_noauth = d2.length;
   allDocs.push(...d2);
 
-  // 3. Se tiver API key do projeto antigo
+  // 3. Com API key do projeto antigo (se configurada)
   if (OLD_API_KEY) {
-    const r = await fetch(`${OLD_BASE}/studios/${OLD_UID}/clients?key=${OLD_API_KEY}&pageSize=200`);
-    if (r.ok) {
-      const d = await r.json() as { documents?: FsDoc[] };
+    const r1 = await fetch(`${OLD_BASE}/studios/${OLD_UID}/clients?key=${OLD_API_KEY}&pageSize=200`);
+    if (r1.ok) {
+      const d = await r1.json() as { documents?: FsDoc[] };
       const docs = d.documents ?? [];
       results.path1_apikey = docs.length;
       allDocs.push(...docs);
@@ -66,7 +73,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Deduplicar
+  // Deduplicar por docId
   const seen = new Set<string>();
   const unique = allDocs.filter(d => {
     const id = d.name.split("/").pop()!;
@@ -78,8 +85,7 @@ export async function POST(req: NextRequest) {
   if (unique.length === 0) {
     return NextResponse.json({
       success: false,
-      message: "Nenhum cliente encontrado no projeto tessy-nails. Os dados podem precisar do API key antigo.",
-      hint: "Configure NEXT_PUBLIC_FIREBASE_API_KEY_OLD com o API key do projeto tessy-nails",
+      message: "Nenhum cliente encontrado. Configure NEXT_PUBLIC_FIREBASE_API_KEY_OLD com o API key do projeto tessy-nails",
       results,
     });
   }
