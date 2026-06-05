@@ -146,7 +146,7 @@ export default function AgendaPage() {
     } finally {
       setLoading(false);
     }
-  }, [date]);
+  }, [date, studioId]);
 
   useEffect(() => {
     fetchAppointments();

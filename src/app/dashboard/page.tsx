@@ -196,7 +196,7 @@ export default function DashboardPage() {
     } finally {
       setBusy(false);
     }
-  }, [authLoading, protectedUser]);
+  }, [authLoading, protectedUser, studioId]);
 
   useEffect(() => { void fetchData(); }, [fetchData]);
 
