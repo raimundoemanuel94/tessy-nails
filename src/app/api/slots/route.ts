@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { admin, getFirebaseAdminApp } from "@/lib/firebaseAdmin";
 import { getCookieValue, APP_SESSION_COOKIE_NAME, verifyAppSessionToken } from "@/lib/server/session";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 const DAY_NAMES = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"] as const;
 
 function toMinutes(time: string): number {
@@ -16,37 +14,23 @@ function fromMinutes(minutes: number): string {
   return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
 }
 
-// ─── GET /api/slots ────────────────────────────────────────────────────────────
-//
-// Suporta DOIS formatos:
-//
-//  Formato A (novo — /agendar/[slug] público):
-//    ?studioId=xxx&date=YYYY-MM-DD&duration=45
-//    → { slots: ["09:00","09:30",...], date, studioId }
-//
-//  Formato B (antigo — /cliente/agendar autenticado):
-//    ?start=ISO&end=ISO
-//    → { busySlots: [{time, serviceId},...], workingDays: {...} }
-//
 export async function GET(req: NextRequest) {
   try {
     const app = getFirebaseAdminApp();
-    if (!app) return NextResponse.json({ error: "Firebase Admin não configurado" }, { status: 503 });
+    if (!app) return NextResponse.json({ error: "Firebase Admin nao configurado" }, { status: 503 });
 
     const db = admin.firestore(app);
     const { searchParams } = new URL(req.url);
-
     const hasNewFormat = searchParams.has("studioId") || searchParams.has("date");
     const hasOldFormat = searchParams.has("start") || searchParams.has("end");
 
-    // ── Formato A: novo ──────────────────────────────────────────────────────
     if (hasNewFormat) {
       const studioId = searchParams.get("studioId");
-      const dateStr  = searchParams.get("date"); // "YYYY-MM-DD"
+      const dateStr  = searchParams.get("date");
       const duration = Number(searchParams.get("duration") ?? "0");
 
       if (!studioId || !dateStr) {
-        return NextResponse.json({ error: "Parâmetros obrigatórios: studioId, date" }, { status: 400 });
+        return NextResponse.json({ error: "Parametros obrigatorios: studioId, date" }, { status: 400 });
       }
 
       const settingsDoc = await db
@@ -70,13 +54,11 @@ export async function GET(req: NextRequest) {
       const closeMin = toMinutes(dayConfig.close);
       const dur      = duration > 0 ? duration : slotDuration;
 
-      // Todos os slots possíveis
       const allSlots: string[] = [];
       for (let t = openMin; t + dur <= closeMin; t += slotDuration) {
         allSlots.push(fromMinutes(t));
       }
 
-      // Agendamentos do dia
       const startOfDay = new Date(year, month - 1, day, 0, 0, 0);
       const endOfDay   = new Date(year, month - 1, day, 23, 59, 59);
 
@@ -113,4 +95,96 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ slots: available, date: dateStr, studioId });
     }
 
-    // ── Formato B: antigo (?start=ISO&end=ISO) ───────────────
+    if (hasOldFormat) {
+      const start = searchParams.get("start");
+      const end   = searchParams.get("end");
+
+      if (!start || !end) {
+        return NextResponse.json({ error: "Parametros obrigatorios: start, end" }, { status: 400 });
+      }
+
+      const startDate = new Date(start);
+      const endDate   = new Date(end);
+
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return NextResponse.json({ error: "Datas invalidas" }, { status: 400 });
+      }
+
+      let studioId: string | null = null;
+      const token = getCookieValue(req.headers.get("cookie"), APP_SESSION_COOKIE_NAME);
+      if (token) {
+        const session = await verifyAppSessionToken(token);
+        if (session?.uid) {
+          const userDoc = await db.collection("users").doc(session.uid).get();
+          studioId = userDoc.exists ? (userDoc.data()?.studioId as string | null) ?? null : null;
+        }
+      }
+
+      let apptSnap;
+      if (studioId) {
+        apptSnap = await db
+          .collection("studios").doc(studioId)
+          .collection("appointments")
+          .where("appointmentDate", ">=", admin.firestore.Timestamp.fromDate(startDate))
+          .where("appointmentDate", "<=", admin.firestore.Timestamp.fromDate(endDate))
+          .get();
+      } else {
+        apptSnap = await db.collection("appointments")
+          .where("appointmentDate", ">=", admin.firestore.Timestamp.fromDate(startDate))
+          .where("appointmentDate", "<=", admin.firestore.Timestamp.fromDate(endDate))
+          .get();
+      }
+
+      const busySlots = apptSnap.docs
+        .filter((d) => !["cancelled", "no_show"].includes(d.data().status ?? ""))
+        .map((d) => {
+          const data = d.data();
+          const dt: Date = (data.appointmentDate as admin.firestore.Timestamp).toDate();
+          return {
+            time: `${String(dt.getHours()).padStart(2,"0")}:${String(dt.getMinutes()).padStart(2,"0")}`,
+            serviceId: data.serviceId ?? "",
+            duration:  data.durationMinutes ?? 30,
+          };
+        });
+
+      const DEFAULT_WORKING_DAYS = {
+        monday:    { enabled: true,  start: "08:00", end: "18:00" },
+        tuesday:   { enabled: true,  start: "08:00", end: "18:00" },
+        wednesday: { enabled: true,  start: "08:00", end: "18:00" },
+        thursday:  { enabled: true,  start: "08:00", end: "18:00" },
+        friday:    { enabled: true,  start: "08:00", end: "18:00" },
+        saturday:  { enabled: true,  start: "08:00", end: "14:00" },
+        sunday:    { enabled: false, start: "09:00", end: "12:00" },
+      };
+
+      let workingDays: typeof DEFAULT_WORKING_DAYS = DEFAULT_WORKING_DAYS;
+
+      if (studioId) {
+        const settingsDoc = await db
+          .collection("studios").doc(studioId)
+          .collection("settings").doc("salon").get();
+
+        if (settingsDoc.exists) {
+          const wh = settingsDoc.data()?.workingHours;
+          if (wh) {
+            workingDays = Object.fromEntries(
+              Object.entries(wh).map(([d, cfg]) => {
+                const c = cfg as { isOpen?: boolean; open?: string; close?: string };
+                return [d, { enabled: c.isOpen ?? false, start: c.open ?? "09:00", end: c.close ?? "18:00" }];
+              })
+            ) as typeof DEFAULT_WORKING_DAYS;
+          }
+        }
+      }
+
+      return NextResponse.json({ busySlots, workingDays });
+    }
+
+    return NextResponse.json({ error: "Use ?studioId=&date= ou ?start=&end=" }, { status: 400 });
+
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[api/slots]", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
