@@ -203,7 +203,7 @@ export default function RelatoriosPage() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [studioId]);
 
   // mapas base
   const serviceById = useMemo(

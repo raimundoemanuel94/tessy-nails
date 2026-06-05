@@ -163,7 +163,7 @@ function AgendamentosContent() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [studioId]);
 
   useEffect(() => {
     loadData();
