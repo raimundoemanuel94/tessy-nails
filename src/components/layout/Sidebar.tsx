@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, Calendar, Users, Scissors, BarChart3, Settings, LogOut, Sparkles, CalendarDays, Shield } from "lucide-react";
+import {
+  LayoutDashboard, Calendar, Users, Scissors, BarChart3,
+  Settings, LogOut, CalendarDays, Shield, Sparkles,
+  ChevronRight
+} from "lucide-react";
 
 const NAV = [
   { href: "/dashboard",     icon: LayoutDashboard, label: "Dashboard" },
@@ -23,80 +27,72 @@ export function Sidebar({ profile }: { profile: any }) {
 
   async function signOut() {
     await createClient().auth.signOut();
-    router.push("/login");
-    router.refresh();
+    router.push("/login"); router.refresh();
   }
 
   return (
     <>
-      {/* Desktop */}
-      <aside className="fixed left-0 top-0 h-full w-64 flex-col hidden md:flex z-10"
-        style={{ background: "var(--surface)", borderRight: "1px solid var(--border)" }}>
+      {/* Desktop sidebar */}
+      <aside style={{
+        position: "fixed", left: 0, top: 0, height: "100%", width: 240,
+        display: "flex", flexDirection: "column",
+        background: "var(--surface)",
+        borderRight: "1px solid var(--border)",
+        zIndex: 10
+      }} className="hidden md:flex">
 
-        <div className="p-5 border-b" style={{ borderColor: "var(--border)" }}>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: isSuperadmin ? "#f59e0b" : "var(--brand)" }}>
+        {/* Logo */}
+        <div style={{ padding: "20px 16px", borderBottom: "1px solid var(--border)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: 12,
+              background: isSuperadmin
+                ? "linear-gradient(135deg, #f59e0b 0%, #fcd34d 100%)"
+                : "linear-gradient(135deg, #7C5CBF 0%, #9D7FD4 100%)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: isSuperadmin ? "0 4px 15px rgba(245,158,11,0.3)" : "0 4px 15px rgba(124,92,191,0.3)",
+              flexShrink: 0
+            }}>
               {isSuperadmin
-                ? <Shield size={16} color="#000" />
-                : <Sparkles size={16} color="#fff" />}
+                ? <Shield size={17} color="#000" />
+                : <Sparkles size={17} color="#fff" />}
             </div>
-            <div>
-              <p className="text-sm font-black" style={{ color: "var(--text)" }}>
+            <div style={{ minWidth: 0 }}>
+              <p style={{ fontSize: 13, fontWeight: 800, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio")}
               </p>
-              <p className="text-xs" style={{ color: "var(--muted)" }}>
-                {isSuperadmin ? "Superadmin" : (studio?.plan ?? "Pro")}
+              <p style={{ fontSize: 11, color: "var(--muted)" }}>
+                {isSuperadmin ? "Superadmin" : `Plano ${studio?.plan ?? "Pro"}`}
               </p>
             </div>
           </div>
         </div>
 
+        {/* Admin button */}
         {isSuperadmin && (
-          <div className="px-3 pt-3">
-            <Link href="/admin"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-black w-full"
-              style={{ background: "#f59e0b20", color: "#f59e0b", border: "1px solid #f59e0b40" }}>
-              <Shield size={16} /> Painel Admin
+          <div style={{ padding: "10px 10px 0" }}>
+            <Link href="/admin" style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "10px 12px", borderRadius: 12, textDecoration: "none",
+              background: "rgba(245,158,11,0.1)",
+              border: "1px solid rgba(245,158,11,0.25)",
+              color: "#f59e0b", fontSize: 13, fontWeight: 700
+            }}>
+              <Shield size={15} /> Painel Admin
             </Link>
           </div>
         )}
 
-        <nav className="flex-1 p-3 flex flex-col gap-1">
-          {NAV.map(({ href, icon: Icon, label }) => (
-            <Link key={href} href={href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
-              style={pathname === href
-                ? { background: "var(--brand)", color: "#fff" }
-                : { color: "var(--muted)" }}>
-              <Icon size={17} /> {label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="p-3 border-t" style={{ borderColor: "var(--border)" }}>
-          <button onClick={signOut}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-semibold"
-            style={{ color: "var(--muted)" }}>
-            <LogOut size={17} /> Sair
-          </button>
-        </div>
-      </aside>
-
-      {/* Mobile bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 md:hidden z-10 flex"
-        style={{ background: "var(--surface)", borderTop: "1px solid var(--border)" }}>
-        {(isSuperadmin
-          ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 4)]
-          : NAV.slice(0, 5)
-        ).map(({ href, icon: Icon, label }) => (
-          <Link key={href} href={href}
-            className="flex-1 flex flex-col items-center gap-1 py-3 text-[10px] font-bold"
-            style={{ color: pathname.startsWith(href) ? "var(--brand-light)" : "var(--muted)" }}>
-            <Icon size={20} /> {label.split(" ")[0]}
-          </Link>
-        ))}
-      </nav>
-    </>
-  );
-}
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: "10px", display: "flex", flexDirection: "column", gap: 2, overflowY: "auto" }}>
+          {NAV.map(({ href, icon: Icon, label }) => {
+            const active = pathname === href;
+            return (
+              <Link key={href} href={href} style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 12px", borderRadius: 12, textDecoration: "none",
+                fontSize: 13, fontWeight: active ? 700 : 500,
+                transition: "all .15s",
+                background: active ? "rgba(124,92,191,0.15)" : "transparent",
+                border: active ? "1px solid rgba(124,92,191,0.25)" : "1px solid transparent",
+                color: active ? "var(--brand-l
