@@ -222,6 +222,48 @@ function CreateServices() {
 
 
 // ── Componente para promover usuário a superadmin ──────────────
+
+function DedupServices() {
+  const { firebaseUser } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<Record<string,unknown> | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const run = async () => {
+    setLoading(true); setResult(null); setError(null);
+    try {
+      const idToken = firebaseUser ? await getIdToken(firebaseUser) : "";
+      const res = await fetch("/api/admin/dedup-services", {
+        method: "POST",
+        headers: { "x-setup-secret": "nailit-setup-2024", "x-id-token": idToken },
+      });
+      const data = await res.json() as Record<string,unknown>;
+      if (data.success) setResult(data);
+      else setError(String(data.error ?? "Erro"));
+    } catch (e) { setError(String(e)); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="rounded-2xl p-5" style={{ background:"rgba(251,191,36,0.06)", border:"1px solid rgba(251,191,36,0.2)" }}>
+      <div className="flex items-center gap-3 mb-3">
+        <span className="text-xl">🧹</span>
+        <div>
+          <p className="text-[13px] font-black text-white">Limpar serviços duplicados</p>
+          <p className="text-[11px] text-white/50">Mantém 1 de cada nome, deleta os extras da migração</p>
+        </div>
+      </div>
+      {result && <div className="mb-3 text-[11px] text-green-400">✓ {result.kept as number} mantidos, {result.deleted as number} deletados</div>}
+      {error  && <div className="mb-3 text-[11px] text-red-400">Erro: {error}</div>}
+      <button onClick={run} disabled={loading}
+        className="w-full py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
+        style={{ background: loading ? "rgba(251,191,36,0.3)" : "rgba(251,191,36,0.8)", color: "#000" }}>
+        {loading ? "Limpando..." : "🧹 LIMPAR DUPLICADOS"}
+      </button>
+    </div>
+  );
+}
+
 function PromoteUser() {
   const [uid,     setUid]     = useState("");
   const [loading, setLoading] = useState(false);
@@ -458,6 +500,9 @@ export default function AdminConfigPage() {
 
       {/* Criar serviços */}
       <CreateServices />
+
+      {/* Limpar duplicados */}
+      <DedupServices />
 
       {/* Promover usuário a superadmin */}
       <PromoteUser />
