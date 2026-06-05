@@ -1,290 +1,718 @@
 "use client";
-export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc, updateDoc, collection, getDocs, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { motion } from "framer-motion";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import {
-  ArrowLeft, Building2, Calendar, Users,
-  DollarSign, Clock, CheckCircle2, XCircle,
-  Edit3, Save, X,
+  ArrowLeft,
+  Loader2,
+  Pencil,
+  Trash2,
+  Plus,
+  Check,
+  X,
+  Scissors,
+  User,
+  Calendar,
+  Clock,
+  DollarSign,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
-import { toast } from "sonner";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
-const PLAN_COLORS: Record<string,string> = {
-  free:"#5A5280", starter:"#9D7FD4", pro:"#7C5CBF", studio:"#F59E0B",
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface StudioDetail {
+  id: string;
+  name: string;
+  slug: string;
+  plan: string;
+  isActive: boolean;
+  ownerId: string;
+  createdAt: string | null;
+  updatedAt: string | null;
+  trialEndsAt: string | null;
+}
+
+interface Owner {
+  uid: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: string;
+}
+
+interface Service {
+  id: string;
+  name: string;
+  price: number;
+  durationMinutes: number;
+  bufferMinutes: number;
+  isActive: boolean;
+}
+
+interface Settings {
+  slotDuration: number;
+  advanceDays: number;
+  cancelHours: number;
+  autoConfirm: boolean;
+  workingHours: Record<string, { open: string; close: string; isOpen: boolean }>;
+}
+
+interface StudioData {
+  studio: StudioDetail;
+  owner: Owner | null;
+  services: Service[];
+  settings: Settings | null;
+  stats: { appointments: number; services: number };
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDate(iso: string | null): string {
+  if (!iso) return "—";
+  try {
+    return format(parseISO(iso), "dd/MM/yyyy", { locale: ptBR });
+  } catch {
+    return "—";
+  }
+}
+
+function formatPrice(price: number): string {
+  return `R$ ${price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+}
+
+function formatDuration(min: number): string {
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m > 0 ? `${h}h${m}min` : `${h}h`;
+}
+
+const PLAN_COLORS: Record<string, string> = {
+  pro: "text-purple-400 bg-purple-500/10 border-purple-500/20",
+  free: "text-slate-400 bg-slate-500/10 border-slate-500/20",
+  starter: "text-blue-400 bg-blue-500/10 border-blue-500/20",
 };
-const PLAN_PRICES: Record<string,number> = { free:0, starter:19, pro:29, studio:59 };
 
-export default function StudioDetailPage() {
-  const { id } = useParams<{ id:string }>();
-  const router  = useRouter();
+const DAY_LABELS: Record<string, string> = {
+  monday: "Seg",
+  tuesday: "Ter",
+  wednesday: "Qua",
+  thursday: "Qui",
+  friday: "Sex",
+  saturday: "Sáb",
+  sunday: "Dom",
+};
 
-  const [studio,       setStudio]      = useState<Record<string,unknown> | null>(null);
-  const [user,         setUser]        = useState<Record<string,unknown> | null>(null);
-  const [apptCount,    setApptCount]   = useState(0);
-  const [svcCount,     setSvcCount]    = useState(0);
-  const [loading,      setLoading]     = useState(true);
-  const [editing,      setEditing]     = useState(false);
-  const [editName,     setEditName]    = useState("");
-  const [editPlan,     setEditPlan]    = useState("");
+const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
-  useEffect(() => {
-    const load = async () => {
-      if (!id) return;
-      try {
-        // Studio
-        const sDoc = await getDoc(doc(db!, "studios", id));
-        if (!sDoc.exists()) { router.push("/admin/studios"); return; }
-        const raw = sDoc.data() as Record<string, unknown>;
-        const s: Record<string, unknown> = { id: sDoc.id, ...raw };
-        setStudio(s);
-        setEditName(String(s.name || ""));
-        setEditPlan(String(s.plan || "free"));
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
-        // Owner
-        const ownerId = String(s.ownerId || "");
-        if (ownerId) {
-          const uDoc = await getDoc(doc(db!, "users", ownerId));
-          if (uDoc.exists()) setUser({ uid: uDoc.id, ...uDoc.data() });
-        }
+export default function AdminStudioDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const studioId = params?.id as string;
 
-        // Agendamentos e serviços na subcoleção
-        const [appts, svcs] = await Promise.allSettled([
-          getDocs(collection(db!, "studios", id, "appointments")),
-          getDocs(collection(db!, "studios", id, "services")),
-        ]);
-        if (appts.status === "fulfilled") setApptCount(appts.value.size);
-        if (svcs.status === "fulfilled")  setSvcCount(svcs.value.size);
-      } catch (e) { console.error(e); }
+  const [data, setData] = useState<StudioData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Edit studio
+  const [editingStudio, setEditingStudio] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editSlug, setEditSlug] = useState("");
+  const [editPlan, setEditPlan] = useState("");
+  const [editActive, setEditActive] = useState(true);
+  const [savingStudio, setSavingStudio] = useState(false);
+
+  // Services
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [svcName, setSvcName] = useState("");
+  const [svcPrice, setSvcPrice] = useState("");
+  const [svcDuration, setSvcDuration] = useState("");
+  const [svcBuffer, setSvcBuffer] = useState("0");
+  const [savingSvc, setSavingSvc] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // New service form
+  const [addingService, setAddingService] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPrice, setNewPrice] = useState("");
+  const [newDuration, setNewDuration] = useState("");
+  const [newBuffer, setNewBuffer] = useState("0");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/studios/${studioId}`);
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error ?? "Erro ao carregar studio");
+      setData(json);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
       setLoading(false);
-    };
-    void load();
-  }, [id]);
+    }
+  }, [studioId]);
 
-  const saveEdit = async () => {
-    if (!id) return;
+  useEffect(() => { load(); }, [load]);
+
+  // ─── Studio edit ───────────────────────────────────────────────────────────
+
+  function openEditStudio() {
+    if (!data) return;
+    setEditName(data.studio.name);
+    setEditSlug(data.studio.slug);
+    setEditPlan(data.studio.plan);
+    setEditActive(data.studio.isActive);
+    setEditingStudio(true);
+  }
+
+  async function saveStudio() {
+    if (!data) return;
+    setSavingStudio(true);
     try {
-      await updateDoc(doc(db!, "studios", id), {
-        name: editName.trim(),
-        plan: editPlan,
-        updatedAt: Timestamp.now(),
+      const res = await fetch(`/api/admin/studios/${studioId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName, slug: editSlug, plan: editPlan, isActive: editActive }),
       });
-      setStudio(p => p ? { ...p, name: editName.trim(), plan: editPlan } : p);
-      toast.success("Studio atualizado!");
-      setEditing(false);
-    } catch { toast.error("Erro ao salvar"); }
-  };
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error);
+      setEditingStudio(false);
+      await load();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSavingStudio(false);
+    }
+  }
 
-  const toggleActive = async () => {
-    if (!id || !studio) return;
-    const next = !studio.isActive;
+  // ─── Service edit ──────────────────────────────────────────────────────────
+
+  function openEditService(svc: Service) {
+    setEditingServiceId(svc.id);
+    setSvcName(svc.name);
+    setSvcPrice(String(svc.price));
+    setSvcDuration(String(svc.durationMinutes));
+    setSvcBuffer(String(svc.bufferMinutes));
+  }
+
+  async function saveService(id: string) {
+    setSavingSvc(true);
     try {
-      await updateDoc(doc(db!, "studios", id), { isActive: next });
-      setStudio(p => p ? { ...p, isActive: next } : p);
-      toast.success(next ? "Studio ativado" : "Studio desativado");
-    } catch { toast.error("Erro"); }
-  };
+      const res = await fetch(`/api/admin/studios/${studioId}/services/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: svcName,
+          price: Number(svcPrice),
+          durationMinutes: Number(svcDuration),
+          bufferMinutes: Number(svcBuffer),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error);
+      setEditingServiceId(null);
+      await load();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSavingSvc(false);
+    }
+  }
 
-  if (loading) return (
-    <div className="flex justify-center py-16">
-      <div className="flex gap-1.5">
-        {[0,1,2].map(i => (
-          <motion.div key={i} className="w-2 h-2 rounded-full bg-[#9D7FD4]"
-            animate={{ y:[0,-8,0] }} transition={{ duration:0.6, delay:i*0.12, repeat:Infinity }} />
-        ))}
+  async function deleteService(id: string) {
+    if (!confirm("Excluir este serviço?")) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/admin/studios/${studioId}/services/${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error);
+      await load();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : String(e));
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function toggleService(svc: Service) {
+    try {
+      await fetch(`/api/admin/studios/${studioId}/services/${svc.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !svc.isActive }),
+      });
+      await load();
+    } catch { /* noop */ }
+  }
+
+  // ─── Add service ───────────────────────────────────────────────────────────
+
+  async function addService() {
+    if (!newName || !newPrice || !newDuration) return;
+    setSavingSvc(true);
+    try {
+      const res = await fetch(`/api/admin/studios/${studioId}/services`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newName,
+          price: Number(newPrice),
+          durationMinutes: Number(newDuration),
+          bufferMinutes: Number(newBuffer),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error);
+      setAddingService(false);
+      setNewName(""); setNewPrice(""); setNewDuration(""); setNewBuffer("0");
+      await load();
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSavingSvc(false);
+    }
+  }
+
+  // ─── Render ────────────────────────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="animate-spin text-purple-400" size={32} />
       </div>
-    </div>
-  );
+    );
+  }
 
-  if (!studio) return null;
+  if (error || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
+        <AlertCircle className="text-red-400" size={32} />
+        <p className="text-sm text-slate-400">{error ?? "Não foi possível carregar."}</p>
+        <button onClick={load} className="text-sm text-purple-400 underline">Tentar novamente</button>
+      </div>
+    );
+  }
 
-  const planColor = PLAN_COLORS[String(studio.plan)] || "#5A5280";
-  const trialDate = studio.trialEndsAt instanceof Timestamp
-    ? studio.trialEndsAt.toDate()
-    : studio.trialEndsAt ? new Date(studio.trialEndsAt as string) : null;
-  const inTrial   = trialDate && trialDate > new Date();
-  const trialDays = inTrial
-    ? Math.ceil((trialDate!.getTime() - Date.now()) / 86400000)
-    : 0;
+  const { studio, owner, services, settings, stats } = data;
+  const trialDaysLeft = studio.trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(studio.trialEndsAt).getTime() - Date.now()) / 86400000))
+    : null;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
-
-      {/* Header */}
+    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      {/* Back + Header */}
       <div className="flex items-center gap-3">
-        <button onClick={() => router.push("/admin/studios")}
-          className="h-9 w-9 rounded-xl flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/8 transition-all"
-          style={{ border:"1px solid rgba(255,255,255,0.07)" }}>
-          <ArrowLeft size={15} />
+        <button
+          onClick={() => router.back()}
+          className="p-2 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition"
+        >
+          <ArrowLeft size={20} />
         </button>
         <div className="flex-1">
-          {editing ? (
-            <input value={editName} onChange={e => setEditName(e.target.value)}
-              className="text-[22px] font-bold text-white bg-transparent border-b border-[#9D7FD4] outline-none w-full"
-              style={{ fontFamily:"Georgia,serif", fontStyle:"italic" }} />
-          ) : (
-            <h1 className="text-[22px] font-bold text-white leading-none"
-              style={{ fontFamily:"Georgia,serif", fontStyle:"italic" }}>
-              {String(studio.name)}
-            </h1>
-          )}
-          <p className="text-[10px] text-white/25 mt-0.5">ID: {id}</p>
+          <h1 className="text-xl font-black text-white">{studio.name}</h1>
+          <p className="text-xs text-slate-500 font-mono">{studio.id}</p>
         </div>
-        {editing ? (
-          <div className="flex gap-2">
-            <button onClick={saveEdit}
-              className="flex items-center gap-1.5 h-9 px-3 rounded-xl text-[11px] font-black text-white"
-              style={{ background:"rgba(74,222,153,0.2)", border:"1px solid rgba(74,222,153,0.3)" }}>
-              <Save size={13} /> Salvar
-            </button>
-            <button onClick={() => setEditing(false)}
-              className="h-9 w-9 rounded-xl flex items-center justify-center text-white/30 hover:bg-white/8 transition-all"
-              style={{ border:"1px solid rgba(255,255,255,0.07)" }}>
-              <X size={14} />
-            </button>
+        <button
+          onClick={load}
+          className="p-2 rounded-xl hover:bg-white/5 text-slate-400 transition"
+          title="Recarregar"
+        >
+          <RefreshCw size={16} />
+        </button>
+      </div>
+
+      {/* Studio Info Card */}
+      <Card
+        title="Informações do Studio"
+        action={
+          !editingStudio ? (
+            <IconBtn onClick={openEditStudio} title="Editar"><Pencil size={14} /></IconBtn>
+          ) : null
+        }
+      >
+        {editingStudio ? (
+          <div className="space-y-3">
+            <Field label="Nome" value={editName} onChange={setEditName} />
+            <Field label="Slug" value={editSlug} onChange={setEditSlug} />
+            <div>
+              <label className="label">Plano</label>
+              <select
+                value={editPlan}
+                onChange={(e) => setEditPlan(e.target.value)}
+                className="select"
+              >
+                <option value="free">Free</option>
+                <option value="starter">Starter</option>
+                <option value="pro">Pro</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="label mb-0">Status</label>
+              <button
+                onClick={() => setEditActive((v) => !v)}
+                className={`px-3 py-1 rounded-lg text-xs font-black border transition ${
+                  editActive
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    : "bg-red-500/10 text-red-400 border-red-500/20"
+                }`}
+              >
+                {editActive ? "Ativo" : "Inativo"}
+              </button>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <SaveBtn onClick={saveStudio} loading={savingStudio} />
+              <CancelBtn onClick={() => setEditingStudio(false)} />
+            </div>
           </div>
         ) : (
-          <button onClick={() => setEditing(true)}
-            className="flex items-center gap-1.5 h-9 px-3 rounded-xl text-[11px] font-bold text-white/50 hover:text-white/80 hover:bg-white/8 transition-all"
-            style={{ border:"1px solid rgba(255,255,255,0.07)" }}>
-            <Edit3 size={13} /> Editar
-          </button>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <InfoCell label="Status">
+              <span className={`px-2 py-0.5 rounded-lg text-xs font-black border ${studio.isActive ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
+                {studio.isActive ? "Ativo" : "Inativo"}
+              </span>
+            </InfoCell>
+            <InfoCell label="Plano">
+              <span className={`px-2 py-0.5 rounded-lg text-xs font-black border capitalize ${PLAN_COLORS[studio.plan] ?? PLAN_COLORS.free}`}>
+                {studio.plan}
+              </span>
+            </InfoCell>
+            <InfoCell label="Slug">
+              <span className="text-xs font-mono text-slate-300">{studio.slug || "—"}</span>
+            </InfoCell>
+            <InfoCell label="Trial até">
+              <span className="text-xs font-bold text-slate-300">
+                {formatDate(studio.trialEndsAt)}
+                {trialDaysLeft !== null && (
+                  <span className={`ml-1 text-[10px] font-black ${trialDaysLeft <= 7 ? "text-amber-400" : "text-slate-500"}`}>
+                    ({trialDaysLeft}d)
+                  </span>
+                )}
+              </span>
+            </InfoCell>
+            <InfoCell label="Criado em">
+              <span className="text-xs font-bold text-slate-300">{formatDate(studio.createdAt)}</span>
+            </InfoCell>
+            <InfoCell label="Agendamentos">
+              <span className="text-sm font-black text-white">{stats.appointments}</span>
+            </InfoCell>
+            <InfoCell label="Serviços">
+              <span className="text-sm font-black text-white">{stats.services}</span>
+            </InfoCell>
+          </div>
         )}
-      </div>
+      </Card>
 
-      {/* Status + plano */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl p-4 col-span-1"
-          style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)" }}>
-          <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/25 mb-2">Status</p>
-          <div className={`flex items-center gap-2`}>
-            {studio.isActive
-              ? <CheckCircle2 size={16} className="text-emerald-400" />
-              : <XCircle size={16} className="text-red-400" />
-            }
-            <span className="text-[12px] font-bold text-white">
-              {studio.isActive ? "Ativo" : "Inativo"}
-            </span>
-          </div>
-          <button onClick={toggleActive}
-            className="mt-3 w-full h-7 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
-            style={studio.isActive
-              ? { background:"rgba(248,113,113,0.1)", color:"#F87171", border:"1px solid rgba(248,113,113,0.2)" }
-              : { background:"rgba(74,222,153,0.1)", color:"#4ADE80", border:"1px solid rgba(74,222,153,0.2)" }}>
-            {studio.isActive ? "Desativar" : "Ativar"}
-          </button>
-        </div>
-
-        <div className="rounded-2xl p-4 col-span-2"
-          style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)" }}>
-          <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/25 mb-2">Plano</p>
-          {editing ? (
-            <select value={editPlan} onChange={e => setEditPlan(e.target.value)}
-              className="w-full h-9 px-3 rounded-xl text-[13px] font-bold text-white outline-none cursor-pointer"
-              style={{ background:`${PLAN_COLORS[editPlan]}20`, border:`1.5px solid ${PLAN_COLORS[editPlan]}50`, color: PLAN_COLORS[editPlan] }}>
-              {["free","starter","pro","studio"].map(p => (
-                <option key={p} value={p} style={{ background:"#1A1A2E", color:"white" }}>
-                  {p.charAt(0).toUpperCase()+p.slice(1)} — R${PLAN_PRICES[p]}/mês
-                </option>
-              ))}
-            </select>
-          ) : (
-            <div className="flex items-center justify-between">
-              <span className="text-[20px] font-black capitalize" style={{ color: planColor }}>
-                {String(studio.plan)}
-              </span>
-              <span className="text-[13px] font-bold text-white/30">
-                R${PLAN_PRICES[String(studio.plan)]}/mês
-              </span>
+      {/* Profissional */}
+      <Card title="Profissional" icon={<User size={14} />}>
+        {owner ? (
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-300 font-black text-lg">
+              {(owner.name ?? "?").charAt(0).toUpperCase()}
             </div>
-          )}
-          {inTrial && (
-            <div className="mt-2 flex items-center gap-1.5 text-[9px] font-bold"
-              style={{ color:"#FBBF24" }}>
-              <Clock size={10} /> Trial: {trialDays} dia{trialDays !== 1 ? "s" : ""} restante{trialDays !== 1 ? "s" : ""}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { icon:Calendar,   label:"Agendamentos", value:apptCount, color:"#60A5FA" },
-          { icon:Building2,        label:"Serviços",     value:svcCount,  color:"#9D7FD4" },
-          { icon:DollarSign, label:"MRR",          value:(`R$${String(PLAN_PRICES[String(studio.plan)] ?? 0)}`), color:"#4ADE80" },
-        ].map(s => (
-          <div key={s.label} className="rounded-2xl p-4"
-            style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)" }}>
-            <div className="h-7 w-7 rounded-lg flex items-center justify-center mb-2"
-              style={{ background:`${s.color}18` }}>
-              <s.icon size={13} style={{ color: s.color }} />
-            </div>
-            <p className="text-[20px] font-black text-white" style={{ fontFamily:"Georgia,serif" }}>{s.value}</p>
-            <p className="text-[8px] text-white/25 uppercase tracking-widest">{s.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Info do profissional */}
-      {user && (
-        <div className="rounded-2xl p-5"
-          style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)" }}>
-          <p className="text-[8px] font-black uppercase tracking-[0.25em] text-white/25 mb-3">Profissional</p>
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl flex items-center justify-center text-[14px] font-black text-white shrink-0"
-              style={{ background:"linear-gradient(135deg,#2A1A4E,#5A3F9A)" }}>
-              {String(user.name || "?").charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-bold text-white">{String(user.name || "—")}</p>
-              <p className="text-[10px] text-white/30">{String(user.email || "—")}</p>
-              {user.phone ? <p className="text-[10px] text-white/20">{String(user.phone)}</p> : null}
-            </div>
-            <div className="text-right">
-              <p className="text-[8px] text-white/20">UID</p>
-              <p className="text-[9px] font-mono text-white/40">{String(user.uid || "").slice(0,10)}...</p>
+            <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3">
+              <InfoCell label="Nome">
+                <span className="text-sm font-black text-white">{owner.name || "—"}</span>
+              </InfoCell>
+              <InfoCell label="Email">
+                <span className="text-xs text-slate-300">{owner.email || "—"}</span>
+              </InfoCell>
+              <InfoCell label="Telefone">
+                <span className="text-xs text-slate-300">{owner.phone || "—"}</span>
+              </InfoCell>
+              <InfoCell label="UID">
+                <span className="text-[10px] font-mono text-slate-500">{owner.uid?.slice(0, 12)}...</span>
+              </InfoCell>
             </div>
           </div>
-        </div>
+        ) : (
+          <p className="text-sm text-slate-500">
+            Owner não encontrado.{" "}
+            <span className="text-[10px] font-mono text-slate-600">{studio.ownerId}</span>
+          </p>
+        )}
+      </Card>
+
+      {/* Serviços */}
+      <Card
+        title={`Serviços (${services.length})`}
+        icon={<Scissors size={14} />}
+        action={
+          !addingService ? (
+            <button
+              onClick={() => setAddingService(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 text-xs font-black hover:bg-purple-500/20 transition"
+            >
+              <Plus size={12} /> Adicionar
+            </button>
+          ) : null
+        }
+      >
+        {/* Formulário de novo serviço */}
+        {addingService && (
+          <div className="mb-4 p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+            <p className="text-xs font-black text-purple-400 uppercase tracking-wider">Novo serviço</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="col-span-2">
+                <Field label="Nome *" value={newName} onChange={setNewName} placeholder="Ex: Manicure simples" />
+              </div>
+              <Field label="Preço (R$) *" value={newPrice} onChange={setNewPrice} placeholder="35" type="number" />
+              <Field label="Duração (min) *" value={newDuration} onChange={setNewDuration} placeholder="45" type="number" />
+            </div>
+            <div className="flex gap-2">
+              <SaveBtn onClick={addService} loading={savingSvc} label="Criar serviço" />
+              <CancelBtn onClick={() => { setAddingService(false); setNewName(""); setNewPrice(""); setNewDuration(""); }} />
+            </div>
+          </div>
+        )}
+
+        {/* Lista de serviços */}
+        {services.length === 0 ? (
+          <p className="text-sm text-slate-500 py-4 text-center">Nenhum serviço cadastrado.</p>
+        ) : (
+          <div className="space-y-2">
+            {services
+              .slice()
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((svc) => {
+                const isEditing = editingServiceId === svc.id;
+                const isDeleting = deletingId === svc.id;
+
+                return (
+                  <div
+                    key={svc.id}
+                    className={`rounded-2xl border p-4 transition-all ${
+                      svc.isActive
+                        ? "bg-white/5 border-white/10"
+                        : "bg-white/2 border-white/5 opacity-50"
+                    }`}
+                  >
+                    {isEditing ? (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <div className="col-span-2">
+                            <Field label="Nome" value={svcName} onChange={setSvcName} />
+                          </div>
+                          <Field label="Preço (R$)" value={svcPrice} onChange={setSvcPrice} type="number" />
+                          <Field label="Duração (min)" value={svcDuration} onChange={setSvcDuration} type="number" />
+                        </div>
+                        <div className="flex gap-2">
+                          <SaveBtn onClick={() => saveService(svc.id)} loading={savingSvc} />
+                          <CancelBtn onClick={() => setEditingServiceId(null)} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-black text-white text-sm truncate">{svc.name}</span>
+                            {!svc.isActive && (
+                              <span className="text-[10px] font-black text-slate-500 border border-slate-700 rounded px-1">INATIVO</span>
+                            )}
+                          </div>
+                          <div className="flex gap-3 mt-1">
+                            <span className="flex items-center gap-1 text-xs text-emerald-400 font-black">
+                              <DollarSign size={10} />
+                              {formatPrice(svc.price)}
+                            </span>
+                            <span className="flex items-center gap-1 text-xs text-slate-400 font-bold">
+                              <Clock size={10} />
+                              {formatDuration(svc.durationMinutes)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => toggleService(svc)}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-black border transition ${
+                              svc.isActive
+                                ? "text-slate-400 border-slate-700 hover:text-amber-400 hover:border-amber-500/30"
+                                : "text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10"
+                            }`}
+                          >
+                            {svc.isActive ? "Desativar" : "Ativar"}
+                          </button>
+                          <IconBtn onClick={() => openEditService(svc)} title="Editar">
+                            <Pencil size={13} />
+                          </IconBtn>
+                          <IconBtn
+                            onClick={() => deleteService(svc.id)}
+                            title="Excluir"
+                            className="hover:text-red-400 hover:bg-red-500/10"
+                          >
+                            {isDeleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                          </IconBtn>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        )}
+      </Card>
+
+      {/* Horários de funcionamento */}
+      {settings?.workingHours && (
+        <Card title="Horários de Funcionamento" icon={<Calendar size={14} />}>
+          <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
+            {DAY_ORDER.map((day) => {
+              const config = settings.workingHours[day];
+              return (
+                <div
+                  key={day}
+                  className={`rounded-xl p-3 text-center border transition ${
+                    config?.isOpen
+                      ? "bg-white/5 border-white/10"
+                      : "bg-white/2 border-white/5 opacity-40"
+                  }`}
+                >
+                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">
+                    {DAY_LABELS[day]}
+                  </p>
+                  {config?.isOpen ? (
+                    <>
+                      <p className="text-xs font-black text-white">{config.open}</p>
+                      <p className="text-[10px] text-slate-500">–</p>
+                      <p className="text-xs font-black text-white">{config.close}</p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-slate-600 font-bold">Fechado</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-400 font-bold">
+            <span>Slot: <strong className="text-white">{settings.slotDuration}min</strong></span>
+            <span>Antecedência: <strong className="text-white">{settings.advanceDays} dias</strong></span>
+            <span>Cancelar até: <strong className="text-white">{settings.cancelHours}h antes</strong></span>
+            <span>Auto-confirmar: <strong className="text-white">{settings.autoConfirm ? "Sim" : "Não"}</strong></span>
+          </div>
+        </Card>
       )}
-
-      {/* Datas */}
-      <div className="rounded-2xl p-5 grid grid-cols-2 gap-4"
-        style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)" }}>
-        {[
-          {
-            label: "Criado em",
-            value: studio.createdAt instanceof Timestamp
-              ? format(studio.createdAt.toDate(), "dd/MM/yyyy 'às' HH:mm", { locale:ptBR })
-              : "—"
-          },
-          {
-            label: "Trial até",
-            value: trialDate
-              ? format(trialDate, "dd/MM/yyyy", { locale:ptBR })
-              : "Sem trial"
-          },
-        ].map(d => (
-          <div key={d.label}>
-            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/25 mb-1">{d.label}</p>
-            <p className="text-[12px] font-bold text-white">{d.value}</p>
-          </div>
-        ))}
-      </div>
-
     </div>
   );
 }
 
-const SparklesIcon = ({ size, style }: { size:number; style?:React.CSSProperties }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={style}>
-    <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z" />
-  </svg>
-);
+// ─── Sub-componentes ──────────────────────────────────────────────────────────
+
+function Card({
+  title,
+  icon,
+  action,
+  children,
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          {icon && <span className="text-purple-400">{icon}</span>}
+          <h2 className="text-sm font-black text-white uppercase tracking-wider">{title}</h2>
+        </div>
+        {action}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function InfoCell({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full h-9 px-3 rounded-xl border border-white/10 bg-white/5 text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500/50 transition"
+      />
+    </div>
+  );
+}
+
+function IconBtn({
+  onClick,
+  title,
+  className = "",
+  children,
+}: {
+  onClick: () => void;
+  title: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      className={`p-2 rounded-xl text-slate-400 hover:bg-white/10 hover:text-white transition ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SaveBtn({
+  onClick,
+  loading,
+  label = "Salvar",
+}: {
+  onClick: () => void;
+  loading: boolean;
+  label?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading}
+      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-black hover:bg-purple-500/30 disabled:opacity-50 transition"
+    >
+      {loading ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+      {label}
+    </button>
+  );
+}
+
+function CancelBtn({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/5 text-slate-400 border border-white/10 text-xs font-black hover:bg-white/10 transition"
+    >
+      <X size={12} /> Cancelar
+    </button>
+  );
+}

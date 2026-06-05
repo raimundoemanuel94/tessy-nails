@@ -1,185 +1,158 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import * as admin from "firebase-admin";
 
-/**
- * GET /api/slots?start=ISO&end=ISO
- *
- * Retorna slots ocupados E configuração de horários do salão.
- * Usa settings/salon.workingDays para saber quais dias/horários Nailit atende.
- * Fallback: 08h–18h, todos os dias exceto domingo.
- */
+const APP_NAME = "slots-v1";
 
-interface FirestoreValue {
-  timestampValue?: string; stringValue?: string; integerValue?: string;
-  doubleValue?: number; booleanValue?: boolean; nullValue?: null;
-  mapValue?: { fields: Record<string, FirestoreValue> };
-}
-interface FirestoreDocument {
-  name?: string;
-  fields?: Record<string, FirestoreValue>;
-}
-interface RunQueryResponse { document?: FirestoreDocument; }
+function getApp(): admin.app.App {
+  const existing = admin.apps.find((a) => a?.name === APP_NAME);
+  if (existing) return existing;
 
-function extractValue(val: FirestoreValue | undefined): unknown {
-  if (!val) return undefined;
-  if ("timestampValue" in val) return val.timestampValue;
-  if ("stringValue"   in val) return val.stringValue;
-  if ("integerValue"  in val) return Number(val.integerValue);
-  if ("doubleValue"   in val) return val.doubleValue;
-  if ("booleanValue"  in val) return val.booleanValue;
-  if ("nullValue"     in val) return null;
-  return undefined;
+  const privateKey = (process.env.FIREBASE_PRIVATE_KEY ?? "").replace(/\\n/g, "\n");
+  if (!privateKey) throw new Error("FIREBASE_PRIVATE_KEY não configurada");
+
+  return admin.initializeApp(
+    {
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID ?? "nailit-792a7",
+        clientEmail:
+          process.env.FIREBASE_CLIENT_EMAIL ??
+          "firebase-adminsdk-fbsvc@nailit-792a7.iam.gserviceaccount.com",
+        privateKey,
+      }),
+    },
+    APP_NAME
+  );
 }
 
-// Padrão quando settings/salon não existe ou não carregou
-const DEFAULT_WORKING_DAYS = {
-  monday:    { enabled: true,  start: "08:00", end: "18:00" },
-  tuesday:   { enabled: true,  start: "08:00", end: "18:00" },
-  wednesday: { enabled: true,  start: "08:00", end: "18:00" },
-  thursday:  { enabled: true,  start: "08:00", end: "18:00" },
-  friday:    { enabled: true,  start: "08:00", end: "18:00" },
-  saturday:  { enabled: true,  start: "08:00", end: "14:00" },
-  sunday:    { enabled: false, start: "09:00", end: "12:00" },
-};
+const DAY_NAMES = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+] as const;
 
-const DAY_NAMES = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"] as const;
-
-function parseTime(timeStr: string, baseDate: Date): Date {
-  const [h, m] = timeStr.split(":").map(Number);
-  const d = new Date(baseDate);
-  d.setHours(h, m, 0, 0);
-  return d;
+/** "09:30" → minutos desde meia-noite */
+function toMinutes(time: string): number {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
 }
 
-export async function GET(req: Request) {
+/** minutos → "09:30" */
+function fromMinutes(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const start = searchParams.get("start");
-    const end   = searchParams.get("end");
+    const studioId = searchParams.get("studioId");
+    const dateStr = searchParams.get("date"); // "YYYY-MM-DD"
+    const serviceDuration = Number(searchParams.get("duration") ?? "0");
 
-    if (!start || !end) return NextResponse.json({ error: "Parâmetros obrigatórios" }, { status: 400 });
+    if (!studioId || !dateStr) {
+      return NextResponse.json(
+        { error: "Parâmetros obrigatórios: studioId, date" },
+        { status: 400 }
+      );
+    }
 
-    const startDate = new Date(start);
-    const endDate   = new Date(end);
+    const db = admin.firestore(getApp());
 
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()))
-      return NextResponse.json({ error: "Datas inválidas" }, { status: 400 });
+    // 1. Busca settings
+    const settingsDoc = await db
+      .collection("studios")
+      .doc(studioId)
+      .collection("settings")
+      .doc("salon")
+      .get();
 
-    // ── 1. Tentar Admin SDK (mais eficiente, não precisa de token) ──────
-    try {
-      const { admin, getFirebaseAdminApp } = await import("@/lib/firebaseAdmin");
-      const app = getFirebaseAdminApp();
+    if (!settingsDoc.exists) {
+      return NextResponse.json({ error: "Settings não encontradas" }, { status: 404 });
+    }
 
-      if (app) {
-        const db = admin.firestore(app);
+    const settings = settingsDoc.data()!;
+    const slotDuration: number = settings.slotDuration ?? 30;
+    const workingHours = settings.workingHours ?? {};
 
-        // Carregar agendamentos E configuração em paralelo
-        const [snapshot, salonSnap] = await Promise.all([
-          db.collection("appointments")
-            .where("appointmentDate", ">=", startDate)
-            .where("appointmentDate", "<=", endDate)
-            .get(),
-          db.collection("settings").doc("salon").get(),
-        ]);
+    // 2. Determina dia da semana
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    const dayName = DAY_NAMES[date.getDay()];
+    const dayConfig = workingHours[dayName];
 
-        const workingDays = salonSnap.exists
-          ? (salonSnap.data()?.workingDays ?? DEFAULT_WORKING_DAYS)
-          : DEFAULT_WORKING_DAYS;
+    if (!dayConfig || !dayConfig.isOpen) {
+      return NextResponse.json({ slots: [], reason: "closed" });
+    }
 
-        const busySlots = snapshot.docs
-          .map(doc => {
-            const data = doc.data();
-            return {
-              appointmentDate: (data.appointmentDate?.toDate?.() ?? new Date(data.appointmentDate)).toISOString(),
-              serviceId: data.serviceId as string,
-              status: data.status as string,
-            };
-          })
-          .filter(s => ["pending","confirmed"].includes(s.status))
-          .map(({ appointmentDate, serviceId }) => ({ appointmentDate, serviceId }));
+    const openMinutes = toMinutes(dayConfig.open);
+    const closeMinutes = toMinutes(dayConfig.close);
+    const duration = serviceDuration > 0 ? serviceDuration : slotDuration;
 
-        return NextResponse.json({ busySlots, workingDays });
+    // 3. Gera todos os slots possíveis
+    const allSlots: string[] = [];
+    for (let t = openMinutes; t + duration <= closeMinutes; t += slotDuration) {
+      allSlots.push(fromMinutes(t));
+    }
+
+    // 4. Busca agendamentos do dia (status != cancelled)
+    const startOfDay = new Date(year, month - 1, day, 0, 0, 0);
+    const endOfDay = new Date(year, month - 1, day, 23, 59, 59);
+
+    const appointmentsSnap = await db
+      .collection("studios")
+      .doc(studioId)
+      .collection("appointments")
+      .where("appointmentDate", ">=", admin.firestore.Timestamp.fromDate(startOfDay))
+      .where("appointmentDate", "<=", admin.firestore.Timestamp.fromDate(endOfDay))
+      .get();
+
+    // 5. Monta blocos ocupados (início + duração de cada agendamento)
+    const busyBlocks: Array<{ start: number; end: number }> = [];
+
+    for (const doc of appointmentsSnap.docs) {
+      const data = doc.data();
+      if (data.status === "cancelled") continue;
+
+      const apptDate: admin.firestore.Timestamp = data.appointmentDate;
+      const apptDateObj = apptDate.toDate();
+      const apptMinutes = apptDateObj.getHours() * 60 + apptDateObj.getMinutes();
+      const apptDuration: number = data.durationMinutes ?? slotDuration;
+
+      busyBlocks.push({ start: apptMinutes, end: apptMinutes + apptDuration });
+    }
+
+    // 6. Filtra slots disponíveis
+    const now = new Date();
+    const isToday =
+      now.getFullYear() === year && now.getMonth() + 1 === month && now.getDate() === day;
+
+    const availableSlots = allSlots.filter((slot) => {
+      const slotStart = toMinutes(slot);
+      const slotEnd = slotStart + duration;
+
+      // Ignora slots no passado (se hoje)
+      if (isToday) {
+        const nowMinutes = now.getHours() * 60 + now.getMinutes() + 60; // +1h buffer
+        if (slotStart < nowMinutes) return false;
       }
-    } catch { /* Admin SDK indisponível */ }
 
-    // ── 2. Fallback: Firestore REST API com token do cliente ─────────────
-    const authHeader  = req.headers.get("Authorization");
-    const clientToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-    const projectId   = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "nailit-792a7";
+      // Verifica conflito com agendamentos existentes
+      for (const busy of busyBlocks) {
+        if (slotStart < busy.end && slotEnd > busy.start) return false;
+      }
 
-    if (!projectId) return NextResponse.json({ busySlots: [], workingDays: DEFAULT_WORKING_DAYS });
+      return true;
+    });
 
-    const firestoreBase = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (clientToken) headers["Authorization"] = `Bearer ${clientToken}`;
-
-    // Carregar configuração do salão e agendamentos em paralelo
-    const [salonRes, queryRes] = await Promise.allSettled([
-      fetch(`${firestoreBase}/settings/salon`, { headers }),
-      fetch(`${firestoreBase}:runQuery`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          structuredQuery: {
-            from: [{ collectionId: "appointments" }],
-            where: {
-              compositeFilter: {
-                op: "AND",
-                filters: [
-                  { fieldFilter: { field: { fieldPath: "appointmentDate" }, op: "GREATER_THAN_OR_EQUAL", value: { timestampValue: startDate.toISOString() } } },
-                  { fieldFilter: { field: { fieldPath: "appointmentDate" }, op: "LESS_THAN_OR_EQUAL",    value: { timestampValue: endDate.toISOString()   } } },
-                  { fieldFilter: { field: { fieldPath: "status"           }, op: "IN", value: { arrayValue: { values: [{ stringValue:"pending" },{ stringValue:"confirmed" }] } } } },
-                ],
-              },
-            },
-            select: { fields: [{ fieldPath: "appointmentDate" }, { fieldPath: "serviceId" }] },
-          },
-        }),
-      }),
-    ]);
-
-    // Processar configuração do salão
-    let workingDays = DEFAULT_WORKING_DAYS;
-    if (salonRes.status === "fulfilled" && salonRes.value.ok) {
-      try {
-        const salonData = await salonRes.value.json();
-        if (salonData.fields?.workingDays?.mapValue?.fields) {
-          const wdf = salonData.fields.workingDays.mapValue.fields;
-          const parsed: Record<string, { enabled: boolean; start: string; end: string }> = {};
-          for (const [day, val] of Object.entries(wdf)) {
-            if ((val as FirestoreValue).mapValue?.fields) {
-              const f = (val as FirestoreValue).mapValue!.fields;
-              parsed[day] = {
-                enabled: f.enabled?.booleanValue ?? true,
-                start:   f.start?.stringValue ?? "08:00",
-                end:     f.end?.stringValue   ?? "18:00",
-              };
-            }
-          }
-          if (Object.keys(parsed).length > 0) workingDays = parsed as typeof DEFAULT_WORKING_DAYS;
-        }
-      } catch { /* usa default */ }
-    }
-
-    // Processar agendamentos
-    let busySlots: { appointmentDate: string; serviceId: string }[] = [];
-    if (queryRes.status === "fulfilled" && queryRes.value.ok) {
-      try {
-        const results = await queryRes.value.json() as RunQueryResponse[];
-        busySlots = results
-          .filter(r => r.document?.fields)
-          .map(r => ({
-            appointmentDate: extractValue(r.document!.fields!.appointmentDate) as string,
-            serviceId:       extractValue(r.document!.fields!.serviceId)       as string,
-          }))
-          .filter(s => s.appointmentDate);
-      } catch { /* ignora */ }
-    }
-
-    return NextResponse.json({ busySlots, workingDays });
-
-  } catch (error) {
-    console.error("Error in /api/slots:", error);
-    // Nunca retorna 500 — fallback seguro
-    return NextResponse.json({ busySlots: [], workingDays: DEFAULT_WORKING_DAYS });
+    return NextResponse.json({ slots: availableSlots, date: dateStr, studioId });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[api/slots]", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
