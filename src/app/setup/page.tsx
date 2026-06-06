@@ -1,6 +1,6 @@
 // @ts-nocheck
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ export default function SetupPage() {
   const router = useRouter();
   const [step, setStep] = useState<1|2>(1);
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   const [name, setName]   = useState("");
   const [slug, setSlug]   = useState("");
@@ -32,9 +33,30 @@ export default function SetupPage() {
 
   const supabase = createClient();
 
+  // Se já tem studio, vai direto pro dashboard
+  useEffect(() => {
+    async function checkStudio() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push("/login"); return; }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("studio_id, role")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.studio_id || profile?.role === "superadmin") {
+        router.replace("/dashboard");
+        return;
+      }
+      setChecking(false);
+    }
+    checkStudio();
+  }, []);
+
   function handleNameChange(v: string) {
     setName(v);
-    setSlug(v.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""));
+    setSlug(v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""));
   }
 
   async function finish() {
@@ -44,7 +66,6 @@ export default function SetupPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
 
-    // Cria studio
     const { data: studio, error: studioErr } = await supabase.from("studios")
       .insert({ name, slug, phone: phone || null, owner_id: user.id, plan: "pro" })
       .select("id").single();
@@ -54,13 +75,9 @@ export default function SetupPage() {
       setLoading(false); return;
     }
 
-    // Atualiza perfil com studio_id
     await supabase.from("profiles").update({ studio_id: studio.id }).eq("id", user.id);
-
-    // Cria settings padrão
     await supabase.from("salon_settings").insert({ studio_id: studio.id });
 
-    // Cria serviços selecionados
     const selectedSvcs = services.filter(s => s.selected).map(s => ({
       studio_id: studio.id, name: s.name, price: s.price, duration_minutes: s.duration_minutes,
     }));
@@ -69,6 +86,14 @@ export default function SetupPage() {
     toast.success("Studio configurado com sucesso!");
     router.push("/dashboard");
     router.refresh();
+  }
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
+        <Loader2 size={28} className="animate-spin" style={{ color: "var(--brand)" }} />
+      </div>
+    );
   }
 
   return (
