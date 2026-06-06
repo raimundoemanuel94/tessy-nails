@@ -96,3 +96,57 @@ export function Sidebar({ profile }: { profile: any }) {
                 background: active ? "rgba(124,92,191,0.15)" : "transparent",
                 border: active ? "1px solid rgba(124,92,191,0.25)" : "1px solid transparent",
                 color: active ? "var(--brand-light)" : "var(--muted)",
+              }}>
+                                <Icon size={16} style={{ flexShrink: 0 }} />
+                                <span style={{ flex: 1 }}>{label}</span>span>
+                {active && <ChevronRight size={13} style={{ opacity: 0.5 }} />}
+              </Link>Link>
+                          );
+    })}
+        </nav>nav>
+
+        {/* User */}
+                <div style={{ padding: "10px", borderTop: "1px solid var(--border)" }}>
+                            <button onClick={signOut} style={{
+                  display: "flex", alignItems: "center", gap: 10, width: "100%",
+                  padding: "10px 12px", borderRadius: 12,
+                  background: "none", border: "1px solid transparent", cursor: "pointer",
+                  fontSize: 13, fontWeight: 500, color: "var(--muted)", transition: "all .15s"
+    }}
+                                          onMouseEnter={e => { e.currentTarget.style.color = "var(--red)"; e.currentTarget.style.borderColor = "rgba(245,90,90,0.2)"; }}
+                                          onMouseLeave={e => { e.currentTarget.style.color = "var(--muted)"; e.currentTarget.style.borderColor = "transparent"; }}>
+                                          <LogOut size={16} /> Sair da conta
+                            </button>button>
+                </div>div>
+      </aside>aside>
+
+      {/* Mobile bottom nav */}
+            <nav style={{
+              position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 10,
+              display: "flex",
+              background: "rgba(17,14,31,0.9)",
+              backdropFilter: "blur(20px)",
+              borderTop: "1px solid var(--border)",
+    }} className="md:hidden">
+              {(isSuperadmin
+                          ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 4)]
+                          : NAV.slice(0, 5)
+                        ).map(({ href, icon: Icon, label }) => {
+                                    const active = pathname.startsWith(href);
+                                    return (
+                                                  <Link key={href} href={href} style={{
+                                                                  flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+                                                                  gap: 4, padding: "10px 0", textDecoration: "none",
+                                                                  fontSize: 10, fontWeight: 700,
+                                                                  color: active ? "var(--brand-light)" : "var(--muted)",
+                                                                  transition: "color .15s"
+                                                  }}>
+                                                                <Icon size={20} />
+                                                    {label.split(" ")[0]}
+                                                  </Link>Link>
+                                                );
+                        })}
+            </nav>nav>
+    </>>
+      );
+}</nav>
