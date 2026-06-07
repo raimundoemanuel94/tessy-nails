@@ -16,7 +16,7 @@ export default function AgendaPage(){
       const {data:{user}}=await sb.auth.getUser()
       if(!user)return
       const {data:p}=await sb.from('profiles').select('studio_id').eq('id',user.id).single()
-      if(!p?.studio_id)return
+      if(!p||!p.studio_id)return
       const {data}=await sb.from('appointments').select('*').eq('studio_id',p.studio_id).order('appointment_date')
       setApts(data||[]);setLoading(false)
     };load()
