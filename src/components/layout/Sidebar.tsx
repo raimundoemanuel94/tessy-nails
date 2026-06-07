@@ -1,175 +1,40 @@
-// @ts-nocheck
-"use client";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import {
-  LayoutDashboard, Calendar, Users, Scissors, BarChart3,
-  Settings, LogOut, CalendarDays, Shield, Sparkles, ChevronRight
-} from "lucide-react";
-
-const NAV = [
-  { href: "/dashboard",     icon: LayoutDashboard, label: "Dashboard"      },
-  { href: "/agenda",        icon: Calendar,        label: "Agenda"         },
-  { href: "/agendamentos",  icon: CalendarDays,    label: "Agendamentos"   },
-  { href: "/clientes",      icon: Users,           label: "Clientes"       },
-  { href: "/servicos",      icon: Scissors,        label: "Serviços"       },
-  { href: "/relatorios",    icon: BarChart3,       label: "Relatórios"     },
-  { href: "/configuracoes", icon: Settings,        label: "Configurações"  },
-];
-
-export function Sidebar({ profile }: { profile: any }) {
-  const pathname     = usePathname();
-  const router       = useRouter();
-  const isSuperadmin = profile?.role === "superadmin";
-  const studio       = profile?.studios;
-
-  async function signOut() {
-    await createClient().auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
-
-  return (
-    <>
-      {/* ── Desktop sidebar ── */}
-      <aside
-        className="hidden md:flex"
-        style={{
-          position: "fixed", left: 0, top: 0, height: "100%", width: 240,
-          flexDirection: "column",
-          background: "var(--surface)",
-          borderRight: "1px solid var(--border)",
-          zIndex: 10,
-        }}
-      >
-        {/* Logo */}
-        <div style={{ padding: "20px 16px", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: 12, flexShrink: 0,
-              background: isSuperadmin
-                ? "linear-gradient(135deg, #f59e0b 0%, #fcd34d 100%)"
-                : "linear-gradient(135deg, #7C5CBF 0%, #9D7FD4 100%)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: isSuperadmin
-                ? "0 4px 15px rgba(245,158,11,0.3)"
-                : "0 4px 15px rgba(124,92,191,0.3)",
-            }}>
-              {isSuperadmin
-                ? <Shield size={17} color="#000" />
-                : <Sparkles size={17} color="#fff" />}
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <p style={{
-                fontSize: 13, fontWeight: 800, color: "var(--text)",
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                {studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio")}
-              </p>
-              <p style={{ fontSize: 11, color: "var(--muted)" }}>
-                {isSuperadmin ? "Superadmin" : `Plano ${studio?.plan ?? "Pro"}`}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Admin button */}
-        {isSuperadmin && (
-          <div style={{ padding: "10px 10px 0" }}>
-            <Link href="/admin" style={{
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "10px 12px", borderRadius: 12, textDecoration: "none",
-              background: "rgba(245,158,11,0.1)",
-              border: "1px solid rgba(245,158,11,0.25)",
-              color: "#f59e0b", fontSize: 13, fontWeight: 700,
-            }}>
-              <Shield size={15} /> Painel Admin
-            </Link>
-          </div>
-        )}
-
-        {/* Nav */}
-        <nav style={{
-          flex: 1, padding: "10px",
-          display: "flex", flexDirection: "column", gap: 2,
-          overflowY: "auto",
-        }}>
-          {NAV.map(({ href, icon: Icon, label }) => {
-            const active = pathname === href;
-            return (
-              <Link key={href} href={href} style={{
-                display: "flex", alignItems: "center", gap: 10,
-                padding: "10px 12px", borderRadius: 12, textDecoration: "none",
-                fontSize: 13, fontWeight: active ? 700 : 500,
-                transition: "all .15s",
-                background: active ? "rgba(124,92,191,0.15)" : "transparent",
-                border: active ? "1px solid rgba(124,92,191,0.25)" : "1px solid transparent",
-                color: active ? "var(--brand-light)" : "var(--muted)",
-              }}>
-                <Icon size={16} style={{ flexShrink: 0 }} />
-                <span style={{ flex: 1 }}>{label}</span>
-                {active && <ChevronRight size={13} style={{ opacity: 0.5 }} />}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* User / Logout */}
-        <div style={{ padding: "10px", borderTop: "1px solid var(--border)" }}>
-          <button
-            onClick={signOut}
-            style={{
-              display: "flex", alignItems: "center", gap: 10, width: "100%",
-              padding: "10px 12px", borderRadius: 12,
-              background: "none", border: "1px solid transparent",
-              cursor: "pointer", fontSize: 13, fontWeight: 500,
-              color: "var(--muted)", transition: "all .15s",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.color = "var(--red)";
-              e.currentTarget.style.borderColor = "rgba(245,90,90,0.2)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.color = "var(--muted)";
-              e.currentTarget.style.borderColor = "transparent";
-            }}
-          >
-            <LogOut size={16} /> Sair da conta
-          </button>
-        </div>
-      </aside>
-
-      {/* ── Mobile bottom nav ── */}
-      <nav
-        className="md:hidden"
-        style={{
-          position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 10,
-          display: "flex",
-          background: "rgba(17,14,31,0.9)",
-          backdropFilter: "blur(20px)",
-          borderTop: "1px solid var(--border)",
-        }}
-      >
-        {(isSuperadmin
-          ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 4)]
-          : NAV.slice(0, 5)
-        ).map(({ href, icon: Icon, label }) => {
-          const active = pathname.startsWith(href);
-          return (
-            <Link key={href} href={href} style={{
-              flex: 1, display: "flex", flexDirection: "column",
-              alignItems: "center", gap: 4, padding: "10px 0",
-              textDecoration: "none", fontSize: 10, fontWeight: 700,
-              color: active ? "var(--brand-light)" : "var(--muted)",
-              transition: "color .15s",
-            }}>
-              <Icon size={20} />
-              {label.split(" ")[0]}
-            </Link>
-          );
-        })}
+'use client'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+const P='#a78bfa',PK='#f472b6',G='#34d399'
+const NAV=[{href:'/dashboard',icon:'⊞',label:'Dashboard'},{href:'/agenda',icon:'◷',label:'Agenda'},{href:'/agendamentos',icon:'☰',label:'Agendamentos'},{href:'/clientes',icon:'◎',label:'Clientes'},{href:'/servicos',icon:'✦',label:'Serviços'},{href:'/relatorios',icon:'◈',label:'Relatórios'},{href:'/configuracoes',icon:'⚙',label:'Config'}]
+export function Sidebar({profile}:{profile:any}){
+  const path=usePathname()
+  const nome=profile?.studios?.name||profile?.full_name||'Studio'
+  const ini=nome.slice(0,2).toUpperCase()
+  const plano=profile?.studios?.plan||'free'
+  return(<>
+    <aside className="hidden md:flex flex-col fixed left-0 top-0 h-screen w-64 z-50" style={{background:'#10101f',borderRight:'1px solid #1c1c36'}}>
+      <div style={{padding:'18px 14px',borderBottom:'1px solid #1c1c36',display:'flex',alignItems:'center',gap:10}}>
+        <div style={{width:36,height:36,borderRadius:10,background:`linear-gradient(135deg,${P},${PK})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}}>💅</div>
+        <div><div style={{fontSize:15,fontWeight:800,color:'#fff'}}>Nailit</div><div style={{fontSize:9,color:P,fontFamily:'monospace',letterSpacing:'0.12em'}}>STUDIO MANAGER</div></div>
+      </div>
+      <nav style={{flex:1,padding:'10px 6px',display:'flex',flexDirection:'column',gap:2}}>
+        {NAV.map(n=>{const a=path===n.href||(n.href!=='/dashboard'&&path.startsWith(n.href));return(
+          <Link key={n.href} href={n.href} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',borderRadius:8,background:a?P+'18':'transparent',color:a?P:'#6b6b9a',fontWeight:a?600:400,fontSize:13,textDecoration:'none',borderLeft:a?`3px solid ${P}`:'3px solid transparent',transition:'all 0.15s'}}>
+            <span style={{fontSize:15,width:20,textAlign:'center'}}>{n.icon}</span>{n.label}
+          </Link>
+        )})}
       </nav>
-    </>
-  );
+      <div style={{padding:'12px 14px',borderTop:'1px solid #1c1c36',display:'flex',alignItems:'center',gap:10}}>
+        <div style={{width:34,height:34,borderRadius:'50%',background:`linear-gradient(135deg,${PK},${P})`,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,color:'#fff',fontSize:12,flexShrink:0}}>{ini}</div>
+        <div>
+          <div style={{fontSize:12,fontWeight:600,color:'#e8e8f8'}}>{nome}</div>
+          <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:G,display:'inline-block'}}/><span style={{fontSize:10,color:'#6b6b9a'}}>Plano {plano}</span></div>
+        </div>
+      </div>
+    </aside>
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex" style={{background:'#10101f',borderTop:'1px solid #1c1c36'}}>
+      {NAV.map(n=>{const a=path===n.href||(n.href!=='/dashboard'&&path.startsWith(n.href));return(
+        <Link key={n.href} href={n.href} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:2,padding:'8px 0 10px',color:a?P:'#6b6b9a',textDecoration:'none',fontSize:9,fontWeight:a?700:400}}>
+          <span style={{fontSize:18}}>{n.icon}</span>{n.label.slice(0,5)}
+        </Link>
+      )})}
+    </nav>
+  </>)
 }

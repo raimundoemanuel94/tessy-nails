@@ -1,133 +1,80 @@
-// @ts-nocheck
-"use client";
-import { useEffect, useState, useMemo } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { toast } from "sonner";
-import { Plus, Search, Pencil, Loader2, Users, Phone, Mail } from "lucide-react";
-import type { Client } from "@/types/database";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-
-export default function ClientesPage() {
-  const [clients, setClients]   = useState<Client[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [studioId, setStudioId] = useState<string | null>(null);
-  const [search, setSearch]     = useState("");
-  const [open, setOpen]         = useState(false);
-  const [editing, setEditing]   = useState<Client | null>(null);
-  const [saving, setSaving]     = useState(false);
-
-  const [name, setName]   = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [notes, setNotes] = useState("");
-  const supabase = createClient();
-
-  useEffect(() => {
-    async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data: profile } = await supabase.from("profiles").select("studio_id").eq("id", user.id).single();
-      
-      setStudioId((profile as { studio_id: string | null } | null)?.studio_id ?? null);
-      const { data } = await supabase.from("clients").select("*").eq("studio_id", profile.studio_id).order("name");
-      setClients(data ?? []);
-      setLoading(false);
-    }
-    load();
-  }, []);
-
-  const filtered = useMemo(() => {
-    if (!search) return clients;
-    const q = search.toLowerCase();
-    return clients.filter(c => c.name.toLowerCase().includes(q) || c.phone?.includes(q) || c.email?.toLowerCase().includes(q));
-  }, [clients, search]);
-
-  function openForm(c?: Client) {
-    setEditing(c ?? null);
-    setName(c?.name ?? ""); setPhone(c?.phone ?? ""); setEmail(c?.email ?? ""); setNotes(c?.notes ?? "");
-    setOpen(true);
+'use client'
+import {useEffect,useState} from 'react'
+import {createClient} from '@/lib/supabase/client'
+import type {Client} from '@/types/database'
+const C={bg:'#080812',card:'#10101f',card2:'#17172a',border:'#1c1c36',border2:'#26264a',purple:'#a78bfa',pink:'#f472b6',green:'#34d399',amber:'#fbbf24',red:'#f87171',text:'#e8e8f8',muted:'#6b6b9a'}
+const GR=['#a78bfa','#f472b6','#818cf8','#c084fc','#fbbf24','#34d399']
+function Field({label,value,onChange,type='text',placeholder}:{label:string,value:string,onChange:(v:string)=>void,type?:string,placeholder?:string}){
+  return <div style={{display:'flex',flexDirection:'column',gap:4}}><label style={{fontSize:11,color:C.muted,fontFamily:'monospace'}}>{label}</label><input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={{background:C.bg,border:`1px solid ${C.border2}`,borderRadius:8,padding:'8px 12px',color:C.text,fontSize:13,fontFamily:'inherit',outline:'none'}}/></div>
+}
+export default function ClientesPage(){
+  const [clts,setClts]=useState<Client[]>([])
+  const [studioId,setStudioId]=useState<string|null>(null)
+  const [loading,setLoading]=useState(true)
+  const [q,setQ]=useState('')
+  const [sel,setSel]=useState<Client|null>(null)
+  const [modal,setModal]=useState(false)
+  const [form,setForm]=useState({name:'',phone:'',email:'',birth_date:'',notes:''})
+  const [saving,setSaving]=useState(false)
+  useEffect(()=>{
+    const load=async()=>{
+      const sb=createClient()
+      const {data:{user}}=await sb.auth.getUser()
+      if(!user)return
+      const {data:p}=await sb.from('profiles').select('studio_id').eq('id',user.id).single()
+      if(!p?.studio_id)return
+      setStudioId(p.studio_id)
+      const {data}=await sb.from('clients').select('*').eq('studio_id',p.studio_id).eq('is_active',true).order('name')
+      setClts(data||[]);setLoading(false)
+    };load()
+  },[])
+  const save=async()=>{
+    if(!form.name.trim()||!studioId)return
+    setSaving(true)
+    const sb=createClient()
+    const {data}=await sb.from('clients').insert({studio_id:studioId,name:form.name,phone:form.phone||null,email:form.email||null,birth_date:form.birth_date||null,notes:form.notes||null}).select().single()
+    if(data)setClts(p=>[...p,data].sort((a,b)=>a.name.localeCompare(b.name)))
+    setSaving(false);setModal(false);setForm({name:'',phone:'',email:'',birth_date:'',notes:''})
   }
-
-  async function save() {
-    if (!studioId || !name) return;
-    setSaving(true);
-    const payload = { name, phone: phone || null, email: email || null, notes: notes || null, studio_id: studioId };
-    const { error } = editing
-      ? await supabase.from("clients").update(payload).eq("id", editing.id)
-      : await supabase.from("clients").insert(payload);
-    if (error) { toast.error(error.message); setSaving(false); return; }
-    toast.success(editing ? "Cliente atualizada!" : "Cliente criada!");
-    setSaving(false); setOpen(false);
-    const { data } = await supabase.from("clients").select("*").eq("studio_id", studioId).order("name");
-    setClients(data ?? []);
-  }
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-black" style={{ color: "var(--text)" }}>Clientes</h1>
-          <p className="text-sm" style={{ color: "var(--muted)" }}>{clients.length} clientes cadastradas</p>
-        </div>
-        <button onClick={() => openForm()} className="btn-primary"><Plus size={16} /> Nova</button>
+  const list=clts.filter(c=>!q||c.name.toLowerCase().includes(q.toLowerCase())||c.phone?.includes(q)||c.email?.toLowerCase().includes(q.toLowerCase()))
+  if(loading)return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'60vh',color:C.muted}}>Carregando...</div>
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:16}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><div><h1 style={{fontSize:20,fontWeight:800,color:'#fff',margin:0}}>Clientes</h1><p style={{color:C.muted,fontSize:12,margin:'3px 0 0'}}>{clts.length} cadastradas</p></div><button onClick={()=>setModal(true)} style={{background:C.purple,color:'#fff',border:'none',borderRadius:9,padding:'9px 18px',fontWeight:600,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>+ Nova cliente</button></div>
+      <input value={q} onChange={e=>setQ(e.target.value)} placeholder="🔍 Buscar por nome, telefone ou email..." style={{background:C.card,border:`1px solid ${C.border2}`,borderRadius:8,padding:'9px 14px',color:C.text,fontSize:13,fontFamily:'inherit',outline:'none'}}/>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(250px,1fr))',gap:12}}>
+        {list.map((c,i)=>(
+          <div key={c.id} onClick={()=>setSel(sel?.id===c.id?null:c)} style={{display:'flex',flexDirection:'column',gap:11,background:C.card,border:`1px solid ${sel?.id===c.id?C.purple:C.border}`,borderRadius:12,padding:16,cursor:'pointer',transition:'border 0.15s'}}>
+            <div style={{display:'flex',alignItems:'center',gap:11}}><div style={{width:42,height:42,borderRadius:'50%',background:`linear-gradient(135deg,${GR[i%GR.length]},${GR[(i+1)%GR.length]})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:700,color:'#fff',flexShrink:0}}>{c.name[0]}</div><div style={{flex:1}}><div style={{fontSize:14,fontWeight:700,color:C.text}}>{c.name}</div><div style={{fontSize:11,color:C.muted}}>{c.phone||'—'}</div></div></div>
+            <div style={{display:'flex',justifyContent:'space-between',paddingTop:9,borderTop:`1px solid ${C.border}`}}><span style={{fontSize:10,color:C.muted}}>{c.email||'—'}</span>{c.birth_date&&<span style={{fontSize:10,color:C.pink}}>🎂 {new Date(c.birth_date+'T00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</span>}</div>
+          </div>
+        ))}
+        {list.length===0&&<div style={{gridColumn:'1/-1',textAlign:'center',padding:40,color:C.muted}}><div style={{fontSize:36,marginBottom:10}}>◎</div><div>Nenhuma cliente encontrada</div></div>}
       </div>
-
-      <div className="relative">
-        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--muted)" }} />
-        <input className="input-base pl-10" placeholder="Buscar por nome, telefone ou e-mail..." value={search} onChange={e => setSearch(e.target.value)} />
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center py-12"><Loader2 className="animate-spin" size={28} style={{ color: "var(--brand)" }} /></div>
-      ) : filtered.length === 0 ? (
-        <div className="card text-center py-12">
-          <Users size={32} className="mx-auto mb-3" style={{ color: "var(--muted)" }} />
-          <p style={{ color: "var(--muted)" }}>{search ? "Nenhuma cliente encontrada." : "Nenhuma cliente cadastrada."}</p>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {filtered.map(c => (
-            <div key={c.id} className="card flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black shrink-0"
-                style={{ background: "var(--brand)" }}>{c.name.charAt(0).toUpperCase()}</div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold truncate" style={{ color: "var(--text)" }}>{c.name}</p>
-                <div className="flex gap-3 mt-0.5">
-                  {c.phone && <span className="flex items-center gap-1 text-xs" style={{ color: "var(--muted)" }}><Phone size={10} />{c.phone}</span>}
-                  {c.email && <span className="flex items-center gap-1 text-xs" style={{ color: "var(--muted)" }}><Mail size={10} />{c.email}</span>}
-                </div>
-              </div>
-              <div className="text-xs shrink-0 hidden md:block" style={{ color: "var(--muted)" }}>
-                {format(new Date(c.created_at), "dd/MM/yy", { locale: ptBR })}
-              </div>
-              <button onClick={() => openForm(c)} className="btn-ghost p-2 shrink-0"><Pencil size={14} /></button>
-            </div>
-          ))}
+      {sel&&(
+        <div style={{background:C.card,border:`1px solid ${C.purple}44`,borderRadius:12,padding:18}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:12}}><span style={{fontSize:15,fontWeight:700,color:C.text}}>{sel.name}</span><button onClick={()=>setSel(null)} style={{background:'none',border:'none',color:C.muted,cursor:'pointer',fontSize:18}}>×</button></div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:sel.notes?12:0}}>
+            {[['Telefone',sel.phone||'—'],['Email',sel.email||'—'],['Aniversário',sel.birth_date?new Date(sel.birth_date+'T00:00').toLocaleDateString('pt-BR'):'—']].map(([l,v])=>(
+              <div key={l} style={{background:C.card2,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:9,color:C.muted,fontFamily:'monospace',textTransform:'uppercase',marginBottom:3}}>{l}</div><div style={{fontSize:12,color:C.text,fontWeight:600}}>{v}</div></div>
+            ))}
+          </div>
+          {sel.notes&&<div style={{background:C.card2,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:9,color:C.muted,fontFamily:'monospace',textTransform:'uppercase',marginBottom:3}}>Observações</div><div style={{fontSize:12,color:C.text}}>{sel.notes}</div></div>}
         </div>
       )}
-
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
-          <div className="card w-full max-w-md">
-            <h2 className="text-base font-black mb-4" style={{ color: "var(--text)" }}>
-              {editing ? "Editar cliente" : "Nova cliente"}
-            </h2>
-            <div className="flex flex-col gap-3">
-              <input className="input-base" placeholder="Nome completo *" value={name} onChange={e => setName(e.target.value)} />
-              <input className="input-base" type="tel" placeholder="WhatsApp/Telefone" value={phone} onChange={e => setPhone(e.target.value)} />
-              <input className="input-base" type="email" placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} />
-              <textarea className="input-base h-auto py-3" rows={2} placeholder="Observações" value={notes} onChange={e => setNotes(e.target.value)} />
-            </div>
-            <div className="flex gap-2 mt-4">
-              <button onClick={save} className="btn-primary flex-1" disabled={saving}>
-                {saving ? <Loader2 size={14} className="animate-spin" /> : "Salvar"}
-              </button>
-              <button onClick={() => setOpen(false)} className="btn-ghost flex-1">Cancelar</button>
-            </div>
+      {modal&&(
+        <div onClick={e=>e.target===e.currentTarget&&setModal(false)} style={{position:'fixed',inset:0,zIndex:1000,background:'#00000088',display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+          <div style={{background:C.card2,border:`1px solid ${C.border2}`,borderRadius:16,padding:24,width:'100%',maxWidth:420,display:'flex',flexDirection:'column',gap:12}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><span style={{fontSize:15,fontWeight:700,color:C.text}}>Nova Cliente</span><button onClick={()=>setModal(false)} style={{background:'none',border:'none',color:C.muted,fontSize:20,cursor:'pointer'}}>×</button></div>
+            <Field label="Nome completo" value={form.name} onChange={v=>setForm(f=>({...f,name:v}))} placeholder="Ex: Maria Silva"/>
+            <Field label="Telefone / WhatsApp" value={form.phone} onChange={v=>setForm(f=>({...f,phone:v}))} placeholder="(66) 99999-0000"/>
+            <Field label="Email (opcional)" value={form.email} onChange={v=>setForm(f=>({...f,email:v}))} type="email"/>
+            <Field label="Data de aniversário" value={form.birth_date} onChange={v=>setForm(f=>({...f,birth_date:v}))} type="date"/>
+            <Field label="Observações" value={form.notes} onChange={v=>setForm(f=>({...f,notes:v}))} placeholder="Alergias, preferências..."/>
+            <div style={{display:'flex',gap:8,justifyContent:'flex-end',paddingTop:4}}><button onClick={()=>setModal(false)} style={{background:'transparent',border:`1px solid ${C.border2}`,borderRadius:8,padding:'7px 16px',color:C.muted,cursor:'pointer',fontFamily:'inherit',fontSize:13}}>Cancelar</button><button onClick={save} disabled={saving} style={{background:C.purple,color:'#fff',border:'none',borderRadius:8,padding:'7px 16px',fontWeight:600,fontSize:13,cursor:'pointer',fontFamily:'inherit',opacity:saving?0.6:1}}>{saving?'Salvando...':'Cadastrar'}</button></div>
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }
