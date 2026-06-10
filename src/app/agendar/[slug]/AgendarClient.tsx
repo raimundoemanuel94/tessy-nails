@@ -1,5 +1,6 @@
 // @ts-nocheck
 'use client'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -41,6 +42,7 @@ function hexToRgb(hex: string) {
 export default function AgendarClient({ studio, services, settings }: { studio:Studio; services:Service[]; settings:Settings }) {
   const brand = studio.brand_color || '#7C5CBF'
   const rgb   = hexToRgb(brand)
+  const router = useRouter()
 
   const [step, setStep]           = useState<'service'|'date'|'time'|'info'|'done'>('service')
   const [selSvc, setSelSvc]       = useState<Service | null>(null)
@@ -119,6 +121,7 @@ export default function AgendarClient({ studio, services, settings }: { studio:S
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          studioId: studio.id,
           slug: studio.slug,
           serviceId: selSvc.id,
           appointmentDate: `${selDate}T${selTime}:00`,
@@ -140,6 +143,7 @@ export default function AgendarClient({ studio, services, settings }: { studio:S
 
       setCreatedAppointment(appointment)
       setStep('done')
+      router.replace(`/cliente/agendar/sucesso?appointmentId=${encodeURIComponent(appointment.id)}`)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Não foi possível confirmar o agendamento.'
       setBookingError(message)
@@ -347,7 +351,7 @@ export default function AgendarClient({ studio, services, settings }: { studio:S
               <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Alergias, preferências de esmalte..." rows={3}
                 style={{ padding:'12px 15px', background:C.surface2, border:`1px solid ${C.border2}`, borderRadius:13, color:C.text, fontSize:13, fontFamily:'inherit', outline:'none', resize:'none' }}/>
             </div>
-            <button onClick={submit} disabled={loading || !name || !phone}
+                  <button onClick={submit} disabled={loading || !name || !phone}
               style={{ height:50, borderRadius:14, background:`linear-gradient(135deg,color-mix(in srgb,${brand},white 34%),${brand})`, color:'#fff',
                 fontSize:14, fontWeight:700, border:'none', cursor:'pointer', fontFamily:'inherit',
                 boxShadow:`0 6px 22px rgba(${rgb},.45)`, opacity:(loading||!name||!phone)?0.6:1 }}>

@@ -26,6 +26,7 @@ export async function middleware(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") ||
                      request.nextUrl.pathname.startsWith("/cadastro");
   const isPublicPage = request.nextUrl.pathname.startsWith("/agendar") ||
+                       request.nextUrl.pathname.startsWith("/cliente/agendar/sucesso") ||
                        request.nextUrl.pathname === "/";
   const isApiPublic = request.nextUrl.pathname.startsWith("/api/public");
 

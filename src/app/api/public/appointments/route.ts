@@ -171,10 +171,22 @@ export async function POST(req: Request) {
 
   if (appointmentError || !appointment) return bad("Falha ao criar agendamento", 500);
 
+  const normalizedAppointment = {
+    ...appointment,
+    appointmentId: appointment.id,
+    appointmentDate: appointment.appointment_date,
+    clientName: appointment.client_name,
+    serviceName: appointment.service_name,
+    durationMinutes: appointment.duration_minutes,
+    studioId: appointment.studio_id,
+    serviceId: appointment.service_id,
+    clientId: appointment.client_id,
+  };
+
   return NextResponse.json(
     {
       ok: true,
-      appointment,
+      appointment: normalizedAppointment,
     },
     { status: 201 },
   );
