@@ -131,7 +131,7 @@ export default async function AdminPage() {
                   padding: "16px 22px", textDecoration: "none", transition: "background .15s",
                   borderBottom: i < studioStats.length-1 ? "1px solid var(--border)" : "none",
                   opacity: s.is_active ? 1 : 0.5,
-                }}
+                }}>
                   {/* Logo */}
                   <div style={{
                     width: 46, height: 46, borderRadius: 14, flexShrink: 0,
