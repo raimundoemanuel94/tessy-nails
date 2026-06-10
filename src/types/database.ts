@@ -9,9 +9,9 @@ export interface Database {
         Update: { name?: string; email?: string | null; phone?: string | null; role?: string; studio_id?: string | null; avatar_url?: string | null };
       };
       studios: {
-        Row: { id: string; name: string; slug: string; owner_id: string | null; phone: string | null; address: string | null; avatar_url: string | null; brand_color: string; whatsapp: string | null; instagram: string | null; plan: string; is_active: boolean; trial_ends_at: string | null; created_at: string; updated_at: string };
-        Insert: { name: string; slug: string; owner_id?: string | null; phone?: string | null; address?: string | null; avatar_url?: string | null; brand_color?: string; whatsapp?: string | null; instagram?: string | null; plan?: string; is_active?: boolean };
-        Update: { name?: string; slug?: string; phone?: string | null; address?: string | null; avatar_url?: string | null; brand_color?: string; whatsapp?: string | null; instagram?: string | null; plan?: string; is_active?: boolean };
+        Row: { id: string; name: string; slug: string; owner_id: string | null; phone: string | null; address: string | null; avatar_url: string | null; plan: string; is_active: boolean; trial_ends_at: string | null; created_at: string; updated_at: string };
+        Insert: { name: string; slug: string; owner_id?: string | null; phone?: string | null; address?: string | null; plan?: string; is_active?: boolean };
+        Update: { name?: string; slug?: string; phone?: string | null; address?: string | null; plan?: string; is_active?: boolean };
       };
       salon_settings: {
         Row: { studio_id: string; slot_duration: number; advance_days: number; cancel_hours: number; auto_confirm: boolean; working_hours: Json; updated_at: string };
@@ -37,9 +37,9 @@ export interface Database {
   };
 }
 
-export type Profile       = Database["public"]["Tables"]["profiles"]["Row"];
-export type Studio        = Database["public"]["Tables"]["studios"]["Row"];
-export type Service       = Database["public"]["Tables"]["services"]["Row"];
-export type Client        = Database["public"]["Tables"]["clients"]["Row"];
-export type Appointment   = Database["public"]["Tables"]["appointments"]["Row"];
+export type Profile     = Database["public"]["Tables"]["profiles"]["Row"];
+export type Studio      = Database["public"]["Tables"]["studios"]["Row"];
+export type Service     = Database["public"]["Tables"]["services"]["Row"];
+export type Client      = Database["public"]["Tables"]["clients"]["Row"];
+export type Appointment = Database["public"]["Tables"]["appointments"]["Row"];
 export type SalonSettings = Database["public"]["Tables"]["salon_settings"]["Row"];
