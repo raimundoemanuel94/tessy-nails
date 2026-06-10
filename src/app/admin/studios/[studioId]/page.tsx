@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowLeft, Loader2, Pencil, Trash2, Plus, Check, X, Clock, DollarSign, RefreshCw, Power, Link as LinkIcon, Phone, Instagram } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Trash2, Plus, Check, X, Clock, DollarSign, RefreshCw, Power, Link as LinkIcon, Link2, Unlink, Phone, Instagram } from "lucide-react";
 import { formatCurrency, formatDuration } from "@/lib/utils";
 
 const DAYS = [["monday","Seg"],["tuesday","Ter"],["wednesday","Qua"],["thursday","Qui"],["friday","Sex"],["saturday","Sáb"],["sunday","Dom"]];
@@ -44,6 +44,10 @@ export default function AdminStudioDetailPage() {
   const [services, setServices] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>(null);
   const [owner, setOwner]       = useState<any>(null);
+  const [freePros, setFreePros] = useState<any[]>([]);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkSel, setLinkSel]   = useState("");
+  const [linking, setLinking]   = useState(false);
   const [stats, setStats]       = useState({ appts:0, clients:0, revenue:0 });
   const [loading, setLoading]   = useState(true);
 
@@ -85,6 +89,13 @@ export default function AdminStudioDetailPage() {
     if (s?.owner_id) {
       const { data: ow } = await sb.from("profiles").select("id, name, email, phone").eq("id", s.owner_id).single();
       setOwner(ow);
+    } else {
+      setOwner(null);
+      // Carrega profissionais sem studio para vincular
+      const { data: allStudios } = await sb.from("studios").select("owner_id");
+      const takenIds = (allStudios || []).map((x: any) => x.owner_id).filter(Boolean);
+      const { data: pros } = await sb.from("profiles").select("id, name, email").eq("role", "professional");
+      setFreePros((pros || []).filter((p: any) => !takenIds.includes(p.id)));
     }
     const revenue = (apts||[]).filter((a:any)=>a.status==="completed").reduce((sum:number,a:any)=>sum+(a.price||0),0);
     setStats({ appts:(apts||[]).length, clients:(cls||[]).length, revenue });
@@ -148,6 +159,26 @@ export default function AdminStudioDetailPage() {
     if (data) setServices(p=>[...p,data].sort((a:any,b:any)=>a.name.localeCompare(b.name)));
     setAddingSvc(false); setNewSvcName(""); setNewSvcPrice(""); setNewSvcDur("");
     setSavingSvc(false);
+  }
+
+  async function linkOwner() {
+    if (!linkSel) return;
+    setLinking(true);
+    await Promise.all([
+      sb.from("studios").update({ owner_id: linkSel }).eq("id", studioId),
+      sb.from("profiles").update({ studio_id: studioId }).eq("id", linkSel),
+    ]);
+    await load();
+    setLinking(false); setLinkOpen(false); setLinkSel("");
+  }
+
+  async function unlinkOwner() {
+    if (!owner || !confirm(`Desvincular ${owner.name} deste studio?`)) return;
+    await Promise.all([
+      sb.from("studios").update({ owner_id: null }).eq("id", studioId),
+      sb.from("profiles").update({ studio_id: null }).eq("id", owner.id),
+    ]);
+    await load();
   }
 
   if (loading) return (
@@ -285,14 +316,54 @@ export default function AdminStudioDetailPage() {
                 </div>
               ))}
             </div>
-            {owner && (
+            {owner ? (
               <div style={{ marginTop:14,padding:14,background:"var(--surface2)",borderRadius:12,border:"1px solid var(--border)",display:"flex",alignItems:"center",gap:12 }}>
                 <div style={{ width:40,height:40,borderRadius:12,background:"linear-gradient(135deg,var(--brand),var(--brand-light))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,color:"#fff",fontSize:15,flexShrink:0 }}>{owner.name?.charAt(0)||"?"}</div>
-                <div>
+                <div style={{ flex:1 }}>
                   <div style={{ fontSize:13,fontWeight:700,color:"var(--text)" }}>{owner.name}</div>
                   <div style={{ fontSize:11,color:"var(--muted)" }}>{owner.email}</div>
                 </div>
-                <div style={{ marginLeft:"auto",fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:6,background:"rgba(124,92,191,.15)",color:"var(--brand-light)",border:"1px solid rgba(124,92,191,.25)" }}>Proprietário</div>
+                <span style={{ fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:6,background:"rgba(124,92,191,.15)",color:"var(--brand-light)",border:"1px solid rgba(124,92,191,.25)" }}>Proprietário</span>
+                <button onClick={unlinkOwner} title="Desvincular" style={{ width:32,height:32,borderRadius:9,border:"1px solid rgba(245,90,90,.2)",background:"none",color:"#f87171",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                  <Unlink size={14}/>
+                </button>
+              </div>
+            ) : (
+              <div style={{ marginTop:14 }}>
+                {!linkOpen ? (
+                  <button onClick={()=>setLinkOpen(true)} style={{ display:"flex",alignItems:"center",gap:8,width:"100%",padding:14,borderRadius:12,border:"1px dashed rgba(245,200,66,.4)",background:"rgba(245,200,66,.06)",color:"var(--yellow)",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:700,justifyContent:"center" }}>
+                    <Link2 size={15}/> Vincular profissional a este studio
+                  </button>
+                ) : (
+                  <div style={{ padding:16,borderRadius:12,background:"var(--surface2)",border:"1px solid var(--border2)" }}>
+                    <div style={{ fontSize:11,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",color:"var(--brand-light)",marginBottom:12 }}>Escolha o profissional</div>
+                    {freePros.length === 0 ? (
+                      <div style={{ fontSize:13,color:"var(--muted)",padding:"8px 0" }}>Nenhum profissional disponível. Peça para a manicure criar conta em <b style={{ color:"var(--brand-light)" }}>/login</b> primeiro.</div>
+                    ) : (
+                      <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:12,maxHeight:220,overflow:"auto" }}>
+                        {freePros.map((p:any) => {
+                          const sel = linkSel === p.id;
+                          return (
+                            <button key={p.id} onClick={()=>setLinkSel(p.id)} style={{ display:"flex",alignItems:"center",gap:11,padding:11,borderRadius:11,cursor:"pointer",fontFamily:"inherit",textAlign:"left", border:`1px solid ${sel?"rgba(124,92,191,.5)":"var(--border)"}`, background:sel?"rgba(124,92,191,.1)":"var(--bg)" }}>
+                              <div style={{ width:34,height:34,borderRadius:10,background:"linear-gradient(135deg,var(--brand),var(--brand-light))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,color:"#fff",fontSize:13 }}>{(p.name||"?").charAt(0).toUpperCase()}</div>
+                              <div style={{ flex:1 }}>
+                                <div style={{ fontSize:13,fontWeight:700,color:"var(--text)" }}>{p.name}</div>
+                                <div style={{ fontSize:11,color:"var(--muted)" }}>{p.email}</div>
+                              </div>
+                              {sel && <Check size={15} color="var(--brand-light)"/>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <div style={{ display:"flex",gap:8 }}>
+                      <button onClick={linkOwner} disabled={linking||!linkSel} style={{ display:"flex",alignItems:"center",gap:7,height:38,padding:"0 16px",borderRadius:10,background:"linear-gradient(135deg,var(--brand-light),var(--brand))",color:"#fff",border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:12,opacity:(linking||!linkSel)?0.5:1 }}>
+                        {linking ? <Loader2 size={12} style={{ animation:"spin .8s linear infinite" }}/> : <Check size={12}/>} Vincular
+                      </button>
+                      <button onClick={()=>{setLinkOpen(false);setLinkSel("");}} style={{ height:38,padding:"0 14px",borderRadius:10,border:"1px solid var(--border2)",background:"none",color:"var(--muted)",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:12 }}>Cancelar</button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
