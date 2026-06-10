@@ -200,7 +200,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI CARDS */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
         {loading
           ? [0,1,2,3].map(i=><KpiSkeleton key={i}/>)
           : <>
@@ -218,7 +218,7 @@ export default function DashboardPage() {
       </div>
 
       {/* MAIN GRID: agenda + calendário */}
-      <div style={{display:"grid",gridTemplateColumns:"380px 1fr",gap:16,alignItems:"start"}}>
+      <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1.6fr)",gap:16,alignItems:"start"}}>
 
         {/* ── AGENDA DO DIA ──────────────────────────────────────────────── */}
         <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:20}}>
