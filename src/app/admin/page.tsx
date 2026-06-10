@@ -59,7 +59,7 @@ export default async function AdminPage() {
   const PLAN_C: Record<string,string> = { pro:"var(--brand-light)", starter:"#818cf8", free:"var(--muted)", studio:"var(--gold)" };
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", flexDirection: "column", gap: 28 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
@@ -79,7 +79,7 @@ export default async function AdminPage() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
         {KPIS.map(({ label, value, icon: Icon, color, bg }) => (
           <div key={label} style={{
             position: "relative", overflow: "hidden",

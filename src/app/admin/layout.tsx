@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex min-h-screen" style={{ background: "var(--bg)" }}>
       <AdminSidebar name={profile?.name ?? "Admin"} />
-      <main className="flex-1 md:ml-64 p-4 md:p-6" style={{ minWidth: 0, overflowX: "hidden" }}>
+      <main style={{ flex: 1, marginLeft: 240, padding: "24px 28px", minWidth: 0, overflowX: "hidden", boxSizing: "border-box" }}>
         {children}
       </main>
     </div>
