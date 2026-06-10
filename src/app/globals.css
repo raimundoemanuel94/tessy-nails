@@ -177,6 +177,21 @@ select.input-base { cursor: pointer; }
   background: linear-gradient(90deg, transparent, var(--border2), transparent);
 }
 
+/* ── Dashboard main layout ── */
+.dash-main {
+  flex: 1;
+  min-width: 0;
+  margin-left: 240px;
+  padding: 28px 32px;
+  box-sizing: border-box;
+}
+@media (max-width: 768px) {
+  .dash-main {
+    margin-left: 0;
+    padding: 16px 16px 80px;
+  }
+}
+
 /* ── Auth layout ── */
 .auth-bg {
   min-height: 100vh;
