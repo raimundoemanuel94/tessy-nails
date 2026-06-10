@@ -1,190 +1,111 @@
 // @ts-nocheck
-"use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { toast } from "sonner";
-import { Loader2, Sparkles, Eye, EyeOff, ArrowRight } from "lucide-react";
+'use client'
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail]       = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName]         = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [social, setSocial]     = useState<"google"|"apple"|null>(null);
-  const [isRegister, setIsRegister] = useState(false);
-  const supabase = createClient();
+  const [email, setEmail]       = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
+  const router = useRouter()
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    if (isRegister) {
-      const { error } = await supabase.auth.signUp({
-        email, password,
-        options: { data: { name: name || email.split("@")[0] } },
-      });
-      if (error) { toast.error(error.message); setLoading(false); return; }
-      toast.success("Conta criada! Verifique seu e-mail.");
-      setLoading(false);
-      return;
-    }
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { toast.error("E-mail ou senha incorretos."); setLoading(false); return; }
-    router.push("/");
-    router.refresh();
-  }
-
-  async function signInWith(provider: "google"|"apple") {
-    setSocial(provider);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) { toast.error(error.message); setSocial(null); }
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true); setError('')
+    const sb = createClient()
+    const { error: err } = await sb.auth.signInWithPassword({ email, password })
+    if (err) { setError('Email ou senha incorretos.'); setLoading(false); return }
+    // redirect handled by middleware + root page
+    router.push('/')
+    router.refresh()
   }
 
   return (
-    <div className="auth-bg">
-      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 400 }}>
+    <div style={{
+      minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center',
+      background:'#080612', fontFamily:'"Plus Jakarta Sans",-apple-system,sans-serif', padding:16,
+      backgroundImage:'radial-gradient(600px circle at 50% -100px, rgba(124,92,191,.22), transparent 70%)',
+    }}>
+      {/* Grain texture */}
+      <div style={{ position:'fixed', inset:0, opacity:.025, pointerEvents:'none',
+        backgroundImage:'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'120\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'3\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }}/>
 
-        {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <div style={{
-            width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px",
-            background: "linear-gradient(135deg, #7C5CBF 0%, #9D7FD4 100%)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 8px 32px rgba(124,92,191,0.4)",
-          }}>
-            <Sparkles size={28} color="#fff" />
+      <div style={{ width:'100%', maxWidth:400, display:'flex', flexDirection:'column', gap:28, position:'relative' }}>
+
+        {/* Logo + brand */}
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:14 }}>
+          <div style={{ width:64, height:64, borderRadius:20, background:'linear-gradient(140deg,#9D7FD4,#7C5CBF)',
+            display:'flex', alignItems:'center', justifyContent:'center', fontSize:30,
+            boxShadow:'0 8px 30px rgba(124,92,191,.5), inset 0 1px 0 rgba(255,255,255,.25)' }}>
+            💅
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 900, color: "var(--text)" }}>Nailit</h1>
-          <p style={{ fontSize: 14, color: "var(--muted)", marginTop: 4 }}>ERP Premium para Manicures</p>
+          <div style={{ textAlign:'center' }}>
+            <div style={{ fontFamily:'Georgia,serif', fontSize:28, fontWeight:600, color:'#fff', letterSpacing:'-.02em' }}>Nailit</div>
+            <div style={{ fontSize:10, color:'#7C5CBF', fontWeight:700, letterSpacing:'.22em', marginTop:2 }}>STUDIO MANAGER</div>
+          </div>
         </div>
 
         {/* Card */}
-        <div className="card-glass" style={{ padding: 28 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--text)", marginBottom: 24 }}>
-            {isRegister ? "Criar sua conta" : "Bem-vinda de volta"}
-          </h2>
+        <div style={{ position:'relative', background:'linear-gradient(180deg,#1A1530,#120F22)',
+          border:'1px solid rgba(255,255,255,.07)', borderRadius:24, padding:28,
+          boxShadow:'0 24px 60px rgba(0,0,0,.5)' }}>
+          {/* top edge light */}
+          <div style={{ position:'absolute', inset:0, borderRadius:24, padding:1,
+            background:'linear-gradient(180deg,rgba(255,255,255,.12),transparent 40%)',
+            WebkitMask:'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
+            WebkitMaskComposite:'xor', maskComposite:'exclude', pointerEvents:'none' }}/>
 
-          {/* Social buttons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
-            <button
-              onClick={() => signInWith("google")}
-              disabled={!!social}
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                height: 46, borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)",
-                background: "rgba(255,255,255,0.05)", color: "var(--text)",
-                fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "all .15s",
-              }}
-            >
-              {social === "google" ? <Loader2 size={16} className="animate-spin" /> : (
-                <svg width="18" height="18" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-              )}
-              Continuar com Google
-            </button>
+          <h2 style={{ fontFamily:'Georgia,serif', fontSize:22, fontWeight:600, color:'#fff', margin:'0 0 6px', letterSpacing:'-.01em' }}>Entrar na sua conta</h2>
+          <p style={{ fontSize:12, color:'#736C8E', margin:'0 0 24px' }}>Gerencie seu studio com estilo ✨</p>
 
-            <button
-              onClick={() => signInWith("apple")}
-              disabled={!!social}
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                height: 46, borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)",
-                background: "rgba(255,255,255,0.05)", color: "var(--text)",
-                fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "all .15s",
-              }}
-            >
-              {social === "apple" ? <Loader2 size={16} className="animate-spin" /> : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                </svg>
-              )}
-              Continuar com Apple
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-            <div className="divider" style={{ flex: 1 }} />
-            <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>ou</span>
-            <div className="divider" style={{ flex: 1 }} />
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {isRegister && (
-              <input
-                className="input-base"
-                placeholder="Seu nome completo"
-                value={name}
-                onChange={e => setName(e.target.value)}
-              />
-            )}
-            <input
-              className="input-base"
-              type="email"
-              placeholder="E-mail"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
-            <div style={{ position: "relative" }}>
-              <input
-                className="input-base"
-                type={showPass ? "text" : "password"}
-                placeholder="Senha"
-                required
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                style={{ paddingRight: 46 }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPass(v => !v)}
-                style={{
-                  position: "absolute", right: 14, top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none", border: "none", cursor: "pointer",
-                  color: "var(--muted)", display: "flex", padding: 0,
-                }}
-              >
-                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+          <form onSubmit={handleLogin} style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
+              <label style={{ fontSize:10, color:'#736C8E', fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase' }}>Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+                placeholder="seu@email.com" autoComplete="email"
+                style={{ height:46, padding:'0 15px', background:'#0D0A1A', border:'1px solid rgba(255,255,255,.12)',
+                  borderRadius:13, color:'#F4F2FB', fontSize:14, fontFamily:'inherit', outline:'none',
+                  transition:'.15s' }}
+                onFocus={e => e.target.style.borderColor='#7C5CBF'}
+                onBlur={e => e.target.style.borderColor='rgba(255,255,255,.12)'}/>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary"
-              style={{ marginTop: 4, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-            >
-              {loading
-                ? <Loader2 size={16} className="animate-spin" />
-                : <>{isRegister ? "Criar conta" : "Entrar"} <ArrowRight size={16} /></>
-              }
+            <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
+              <label style={{ fontSize:10, color:'#736C8E', fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase' }}>Senha</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
+                placeholder="••••••••" autoComplete="current-password"
+                style={{ height:46, padding:'0 15px', background:'#0D0A1A', border:'1px solid rgba(255,255,255,.12)',
+                  borderRadius:13, color:'#F4F2FB', fontSize:14, fontFamily:'inherit', outline:'none',
+                  transition:'.15s' }}
+                onFocus={e => e.target.style.borderColor='#7C5CBF'}
+                onBlur={e => e.target.style.borderColor='rgba(255,255,255,.12)'}/>
+            </div>
+
+            {error && (
+              <div style={{ background:'rgba(245,90,90,.1)', border:'1px solid rgba(245,90,90,.25)', borderRadius:10,
+                padding:'10px 14px', fontSize:12, color:'#f55a5a', display:'flex', alignItems:'center', gap:8 }}>
+                ⚠ {error}
+              </div>
+            )}
+
+            <button type="submit" disabled={loading}
+              style={{ height:48, borderRadius:14, background:'linear-gradient(135deg,#9D7FD4,#7C5CBF)', color:'#fff',
+                fontSize:14, fontWeight:700, border:'none', cursor:'pointer', fontFamily:'inherit', marginTop:6,
+                boxShadow:'0 6px 22px rgba(124,92,191,.4), inset 0 1px 0 rgba(255,255,255,.2)',
+                opacity:loading?0.7:1, transition:'.15s' }}>
+              {loading ? 'Entrando...' : 'Entrar no studio'}
             </button>
           </form>
+        </div>
 
-          <p style={{ textAlign: "center", fontSize: 13, color: "var(--muted)", marginTop: 20 }}>
-            {isRegister ? "Já tem conta?" : "Não tem conta?"}{" "}
-            <button
-              onClick={() => setIsRegister(v => !v)}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--brand-light)", fontWeight: 700, fontSize: 13 }}
-            >
-              {isRegister ? "Entrar" : "Criar conta"}
-            </button>
-          </p>
+        {/* Footer */}
+        <div style={{ textAlign:'center', fontSize:11, color:'#736C8E' }}>
+          Nailit SaaS · Feito com 💅 para manicures
         </div>
       </div>
     </div>
-  );
+  )
 }
 
