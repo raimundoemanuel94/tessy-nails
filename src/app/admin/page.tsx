@@ -132,8 +132,6 @@ export default async function AdminPage() {
                   borderBottom: i < studioStats.length-1 ? "1px solid var(--border)" : "none",
                   opacity: s.is_active ? 1 : 0.5,
                 }}
-                  onMouseEnter={(e: any) => e.currentTarget.style.background = "var(--surface2)"}
-                  onMouseLeave={(e: any) => e.currentTarget.style.background = "transparent"}>
                   {/* Logo */}
                   <div style={{
                     width: 46, height: 46, borderRadius: 14, flexShrink: 0,
