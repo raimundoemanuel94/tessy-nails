@@ -1,226 +1,280 @@
 // @ts-nocheck
-'use client'
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import type { Studio, SalonSettings } from '@/types/database'
+"use client";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
+import { Loader2, Save, Clock, Palette, Phone, AtSign, Globe } from "lucide-react";
 
-const C = { bg:'#080612',card:'#10101f',card2:'#17172a',border:'#1c1c36',border2:'#26264a',purple:'#7C5CBF',green:'#22d47b',text:'#F4F2FB',muted:'#736C8E' }
+const DAYS = [
+  { key: "monday",    label: "Segunda-feira" },
+  { key: "tuesday",   label: "Terça-feira" },
+  { key: "wednesday", label: "Quarta-feira" },
+  { key: "thursday",  label: "Quinta-feira" },
+  { key: "friday",    label: "Sexta-feira" },
+  { key: "saturday",  label: "Sábado" },
+  { key: "sunday",    label: "Domingo" },
+];
 
-function Field({ label, value, onChange, type='text', placeholder }: { label:string; value:string|number; onChange:(v:string)=>void; type?:string; placeholder?:string }) {
-  return (
-    <div style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:14 }}>
-      <label style={{ fontSize:10, color:C.muted, fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase' }}>{label}</label>
-      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder}
-        style={{ background:C.bg, border:`1px solid ${C.border2}`, borderRadius:8, padding:'9px 13px', color:C.text, fontSize:13, fontFamily:'inherit', outline:'none' }}/>
-    </div>
-  )
-}
-
-function Toggle({ on, onClick }: { on:boolean; onClick:()=>void }) {
-  return (
-    <button onClick={onClick} style={{ width:42, height:24, borderRadius:12, border:'none', cursor:'pointer', position:'relative', background:on?C.purple:C.border2, transition:'background 0.2s', flexShrink:0 }}>
-      <div style={{ position:'absolute', top:3, width:18, height:18, borderRadius:9, background:'#fff', transition:'left 0.2s', left:on?21:3, boxShadow:'0 2px 6px rgba(0,0,0,.3)' }}/>
-    </button>
-  )
-}
-
-const DAYS: [string, string][] = [
-  ['monday','Segunda'],['tuesday','Terça'],['wednesday','Quarta'],
-  ['thursday','Quinta'],['friday','Sexta'],['saturday','Sábado'],['sunday','Domingo']
-]
+const DEFAULT_HOURS = {
+  monday:    { is_open: true,  open: "09:00", close: "18:00" },
+  tuesday:   { is_open: true,  open: "09:00", close: "18:00" },
+  wednesday: { is_open: true,  open: "09:00", close: "18:00" },
+  thursday:  { is_open: true,  open: "09:00", close: "18:00" },
+  friday:    { is_open: true,  open: "09:00", close: "18:00" },
+  saturday:  { is_open: true,  open: "09:00", close: "13:00" },
+  sunday:    { is_open: false, open: "09:00", close: "13:00" },
+};
 
 export default function ConfiguracoesPage() {
-  const [studio, setStudio]     = useState<Studio | null>(null)
-  const [settings, setSettings] = useState<SalonSettings | null>(null)
-  const [loading, setLoading]   = useState(true)
-  const [saving, setSaving]     = useState(false)
-  const [saved, setSaved]       = useState(false)
-  const [tab, setTab]           = useState('studio')
+  const supabase = createClient();
+
+  const [loading, setLoading]     = useState(true);
+  const [saving, setSaving]       = useState(false);
+  const [studioId, setStudioId]   = useState<string | null>(null);
+
+  // Studio fields
+  const [name, setName]           = useState("");
+  const [phone, setPhone]         = useState("");
+  const [address, setAddress]     = useState("");
+  const [whatsapp, setWhatsapp]   = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [brandColor, setBrandColor] = useState("#7C5CBF");
+
+  // Salon settings
+  const [slotDuration, setSlotDuration] = useState(30);
+  const [advanceDays, setAdvanceDays]   = useState(30);
+  const [autoConfirm, setAutoConfirm]   = useState(true);
+  const [workingHours, setWorkingHours] = useState<Record<string, { is_open: boolean; open: string; close: string }>>(DEFAULT_HOURS);
 
   useEffect(() => {
-    const load = async () => {
-      const sb = createClient()
-      const { data: { user } } = await sb.auth.getUser()
-      if (!user) return
-      const { data: p } = await sb.from('profiles').select('studio_id').eq('id', user.id).single()
-      if (!p || !p.studio_id) return
-      const [{ data: s }, { data: cfg }] = await Promise.all([
-        sb.from('studios').select('*').eq('id', p.studio_id).single(),
-        sb.from('salon_settings').select('*').eq('studio_id', p.studio_id).single()
-      ])
-      setStudio(s); setSettings(cfg); setLoading(false)
-    }
-    load()
-  }, [])
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-  const saveAll = async () => {
-    if (!studio || !settings) return
-    setSaving(true)
-    const sb = createClient()
-    await Promise.all([
-      sb.from('studios').update({
-        name: studio.name, phone: studio.phone, address: studio.address,
-        whatsapp: studio.whatsapp, instagram: studio.instagram, brand_color: studio.brand_color
-      }).eq('id', studio.id),
-      sb.from('salon_settings').update({
-        slot_duration: settings.slot_duration, cancel_hours: settings.cancel_hours,
-        auto_confirm: settings.auto_confirm, working_hours: settings.working_hours
-      }).eq('studio_id', settings.studio_id)
-    ])
-    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 2500)
+      const { data: profile } = await supabase
+        .from("profiles").select("studio_id").eq("id", user.id).single();
+      if (!profile?.studio_id) return;
+
+      setStudioId(profile.studio_id);
+
+      const [{ data: studio }, { data: settings }] = await Promise.all([
+        supabase.from("studios")
+          .select("name, phone, address, whatsapp, instagram, brand_color")
+          .eq("id", profile.studio_id).single(),
+        supabase.from("salon_settings")
+          .select("working_hours, slot_duration, advance_days, auto_confirm")
+          .eq("studio_id", profile.studio_id).single(),
+      ]);
+
+      if (studio) {
+        setName(studio.name ?? "");
+        setPhone(studio.phone ?? "");
+        setAddress(studio.address ?? "");
+        setWhatsapp(studio.whatsapp ?? "");
+        setInstagram(studio.instagram ?? "");
+        setBrandColor(studio.brand_color ?? "#7C5CBF");
+      }
+
+      if (settings) {
+        setSlotDuration(settings.slot_duration ?? 30);
+        setAdvanceDays(settings.advance_days ?? 30);
+        setAutoConfirm(settings.auto_confirm ?? true);
+
+        // Merge: respects existing keys, fills missing with defaults
+        if (settings.working_hours) {
+          setWorkingHours(prev => {
+            const merged = { ...prev };
+            for (const day of DAYS) {
+              const existing = settings.working_hours[day.key];
+              if (existing) {
+                merged[day.key] = {
+                  is_open: existing.is_open ?? prev[day.key].is_open,
+                  open:    existing.open    ?? prev[day.key].open,
+                  close:   existing.close   ?? prev[day.key].close,
+                };
+              }
+            }
+            return merged;
+          });
+        }
+      }
+
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  function setDay(key: string, field: "is_open" | "open" | "close", value: any) {
+    setWorkingHours(prev => ({
+      ...prev,
+      [key]: { ...prev[key], [field]: value },
+    }));
   }
 
-  // working_hours usa formato correto: { monday: { is_open, open, close } }
-  const wh = (settings?.working_hours as any) || {}
-  const setWh = (day: string, field: string, val: any) =>
-    setSettings(s => s ? { ...s, working_hours: { ...wh, [day]: { ...wh[day], [field]: val } } } : s)
+  async function saveStudio() {
+    if (!studioId) return;
+    setSaving(true);
+    const { error } = await supabase.from("studios").update({
+      name, phone: phone || null, address: address || null,
+      whatsapp: whatsapp || null, instagram: instagram || null,
+      brand_color: brandColor,
+      updated_at: new Date().toISOString(),
+    }).eq("id", studioId);
+    if (error) { toast.error(error.message); setSaving(false); return; }
+    toast.success("Studio salvo!");
+    setSaving(false);
+  }
 
-  if (loading) return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', flexDirection:'column', gap:12 }}>
-      <div style={{ width:34, height:34, borderRadius:'50%', border:`3px solid ${C.purple}`, borderTopColor:'transparent', animation:'spin 0.8s linear infinite' }}/>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  )
+  async function saveSettings() {
+    if (!studioId) return;
+    setSaving(true);
 
-  const TABS = [{ id:'studio', l:'📍 Studio' }, { id:'horarios', l:'◷ Horários' }, { id:'pref', l:'⚙ Pref.' }]
+    // Upsert preserves working_hours structure (is_open, open, close)
+    const { error } = await supabase.from("salon_settings").upsert({
+      studio_id: studioId,
+      slot_duration: slotDuration,
+      advance_days: advanceDays,
+      auto_confirm: autoConfirm,
+      working_hours: workingHours,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "studio_id" });
+
+    if (error) { toast.error(error.message); setSaving(false); return; }
+    toast.success("Configurações salvas!");
+    setSaving(false);
+  }
+
+  if (loading) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200 }}>
+        <Loader2 size={24} className="animate-spin" style={{ color: "var(--muted)" }} />
+      </div>
+    );
+  }
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:20, maxWidth:700 }}>
-      <div>
-        <h1 style={{ fontSize:20, fontWeight:800, color:'#fff', margin:0 }}>Configurações</h1>
-        <p style={{ color:C.muted, fontSize:12, margin:'3px 0 0' }}>Personalize o seu studio</p>
-      </div>
+    <div style={{ maxWidth: 700, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", marginBottom: 24 }}>Configurações</h1>
 
-      {/* Tabs */}
-      <div style={{ display:'flex', gap:4, background:C.card2, borderRadius:12, padding:5, border:`1px solid ${C.border}` }}>
-        {TABS.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ flex:1, padding:'9px', borderRadius:9, border:'none', cursor:'pointer',
-              background:tab===t.id?`linear-gradient(135deg,#9D7FD4,${C.purple})`:'transparent',
-              color:tab===t.id?'#fff':C.muted, fontFamily:'inherit', fontSize:12, fontWeight:600,
-              boxShadow:tab===t.id?'0 4px 14px rgba(124,92,191,.4)':'none', transition:'all .15s' }}>
-            {t.l}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab: Studio */}
-      {tab === 'studio' && studio && (
-        <>
-          {/* Identidade da marca */}
-          <div style={{ position:'relative', overflow:'hidden', borderRadius:18, padding:18,
-            background:`linear-gradient(135deg,rgba(124,92,191,.25),${C.card})`,
-            border:`1px solid rgba(124,92,191,.35)` }}>
-            <div style={{ position:'absolute', top:-40, right:-30, width:130, height:130, borderRadius:'50%', background:studio.brand_color||C.purple, opacity:.18, filter:'blur(30px)' }}/>
-            <div style={{ position:'relative', display:'flex', alignItems:'center', gap:14, marginBottom:16 }}>
-              <div style={{ width:52, height:52, borderRadius:16, background:`linear-gradient(140deg,${studio.brand_color||C.purple},rgba(0,0,0,.4))`,
-                display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, fontWeight:800, color:'#fff',
-                boxShadow:`0 6px 20px ${studio.brand_color||C.purple}55` }}>
-                {studio.avatar_url
-                  ? <img src={studio.avatar_url} style={{ width:'100%', height:'100%', borderRadius:14, objectFit:'cover' }} alt="logo"/>
-                  : (studio.name||'?').slice(0,2).toUpperCase()
-                }
-              </div>
-              <div>
-                <div style={{ fontFamily:'Georgia,serif', fontSize:18, fontWeight:600, color:'#fff' }}>{studio.name}</div>
-                <div style={{ fontSize:11, color:'rgba(255,255,255,.5)' }}>Identidade da marca</div>
+      {/* Studio info */}
+      <section className="card" style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 14, fontWeight: 800, color: "var(--text)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+          <Globe size={15} style={{ color: "var(--brand-light)" }} /> Dados do Studio
+        </h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: 6 }}>Nome do studio</label>
+            <input className="input-base" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Tessy Nails" />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: 6 }}>Telefone</label>
+              <input className="input-base" value={phone} onChange={e => setPhone(e.target.value)} placeholder="(11) 99999-9999" />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: 6 }}>
+                <Phone size={12} style={{ display: "inline", marginRight: 4 }} />WhatsApp
+              </label>
+              <input className="input-base" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="5511999999999" />
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: 6 }}>
+                <AtSign size={12} style={{ display: "inline", marginRight: 4 }} />Instagram
+              </label>
+              <input className="input-base" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@tessystudio" />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: 6 }}>
+                <Palette size={12} style={{ display: "inline", marginRight: 4 }} />Cor da marca
+              </label>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <input type="color" value={brandColor} onChange={e => setBrandColor(e.target.value)}
+                  style={{ width: 40, height: 40, borderRadius: 8, border: "1px solid var(--border)", background: "none", cursor: "pointer", padding: 2 }} />
+                <input className="input-base" value={brandColor} onChange={e => setBrandColor(e.target.value)}
+                  style={{ flex: 1, fontFamily: "monospace" }} placeholder="#7C5CBF" />
               </div>
             </div>
-            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-              <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
-                <label style={{ fontSize:10, color:C.muted, fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase' }}>Cor principal</label>
-                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                  <input type="color" value={studio.brand_color||'#7C5CBF'}
-                    onChange={e => setStudio(s => s ? { ...s, brand_color: e.target.value } : s)}
-                    style={{ width:42, height:42, border:'none', background:'none', cursor:'pointer', borderRadius:10, padding:0 }}/>
-                  <div>
-                    <div style={{ fontSize:13, fontWeight:700, fontFamily:'monospace', color:'#fff' }}>{(studio.brand_color||'#7C5CBF').toUpperCase()}</div>
-                    <div style={{ fontSize:10, color:C.muted }}>toca pra mudar</div>
-                  </div>
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: 6 }}>Endereço</label>
+            <input className="input-base" value={address} onChange={e => setAddress(e.target.value)} placeholder="Rua, número, bairro" />
+          </div>
+          <button className="btn-primary" onClick={saveStudio} disabled={saving} style={{ alignSelf: "flex-end", display: "flex", alignItems: "center", gap: 8 }}>
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Salvar dados
+          </button>
+        </div>
+      </section>
+
+      {/* Agendamento settings */}
+      <section className="card" style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 14, fontWeight: 800, color: "var(--text)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+          <Clock size={15} style={{ color: "var(--brand-light)" }} /> Agendamento Online
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 16 }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: 6 }}>Slot (min)</label>
+            <select className="input-base" value={slotDuration} onChange={e => setSlotDuration(Number(e.target.value))}>
+              {[15, 20, 30, 45, 60].map(v => <option key={v} value={v}>{v} min</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: 6 }}>Antecedência (dias)</label>
+            <input className="input-base" type="number" min={1} max={90} value={advanceDays}
+              onChange={e => setAdvanceDays(Number(e.target.value))} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, color: "var(--text)", fontWeight: 600, paddingBottom: 10 }}>
+              <input type="checkbox" checked={autoConfirm} onChange={e => setAutoConfirm(e.target.checked)}
+                style={{ width: 16, height: 16, accentColor: "var(--brand)" }} />
+              Confirmar automaticamente
+            </label>
+          </div>
+        </div>
+
+        {/* Working hours */}
+        <h3 style={{ fontSize: 12, fontWeight: 800, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 }}>
+          Horário de funcionamento
+        </h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {DAYS.map(({ key, label }) => {
+            const day = workingHours[key] ?? DEFAULT_HOURS[key];
+            return (
+              <div key={key} style={{
+                display: "grid", gridTemplateColumns: "140px 40px 1fr 1fr", alignItems: "center", gap: 10,
+                padding: "10px 12px", borderRadius: 10,
+                background: day.is_open ? "rgba(124,92,191,0.06)" : "var(--surface3)",
+                border: `1px solid ${day.is_open ? "rgba(124,92,191,0.2)" : "var(--border)"}`,
+                transition: "all .15s"
+              }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: day.is_open ? "var(--text)" : "var(--muted)" }}>{label}</span>
+                <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                  <input type="checkbox" checked={day.is_open} onChange={e => setDay(key, "is_open", e.target.checked)}
+                    style={{ width: 16, height: 16, accentColor: "var(--brand)" }} />
+                </label>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, opacity: day.is_open ? 1 : 0.4 }}>
+                  <span style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap" }}>Abre</span>
+                  <input className="input-base" type="time" value={day.open} disabled={!day.is_open}
+                    onChange={e => setDay(key, "open", e.target.value)}
+                    style={{ fontSize: 13, padding: "6px 10px" }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, opacity: day.is_open ? 1 : 0.4 }}>
+                  <span style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap" }}>Fecha</span>
+                  <input className="input-base" type="time" value={day.close} disabled={!day.is_open}
+                    onChange={e => setDay(key, "close", e.target.value)}
+                    style={{ fontSize: 13, padding: "6px 10px" }} />
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:18, padding:20 }}>
-            <Field label="Nome do studio" value={studio.name} onChange={v => setStudio(s => s ? { ...s, name:v } : s)}/>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-              <Field label="Telefone" value={studio.phone||''} onChange={v => setStudio(s => s ? { ...s, phone:v } : s)} placeholder="(66) 99999-0000"/>
-              <Field label="WhatsApp" value={studio.whatsapp||''} onChange={v => setStudio(s => s ? { ...s, whatsapp:v } : s)} placeholder="(66) 99999-0000"/>
-            </div>
-            <Field label="Endereço" value={studio.address||''} onChange={v => setStudio(s => s ? { ...s, address:v } : s)} placeholder="Rua, número, cidade"/>
-            <Field label="Instagram" value={studio.instagram||''} onChange={v => setStudio(s => s ? { ...s, instagram:v } : s)} placeholder="@seustudio"/>
-            <div style={{ display:'flex', alignItems:'center', gap:8, background:C.card2, borderRadius:10, padding:'10px 13px' }}>
-              <span style={{ width:7, height:7, borderRadius:'50%', background:C.green, boxShadow:`0 0 8px ${C.green}` }}/>
-              <span style={{ fontSize:11, color:C.muted }}>{studio.slug}.nailit.app · <b style={{ color:'#f0b64a' }}>Plano {studio.plan}</b></span>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Tab: Horários */}
-      {tab === 'horarios' && settings && (
-        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:18, padding:20, display:'flex', flexDirection:'column', gap:14 }}>
-          {DAYS.map(([key, label]) => {
-            const h = wh[key] || { is_open: false, open: '09:00', close: '18:00' }
-            return (
-              <div key={key} style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <Toggle on={!!h.is_open} onClick={() => setWh(key, 'is_open', !h.is_open)}/>
-                <span style={{ fontSize:13, color:h.is_open?C.text:C.muted, minWidth:84, fontWeight:h.is_open?600:400 }}>{label}</span>
-                {h.is_open ? (
-                  <>
-                    <input type="time" value={h.open||'09:00'} onChange={e => setWh(key, 'open', e.target.value)}
-                      style={{ background:C.bg, border:`1px solid ${C.border2}`, borderRadius:8, padding:'6px 10px', color:C.text, fontSize:12, fontFamily:'inherit' }}/>
-                    <span style={{ color:C.muted, fontSize:11 }}>até</span>
-                    <input type="time" value={h.close||'18:00'} onChange={e => setWh(key, 'close', e.target.value)}
-                      style={{ background:C.bg, border:`1px solid ${C.border2}`, borderRadius:8, padding:'6px 10px', color:C.text, fontSize:12, fontFamily:'inherit' }}/>
-                  </>
-                ) : (
-                  <span style={{ fontSize:11, color:'#2a2a46' }}>Fechado</span>
-                )}
-              </div>
-            )
+            );
           })}
         </div>
-      )}
 
-      {/* Tab: Preferências */}
-      {tab === 'pref' && settings && (
-        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:18, padding:20, display:'flex', flexDirection:'column', gap:16 }}>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-            <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
-              <label style={{ fontSize:10, color:C.muted, fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase' }}>Slot de agendamento</label>
-              <select value={settings.slot_duration} onChange={e => setSettings(s => s ? { ...s, slot_duration: Number(e.target.value) } : s)}
-                style={{ background:C.bg, border:`1px solid ${C.border2}`, borderRadius:8, padding:'9px 13px', color:C.text, fontSize:13, fontFamily:'inherit', outline:'none' }}>
-                {[15,30,45,60].map(v => <option key={v} value={v} style={{ background:C.card2 }}>{v} minutos</option>)}
-              </select>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
-              <label style={{ fontSize:10, color:C.muted, fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase' }}>Cancelamento mín.</label>
-              <select value={settings.cancel_hours} onChange={e => setSettings(s => s ? { ...s, cancel_hours: Number(e.target.value) } : s)}
-                style={{ background:C.bg, border:`1px solid ${C.border2}`, borderRadius:8, padding:'9px 13px', color:C.text, fontSize:13, fontFamily:'inherit', outline:'none' }}>
-                {[1,2,6,12,24,48].map(v => <option key={v} value={v} style={{ background:C.card2 }}>{v}h antes</option>)}
-              </select>
-            </div>
-          </div>
-          <div style={{ display:'flex', alignItems:'center', gap:14, padding:14, background:C.card2, borderRadius:12, border:`1px solid ${C.border}` }}>
-            <Toggle on={!!settings.auto_confirm} onClick={() => setSettings(s => s ? { ...s, auto_confirm: !s.auto_confirm } : s)}/>
-            <div>
-              <div style={{ fontSize:13, fontWeight:600, color:C.text }}>Confirmação automática</div>
-              <div style={{ fontSize:11, color:C.muted }}>Agendamentos públicos confirmam sozinhos</div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Salvar */}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:10 }}>
-        {saved && <span style={{ fontSize:12, color:C.green }}>✓ Salvo com sucesso!</span>}
-        <button onClick={saveAll} disabled={saving}
-          style={{ background:`linear-gradient(135deg,#9D7FD4,${C.purple})`, color:'#fff', border:'none', borderRadius:12, padding:'10px 24px', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit', opacity:saving?0.6:1, boxShadow:'0 4px 16px rgba(124,92,191,.4)' }}>
-          {saving ? 'Salvando...' : 'Salvar configurações'}
+        <button className="btn-primary" onClick={saveSettings} disabled={saving}
+          style={{ marginTop: 16, alignSelf: "flex-end", display: "flex", alignItems: "center", gap: 8 }}>
+          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Salvar configurações
         </button>
-      </div>
+      </section>
     </div>
-  )
+  );
 }

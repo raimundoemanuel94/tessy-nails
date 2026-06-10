@@ -1,232 +1,305 @@
 // @ts-nocheck
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { Building2, Users, CalendarDays, TrendingUp, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { formatCurrency } from "@/lib/utils";
-import {
-  DollarSign, Building2, Users, TrendingUp, TrendingDown,
-  AlertTriangle, Clock, Sparkles, ArrowUpRight, ArrowRight, CheckCircle2, XCircle
-} from "lucide-react";
-import { AdminCharts } from "./AdminCharts";
 
 export const dynamic = "force-dynamic";
 
-function daysUntil(date: string | null): number | null {
-  if (!date) return null;
-  const d = new Date(date); d.setHours(0,0,0,0);
-  const now = new Date(); now.setHours(0,0,0,0);
-  return Math.round((d.getTime() - now.getTime()) / 86400000);
-}
+const fmt = (n: number) => `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+const PLAN_COLOR: Record<string, { bg: string; color: string; border: string }> = {
+  pro:     { bg: "rgba(167,139,250,0.12)", color: "#a78bfa", border: "rgba(167,139,250,0.25)" },
+  starter: { bg: "rgba(96,165,250,0.12)",  color: "#60a5fa", border: "rgba(96,165,250,0.25)"  },
+  free:    { bg: "rgba(107,107,154,0.12)", color: "#6b6b9a", border: "rgba(107,107,154,0.25)" },
+  studio:  { bg: "rgba(244,114,182,0.12)", color: "#f472b6", border: "rgba(244,114,182,0.25)" },
+};
 
 export default async function AdminPage() {
-  const sb = await createClient();
-  const { data: { user } } = await sb.auth.getUser();
-  if (!user) redirect("/login");
-  const { data: me } = await sb.from("profiles").select("role, name").eq("id", user.id).single();
-  if (me?.role !== "superadmin") redirect("/dashboard");
+  const supabase = await createClient();
 
-  const [
-    { data: studios },
-    { data: allProfiles },
-    { data: prices },
-  ] = await Promise.all([
-    sb.from("studios").select("id, name, slug, plan, is_active, brand_color, avatar_url, created_at, subscription_status, next_billing_date, mrr, trial_ends_at").order("created_at", { ascending: false }),
-    sb.from("profiles").select("id, role"),
-    sb.from("plan_prices").select("plan, price, label"),
+  const [{ data: studios }, { data: profiles }, { data: appts }] = await Promise.all([
+    supabase.from("studios").select("id, name, slug, plan, is_active, created_at").order("created_at", { ascending: false }),
+    supabase.from("profiles").select("id, role"),
+    supabase.from("appointments").select("price, status"),
   ]);
 
-  const studioList = studios || [];
-  const priceMap = Object.fromEntries((prices || []).map(p => [p.plan, p]));
+  const totalStudios  = studios?.length ?? 0;
+  const activeStudios = studios?.filter(s => s.is_active).length ?? 0;
+  const totalUsers    = profiles?.length ?? 0;
+  const totalAppts    = appts?.length ?? 0;
+  const pending       = appts?.filter(a => a.status === "pending").length ?? 0;
+  const totalRevenue  = appts?.filter(a => a.status === "completed").reduce((s, a) => s + (a.price ?? 0), 0) ?? 0;
+  const recentStudios = (studios ?? []).slice(0, 6);
 
-  // ===== MÉTRICAS DE NEGÓCIO (SaaS) =====
-  const activeSubors = studioList.filter(s => s.subscription_status === "active");
-  const mrr          = activeSubors.reduce((sum, s) => sum + Number(s.mrr || 0), 0);
-  const arr          = mrr * 12;
-  const activeStudios = studioList.filter(s => s.is_active).length;
-  const usersActive   = (allProfiles || []).length;
+  const planCount = (studios ?? []).reduce((acc, s) => {
+    acc[s.plan] = (acc[s.plan] ?? 0) + 1; return acc;
+  }, {} as Record<string, number>);
 
-  // Crescimento: studios criados nos últimos 30d vs 30-60d
-  const now = Date.now();
-  const d30 = now - 30*86400000, d60 = now - 60*86400000;
-  const new30  = studioList.filter(s => new Date(s.created_at).getTime() >= d30).length;
-  const prev30 = studioList.filter(s => { const t = new Date(s.created_at).getTime(); return t >= d60 && t < d30; }).length;
-  const growth = prev30 === 0 ? (new30 > 0 ? 100 : 0) : Math.round(((new30 - prev30) / prev30) * 100);
-
-  // ===== ALERTAS =====
-  const expiring = studioList.filter(s => {
-    const d = daysUntil(s.next_billing_date);
-    return s.subscription_status === "active" && d !== null && d >= 0 && d <= 7;
-  });
-  const overdue = studioList.filter(s => s.subscription_status === "past_due");
-  const recentNew = studioList.filter(s => new Date(s.created_at).getTime() >= d30);
-
-  // ===== HERO KPIS (Linha 1) =====
-  const HERO = [
-    { label: "Receita Mensal (MRR)", value: formatCurrency(mrr), sub: `${formatCurrency(arr)}/ano`, icon: DollarSign, color: "var(--green)", accent: "rgba(34,212,123,.14)", big: true },
-    { label: "Salões Ativos",        value: activeStudios,        sub: `${studioList.length} no total`, icon: Building2, color: "var(--brand-light)", accent: "rgba(124,92,191,.14)" },
-    { label: "Usuários Ativos",      value: usersActive,          sub: `${activeSubors.length} pagantes`, icon: Users, color: "#5a9ef5", accent: "rgba(90,158,245,.14)" },
-    { label: "Crescimento (30d)",    value: `${growth >= 0 ? "+" : ""}${growth}%`, sub: `${new30} novos salões`, icon: growth >= 0 ? TrendingUp : TrendingDown, color: growth >= 0 ? "var(--green)" : "var(--red)", accent: growth >= 0 ? "rgba(34,212,123,.14)" : "rgba(245,90,90,.14)" },
-  ];
-
-  // ===== ALERT CARDS (Linha 2) =====
-  const ALERTS = [
-    { label: "Assinaturas vencendo", count: expiring.length, icon: Clock, color: "var(--yellow)", bg: "rgba(245,200,66,.08)", border: "rgba(245,200,66,.25)", desc: "próximos 7 dias" },
-    { label: "Inadimplentes",        count: overdue.length,  icon: AlertTriangle, color: "var(--red)", bg: "rgba(245,90,90,.08)", border: "rgba(245,90,90,.25)", desc: "pagamento atrasado" },
-    { label: "Novos salões",         count: recentNew.length, icon: Sparkles, color: "var(--green)", bg: "rgba(34,212,123,.08)", border: "rgba(34,212,123,.25)", desc: "últimos 30 dias" },
-  ];
-
-  const STATUS_STYLE: Record<string, { label: string; color: string; bg: string }> = {
-    active:   { label: "Ativo",       color: "var(--green)",  bg: "rgba(34,212,123,.12)" },
-    trial:    { label: "Trial",       color: "var(--brand-light)", bg: "rgba(124,92,191,.12)" },
-    past_due: { label: "Inadimplente",color: "var(--red)",    bg: "rgba(245,90,90,.12)" },
-    canceled: { label: "Cancelado",   color: "var(--muted)",  bg: "rgba(107,101,133,.12)" },
-  };
-  const PLAN_C: Record<string,string> = { pro:"var(--brand-light)", starter:"#5a9ef5", free:"var(--muted)", studio:"var(--gold)" };
-
-  // Chart data — últimos 6 meses de crescimento acumulado e MRR
-  const months: { label: string; studios: number; mrr: number }[] = [];
-  for (let i = 5; i >= 0; i--) {
-    const dt = new Date(); dt.setMonth(dt.getMonth() - i); dt.setDate(1); dt.setHours(0,0,0,0);
-    const end = new Date(dt); end.setMonth(end.getMonth() + 1);
-    const cumulative = studioList.filter(s => new Date(s.created_at) < end);
-    const monthMrr = cumulative.filter(s => s.subscription_status === "active").reduce((sum,s)=>sum+Number(s.mrr||0),0);
-    months.push({
-      label: dt.toLocaleDateString("pt-BR", { month: "short" }),
-      studios: cumulative.length,
-      mrr: monthMrr,
-    });
-  }
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 28, maxWidth: 1100 }}>
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 6 }}>⚡ Painel Superadmin</div>
-          <h1 style={{ fontSize: 27, fontWeight: 900, color: "var(--text)", margin: 0, letterSpacing: "-.02em" }}>Visão do Negócio</h1>
-          <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 4 }}>Métricas de receita e assinaturas da plataforma</p>
+          <p style={{ fontSize: 11, fontWeight: 800, color: "#f59e0b", letterSpacing: "0.1em",
+            textTransform: "uppercase", marginBottom: 6 }}>Platform Overview</p>
+          <h1 style={{ fontSize: 26, fontWeight: 900, color: "#f0f0ff", margin: 0, letterSpacing: "-0.02em" }}>
+            {greeting}, Admin 👋
+          </h1>
+          <p style={{ color: "#6b6585", margin: "5px 0 0", fontSize: 13 }}>
+            {now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          </p>
         </div>
-        <Link href="/admin/studios" style={{ display: "flex", alignItems: "center", gap: 8, height: 44, padding: "0 20px", borderRadius: 13, background: "linear-gradient(135deg, var(--brand-light), var(--brand))", color: "#fff", fontWeight: 700, fontSize: 13, textDecoration: "none", boxShadow: "0 4px 20px var(--brand-glow)" }}>
-          + Novo Salão
+        <Link href="/admin/studios" style={{
+          display: "inline-flex", alignItems: "center", gap: 7,
+          padding: "10px 18px", borderRadius: 10, textDecoration: "none",
+          background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)",
+          fontSize: 12, fontWeight: 800, color: "#f59e0b",
+        }}>
+          + Novo Studio <ArrowRight size={13} />
         </Link>
       </div>
 
-      {/* ===== LINHA 1: HERO KPIS ===== */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: 14 }}>
-        {HERO.map(({ label, value, sub, icon: Icon, color, accent, big }) => (
+      {/* KPI cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
+        {[
+          { label: "Studios ativos", value: `${activeStudios}/${totalStudios}`,
+            sub: totalStudios === 0 ? "nenhum criado" : `${totalStudios - activeStudios} inativos`,
+            icon: Building2, color: "#f59e0b", glow: "rgba(245,158,11,0.15)" },
+          { label: "Usuários", value: String(totalUsers),
+            sub: `${profiles?.filter(p => p.role === "superadmin").length ?? 0} admin`,
+            icon: Users, color: "#a78bfa", glow: "rgba(167,139,250,0.15)" },
+          { label: "Agendamentos", value: String(totalAppts),
+            sub: `${pending} pendentes`,
+            icon: CalendarDays, color: "#34d399", glow: "rgba(52,211,153,0.15)" },
+          { label: "Receita total", value: fmt(totalRevenue),
+            sub: "agendamentos concluídos",
+            icon: TrendingUp, color: "#f472b6", glow: "rgba(244,114,182,0.15)" },
+        ].map(({ label, value, sub, icon: Icon, color, glow }) => (
           <div key={label} style={{
             position: "relative", overflow: "hidden",
-            background: big ? `linear-gradient(135deg, ${accent}, var(--surface))` : "var(--surface)",
-            border: `1px solid ${big ? color.replace("var(--","rgba(").replace(")",", .25)") : "var(--border)"}`,
-            borderRadius: 20, padding: "22px 20px",
-            boxShadow: big ? `0 8px 30px ${accent}` : "none",
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            borderRadius: 16, padding: "20px 22px",
           }}>
-            <div style={{ position: "absolute", top: -30, right: -20, width: 100, height: 100, borderRadius: "50%", background: color, opacity: .08, filter: "blur(30px)" }}/>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-              <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--muted)" }}>{label}</span>
-              <div style={{ width: 36, height: 36, borderRadius: 11, background: accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon size={17} color={color}/>
+            <div style={{
+              position: "absolute", top: -25, right: -25,
+              width: 100, height: 100, borderRadius: "50%",
+              background: glow, filter: "blur(25px)", pointerEvents: "none",
+            }}/>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14, position: "relative" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: "#6b6585",
+                letterSpacing: "0.08em", textTransform: "uppercase" }}>{label}</span>
+              <div style={{
+                width: 30, height: 30, borderRadius: 8,
+                background: `${color}18`, border: `1px solid ${color}28`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Icon size={13} color={color}/>
               </div>
             </div>
-            <div style={{ fontSize: big ? 34 : 30, fontWeight: 900, color: "var(--text)", letterSpacing: "-.03em", lineHeight: 1 }}>{value}</div>
-            <div style={{ fontSize: 12, color: color, fontWeight: 600, marginTop: 8 }}>{sub}</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: "#fff", lineHeight: 1,
+              letterSpacing: "-0.02em", position: "relative" }}>{value}</div>
+            <div style={{ fontSize: 11, color: "#6b6585", marginTop: 5, position: "relative" }}>{sub}</div>
+            <div style={{
+              position: "absolute", bottom: 0, left: 0, right: 0, height: 2,
+              background: `linear-gradient(90deg,${color}70,transparent)`,
+            }}/>
           </div>
         ))}
       </div>
 
-      {/* ===== LINHA 2: ALERTAS ===== */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
-        {ALERTS.map(({ label, count, icon: Icon, color, bg, border, desc }) => (
-          <div key={label} style={{ display: "flex", alignItems: "center", gap: 14, background: bg, border: `1px solid ${border}`, borderRadius: 16, padding: "16px 18px" }}>
-            <div style={{ width: 44, height: 44, borderRadius: 13, background: bg, border: `1px solid ${border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Icon size={20} color={color}/>
+      {/* Main content */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: 18, alignItems: "start" }}>
+
+        {/* Studios table */}
+        <div style={{
+          background: "rgba(255,255,255,0.02)",
+          border: "1px solid rgba(255,255,255,0.07)",
+          borderRadius: 16, overflow: "hidden",
+        }}>
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: "#f0f0ff" }}>Studios</span>
+              {totalStudios > 0 && (
+                <span style={{
+                  fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 20,
+                  background: "rgba(245,158,11,0.12)", color: "#f59e0b",
+                  border: "1px solid rgba(245,158,11,0.25)",
+                }}>{totalStudios}</span>
+              )}
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                <span style={{ fontSize: 26, fontWeight: 900, color, letterSpacing: "-.02em" }}>{count}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{label}</span>
+            <Link href="/admin/studios" style={{
+              display: "flex", alignItems: "center", gap: 4,
+              fontSize: 11, fontWeight: 700, color: "#f59e0b", textDecoration: "none",
+            }}>Ver todos <ArrowRight size={11}/></Link>
+          </div>
+
+          {/* col headers */}
+          {recentStudios.length > 0 && (
+            <div style={{
+              display: "grid", gridTemplateColumns: "1fr 80px 80px 32px",
+              padding: "7px 20px", borderBottom: "1px solid rgba(255,255,255,0.04)",
+            }}>
+              {["Studio", "Plano", "Status", ""].map(h => (
+                <span key={h} style={{ fontSize: 10, fontWeight: 700, color: "#6b6585",
+                  letterSpacing: "0.07em", textTransform: "uppercase" }}>{h}</span>
+              ))}
+            </div>
+          )}
+
+          {recentStudios.length === 0 ? (
+            <div style={{ padding: "52px 20px", textAlign: "center" }}>
+              <div style={{
+                width: 52, height: 52, borderRadius: 14, margin: "0 auto 14px",
+                background: "rgba(245,158,11,0.08)", border: "1px dashed rgba(245,158,11,0.2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Building2 size={22} color="#f59e0b" style={{ opacity: 0.5 }}/>
               </div>
-              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{desc}</div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: "#f0f0ff", marginBottom: 5 }}>
+                Nenhum studio
+              </p>
+              <p style={{ fontSize: 12, color: "#6b6585", marginBottom: 18 }}>
+                Crie o primeiro studio da plataforma
+              </p>
+              <Link href="/admin/studios" style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "9px 18px", borderRadius: 9, textDecoration: "none",
+                background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)",
+                fontSize: 12, fontWeight: 800, color: "#f59e0b",
+              }}>
+                + Criar studio
+              </Link>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ===== LINHA 3: TABELA DE ASSINATURAS ===== */}
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 20, overflow: "hidden" }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "linear-gradient(135deg,rgba(124,92,191,.05),transparent)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Building2 size={16} color="var(--brand-light)"/>
-            <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text)" }}>Assinaturas</span>
-            <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 9px", borderRadius: 20, background: "rgba(124,92,191,.15)", color: "var(--brand-light)", border: "1px solid rgba(124,92,191,.25)" }}>{studioList.length}</span>
-          </div>
-          <Link href="/admin/studios" style={{ fontSize: 12, fontWeight: 700, color: "var(--brand-light)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>Gerenciar <ArrowRight size={13}/></Link>
-        </div>
-
-        {studioList.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "48px 20px", color: "var(--muted)" }}>Nenhum salão cadastrado.</div>
-        ) : (
-          <div>
-            {/* Table header */}
-            <div style={{ display: "grid", gridTemplateColumns: "2.5fr 1fr 1.3fr 1.2fr 1fr", gap: 12, padding: "10px 20px", borderBottom: "1px solid var(--border)", fontSize: 9, fontWeight: 800, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--muted)" }}>
-              <span>Salão</span><span>Plano</span><span>Status</span><span>Próx. Cobrança</span><span style={{ textAlign: "right" }}>MRR</span>
-            </div>
-            {studioList.map((s, i) => {
-              const st = STATUS_STYLE[s.subscription_status] || STATUS_STYLE.canceled;
-              const dleft = daysUntil(s.next_billing_date);
-              const rgb = s.brand_color || "#7C5CBF";
+          ) : (
+            recentStudios.map((s, i) => {
+              const pc = PLAN_COLOR[s.plan] ?? PLAN_COLOR.free;
               return (
                 <Link key={s.id} href={`/admin/studios/${s.id}`} style={{
-                  display: "grid", gridTemplateColumns: "2.5fr 1fr 1.3fr 1.2fr 1fr", gap: 12, alignItems: "center",
-                  padding: "14px 20px", textDecoration: "none",
-                  borderBottom: i < studioList.length-1 ? "1px solid var(--border)" : "none",
-                  transition: "background .15s",
-                }}>
-                  {/* Salão */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-                    <div style={{ width: 38, height: 38, borderRadius: 11, flexShrink: 0, background: `linear-gradient(140deg,${rgb},rgba(0,0,0,.35))`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: "#fff" }}>
-                      {s.avatar_url ? <img src={s.avatar_url} style={{ width: "100%", height: "100%", borderRadius: 9, objectFit: "cover" }} alt=""/> : s.name.slice(0,2).toUpperCase()}
-                    </div>
+                  display: "grid", gridTemplateColumns: "1fr 80px 80px 32px",
+                  alignItems: "center", padding: "12px 20px", textDecoration: "none",
+                  borderBottom: i < recentStudios.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                  transition: "background .1s",
+                }}
+                  onMouseEnter={(e: any) => e.currentTarget.style.background="rgba(255,255,255,0.025)"}
+                  onMouseLeave={(e: any) => e.currentTarget.style.background="transparent"}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
+                    <div style={{
+                      width: 30, height: 30, borderRadius: 7, flexShrink: 0,
+                      background: "linear-gradient(135deg,#f59e0b,#fcd34d)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 12, fontWeight: 900, color: "#000",
+                    }}>{s.name.charAt(0)}</div>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
-                      <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "monospace" }}>/{s.slug}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#f0f0ff",
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
+                      <div style={{ fontSize: 10, color: "#6b6585", fontFamily: "monospace" }}>/{s.slug}</div>
                     </div>
                   </div>
-                  {/* Plano */}
                   <div>
-                    <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 7, textTransform: "uppercase", letterSpacing: ".04em", background: `${PLAN_C[s.plan]}1f`, color: PLAN_C[s.plan], border: `1px solid ${PLAN_C[s.plan]}33` }}>{s.plan}</span>
+                    <span style={{
+                      fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 6,
+                      background: pc.bg, color: pc.color, border: `1px solid ${pc.border}`,
+                      textTransform: "uppercase",
+                    }}>{s.plan}</span>
                   </div>
-                  {/* Status */}
-                  <div>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700, padding: "4px 11px", borderRadius: 8, background: st.bg, color: st.color }}>
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: st.color }}/>
-                      {st.label}
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <div style={{
+                      width: 5, height: 5, borderRadius: "50%",
+                      background: s.is_active ? "#34d399" : "#6b6585",
+                      boxShadow: s.is_active ? "0 0 5px #34d39960" : "none",
+                    }}/>
+                    <span style={{ fontSize: 11, fontWeight: 600,
+                      color: s.is_active ? "#34d399" : "#6b6585" }}>
+                      {s.is_active ? "Ativo" : "Inativo"}
                     </span>
                   </div>
-                  {/* Próx cobrança */}
-                  <div>
-                    {s.next_billing_date ? (
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>{new Date(s.next_billing_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}</div>
-                        {dleft !== null && dleft >= 0 && dleft <= 7 && <div style={{ fontSize: 10, color: "var(--yellow)", fontWeight: 600 }}>em {dleft}d</div>}
-                        {dleft !== null && dleft < 0 && <div style={{ fontSize: 10, color: "var(--red)", fontWeight: 600 }}>atrasado</div>}
-                      </div>
-                    ) : <span style={{ fontSize: 12, color: "var(--muted)" }}>—</span>}
-                  </div>
-                  {/* MRR */}
-                  <div style={{ textAlign: "right", fontSize: 14, fontWeight: 800, color: Number(s.mrr) > 0 ? "var(--green)" : "var(--muted)" }}>
-                    {Number(s.mrr) > 0 ? formatCurrency(Number(s.mrr)) : "—"}
-                  </div>
+                  <ArrowRight size={12} color="#6b6585"/>
                 </Link>
               );
-            })}
-          </div>
-        )}
-      </div>
+            })
+          )}
+        </div>
 
-      {/* ===== LINHA 4: GRÁFICOS ===== */}
-      <AdminCharts months={months} />
+        {/* Sidebar panel */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+          {/* Plan distribution */}
+          <div style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            borderRadius: 16, padding: "16px 18px",
+          }}>
+            <p style={{ fontSize: 12, fontWeight: 800, color: "#f0f0ff", marginBottom: 16 }}>Distribuição de planos</p>
+            {totalStudios === 0 ? (
+              <p style={{ fontSize: 12, color: "#6b6585", textAlign: "center", padding: "12px 0" }}>
+                Sem dados ainda
+              </p>
+            ) : (
+              Object.entries(PLAN_COLOR).map(([plan, pc]) => {
+                const count = planCount[plan] ?? 0;
+                const pct = Math.round((count / (totalStudios || 1)) * 100);
+                return (
+                  <div key={plan} style={{ marginBottom: 14 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#f0f0ff", textTransform: "capitalize" }}>{plan}</span>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: pc.color }}>{count}</span>
+                    </div>
+                    <div style={{ height: 3, borderRadius: 4, background: "rgba(255,255,255,0.06)" }}>
+                      <div style={{
+                        height: "100%", borderRadius: 4,
+                        width: `${pct}%`, background: pc.color,
+                        transition: "width .4s ease",
+                      }}/>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Quick actions */}
+          <div style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            borderRadius: 16, padding: "16px 18px",
+          }}>
+            <p style={{ fontSize: 12, fontWeight: 800, color: "#f0f0ff", marginBottom: 12 }}>Ações rápidas</p>
+            {[
+              { href: "/admin/studios", label: "+ Criar studio",    color: "#f59e0b", icon: Building2 },
+              { href: "/admin/profissionais", label: "Ver usuários", color: "#a78bfa", icon: Users    },
+            ].map(({ href, label, color, icon: Icon }) => (
+              <Link key={href} href={href} style={{
+                display: "flex", alignItems: "center", gap: 9,
+                padding: "10px 12px", borderRadius: 9, textDecoration: "none",
+                border: "1px solid rgba(255,255,255,0.06)",
+                marginBottom: 8, transition: "all .12s",
+              }}
+                onMouseEnter={(e: any) => { e.currentTarget.style.background=`${color}08`; e.currentTarget.style.borderColor=`${color}30`; }}
+                onMouseLeave={(e: any) => { e.currentTarget.style.background="transparent"; e.currentTarget.style.borderColor="rgba(255,255,255,0.06)"; }}
+              >
+                <div style={{
+                  width: 26, height: 26, borderRadius: 7,
+                  background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Icon size={12} color={color}/>
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#f0f0ff", flex: 1 }}>{label}</span>
+                <ArrowRight size={11} color="#6b6585"/>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

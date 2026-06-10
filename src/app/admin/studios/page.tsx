@@ -2,307 +2,333 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Plus, Loader2, Pencil, Power, Building2, Users, CalendarDays } from "lucide-react";
+import { toast } from "sonner";
+import { Plus, Building2, Loader2, Pencil, Power, X, Search } from "lucide-react";
 import Link from "next/link";
 
-const PLAN_PRICES: Record<string,string> = { free: "Grátis", starter: "R$19/mês", pro: "R$29/mês", studio: "R$59/mês" };
-const DEFAULT_SVCS = [
-  { name:"Manicure simples",   price:35,  duration_minutes:45  },
-  { name:"Pedicure simples",   price:40,  duration_minutes:60  },
-  { name:"Manicure em gel",    price:80,  duration_minutes:90  },
-  { name:"Pedicure em gel",    price:90,  duration_minutes:90  },
-  { name:"Alongamento em gel", price:150, duration_minutes:120 },
-  { name:"Esmaltação em gel",  price:60,  duration_minutes:60  },
-  { name:"Spa dos pés",        price:70,  duration_minutes:75  },
-  { name:"Nail art",           price:15,  duration_minutes:30  },
+const SERVICES_DEFAULT = [
+  { name: "Manicure simples",   price: 35,  duration_minutes: 45  },
+  { name: "Pedicure simples",   price: 40,  duration_minutes: 60  },
+  { name: "Manicure em gel",    price: 80,  duration_minutes: 90  },
+  { name: "Pedicure em gel",    price: 90,  duration_minutes: 90  },
+  { name: "Alongamento em gel", price: 150, duration_minutes: 120 },
+  { name: "Esmaltação em gel",  price: 60,  duration_minutes: 60  },
+  { name: "Spa dos pés",        price: 70,  duration_minutes: 75  },
+  { name: "Nail art",           price: 15,  duration_minutes: 30  },
 ];
 
-function hexToRgb(hex: string) {
-  try { const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `${r},${g},${b}`; }
-  catch { return "124,92,191"; }
-}
-
-function Inp({ label, value, onChange, placeholder, type="text", mono=false }: any) {
-  return (
-    <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-      <label style={{ fontSize:10, color:"var(--muted)", fontWeight:700, letterSpacing:".12em", textTransform:"uppercase" }}>{label}</label>
-      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder}
-        style={{ height:44, padding:"0 14px", background:"var(--bg)", border:"1px solid var(--border2)", borderRadius:11, color:"var(--text)", fontSize:13, fontFamily:mono?"monospace":"inherit", fontWeight:500, outline:"none" }}/>
-    </div>
-  );
-}
+const PC: Record<string, { bg: string; color: string; border: string }> = {
+  pro:     { bg: "rgba(167,139,250,0.12)", color: "#a78bfa", border: "rgba(167,139,250,0.25)" },
+  starter: { bg: "rgba(96,165,250,0.12)",  color: "#60a5fa", border: "rgba(96,165,250,0.25)"  },
+  free:    { bg: "rgba(107,107,154,0.12)", color: "#6b6b9a", border: "rgba(107,107,154,0.25)" },
+  studio:  { bg: "rgba(244,114,182,0.12)", color: "#f472b6", border: "rgba(244,114,182,0.25)" },
+};
 
 export default function AdminStudiosPage() {
   const [studios, setStudios] = useState<any[]>([]);
-  const [counts, setCounts]   = useState<Record<string,{appts:number,clients:number}>>({});
   const [loading, setLoading] = useState(true);
-  const [modal, setModal]     = useState(false);
+  const [open, setOpen]       = useState(false);
   const [saving, setSaving]   = useState(false);
-
-  const [nome, setNome]   = useState("");
-  const [slug, setSlug]   = useState("");
-  const [phone, setPhone] = useState("");
-  const [whats, setWhats] = useState("");
-  const [insta, setInsta] = useState("");
-  const [addr, setAddr]   = useState("");
-  const [plan, setPlan]   = useState("pro");
-  const [color, setColor] = useState("#7C5CBF");
-  const [slugErr, setSlugErr] = useState("");
-
-  const sb = createClient();
+  const [search, setSearch]   = useState("");
+  const [nome, setNome]       = useState("");
+  const [slug, setSlug]       = useState("");
+  const [phone, setPhone]     = useState("");
+  const [plan, setPlan]       = useState("pro");
+  const supabase = createClient();
 
   useEffect(() => { load(); }, []);
 
   async function load() {
-    const { data: s } = await sb.from("studios")
-      .select("id, name, slug, plan, is_active, brand_color, avatar_url, created_at, whatsapp, instagram")
+    const { data } = await supabase
+      .from("studios")
+      .select("id, name, slug, plan, is_active, created_at, profiles!studios_owner_id_fkey(name, email)")
       .order("created_at", { ascending: false });
-    setStudios(s || []);
-
-    if (s?.length) {
-      const ids = s.map((x:any) => x.id);
-      const [{ data: a }, { data: c }] = await Promise.all([
-        sb.from("appointments").select("studio_id").in("studio_id", ids),
-        sb.from("clients").select("studio_id").in("studio_id", ids),
-      ]);
-      const m: Record<string,{appts:number,clients:number}> = {};
-      ids.forEach((id:string) => {
-        m[id] = {
-          appts:   (a||[]).filter((x:any)=>x.studio_id===id).length,
-          clients: (c||[]).filter((x:any)=>x.studio_id===id).length,
-        };
-      });
-      setCounts(m);
-    }
-    setLoading(false);
+    setStudios(data ?? []); setLoading(false);
   }
 
   function handleNome(v: string) {
     setNome(v);
-    setSlug(v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""));
-    setSlugErr("");
+    setSlug(v.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""));
   }
 
   async function criar() {
-    if (!nome || !slug) return;
-    setSaving(true); setSlugErr("");
-    const { data: pp } = await sb.from("plan_prices").select("price").eq("plan", plan).single();
-    const mrr = pp?.price ?? 0;
-    const status = plan === "free" ? "trial" : "active";
-    const nextBilling = new Date(); nextBilling.setDate(nextBilling.getDate() + 30);
-    const { data: studio, error } = await sb.from("studios")
-      .insert({ name:nome, slug, phone:phone||null, whatsapp:whats||null, instagram:insta||null, address:addr||null, plan, brand_color:color, is_active:true, mrr, subscription_status: status, next_billing_date: plan === "free" ? null : nextBilling.toISOString().slice(0,10) })
-      .select("id").single();
-    if (error) {
-      if (error.message.includes("unique")) setSlugErr("Este slug já está em uso.");
-      else alert(error.message);
-      setSaving(false); return;
-    }
-    await sb.from("salon_settings").insert({ studio_id: studio.id });
-    await sb.from("services").insert(DEFAULT_SVCS.map(s => ({ ...s, studio_id: studio.id, is_active: true })));
-    setModal(false); setNome(""); setSlug(""); setPhone(""); setWhats(""); setInsta(""); setAddr(""); setColor("#7C5CBF");
-    setSaving(false); await load();
+    if (!nome || !slug) { toast.error("Nome e slug são obrigatórios."); return; }
+    setSaving(true);
+    try {
+      const { data: studio, error } = await supabase
+        .from("studios").insert({ name: nome, slug, phone: phone||null, plan, is_active: true })
+        .select("id").single();
+      if (error) { toast.error(error.message.includes("unique") ? "Slug já em uso." : error.message); return; }
+      await supabase.from("salon_settings").insert({ studio_id: studio.id });
+      await supabase.from("services").insert(SERVICES_DEFAULT.map(s => ({ ...s, studio_id: studio.id, is_active: true })));
+      toast.success(`"${nome}" criado com 8 serviços!`);
+      setOpen(false); setNome(""); setSlug(""); setPhone("");
+      await load();
+    } catch (e: any) { toast.error(e.message); }
+    finally { setSaving(false); }
   }
 
-  async function toggle(id: string, cur: boolean) {
-    await sb.from("studios").update({ is_active: !cur }).eq("id", id);
-    setStudios(p => p.map(s => s.id===id ? {...s,is_active:!cur} : s));
+  async function toggleActive(id: string, cur: boolean) {
+    await supabase.from("studios").update({ is_active: !cur }).eq("id", id);
+    setStudios(s => s.map(x => x.id===id ? {...x, is_active:!cur} : x));
+    toast.success(cur ? "Studio desativado." : "Studio ativado.");
   }
 
-  const PLANS = [["free","Free","var(--muted)"],["starter","Starter","#818cf8"],["pro","Pro","var(--brand-light)"],["studio","Studio","var(--gold)"]];
+  const filtered = studios.filter(s =>
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    s.slug.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", flexDirection: "column", gap: 24 }}>
+    <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:1000 }}>
 
+      {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div>
-          <h1 style={{ fontSize:24, fontWeight:900, color:"var(--text)", margin:0, letterSpacing:"-.02em" }}>Studios</h1>
-          <p style={{ color:"var(--muted)", fontSize:13, marginTop:3 }}>{studios.length} studios na plataforma</p>
+          <h1 style={{ fontSize:22, fontWeight:900, color:"#f0f0ff", margin:0 }}>Studios</h1>
+          <p style={{ fontSize:12, color:"#6b6585", marginTop:4 }}>
+            {studios.length} studio{studios.length!==1?"s":""} na plataforma
+          </p>
         </div>
-        <button onClick={()=>setModal(true)} style={{
-          display:"flex", alignItems:"center", gap:8, height:44, padding:"0 20px",
-          borderRadius:13, background:"linear-gradient(135deg,var(--brand-light),var(--brand))",
-          color:"#fff", fontWeight:700, fontSize:13, border:"none", cursor:"pointer", fontFamily:"inherit",
-          boxShadow:"0 4px 20px var(--brand-glow)",
-        }}><Plus size={15}/> Novo Studio</button>
+        <button onClick={()=>setOpen(true)} style={{
+          display:"inline-flex", alignItems:"center", gap:7,
+          padding:"10px 18px", borderRadius:10,
+          background:"rgba(245,158,11,0.12)", border:"1px solid rgba(245,158,11,0.3)",
+          fontSize:12, fontWeight:800, color:"#f59e0b", cursor:"pointer", fontFamily:"inherit",
+        }}>
+          <Plus size={14}/> Novo Studio
+        </button>
       </div>
 
-      {loading ? (
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:200 }}>
-          <Loader2 size={28} style={{ color:"var(--brand-light)", animation:"spin .8s linear infinite" }}/>
-          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-        </div>
-      ) : studios.length === 0 ? (
-        <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:22, padding:"60px 20px", textAlign:"center" }}>
-          <div style={{ fontSize:40, opacity:.3, marginBottom:12 }}>🏠</div>
-          <p style={{ color:"var(--muted)", fontSize:14 }}>Nenhum studio cadastrado</p>
-        </div>
-      ) : (
-        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {studios.map(s => {
-            const rgb = hexToRgb(s.brand_color || "#7C5CBF");
-            const c = counts[s.id] || { appts:0, clients:0 };
-            return (
-              <div key={s.id} style={{
-                position:"relative", overflow:"hidden",
-                background:"var(--surface)", border:"1px solid var(--border)",
-                borderRadius:18, padding:"0",
-                opacity: s.is_active ? 1 : 0.6, transition:"opacity .2s",
-              }}>
-                {/* Brand color top stripe */}
-                <div style={{ height:3, background:`linear-gradient(90deg,${s.brand_color||"#7C5CBF"},transparent 70%)` }}/>
-                <div style={{ display:"flex", alignItems:"center", gap:16, padding:"16px 20px" }}>
-                  {/* Avatar */}
-                  <div style={{
-                    width:50, height:50, borderRadius:15, flexShrink:0,
-                    background:`linear-gradient(140deg,${s.brand_color||"#7C5CBF"},rgba(0,0,0,.4))`,
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                    fontSize:18, fontWeight:900, color:"#fff",
-                    boxShadow:`0 4px 18px rgba(${rgb},.38)`,
-                  }}>
-                    {s.avatar_url
-                      ? <img src={s.avatar_url} style={{ width:"100%", height:"100%", borderRadius:13, objectFit:"cover" }} alt=""/>
-                      : s.name.slice(0,2).toUpperCase()}
-                  </div>
-                  {/* Info */}
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" }}>
-                      <span style={{ fontSize:15, fontWeight:800, color:"var(--text)" }}>{s.name}</span>
-                      <span style={{
-                        fontSize:9, fontWeight:700, padding:"2px 8px", borderRadius:6, textTransform:"uppercase", letterSpacing:".05em",
-                        background:`rgba(${rgb},.15)`, color:s.brand_color||"var(--brand-light)", border:`1px solid rgba(${rgb},.25)`,
-                      }}>{s.plan}</span>
-                      {!s.is_active && <span style={{ fontSize:9, fontWeight:700, padding:"2px 8px", borderRadius:6, background:"rgba(248,113,113,.1)", color:"#f87171", border:"1px solid rgba(248,113,113,.2)" }}>INATIVO</span>}
-                    </div>
-                    <div style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
-                      <span style={{ fontSize:11, color:`rgba(${rgb},.8)`, fontFamily:"monospace" }}>/agendar/{s.slug}</span>
-                      {s.whatsapp && <span style={{ fontSize:11, color:"var(--muted)" }}>📱 {s.whatsapp}</span>}
-                      {s.instagram && <span style={{ fontSize:11, color:"var(--muted)" }}>📷 {s.instagram}</span>}
-                    </div>
-                  </div>
-                  {/* Stats */}
-                  <div style={{ display:"flex", gap:18, flexShrink:0 }}>
-                    <div style={{ textAlign:"center" }}>
-                      <div style={{ fontSize:18, fontWeight:800, color:"var(--brand-light)" }}>{c.appts}</div>
-                      <div style={{ fontSize:9, fontWeight:700, color:"var(--muted)", textTransform:"uppercase", letterSpacing:".08em" }}>Agend.</div>
-                    </div>
-                    <div style={{ textAlign:"center" }}>
-                      <div style={{ fontSize:18, fontWeight:800, color:"var(--green)" }}>{c.clients}</div>
-                      <div style={{ fontSize:9, fontWeight:700, color:"var(--muted)", textTransform:"uppercase", letterSpacing:".08em" }}>Clientes</div>
-                    </div>
-                  </div>
-                  {/* Actions */}
-                  <div style={{ display:"flex", gap:8, flexShrink:0 }}>
-                    <Link href={`/admin/studios/${s.id}`} style={{
-                      display:"flex", alignItems:"center", gap:6, height:36, padding:"0 14px",
-                      borderRadius:10, border:"1px solid var(--border2)", background:"none",
-                      color:"var(--muted)", fontSize:12, fontWeight:600, textDecoration:"none", transition:"all .15s",
-                    }}
-                      onMouseEnter={(e:any)=>{e.currentTarget.style.borderColor="var(--brand)";e.currentTarget.style.color="var(--brand-light)";}}
-                      onMouseLeave={(e:any)=>{e.currentTarget.style.borderColor="var(--border2)";e.currentTarget.style.color="var(--muted)";}}>
-                      <Pencil size={13}/> Editar
-                    </Link>
-                    <button onClick={()=>toggle(s.id,s.is_active)} style={{
-                      display:"flex", alignItems:"center", gap:6, height:36, padding:"0 14px",
-                      borderRadius:10, cursor:"pointer", fontFamily:"inherit", fontSize:12, fontWeight:600, transition:"all .15s",
-                      border:`1px solid ${s.is_active?"rgba(34,212,123,.3)":"rgba(248,113,113,.25)"}`,
-                      background:s.is_active?"rgba(34,212,123,.1)":"rgba(248,113,113,.08)",
-                      color:s.is_active?"var(--green)":"#f87171",
-                    }}>
-                      <Power size={13}/> {s.is_active?"Ativo":"Inativo"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+      {/* Search */}
+      {studios.length > 0 && (
+        <div style={{ position:"relative" }}>
+          <Search size={14} color="#6b6585" style={{ position:"absolute", left:13, top:"50%", transform:"translateY(-50%)" }}/>
+          <input value={search} onChange={e=>setSearch(e.target.value)}
+            placeholder="Buscar por nome ou slug…"
+            style={{
+              width:"100%", height:40, paddingLeft:36, paddingRight:14,
+              background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)",
+              borderRadius:10, color:"#f0f0ff", fontSize:13, outline:"none", fontFamily:"inherit",
+            }}
+          />
         </div>
       )}
 
-      {/* Modal criar studio */}
-      {modal && (
-        <div onClick={e=>e.target===e.currentTarget&&setModal(false)} style={{
-          position:"fixed", inset:0, zIndex:1000, background:"rgba(0,0,0,.75)",
-          display:"flex", alignItems:"center", justifyContent:"center", padding:16,
-        }}>
-          <div style={{
-            background:"var(--surface)", border:"1px solid var(--border2)",
-            borderRadius:24, padding:28, width:"100%", maxWidth:520,
-            display:"flex", flexDirection:"column", gap:16, maxHeight:"90vh", overflow:"auto",
-            boxShadow:"0 24px 60px rgba(0,0,0,.6)",
-          }}>
-            {/* Header */}
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-              <div>
-                <div style={{ fontSize:18, fontWeight:900, color:"var(--text)" }}>Novo Studio</div>
-                <div style={{ fontSize:12, color:"var(--muted)", marginTop:2 }}>Cria com 8 serviços padrão</div>
-              </div>
-              <button onClick={()=>setModal(false)} style={{ background:"none", border:"none", color:"var(--muted)", fontSize:22, cursor:"pointer" }}>×</button>
+      {/* Table */}
+      <div style={{
+        background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)",
+        borderRadius:16, overflow:"hidden",
+      }}>
+        {loading ? (
+          <div style={{ display:"flex", justifyContent:"center", padding:"52px 0" }}>
+            <Loader2 size={26} color="#f59e0b" style={{ animation:"spin 1s linear infinite" }}/>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div style={{ padding:"56px 24px", textAlign:"center" }}>
+            <div style={{
+              width:52, height:52, borderRadius:14, margin:"0 auto 16px",
+              background:"rgba(245,158,11,0.07)", border:"1px dashed rgba(245,158,11,0.2)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+              <Building2 size={22} color="#f59e0b" style={{ opacity:.5 }}/>
+            </div>
+            <p style={{ fontSize:14, fontWeight:800, color:"#f0f0ff", marginBottom:6 }}>
+              {search ? "Nenhum resultado" : "Nenhum studio ainda"}
+            </p>
+            <p style={{ fontSize:12, color:"#6b6585", marginBottom:18 }}>
+              {search ? `Sem resultados para "${search}"` : "Crie o primeiro studio da plataforma"}
+            </p>
+            {!search && (
+              <button onClick={()=>setOpen(true)} style={{
+                display:"inline-flex", alignItems:"center", gap:6,
+                padding:"9px 18px", borderRadius:9,
+                background:"rgba(245,158,11,0.12)", border:"1px solid rgba(245,158,11,0.3)",
+                fontSize:12, fontWeight:800, color:"#f59e0b", cursor:"pointer", fontFamily:"inherit",
+              }}>
+                + Criar studio
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* col headers */}
+            <div style={{
+              display:"grid", gridTemplateColumns:"1fr 130px 80px 80px 72px",
+              padding:"7px 20px", borderBottom:"1px solid rgba(255,255,255,0.05)",
+            }}>
+              {["Studio","Profissional","Plano","Status",""].map(h => (
+                <span key={h} style={{ fontSize:10, fontWeight:700, color:"#6b6585", letterSpacing:"0.07em", textTransform:"uppercase" }}>{h}</span>
+              ))}
             </div>
 
-            {/* Brand color preview */}
-            <div style={{
-              position:"relative", overflow:"hidden", borderRadius:16, padding:16,
-              background:`linear-gradient(135deg,rgba(${hexToRgb(color)},.25),var(--surface2))`,
-              border:`1px solid rgba(${hexToRgb(color)},.3)`,
-            }}>
-              <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                <div style={{
-                  width:52, height:52, borderRadius:16,
-                  background:`linear-gradient(140deg,${color},rgba(0,0,0,.4))`,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:20, fontWeight:900, color:"#fff",
-                  boxShadow:`0 6px 20px rgba(${hexToRgb(color)},.5)`,
-                }}>{nome.slice(0,2).toUpperCase()||"??"}
-                </div>
-                <div>
-                  <div style={{ fontSize:16, fontWeight:800, color:"var(--text)" }}>{nome||"Nome do Studio"}</div>
-                  <div style={{ fontSize:11, color:"var(--muted)", marginTop:2 }}>{slug||"slug"}.nailit.app</div>
-                </div>
-                <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:10 }}>
-                  <input type="color" value={color} onChange={e=>setColor(e.target.value)}
-                    style={{ width:42, height:42, border:"none", background:"none", cursor:"pointer", borderRadius:10, padding:0 }}/>
+            {filtered.map((s, i) => {
+              const pc = PC[s.plan] ?? PC.free;
+              return (
+                <div key={s.id} style={{
+                  display:"grid", gridTemplateColumns:"1fr 130px 80px 80px 72px",
+                  alignItems:"center", padding:"13px 20px",
+                  borderBottom: i<filtered.length-1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                  opacity: s.is_active ? 1 : .5, transition:"background .1s",
+                }}
+                  onMouseEnter={(e:any)=>e.currentTarget.style.background="rgba(255,255,255,0.025)"}
+                  onMouseLeave={(e:any)=>e.currentTarget.style.background="transparent"}
+                >
+                  {/* name */}
+                  <div style={{ display:"flex", alignItems:"center", gap:11, minWidth:0 }}>
+                    <div style={{
+                      width:32, height:32, borderRadius:8, flexShrink:0,
+                      background:"linear-gradient(135deg,#f59e0b,#fcd34d)",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontSize:13, fontWeight:900, color:"#000",
+                    }}>{s.name.charAt(0)}</div>
+                    <div style={{ minWidth:0 }}>
+                      <div style={{ fontSize:13, fontWeight:700, color:"#f0f0ff",
+                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.name}</div>
+                      <div style={{ fontSize:10, color:"#6b6585", fontFamily:"monospace" }}>/{s.slug}</div>
+                    </div>
+                  </div>
+
+                  {/* owner */}
+                  <div style={{ minWidth:0 }}>
+                    <span style={{ fontSize:11, fontWeight:600,
+                      color: s.profiles?.name ? "#34d399" : "#f59e0b",
+                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", display:"block" }}>
+                      {s.profiles?.name ?? "Sem vínculo"}
+                    </span>
+                  </div>
+
+                  {/* plan */}
                   <div>
-                    <div style={{ fontSize:12, fontFamily:"monospace", fontWeight:700, color:"var(--text)" }}>{color.toUpperCase()}</div>
-                    <div style={{ fontSize:10, color:"var(--muted)" }}>Cor da marca</div>
+                    <span style={{
+                      fontSize:10, fontWeight:800, padding:"2px 7px", borderRadius:6,
+                      background:pc.bg, color:pc.color, border:`1px solid ${pc.border}`,
+                      textTransform:"uppercase",
+                    }}>{s.plan}</span>
+                  </div>
+
+                  {/* status */}
+                  <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+                    <div style={{
+                      width:5, height:5, borderRadius:"50%",
+                      background: s.is_active ? "#34d399" : "#6b6585",
+                      boxShadow: s.is_active ? "0 0 5px #34d39960" : "none",
+                    }}/>
+                    <span style={{ fontSize:11, fontWeight:600, color: s.is_active ? "#34d399" : "#6b6585" }}>
+                      {s.is_active ? "Ativo" : "Inativo"}
+                    </span>
+                  </div>
+
+                  {/* actions */}
+                  <div style={{ display:"flex", alignItems:"center", gap:4, justifyContent:"flex-end" }}>
+                    <Link href={`/admin/studios/${s.id}`} style={{
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      width:28, height:28, borderRadius:7,
+                      background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)",
+                      color:"#6b6585", textDecoration:"none", transition:"all .12s",
+                    }}
+                      onMouseEnter={(e:any)=>{e.currentTarget.style.color="#f0f0ff";e.currentTarget.style.background="rgba(255,255,255,0.1)";}}
+                      onMouseLeave={(e:any)=>{e.currentTarget.style.color="#6b6585";e.currentTarget.style.background="rgba(255,255,255,0.05)";}}
+                    ><Pencil size={12}/></Link>
+                    <button onClick={()=>toggleActive(s.id,s.is_active)} style={{
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      width:28, height:28, borderRadius:7,
+                      background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)",
+                      color: s.is_active ? "#34d399" : "#6b6585",
+                      cursor:"pointer", fontFamily:"inherit", transition:"all .12s",
+                    }}><Power size={12}/></button>
                   </div>
                 </div>
+              );
+            })}
+          </>
+        )}
+      </div>
+
+      {/* Modal */}
+      {open && (
+        <div style={{
+          position:"fixed", inset:0, zIndex:50,
+          display:"flex", alignItems:"center", justifyContent:"center", padding:20,
+          background:"rgba(0,0,0,0.75)", backdropFilter:"blur(8px)",
+        }}>
+          <div style={{
+            width:"100%", maxWidth:440,
+            background:"#0f0e1a", border:"1px solid rgba(255,255,255,0.1)",
+            borderRadius:18, padding:24,
+          }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20 }}>
+              <div>
+                <h2 style={{ fontSize:16, fontWeight:900, color:"#f0f0ff", margin:0 }}>Novo Studio</h2>
+                <p style={{ fontSize:11, color:"#6b6585", marginTop:3 }}>Inclui 8 serviços padrão automaticamente</p>
+              </div>
+              <button onClick={()=>setOpen(false)} style={{
+                background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)",
+                borderRadius:8, padding:6, cursor:"pointer", color:"#6b6585",
+              }}><X size={14}/></button>
+            </div>
+
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              {[
+                { label:"Nome *", value:nome, onChange:handleNome, placeholder:"Ex: Tessy Nails" },
+              ].map(f=>(
+                <div key={f.label}>
+                  <label style={{ fontSize:10, fontWeight:700, color:"#6b6585", display:"block", marginBottom:6,
+                    textTransform:"uppercase", letterSpacing:"0.08em" }}>{f.label}</label>
+                  <input className="input-base" value={f.value}
+                    onChange={e=>f.onChange(e.target.value)} placeholder={f.placeholder}/>
+                </div>
+              ))}
+
+              <div>
+                <label style={{ fontSize:10, fontWeight:700, color:"#6b6585", display:"block", marginBottom:6,
+                  textTransform:"uppercase", letterSpacing:"0.08em" }}>Slug (URL) *</label>
+                <input className="input-base" value={slug}
+                  onChange={e=>setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,""))}
+                  placeholder="tessy-nails"/>
+                {slug && <p style={{ fontSize:10, color:"#a78bfa", marginTop:5 }}>nailit.com.br/agendar/{slug}</p>}
+              </div>
+
+              <div>
+                <label style={{ fontSize:10, fontWeight:700, color:"#6b6585", display:"block", marginBottom:6,
+                  textTransform:"uppercase", letterSpacing:"0.08em" }}>Telefone</label>
+                <input className="input-base" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="(11) 99999-9999"/>
+              </div>
+
+              <div>
+                <label style={{ fontSize:10, fontWeight:700, color:"#6b6585", display:"block", marginBottom:6,
+                  textTransform:"uppercase", letterSpacing:"0.08em" }}>Plano</label>
+                <select className="input-base" value={plan} onChange={e=>setPlan(e.target.value)}>
+                  <option value="free">Free — Gratuito</option>
+                  <option value="starter">Starter — R$19/mês</option>
+                  <option value="pro">Pro — R$29/mês</option>
+                  <option value="studio">Studio — R$59/mês</option>
+                </select>
               </div>
             </div>
 
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              <div style={{ gridColumn:"1/-1" }}><Inp label="Nome do studio *" value={nome} onChange={handleNome} placeholder="Ex: Tessy Nails"/></div>
-              <Inp label="Slug (URL) *" value={slug} onChange={v=>{setSlug(v.toLowerCase().replace(/[^a-z0-9-]/g,""));setSlugErr("");}} placeholder="tessy-nails" mono/>
-              <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-                <label style={{ fontSize:10, color:"var(--muted)", fontWeight:700, letterSpacing:".12em", textTransform:"uppercase" }}>Plano</label>
-                <select value={plan} onChange={e=>setPlan(e.target.value)} style={{ height:44, padding:"0 14px", background:"var(--bg)", border:"1px solid var(--border2)", borderRadius:11, color:"var(--text)", fontSize:13, fontFamily:"inherit", outline:"none" }}>
-                  {PLANS.map(([v,l,c])=><option key={v as string} value={v as string} style={{ background:"var(--surface2)" }}>{l as string} — {PLAN_PRICES[v as string]}</option>)}
-                </select>
-              </div>
-              <Inp label="WhatsApp" value={whats} onChange={setWhats} placeholder="(66) 99999-0000"/>
-              <Inp label="Instagram" value={insta} onChange={setInsta} placeholder="@seustudio"/>
-              <div style={{ gridColumn:"1/-1" }}><Inp label="Telefone" value={phone} onChange={setPhone} placeholder="(66) 99999-0000"/></div>
-              <div style={{ gridColumn:"1/-1" }}><Inp label="Endereço" value={addr} onChange={setAddr} placeholder="Rua, número, cidade"/></div>
-            </div>
-            {slugErr && <div style={{ fontSize:12, color:"#f87171", background:"rgba(248,113,113,.08)", border:"1px solid rgba(248,113,113,.2)", borderRadius:9, padding:"8px 13px" }}>⚠ {slugErr}</div>}
-            <div style={{ padding:10, background:"var(--surface2)", borderRadius:12, fontSize:12, color:"var(--muted)" }}>
-              💡 Após criar, vá em <b style={{ color:"var(--text)" }}>Editar Studio</b> para vincular o profissional.
-            </div>
-            <div style={{ display:"flex", gap:8 }}>
-              <button onClick={criar} disabled={saving||!nome||!slug} style={{
-                flex:1, height:46, borderRadius:13, fontFamily:"inherit", fontWeight:700, fontSize:14, border:"none", cursor:"pointer",
-                background:"linear-gradient(135deg,var(--brand-light),var(--brand))", color:"#fff",
-                boxShadow:"0 4px 20px var(--brand-glow)", opacity:(saving||!nome||!slug)?0.5:1,
-                display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+            <div style={{ display:"flex", gap:10, marginTop:20 }}>
+              <button onClick={criar} disabled={saving} style={{
+                flex:1, height:42, borderRadius:10,
+                background:"rgba(245,158,11,0.15)", border:"1px solid rgba(245,158,11,0.35)",
+                color:"#f59e0b", fontSize:13, fontWeight:800, cursor:"pointer",
+                display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+                fontFamily:"inherit", opacity:saving?.6:1,
               }}>
-                {saving ? <><Loader2 size={14} style={{ animation:"spin .8s linear infinite" }}/> Criando...</> : "Criar Studio"}
+                {saving ? <Loader2 size={14} style={{ animation:"spin 1s linear infinite" }}/> : <Plus size={14}/>}
+                Criar Studio
               </button>
-              <button onClick={()=>setModal(false)} style={{ height:46, padding:"0 20px", borderRadius:13, border:"1px solid var(--border2)", background:"none", color:"var(--muted)", cursor:"pointer", fontFamily:"inherit", fontWeight:600, fontSize:13 }}>Cancelar</button>
+              <button onClick={()=>setOpen(false)} style={{
+                height:42, padding:"0 16px", borderRadius:10,
+                background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)",
+                color:"#6b6585", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
+              }}>Cancelar</button>
             </div>
-            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
         </div>
       )}
+
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }
