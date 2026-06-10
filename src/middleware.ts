@@ -29,6 +29,11 @@ export async function middleware(request: NextRequest) {
                        request.nextUrl.pathname.startsWith("/cliente/agendar/sucesso") ||
                        request.nextUrl.pathname === "/";
   const isApiPublic = request.nextUrl.pathname.startsWith("/api/public");
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
+
+  if (!user && isApiRoute && !isApiPublic) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   if (!user && !isAuthPage && !isPublicPage && !isApiPublic) {
     const url = request.nextUrl.clone();
