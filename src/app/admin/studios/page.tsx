@@ -86,8 +86,12 @@ export default function AdminStudiosPage() {
   async function criar() {
     if (!nome || !slug) return;
     setSaving(true); setSlugErr("");
+    const { data: pp } = await sb.from("plan_prices").select("price").eq("plan", plan).single();
+    const mrr = pp?.price ?? 0;
+    const status = plan === "free" ? "trial" : "active";
+    const nextBilling = new Date(); nextBilling.setDate(nextBilling.getDate() + 30);
     const { data: studio, error } = await sb.from("studios")
-      .insert({ name:nome, slug, phone:phone||null, whatsapp:whats||null, instagram:insta||null, address:addr||null, plan, brand_color:color, is_active:true })
+      .insert({ name:nome, slug, phone:phone||null, whatsapp:whats||null, instagram:insta||null, address:addr||null, plan, brand_color:color, is_active:true, mrr, subscription_status: status, next_billing_date: plan === "free" ? null : nextBilling.toISOString().slice(0,10) })
       .select("id").single();
     if (error) {
       if (error.message.includes("unique")) setSlugErr("Este slug já está em uso.");

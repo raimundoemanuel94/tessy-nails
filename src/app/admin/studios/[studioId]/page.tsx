@@ -104,10 +104,15 @@ export default function AdminStudioDetailPage() {
 
   async function saveStudio() {
     setSaving(true);
+    // Recalcula MRR e status com base no plano selecionado
+    const { data: pp } = await sb.from("plan_prices").select("price").eq("plan", ePlan).single();
+    const newMrr = pp?.price ?? 0;
+    const newStatus = !eActive ? "canceled" : (ePlan === "free" ? "trial" : "active");
     await sb.from("studios").update({
       name:eName, slug:eSlug, plan:ePlan, is_active:eActive,
       brand_color:eColor, whatsapp:eWhats||null, instagram:eInsta||null,
       phone:ePhone||null, address:eAddr||null,
+      mrr: newMrr, subscription_status: newStatus,
     }).eq("id", studioId);
     await load();
     setSaving(false); setEditing(false); setSavedOk(true);
