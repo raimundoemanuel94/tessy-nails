@@ -1,61 +1,182 @@
-// @ts-nocheck
-import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
-import { startOfDay, endOfDay } from "date-fns";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  BOOKING_TIME_ZONE,
+  isSameZonedDate,
+  zonedDayRange,
+  zonedMinutes,
+  zonedWeekdayKey,
+} from "@/lib/time";
 
-const DAYS = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-function toMin(t: string) { const [h,m] = t.split(":").map(Number); return h*60+m; }
-function fromMin(m: number) { return `${String(Math.floor(m/60)).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`; }
+function toMin(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function fromMin(totalMinutes: number): string {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+async function resolveStudioId(supabase: ReturnType<typeof createAdminClient>, params: URLSearchParams) {
+  const studioId = params.get("studioId") ?? params.get("studio_id");
+  const slug = params.get("slug");
+
+  if (studioId) return studioId;
+  if (!slug) return null;
+
+  const { data: studio } = await supabase
+    .from("studios")
+    .select("id")
+    .eq("slug", slug)
+    .eq("is_active", true)
+    .single();
+
+  return studio?.id ?? null;
+}
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const studioId = searchParams.get("studioId");
-  const dateStr  = searchParams.get("date");
-  const duration = Number(searchParams.get("duration") ?? "30");
+  try {
+    const { searchParams } = new URL(req.url);
+    const dateStr = searchParams.get("date");
+    const supabase = createAdminClient();
+    const studioId = await resolveStudioId(supabase, searchParams);
 
-  if (!studioId || !dateStr) return NextResponse.json({ error: "studioId e date são obrigatórios" }, { status: 400 });
+    if (!studioId || !dateStr) {
+      return NextResponse.json(
+        { error: "Parâmetros obrigatórios: studioId (ou slug) e date" },
+        { status: 400 },
+      );
+    }
 
-  const supabase = await createClient();
-  const [y,mo,d] = dateStr.split("-").map(Number);
-  const date = new Date(y, mo-1, d);
-  const dayName = DAYS[date.getDay()];
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return NextResponse.json({ error: "date inválido" }, { status: 400 });
+    }
 
-  const { data: settings } = await supabase.from("salon_settings").select("*").eq("studio_id", studioId).single();
-  const wh: Record<string, { open: string; close: string; is_open: boolean }> = (settings?.working_hours as Record<string, { open: string; close: string; is_open: boolean }>) ?? {};
-  const dayConfig = wh[dayName];
+    const { data: settings, error: settingsError } = await supabase
+      .from("salon_settings")
+      .select("slot_duration, working_hours")
+      .eq("studio_id", studioId)
+      .single();
 
-  if (!dayConfig?.is_open) return NextResponse.json({ slots: [], reason: "closed" });
+    if (settingsError) {
+      return NextResponse.json(
+        { error: "Não foi possível carregar as configurações do studio" },
+        { status: 500 },
+      );
+    }
 
-  const slotDur = settings?.slot_duration ?? 30;
-  const dur     = duration > 0 ? duration : slotDur;
-  const openMin = toMin(dayConfig.open);
-  const closeMin = toMin(dayConfig.close);
+    const dayRange = zonedDayRange(dateStr, BOOKING_TIME_ZONE);
+    const workingHours =
+      (settings?.working_hours as Record<string, { open: string; close: string; is_open: boolean }>) ?? {};
+    const dayKey = zonedWeekdayKey(dayRange.start, BOOKING_TIME_ZONE);
+    const dayConfig = workingHours[dayKey];
 
-  const allSlots: string[] = [];
-  for (let t = openMin; t + dur <= closeMin; t += slotDur) allSlots.push(fromMin(t));
+    if (!dayConfig?.is_open) {
+      return NextResponse.json({ slots: [], reason: "closed", date: dateStr });
+    }
 
-  const { data: appts } = await supabase.from("appointments").select("appointment_date, duration_minutes")
-    .eq("studio_id", studioId)
-    .gte("appointment_date", startOfDay(date).toISOString())
-    .lte("appointment_date", endOfDay(date).toISOString())
-    .not("status", "eq", "cancelled");
+    const slotDuration = Number(settings?.slot_duration ?? 30);
+    const serviceId = searchParams.get("serviceId") ?? searchParams.get("service_id");
+    let selectedDuration = Number(searchParams.get("duration") ?? slotDuration);
 
-  const busy = (appts ?? []).map(a => {
-    const dt = new Date(a.appointment_date);
-    const start = dt.getHours() * 60 + dt.getMinutes();
-    return { start, end: start + (a.duration_minutes ?? slotDur) };
-  });
+    if (serviceId) {
+      const { data: service, error: serviceError } = await supabase
+        .from("services")
+        .select("id, duration_minutes, buffer_minutes")
+        .eq("studio_id", studioId)
+        .eq("id", serviceId)
+        .eq("is_active", true)
+        .single();
 
-  const now = new Date();
-  const isToday = now.getFullYear() === y && now.getMonth()+1 === mo && now.getDate() === d;
+      if (serviceError || !service) {
+        return NextResponse.json({ error: "Serviço inválido para este studio" }, { status: 404 });
+      }
 
-  const available = allSlots.filter(slot => {
-    const s = toMin(slot);
-    const e = s + dur;
-    if (isToday && s < now.getHours() * 60 + now.getMinutes() + 60) return false;
-    return !busy.some(b => s < b.end && e > b.start);
-  });
+      selectedDuration = Number(service.duration_minutes ?? 30) + Number(service.buffer_minutes ?? 0);
+    }
 
-  return NextResponse.json({ slots: available });
+    const duration = Number.isFinite(selectedDuration) && selectedDuration > 0 ? selectedDuration : slotDuration;
+    const openMin = toMin(dayConfig.open);
+    const closeMin = toMin(dayConfig.close);
+
+    const allSlots: string[] = [];
+    for (let minute = openMin; minute + duration <= closeMin; minute += slotDuration) {
+      allSlots.push(fromMin(minute));
+    }
+
+    const { data: appointments, error: appointmentsError } = await supabase
+      .from("appointments")
+      .select("appointment_date, duration_minutes, status, service_id")
+      .eq("studio_id", studioId)
+      .gte("appointment_date", dayRange.start.toISOString())
+      .lte("appointment_date", dayRange.end.toISOString())
+      .neq("status", "cancelled");
+
+    if (appointmentsError) {
+      return NextResponse.json(
+        { error: "Não foi possível carregar os agendamentos do dia" },
+        { status: 500 },
+      );
+    }
+
+    const appointmentServiceIds = Array.from(
+      new Set((appointments ?? []).map((appointment) => appointment.service_id).filter(Boolean) as string[]),
+    );
+
+    const serviceDurationById = new Map<string, number>();
+    if (appointmentServiceIds.length > 0) {
+      const { data: services } = await supabase
+        .from("services")
+        .select("id, duration_minutes, buffer_minutes")
+        .eq("studio_id", studioId)
+        .in("id", appointmentServiceIds)
+        .eq("is_active", true);
+
+      (services ?? []).forEach((service) => {
+        serviceDurationById.set(
+          service.id,
+          Number(service.duration_minutes ?? 30) + Number(service.buffer_minutes ?? 0),
+        );
+      });
+    }
+
+    const busyRanges = (appointments ?? []).map((appointment) => {
+      const start = zonedMinutes(new Date(appointment.appointment_date), BOOKING_TIME_ZONE);
+      const reserved = appointment.service_id
+        ? serviceDurationById.get(appointment.service_id) ?? Number(appointment.duration_minutes ?? slotDuration)
+        : Number(appointment.duration_minutes ?? slotDuration);
+      const end = start + reserved;
+      return { start, end };
+    });
+
+    const now = new Date();
+    const isToday = isSameZonedDate(now, dayRange.start, BOOKING_TIME_ZONE);
+    const currentMinutes = zonedMinutes(now, BOOKING_TIME_ZONE);
+
+    const available = allSlots.filter((slot) => {
+      const start = toMin(slot);
+      const end = start + duration;
+
+      if (isToday && start < currentMinutes + 60) return false;
+
+      return !busyRanges.some((busy) => start < busy.end && end > busy.start);
+    });
+
+    return NextResponse.json({
+      slots: available,
+      date: dateStr,
+      studioId,
+      duration,
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Erro inesperado ao calcular os horários disponíveis" },
+      { status: 500 },
+    );
+  }
 }

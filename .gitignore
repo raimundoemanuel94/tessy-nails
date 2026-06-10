@@ -35,6 +35,8 @@ yarn-error.log*
 build_log.txt
 git_status.txt
 manicure.json
+dev.out.log
+dev.err.log
 
 # env files (can opt-in for committing if needed)
 .env
@@ -64,3 +66,4 @@ tessy-nails-firebase-key.json
 /tessy-nails/
 
 .vercel
+.env*.local

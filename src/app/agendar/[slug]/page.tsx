@@ -3,12 +3,13 @@ import { createClient } from '@/lib/supabase/server'
 import AgendarClient from './AgendarClient'
 import { notFound } from 'next/navigation'
 
-export default async function AgendarPage({ params }: { params: { slug: string } }) {
+export default async function AgendarPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const sb = await createClient()
   const { data: studio } = await sb
     .from('studios')
     .select('id, name, slug, avatar_url, brand_color, whatsapp, instagram, address, phone, is_active')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single()
 
   if (!studio || !studio.is_active) notFound()

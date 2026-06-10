@@ -1,15 +1,37 @@
 // @ts-nocheck
 'use client'
-// @ts-nocheck
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 type Studio   = { id:string; name:string; slug:string; avatar_url:string|null; brand_color:string; whatsapp:string|null; instagram:string|null; address:string|null; phone:string|null }
 type Service  = { id:string; name:string; description:string|null; price:number; duration_minutes:number; category:string|null }
 type Settings = { slot_duration:number; advance_days:number; cancel_hours:number; auto_confirm:boolean; working_hours:any } | null
+type CreatedAppointment = {
+  id: string
+  status: string
+  appointment_date: string
+  client_name: string
+  service_name: string
+  price: number
+  duration_minutes: number
+  client_id?: string | null
+  service_id?: string | null
+  studio_id?: string
+}
 
 const fmtR = (n: number) => `R$ ${Number(n||0).toFixed(2).replace('.',',')}`
 const WD = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
 const WDFULL = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
+const pad2 = (value: number) => String(value).padStart(2, '0')
+const formatLocalYmd = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
+const formatPtBrDate = (value: string) => new Date(value).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+const formatPtBrDateTime = (value: string) =>
+  new Date(value).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+const statusLabel: Record<string, string> = {
+  confirmed: 'Confirmado',
+  pending: 'Pendente de confirmação',
+  cancelled: 'Cancelado',
+}
 
 function hexToRgb(hex: string) {
   const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16)
@@ -30,7 +52,10 @@ export default function AgendarClient({ studio, services, settings }: { studio:S
   const [loading, setLoading]     = useState(false)
   const [slots, setSlots]         = useState<string[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
-  const [apptId, setApptId]       = useState('')
+  const [slotState, setSlotState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [slotError, setSlotError]  = useState('')
+  const [bookingError, setBookingError] = useState('')
+  const [createdAppointment, setCreatedAppointment] = useState<CreatedAppointment | null>(null)
 
   // CSS vars injected inline — brand color is fully dynamic
   const style: any = {
@@ -48,37 +73,80 @@ export default function AgendarClient({ studio, services, settings }: { studio:S
   const advanceDays = settings?.advance_days || 30
   const availableDates: string[] = []
   for (let i = 0; i < advanceDays; i++) {
-    const d = new Date(); d.setDate(d.getDate() + i)
+    const d = new Date()
+    d.setHours(12, 0, 0, 0)
+    d.setDate(d.getDate() + i)
     const dayKey = WDFULL[d.getDay()]
     const h = wh[dayKey]
-    if (h?.is_open) availableDates.push(d.toISOString().slice(0,10))
+    if (h?.is_open) availableDates.push(formatLocalYmd(d))
   }
 
   const fetchSlots = async (date: string, svc: Service) => {
-    setLoadingSlots(true); setSlots([])
+    setLoadingSlots(true)
+    setSlots([])
+    setSlotError('')
+    setSlotState('loading')
     try {
-      const res = await fetch(`/api/public/slots?studio_id=${studio.id}&service_id=${svc.id}&date=${date}`)
-      const data = await res.json()
-      setSlots(data.slots || [])
-    } catch { setSlots([]) }
-    setLoadingSlots(false)
+      const params = new URLSearchParams({
+        studioId: studio.id,
+        serviceId: svc.id,
+        date,
+      })
+      const res = await fetch(`/api/public/slots?${params.toString()}`)
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        throw new Error(data?.error || 'Erro ao carregar horários, tente novamente')
+      }
+      setSlots(Array.isArray(data?.slots) ? data.slots : [])
+      setSlotState('ready')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao carregar horários, tente novamente'
+      setSlotError(message)
+      setSlotState('error')
+      setSlots([])
+    } finally {
+      setLoadingSlots(false)
+    }
   }
 
   const submit = async () => {
     if (!selSvc || !selDate || !selTime || !name || !phone) return
     setLoading(true)
-    const res = await fetch('/api/public/appointments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        studio_id: studio.id, service_id: selSvc.id,
-        appointment_date: `${selDate}T${selTime}:00`,
-        client_name: name, client_phone: phone, notes
+    setBookingError('')
+
+    try {
+      const res = await fetch('/api/public/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug: studio.slug,
+          serviceId: selSvc.id,
+          appointmentDate: `${selDate}T${selTime}:00`,
+          clientName: name.trim(),
+          clientPhone: phone.trim(),
+          notes: notes.trim() || undefined,
+        })
       })
-    })
-    const data = await res.json()
-    if (data.id) { setApptId(data.id); setStep('done') }
-    setLoading(false)
+
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        throw new Error(data?.error || 'Não foi possível confirmar o agendamento.')
+      }
+
+      const appointment = data?.appointment as CreatedAppointment | undefined
+      if (!appointment?.id) {
+        throw new Error('A confirmação não retornou os dados do agendamento.')
+      }
+
+      setCreatedAppointment(appointment)
+      setStep('done')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Não foi possível confirmar o agendamento.'
+      setBookingError(message)
+      toast.error(message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const waLink = () => {
@@ -134,7 +202,17 @@ export default function AgendarClient({ studio, services, settings }: { studio:S
               <p style={{ fontSize:12, color:C.muted, margin:'4px 0 0' }}>{services.length} serviços disponíveis</p>
             </div>
             {services.map(svc => (
-              <button key={svc.id} onClick={() => { setSelSvc(svc); setStep('date') }}
+              <button key={svc.id} onClick={() => {
+                setSelSvc(svc)
+                setSelDate('')
+                setSelTime('')
+                setSlots([])
+                setSlotError('')
+                setSlotState('idle')
+                setBookingError('')
+                setCreatedAppointment(null)
+                setStep('date')
+              }}
                 style={{ display:'flex', alignItems:'center', gap:14, background:`linear-gradient(180deg,${C.surface2},${C.surface})`,
                   border:`1px solid ${C.border}`, borderRadius:16, padding:16, cursor:'pointer', textAlign:'left', fontFamily:'inherit', transition:'.15s' }}
                 onMouseEnter={e => (e.currentTarget as any).style.borderColor = brand}
@@ -166,7 +244,15 @@ export default function AgendarClient({ studio, services, settings }: { studio:S
               {availableDates.slice(0,28).map(d => {
                 const dt = new Date(d+'T00:00'), on = d === selDate
                 return (
-                  <button key={d} onClick={() => { setSelDate(d); setStep('time'); fetchSlots(d, selSvc!) }}
+                  <button key={d} onClick={() => {
+                    setSelDate(d)
+                    setSelTime('')
+                    setSlots([])
+                    setSlotError('')
+                    setSlotState('loading')
+                    setStep('time')
+                    void fetchSlots(d, selSvc!)
+                  }}
                     style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, padding:'10px 6px',
                       borderRadius:13, border:`1px solid ${on?brand:C.border}`, background:on?`rgba(${rgb},.15)`:C.surface,
                       cursor:'pointer', fontFamily:'inherit', transition:'.15s' }}>
@@ -190,15 +276,25 @@ export default function AgendarClient({ studio, services, settings }: { studio:S
                 <p style={{ fontSize:11, color:C.muted, margin:'2px 0 0' }}>{new Date(selDate+'T00:00').toLocaleDateString('pt-BR',{ weekday:'long', day:'numeric', month:'long' })}</p>
               </div>
             </div>
-            {loadingSlots ? (
+            {loadingSlots || slotState === 'loading' ? (
               <div style={{ textAlign:'center', padding:32, color:C.muted }}>
                 <div style={{ width:28, height:28, borderRadius:'50%', border:`3px solid ${brand}`, borderTopColor:'transparent', animation:'spin .8s linear infinite', margin:'0 auto' }}/>
+                <div style={{ marginTop:12 }}>Carregando horários...</div>
                 <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+              </div>
+            ) : slotState === 'error' ? (
+              <div style={{ textAlign:'center', padding:32, color:C.muted }}>
+                <div style={{ fontSize:28, marginBottom:8 }}>⚠</div>
+                <div>{slotError || 'Erro ao carregar horários, tente novamente'}</div>
+                <button onClick={() => { if (selSvc && selDate) void fetchSlots(selDate, selSvc) }}
+                  style={{ marginTop:12, background:'none', border:`1px solid ${C.border2}`, borderRadius:9, padding:'8px 16px', color:C.muted, cursor:'pointer', fontFamily:'inherit' }}>
+                  Tentar novamente
+                </button>
               </div>
             ) : slots.length === 0 ? (
               <div style={{ textAlign:'center', padding:32, color:C.muted }}>
                 <div style={{ fontSize:28, marginBottom:8 }}>😔</div>
-                <div>Sem horários disponíveis neste dia</div>
+                <div>Sem horários disponíveis</div>
                 <button onClick={() => setStep('date')} style={{ marginTop:12, background:'none', border:`1px solid ${C.border2}`, borderRadius:9, padding:'8px 16px', color:C.muted, cursor:'pointer', fontFamily:'inherit' }}>Escolher outro dia</button>
               </div>
             ) : (
@@ -257,6 +353,11 @@ export default function AgendarClient({ studio, services, settings }: { studio:S
                 boxShadow:`0 6px 22px rgba(${rgb},.45)`, opacity:(loading||!name||!phone)?0.6:1 }}>
               {loading ? 'Confirmando...' : 'Confirmar agendamento'}
             </button>
+            {bookingError && (
+              <div style={{ background:'rgba(248,113,113,.1)', border:'1px solid rgba(248,113,113,.25)', borderRadius:12, padding:'10px 12px', color:'#fca5a5', fontSize:12 }}>
+                {bookingError}
+              </div>
+            )}
           </div>
         )}
 
@@ -269,17 +370,22 @@ export default function AgendarClient({ studio, services, settings }: { studio:S
               ✓
             </div>
             <div>
-              <h1 style={{ fontFamily:'Georgia,serif', fontSize:24, fontWeight:600, color:C.text, margin:0 }}>Agendado!</h1>
+              <h1 style={{ fontFamily:'Georgia,serif', fontSize:24, fontWeight:600, color:C.text, margin:0 }}>Agendamento confirmado!</h1>
               <p style={{ fontSize:13, color:C.muted, margin:'8px 0 0', lineHeight:1.5 }}>
-                Seu <b style={{ color:C.text }}>{selSvc?.name}</b> está marcado para<br/>
-                <b style={{ color:C.text }}>{selDate?.split('-').reverse().join('/')} às {selTime}</b>
+                Seu <b style={{ color:C.text }}>{createdAppointment?.service_name || selSvc?.name}</b> foi registrado com sucesso.<br/>
+                <b style={{ color:C.text }}>
+                  {createdAppointment ? formatPtBrDateTime(createdAppointment.appointment_date) : `${selDate?.split('-').reverse().join('/')} às ${selTime}`}
+                </b>
               </p>
             </div>
             <div style={{ background:`linear-gradient(180deg,${C.surface2},${C.surface})`, border:`1px solid ${C.border}`, borderRadius:18, padding:18, width:'100%', display:'flex', flexDirection:'column', gap:10 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Serviço</span><span style={{ color:C.text, fontWeight:600 }}>{selSvc?.name}</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Data</span><span style={{ color:C.text, fontWeight:600 }}>{selDate?.split('-').reverse().join('/')}</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Horário</span><span style={{ color:C.text, fontWeight:600 }}>{selTime}</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Valor</span><span style={{ color:C.green, fontWeight:700 }}>{fmtR(selSvc?.price||0)}</span></div>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Cliente</span><span style={{ color:C.text, fontWeight:600 }}>{createdAppointment?.client_name || name}</span></div>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Serviço</span><span style={{ color:C.text, fontWeight:600 }}>{createdAppointment?.service_name || selSvc?.name}</span></div>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Data</span><span style={{ color:C.text, fontWeight:600 }}>{createdAppointment ? formatPtBrDate(createdAppointment.appointment_date) : selDate?.split('-').reverse().join('/')}</span></div>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Horário</span><span style={{ color:C.text, fontWeight:600 }}>{createdAppointment ? new Date(createdAppointment.appointment_date).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }) : selTime}</span></div>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Valor</span><span style={{ color:C.green, fontWeight:700 }}>{fmtR((createdAppointment?.price ?? selSvc?.price) || 0)}</span></div>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Status</span><span style={{ color:C.text, fontWeight:600 }}>{statusLabel[createdAppointment?.status || 'confirmed'] || createdAppointment?.status || 'Confirmado'}</span></div>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Código</span><span style={{ color:C.text, fontWeight:600 }}>{createdAppointment?.id?.slice(0, 8).toUpperCase() || '—'}</span></div>
             </div>
             {studio.whatsapp && (
               <a href={waLink()} target="_blank" rel="noreferrer"
@@ -289,7 +395,20 @@ export default function AgendarClient({ studio, services, settings }: { studio:S
                 📱 Falar no WhatsApp
               </a>
             )}
-            <button onClick={() => { setStep('service'); setSelSvc(null); setSelDate(''); setSelTime(''); setName(''); setPhone(''); setNotes('') }}
+            <button onClick={() => {
+              setStep('service')
+              setSelSvc(null)
+              setSelDate('')
+              setSelTime('')
+              setName('')
+              setPhone('')
+              setNotes('')
+              setSlots([])
+              setSlotError('')
+              setSlotState('idle')
+              setBookingError('')
+              setCreatedAppointment(null)
+            }}
               style={{ background:'none', border:`1px solid ${C.border2}`, borderRadius:12, padding:'10px 20px', color:C.muted, cursor:'pointer', fontFamily:'inherit', fontSize:13 }}>
               Fazer outro agendamento
             </button>

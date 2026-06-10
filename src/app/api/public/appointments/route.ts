@@ -1,93 +1,183 @@
-import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { BOOKING_TIME_ZONE, localDateTimeToUtc, zonedDateString, zonedDayRange } from "@/lib/time";
 
-interface Body {
-  slug: string;
-  service_id: string;
-  appointment_date: string;
-  client_name: string;
+type AppointmentBody = {
+  slug?: string;
+  studioId?: string;
+  studio_id?: string;
+  serviceId?: string;
+  service_id?: string;
+  appointmentDate?: string;
+  appointment_date?: string;
+  clientName?: string;
+  client_name?: string;
+  clientPhone?: string;
   client_phone?: string;
+  clientEmail?: string;
   client_email?: string;
   notes?: string;
-}
+};
 
 export async function POST(req: Request) {
-  let body: Body;
-  try { body = await req.json(); } catch { return bad('JSON inválido'); }
+  let body: AppointmentBody;
 
-  const { slug, service_id, appointment_date, client_name } = body;
-  if (!slug || !service_id || !appointment_date || !client_name?.trim())
-    return bad('Campos obrigatórios: slug, service_id, appointment_date, client_name');
+  try {
+    body = (await req.json()) as AppointmentBody;
+  } catch {
+    return bad("JSON inválido");
+  }
 
-  const when = new Date(appointment_date);
-  if (Number.isNaN(when.getTime())) return bad('appointment_date inválido');
-  if (when.getTime() < Date.now()) return bad('Não é possível agendar no passado');
+  const studioIdInput = body.studioId ?? body.studio_id ?? null;
+  const slugInput = body.slug?.trim() ?? null;
+  const serviceId = body.serviceId ?? body.service_id ?? null;
+  const appointmentInput = body.appointmentDate ?? body.appointment_date ?? null;
+  const clientName = body.clientName ?? body.client_name ?? "";
+  const clientPhone = body.clientPhone ?? body.client_phone ?? "";
+  const clientEmail = body.clientEmail ?? body.client_email ?? "";
+  const notes = body.notes?.trim() || null;
+
+  if (!appointmentInput || !serviceId || !clientName.trim() || (!studioIdInput && !slugInput)) {
+    return bad("Campos obrigatórios: studioId ou slug, serviceId, appointmentDate, clientName");
+  }
+
+  const when = localDateTimeToUtc(appointmentInput, BOOKING_TIME_ZONE);
+  if (Number.isNaN(when.getTime())) return bad("appointmentDate inválido");
+  if (when.getTime() < Date.now()) return bad("Não é possível agendar no passado");
 
   const supabase = createAdminClient();
 
-  const { data: studio } = await supabase
-    .from('studios').select('id, is_active').eq('slug', slug).single();
-  if (!studio || !studio.is_active) return bad('Studio indisponível', 404);
+  let studioQuery = supabase.from("studios").select("id, is_active");
+  if (studioIdInput) studioQuery = studioQuery.eq("id", studioIdInput);
+  else if (slugInput) studioQuery = studioQuery.eq("slug", slugInput);
 
-  const { data: service } = await supabase
-    .from('services')
-    .select('id, name, price, duration_minutes, buffer_minutes')
-    .eq('id', service_id).eq('studio_id', studio.id).eq('is_active', true).single();
-  if (!service) return bad('Serviço inválido para este studio');
+  const { data: studio, error: studioError } = await studioQuery.single();
+  if (studioError || !studio || !studio.is_active) return bad("Studio indisponível", 404);
 
-  const duration = service.duration_minutes ?? 30;
-  const buffer = service.buffer_minutes ?? 0;
-  const end = new Date(when.getTime() + (duration + buffer) * 60_000);
+  const { data: service, error: serviceError } = await supabase
+    .from("services")
+    .select("id, name, price, duration_minutes, buffer_minutes")
+    .eq("id", serviceId)
+    .eq("studio_id", studio.id)
+    .eq("is_active", true)
+    .single();
+  if (serviceError || !service) return bad("Serviço inválido para este studio");
 
-  const dayStart = new Date(when); dayStart.setUTCHours(0, 0, 0, 0);
-  const dayEnd = new Date(when); dayEnd.setUTCHours(23, 59, 59, 999);
+  const durationMinutes = Number(service.duration_minutes ?? 30);
+  const bufferMinutes = Number(service.buffer_minutes ?? 0);
+  const reservedMinutes = durationMinutes + bufferMinutes;
+  const appointmentEnd = new Date(when.getTime() + reservedMinutes * 60_000);
+  const localDate = zonedDateString(when, BOOKING_TIME_ZONE);
+  const { start: dayStart, end: dayEnd } = zonedDayRange(localDate, BOOKING_TIME_ZONE);
 
-  const { data: sameDay } = await supabase
-    .from('appointments')
-    .select('appointment_date, duration_minutes')
-    .eq('studio_id', studio.id).neq('status', 'cancelled')
-    .gte('appointment_date', dayStart.toISOString())
-    .lte('appointment_date', dayEnd.toISOString());
+  const { data: sameDay, error: sameDayError } = await supabase
+    .from("appointments")
+    .select("appointment_date, duration_minutes, service_id")
+    .eq("studio_id", studio.id)
+    .neq("status", "cancelled")
+    .gte("appointment_date", dayStart.toISOString())
+    .lte("appointment_date", dayEnd.toISOString());
 
-  const overlaps = (sameDay ?? []).some(a => {
-    const aStart = new Date(a.appointment_date).getTime();
-    const aEnd = aStart + (a.duration_minutes ?? 30) * 60_000;
-    return when.getTime() < aEnd && end.getTime() > aStart;
+  if (sameDayError) return bad("Falha ao validar disponibilidade", 500);
+
+  const serviceIds = Array.from(
+    new Set((sameDay ?? []).map((appointment) => appointment.service_id).filter(Boolean) as string[]),
+  );
+
+  const serviceDurationById = new Map<string, number>();
+  if (serviceIds.length > 0) {
+    const { data: relatedServices } = await supabase
+      .from("services")
+      .select("id, duration_minutes, buffer_minutes")
+      .eq("studio_id", studio.id)
+      .in("id", serviceIds)
+      .eq("is_active", true);
+
+    (relatedServices ?? []).forEach((relatedService) => {
+      serviceDurationById.set(
+        relatedService.id,
+        Number(relatedService.duration_minutes ?? 30) + Number(relatedService.buffer_minutes ?? 0),
+      );
+    });
+  }
+
+  const overlaps = (sameDay ?? []).some((appointment) => {
+    const start = new Date(appointment.appointment_date).getTime();
+    const reserved = appointment.service_id
+      ? serviceDurationById.get(appointment.service_id) ?? Number(appointment.duration_minutes ?? 30)
+      : Number(appointment.duration_minutes ?? 30);
+    const end = start + reserved * 60_000;
+    return when.getTime() < end && appointmentEnd.getTime() > start;
   });
-  if (overlaps) return bad('Esse horário já está ocupado', 409);
+  if (overlaps) return bad("Esse horário já está ocupado", 409);
 
   const { data: settings } = await supabase
-    .from('salon_settings').select('auto_confirm').eq('studio_id', studio.id).single();
-  const status = settings?.auto_confirm ? 'confirmed' : 'pending';
+    .from("salon_settings")
+    .select("auto_confirm")
+    .eq("studio_id", studio.id)
+    .single();
+
+  const status = settings?.auto_confirm ? "confirmed" : "pending";
 
   let clientId: string | null = null;
-  const phone = body.client_phone?.trim();
+  const phone = clientPhone.trim();
+
   if (phone) {
     const { data: existing } = await supabase
-      .from('clients').select('id').eq('studio_id', studio.id).eq('phone', phone).maybeSingle();
+      .from("clients")
+      .select("id")
+      .eq("studio_id", studio.id)
+      .eq("phone", phone)
+      .maybeSingle();
     clientId = existing?.id ?? null;
   }
+
   if (!clientId) {
-    const { data: newClient, error: cErr } = await supabase
-      .from('clients')
-      .insert({ studio_id: studio.id, name: client_name.trim(), phone: phone ?? null,
-        email: body.client_email?.trim() ?? null, source: 'public' })
-      .select('id').single();
-    if (cErr || !newClient) return bad('Falha ao registrar cliente', 500);
+    const { data: newClient, error: clientError } = await supabase
+      .from("clients")
+      .insert({
+        studio_id: studio.id,
+        name: clientName.trim(),
+        phone: phone || null,
+        email: clientEmail.trim() || null,
+        source: "public",
+      })
+      .select("id")
+      .single();
+
+    if (clientError || !newClient) return bad("Falha ao registrar cliente", 500);
     clientId = newClient.id;
   }
 
-  const { data: appt, error: aErr } = await supabase
-    .from('appointments')
-    .insert({ studio_id: studio.id, client_id: clientId, service_id: service.id,
-      client_name: client_name.trim(), service_name: service.name,
-      appointment_date: when.toISOString(), duration_minutes: duration,
-      price: service.price, status, source: 'public',
-      notes: body.notes?.trim() ?? null })
-    .select('id, status, appointment_date').single();
-  if (aErr || !appt) return bad('Falha ao criar agendamento', 500);
+  const { data: appointment, error: appointmentError } = await supabase
+    .from("appointments")
+    .insert({
+      studio_id: studio.id,
+      client_id: clientId,
+      service_id: service.id,
+      client_name: clientName.trim(),
+      service_name: service.name,
+      appointment_date: when.toISOString(),
+      duration_minutes: reservedMinutes,
+      price: service.price,
+      status,
+      source: "public",
+      notes,
+    })
+    .select(
+      "id, status, appointment_date, client_name, service_name, price, duration_minutes, client_id, service_id, studio_id",
+    )
+    .single();
 
-  return NextResponse.json({ ok: true, appointment: appt }, { status: 201 });
+  if (appointmentError || !appointment) return bad("Falha ao criar agendamento", 500);
+
+  return NextResponse.json(
+    {
+      ok: true,
+      appointment,
+    },
+    { status: 201 },
+  );
 }
 
 function bad(message: string, status = 400) {
