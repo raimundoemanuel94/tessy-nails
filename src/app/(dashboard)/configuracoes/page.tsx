@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Save, Clock, Palette, Phone, Instagram, Globe } from "lucide-react";
+import { Loader2, Save, Clock, Palette, Phone, AtSign, Globe } from "lucide-react";
 
 const DAYS = [
   { key: "monday",    label: "Segunda-feira" },
@@ -181,7 +181,7 @@ export default function ConfiguracoesPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
               <label style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: 6 }}>
-                <Instagram size={12} style={{ display: "inline", marginRight: 4 }} />Instagram
+                <AtSign size={12} style={{ display: "inline", marginRight: 4 }} />Instagram
               </label>
               <input className="input-base" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@tessystudio" />
             </div>
