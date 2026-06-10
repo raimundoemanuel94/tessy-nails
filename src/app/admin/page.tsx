@@ -188,10 +188,8 @@ export default async function AdminPage() {
                   alignItems: "center", padding: "12px 20px", textDecoration: "none",
                   borderBottom: i < recentStudios.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
                   transition: "background .1s",
-                }}
-                  onMouseEnter={(e: any) => e.currentTarget.style.background="rgba(255,255,255,0.025)"}
-                  onMouseLeave={(e: any) => e.currentTarget.style.background="transparent"}
-                >
+                  background: "transparent",
+                }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
                     <div style={{
                       width: 30, height: 30, borderRadius: 7, flexShrink: 0,
@@ -283,10 +281,8 @@ export default async function AdminPage() {
                 padding: "10px 12px", borderRadius: 9, textDecoration: "none",
                 border: "1px solid rgba(255,255,255,0.06)",
                 marginBottom: 8, transition: "all .12s",
-              }}
-                onMouseEnter={(e: any) => { e.currentTarget.style.background=`${color}08`; e.currentTarget.style.borderColor=`${color}30`; }}
-                onMouseLeave={(e: any) => { e.currentTarget.style.background="transparent"; e.currentTarget.style.borderColor="rgba(255,255,255,0.06)"; }}
-              >
+                background: "transparent",
+              }}>
                 <div style={{
                   width: 26, height: 26, borderRadius: 7,
                   background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center",

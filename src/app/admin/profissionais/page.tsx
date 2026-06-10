@@ -96,10 +96,8 @@ export default async function AdminProfissionaisPage() {
                   alignItems: "center", padding: "12px 20px",
                   borderBottom: i < all.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
                   transition: "background .1s",
-                }}
-                  onMouseEnter={(e: any) => e.currentTarget.style.background="rgba(255,255,255,0.025)"}
-                  onMouseLeave={(e: any) => e.currentTarget.style.background="transparent"}
-                >
+                  background: "transparent",
+                }}>
                   {/* user info */}
                   <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
                     <div style={{
