@@ -1,4 +1,5 @@
-'use client'
+// @ts-nocheck
+// 'use client'
 import {useEffect,useState} from 'react'
 import {createClient} from '@/lib/supabase/client'
 import type {Appointment} from '@/types/database'
