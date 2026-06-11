@@ -70,7 +70,6 @@ const NAV = [
         type: "group", key: "plataforma", icon: Settings, label: "Plataforma",
         children: [
           { href: "/admin/config/planos", label: "Planos & Preços" },
-          { href: "/admin/config",        label: "Configurações", exact: true },
         ],
       },
     ],
