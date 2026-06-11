@@ -18,10 +18,10 @@ const SERVICES_DEFAULT = [
 ];
 
 const PC: Record<string, { bg: string; color: string; border: string }> = {
-  pro:     { bg: "rgba(167,139,250,0.15)", color: "#a78bfa", border: "rgba(167,139,250,0.30)" },
-  starter: { bg: "rgba(96,165,250,0.15)",  color: "#60a5fa", border: "rgba(96,165,250,0.30)"  },
-  free:    { bg: "rgba(107,107,154,0.12)", color: "#7a7a9a", border: "rgba(107,107,154,0.25)" },
-  studio:  { bg: "rgba(244,114,182,0.15)", color: "#f472b6", border: "rgba(244,114,182,0.30)" },
+  pro:     { bg: "rgba(99,102,241,0.10)",  color: "#818cf8", border: "rgba(99,102,241,0.22)"  },
+  starter: { bg: "rgba(96,165,250,0.10)",  color: "#60a5fa", border: "rgba(96,165,250,0.22)"  },
+  free:    { bg: "rgba(113,113,122,0.10)", color: "#71717a", border: "rgba(113,113,122,0.20)" },
+  studio:  { bg: "rgba(244,114,182,0.10)", color: "#f472b6", border: "rgba(244,114,182,0.22)" },
 };
 
 function relTime(d: string) {
@@ -33,11 +33,13 @@ function relTime(d: string) {
 }
 
 const C = {
-  card:   "rgba(255,255,255,0.05)",
-  border: "rgba(255,255,255,0.10)",
-  sep:    "rgba(255,255,255,0.06)",
-  text:   "#ede9fe",
-  muted:  "#6b6585",
+  card:   "rgba(255,255,255,0.03)",
+  border: "rgba(255,255,255,0.08)",
+  sep:    "rgba(255,255,255,0.05)",
+  text:   "#f4f4f5",
+  sub:    "#a1a1aa",
+  muted:  "#52525b",
+  r:      10,
 };
 
 export default function AdminStudiosPage() {
@@ -99,26 +101,26 @@ export default function AdminStudiosPage() {
   const inactive = studios.filter(s => !s.is_active).length;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 1040, position: "relative", zIndex: 1 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 1040 }}>
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
-          <p style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b", letterSpacing: "0.10em",
+          <p style={{ fontSize: 11, fontWeight: 500, color: C.muted, letterSpacing: "0.06em",
             textTransform: "uppercase", marginBottom: 6 }}>Admin Console</p>
-          <h1 style={{ fontSize: 26, fontWeight: 900, color: C.text, margin: 0, letterSpacing: "-0.03em" }}>Studios</h1>
-          <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.025em" }}>Studios</h1>
+          <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
             {[
-              { label: "Total",    value: studios.length, color: C.text,    bg: "rgba(255,255,255,0.06)" },
-              { label: "Ativos",   value: active,         color: "#34d399", bg: "rgba(52,211,153,0.10)"  },
-              ...(inactive > 0 ? [{ label: "Inativos", value: inactive, color: "#f87171", bg: "rgba(248,113,113,0.10)" }] : []),
-            ].map(({ label, value, color, bg }) => (
+              { label: "Total",    value: studios.length, color: C.sub  },
+              { label: "Ativos",   value: active,         color: "#4ade80" },
+              ...(inactive > 0 ? [{ label: "Inativos", value: inactive, color: "#f87171" }] : []),
+            ].map(({ label, value, color }) => (
               <div key={label} style={{
-                display: "flex", alignItems: "center", gap: 5,
-                padding: "4px 11px", borderRadius: 20,
-                background: bg, border: `1px solid ${color}22`,
+                display: "flex", alignItems: "center", gap: 4,
+                padding: "3px 10px", borderRadius: 20,
+                background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`,
               }}>
-                <span style={{ fontSize: 12, fontWeight: 900, color }}>{value}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color }}>{value}</span>
                 <span style={{ fontSize: 11, color: C.muted }}>{label}</span>
               </div>
             ))}
@@ -126,76 +128,61 @@ export default function AdminStudiosPage() {
         </div>
         <button onClick={() => setOpen(true)} style={{
           display: "inline-flex", alignItems: "center", gap: 7,
-          padding: "11px 20px", borderRadius: 10,
-          background: "rgba(245,158,11,0.14)", border: "1px solid rgba(245,158,11,0.35)",
-          fontSize: 13, fontWeight: 800, color: "#f59e0b", cursor: "pointer", fontFamily: "inherit",
-          boxShadow: "0 2px 12px rgba(245,158,11,0.12)",
+          padding: "9px 16px", borderRadius: 8,
+          background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)",
+          fontSize: 13, fontWeight: 600, color: "#818cf8", cursor: "pointer", fontFamily: "inherit",
         }}>
-          <Plus size={14}/> Novo Studio
+          <Plus size={13}/> Novo Studio
         </button>
       </div>
 
       {/* Search */}
       {studios.length > 0 && (
         <div style={{ position: "relative" }}>
-          <Search size={14} color={C.muted} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)" }}/>
+          <Search size={13} color={C.muted} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}/>
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Buscar por nome ou slug…"
             style={{
-              width: "100%", height: 42, paddingLeft: 40, paddingRight: 14,
+              width: "100%", height: 38, paddingLeft: 36, paddingRight: 12,
               background: C.card, border: `1px solid ${C.border}`,
-              borderRadius: 10, color: C.text, fontSize: 13, outline: "none", fontFamily: "inherit",
+              borderRadius: 8, color: C.text, fontSize: 13, outline: "none", fontFamily: "inherit",
             }}
-            onFocus={(e: any) => { e.target.style.borderColor = "rgba(245,158,11,0.5)"; e.target.style.boxShadow = "0 0 0 3px rgba(245,158,11,0.10)"; }}
-            onBlur={(e: any) => { e.target.style.borderColor = C.border; e.target.style.boxShadow = "none"; }}
           />
         </div>
       )}
 
       {/* Table */}
-      <div style={{
-        background: C.card, border: `1px solid ${C.border}`,
-        borderRadius: 16, overflow: "hidden",
-      }}>
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: C.r, overflow: "hidden" }}>
         {loading ? (
           <div style={{ display: "flex", justifyContent: "center", padding: "60px 0" }}>
-            <Loader2 size={28} color="#f59e0b" className="spin"/>
+            <Loader2 size={20} color={C.muted} className="spin"/>
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ padding: "64px 24px", textAlign: "center" }}>
-            <div style={{
-              width: 60, height: 60, borderRadius: 16, margin: "0 auto 18px",
-              background: "rgba(245,158,11,0.07)", border: "1px dashed rgba(245,158,11,0.22)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <Building2 size={26} color="#f59e0b" style={{ opacity: .5 }}/>
-            </div>
-            <p style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 7 }}>
+          <div style={{ padding: "60px 24px", textAlign: "center" }}>
+            <Building2 size={24} color={C.muted} style={{ opacity: 0.4, marginBottom: 12 }}/>
+            <p style={{ fontSize: 14, fontWeight: 600, color: C.sub, marginBottom: 5 }}>
               {search ? "Nenhum resultado" : "Nenhum studio ainda"}
             </p>
-            <p style={{ fontSize: 13, color: C.muted, marginBottom: 22 }}>
+            <p style={{ fontSize: 12, color: C.muted, marginBottom: 20 }}>
               {search ? `Sem resultados para "${search}"` : "Crie o primeiro studio da plataforma"}
             </p>
             {!search && (
               <button onClick={() => setOpen(true)} style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
-                padding: "10px 20px", borderRadius: 9,
-                background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.30)",
-                fontSize: 13, fontWeight: 800, color: "#f59e0b", cursor: "pointer", fontFamily: "inherit",
+                padding: "8px 16px", borderRadius: 8,
+                background: "rgba(99,102,241,0.10)", border: "1px solid rgba(99,102,241,0.22)",
+                fontSize: 13, fontWeight: 600, color: "#818cf8", cursor: "pointer", fontFamily: "inherit",
               }}>+ Criar studio</button>
             )}
           </div>
         ) : (
           <>
-            {/* Col headers */}
             <div style={{
-              display: "grid", gridTemplateColumns: "1fr 140px 90px 90px 80px",
-              padding: "8px 22px", borderBottom: `1px solid ${C.sep}`,
-              background: "rgba(255,255,255,0.02)",
+              display: "grid", gridTemplateColumns: "1fr 150px 90px 90px 72px",
+              padding: "7px 18px", borderBottom: `1px solid ${C.sep}`,
             }}>
-              {["Studio", "Profissional", "Plano", "Status", ""].map(h => (
-                <span key={h} style={{ fontSize: 10, fontWeight: 800, color: C.muted,
-                  letterSpacing: "0.08em", textTransform: "uppercase" }}>{h}</span>
+              {["Studio", "Responsável", "Plano", "Status", ""].map(h => (
+                <span key={h} style={{ fontSize: 10, fontWeight: 500, color: C.muted, letterSpacing: "0.06em", textTransform: "uppercase" }}>{h}</span>
               ))}
             </div>
 
@@ -205,85 +192,77 @@ export default function AdminStudiosPage() {
                 <div key={s.id}
                   className="a-row"
                   style={{
-                    display: "grid", gridTemplateColumns: "1fr 140px 90px 90px 80px",
-                    alignItems: "center", padding: "15px 22px",
+                    display: "grid", gridTemplateColumns: "1fr 150px 90px 90px 72px",
+                    alignItems: "center", padding: "13px 18px",
                     borderBottom: i < filtered.length - 1 ? `1px solid ${C.sep}` : "none",
-                    opacity: s.is_active ? 1 : 0.55,
+                    opacity: s.is_active ? 1 : 0.5,
                   }}
                 >
                   {/* Studio info */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 13, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
                     <div style={{
-                      width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                      background: "linear-gradient(135deg,#f59e0b,#fcd34d)",
+                      width: 30, height: 30, borderRadius: 7, flexShrink: 0,
+                      background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.22)",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 14, fontWeight: 900, color: "#000",
-                      boxShadow: "0 2px 10px rgba(245,158,11,0.28)",
+                      fontSize: 12, fontWeight: 700, color: "#818cf8",
                     }}>{s.name.charAt(0).toUpperCase()}</div>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: C.text,
-                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 2 }}>
                         <code style={{ fontSize: 10, color: C.muted }}>/{s.slug}</code>
-                        <span style={{ fontSize: 9, color: "#4a4a6a" }}>·</span>
-                        <span style={{ fontSize: 10, color: "#4a4a6a" }}>{relTime(s.created_at)}</span>
+                        <span style={{ fontSize: 9, color: C.muted }}>·</span>
+                        <span style={{ fontSize: 10, color: C.muted }}>{relTime(s.created_at)}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Owner */}
                   <div style={{ minWidth: 0 }}>
-                    <span style={{
-                      fontSize: 12, fontWeight: 600,
-                      color: s.profiles?.name ? "#34d399" : "#f59e0b",
-                    }}>
-                      {s.profiles?.name ?? "Sem vínculo"}
+                    <span style={{ fontSize: 12, color: s.profiles?.name ? C.sub : C.muted, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>
+                      {s.profiles?.name ?? "—"}
                     </span>
                   </div>
 
                   {/* Plan */}
                   <div>
                     <span style={{
-                      fontSize: 10, fontWeight: 800, padding: "3px 9px", borderRadius: 6,
+                      fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 5,
                       background: pc.bg, color: pc.color, border: `1px solid ${pc.border}`,
-                      textTransform: "uppercase", letterSpacing: "0.04em",
                     }}>{s.plan}</span>
                   </div>
 
                   {/* Status */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <div className={s.is_active ? "dot-active" : ""} style={{
-                      width: 7, height: 7, borderRadius: "50%",
-                      background: s.is_active ? "#34d399" : "#4a4a6a",
-                      flexShrink: 0,
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <div style={{
+                      width: 5, height: 5, borderRadius: "50%",
+                      background: s.is_active ? "#22c55e" : "#3f3f46", flexShrink: 0,
                     }}/>
-                    <span style={{ fontSize: 12, fontWeight: 600,
-                      color: s.is_active ? "#34d399" : C.muted }}>
+                    <span style={{ fontSize: 11, color: s.is_active ? "#4ade80" : C.muted }}>
                       {s.is_active ? "Ativo" : "Inativo"}
                     </span>
                   </div>
 
                   {/* Actions */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 5, justifyContent: "flex-end" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
                     <Link href={`/admin/studios/${s.id}`} style={{
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      width: 30, height: 30, borderRadius: 8,
-                      background: "rgba(255,255,255,0.06)", border: `1px solid ${C.sep}`,
-                      color: C.muted, textDecoration: "none", transition: "all .12s",
+                      width: 28, height: 28, borderRadius: 6,
+                      background: "rgba(255,255,255,0.04)", border: `1px solid ${C.sep}`,
+                      color: C.muted, textDecoration: "none",
                     }}
-                      onMouseEnter={(e: any) => { e.currentTarget.style.color = C.text; e.currentTarget.style.background = "rgba(255,255,255,0.12)"; }}
-                      onMouseLeave={(e: any) => { e.currentTarget.style.color = C.muted; e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
-                    ><Pencil size={12}/></Link>
+                      onMouseEnter={(e: any) => { e.currentTarget.style.color = C.text; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+                      onMouseLeave={(e: any) => { e.currentTarget.style.color = C.muted; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                    ><Pencil size={11}/></Link>
                     <button onClick={() => toggleActive(s.id, s.is_active)} style={{
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      width: 30, height: 30, borderRadius: 8,
-                      background: "rgba(255,255,255,0.06)", border: `1px solid ${C.sep}`,
-                      color: s.is_active ? "#34d399" : C.muted,
-                      cursor: "pointer", fontFamily: "inherit", transition: "all .12s",
+                      width: 28, height: 28, borderRadius: 6,
+                      background: "rgba(255,255,255,0.04)", border: `1px solid ${C.sep}`,
+                      color: s.is_active ? "#4ade80" : C.muted,
+                      cursor: "pointer", fontFamily: "inherit",
                     }}
-                      onMouseEnter={(e: any) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; }}
-                      onMouseLeave={(e: any) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
-                    ><Power size={12}/></button>
+                      onMouseEnter={(e: any) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+                      onMouseLeave={(e: any) => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                    ><Power size={11}/></button>
                   </div>
                 </div>
               );
@@ -297,17 +276,17 @@ export default function AdminStudiosPage() {
         <div style={{
           position: "fixed", inset: 0, zIndex: 50,
           display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
-          background: "rgba(0,0,0,0.80)", backdropFilter: "blur(12px)",
+          background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)",
         }}>
           <div style={{
-            width: "100%", maxWidth: 460,
-            background: "#0a0a1a", border: `1px solid ${C.border}`,
-            borderRadius: 20, padding: "28px 28px 24px",
-            boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+            width: "100%", maxWidth: 440,
+            background: "#111113", border: "1px solid rgba(255,255,255,0.10)",
+            borderRadius: 14, padding: "24px",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
           }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22 }}>
               <div>
-                <h2 style={{ fontSize: 18, fontWeight: 900, color: C.text, margin: 0, letterSpacing: "-0.02em" }}>
+                <h2 style={{ fontSize: 16, fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.02em" }}>
                   Novo Studio
                 </h2>
                 <p style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
@@ -315,42 +294,42 @@ export default function AdminStudiosPage() {
                 </p>
               </div>
               <button onClick={() => setOpen(false)} style={{
-                background: "rgba(255,255,255,0.06)", border: `1px solid ${C.sep}`,
-                borderRadius: 9, padding: "7px", cursor: "pointer", color: C.muted,
+                background: "rgba(255,255,255,0.05)", border: `1px solid ${C.sep}`,
+                borderRadius: 7, padding: "6px", cursor: "pointer", color: C.muted,
                 display: "flex", alignItems: "center", justifyContent: "center",
-              }}><X size={15}/></button>
+              }}><X size={14}/></button>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div>
-                <label style={{ fontSize: 10, fontWeight: 800, color: C.muted, display: "block",
-                  marginBottom: 7, textTransform: "uppercase", letterSpacing: "0.09em" }}>Nome *</label>
+                <label style={{ fontSize: 11, fontWeight: 500, color: C.muted, display: "block",
+                  marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>Nome *</label>
                 <input className="input-base" value={nome}
                   onChange={e => handleNome(e.target.value)} placeholder="Ex: Tessy Nails"/>
               </div>
 
               <div>
-                <label style={{ fontSize: 10, fontWeight: 800, color: C.muted, display: "block",
-                  marginBottom: 7, textTransform: "uppercase", letterSpacing: "0.09em" }}>Slug (URL) *</label>
+                <label style={{ fontSize: 11, fontWeight: 500, color: C.muted, display: "block",
+                  marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>Slug (URL) *</label>
                 <input className="input-base" value={slug}
                   onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,""))}
                   placeholder="tessy-nails"/>
                 {slug && (
-                  <p style={{ fontSize: 10, color: "#a78bfa", marginTop: 6, fontFamily: "monospace" }}>
+                  <p style={{ fontSize: 11, color: "#818cf8", marginTop: 5, fontFamily: "monospace" }}>
                     nailit.com.br/agendar/{slug}
                   </p>
                 )}
               </div>
 
               <div>
-                <label style={{ fontSize: 10, fontWeight: 800, color: C.muted, display: "block",
-                  marginBottom: 7, textTransform: "uppercase", letterSpacing: "0.09em" }}>Telefone</label>
+                <label style={{ fontSize: 11, fontWeight: 500, color: C.muted, display: "block",
+                  marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>Telefone</label>
                 <input className="input-base" value={phone} onChange={e => setPhone(e.target.value)} placeholder="(11) 99999-9999"/>
               </div>
 
               <div>
-                <label style={{ fontSize: 10, fontWeight: 800, color: C.muted, display: "block",
-                  marginBottom: 7, textTransform: "uppercase", letterSpacing: "0.09em" }}>Plano</label>
+                <label style={{ fontSize: 11, fontWeight: 500, color: C.muted, display: "block",
+                  marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>Plano</label>
                 <select className="input-base" value={plan} onChange={e => setPlan(e.target.value)}>
                   <option value="free">Free — Gratuito</option>
                   <option value="starter">Starter — R$19/mês</option>
@@ -360,22 +339,21 @@ export default function AdminStudiosPage() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
+            <div style={{ display: "flex", gap: 8, marginTop: 22 }}>
               <button onClick={criar} disabled={saving} style={{
-                flex: 1, height: 44, borderRadius: 10,
-                background: "rgba(245,158,11,0.16)", border: "1px solid rgba(245,158,11,0.38)",
-                color: "#f59e0b", fontSize: 13, fontWeight: 800, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                flex: 1, height: 40, borderRadius: 8,
+                background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.30)",
+                color: "#818cf8", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                 fontFamily: "inherit", opacity: saving ? .6 : 1,
-                boxShadow: "0 2px 16px rgba(245,158,11,0.12)",
               }}>
-                {saving ? <Loader2 size={14} className="spin"/> : <Plus size={14}/>}
+                {saving ? <Loader2 size={13} className="spin"/> : <Plus size={13}/>}
                 Criar Studio
               </button>
               <button onClick={() => setOpen(false)} style={{
-                height: 44, padding: "0 18px", borderRadius: 10,
-                background: "rgba(255,255,255,0.05)", border: `1px solid ${C.sep}`,
-                color: C.muted, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                height: 40, padding: "0 16px", borderRadius: 8,
+                background: "rgba(255,255,255,0.04)", border: `1px solid ${C.sep}`,
+                color: C.muted, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
               }}>Cancelar</button>
             </div>
           </div>

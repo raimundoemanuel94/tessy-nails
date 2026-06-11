@@ -12,11 +12,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .from("profiles")
     .select("*, studios!studios_owner_id_fkey(name, slug, plan)")
     .eq("id", user.id)
-    .maybeSingle();
+    .single();
 
   if (!profile) redirect("/login");
-  if (profile.role === "superadmin") redirect("/admin");
-  if (!profile.studio_id) redirect("/setup");
+  // Superadmin não precisa de studio — profissional sim
+  if (profile.role !== "superadmin" && !profile.studio_id) redirect("/setup");
 
   return (
     <div className="flex min-h-screen" style={{ background: "var(--bg)" }}>
