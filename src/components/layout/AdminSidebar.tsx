@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard, Building2, Users, LogOut,
-  BarChart3, ExternalLink, Menu, X, ChevronRight,
+  BarChart3, DollarSign, ExternalLink, Menu, X, ChevronRight,
 } from "lucide-react";
 
 /* ── Design tokens ───────────────────────────────── */
@@ -44,6 +44,14 @@ const GROUPS = [
     label: "Relatórios",
     items: [
       { href: "/admin/relatorios",    icon: BarChart3, label: "Relatórios" },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
+      { href: "/admin/financeiro",                label: "Receita",        icon: DollarSign, exact: true },
+      { href: "/admin/financeiro/assinaturas",    label: "Assinaturas",    icon: DollarSign },
+      { href: "/admin/financeiro/inadimplencia",  label: "Inadimplência",  icon: DollarSign },
     ],
   },
 ];
