@@ -207,9 +207,15 @@ select.input-base { cursor: pointer; }
 .hover-row { transition: background .1s; }
 .hover-row:hover { background: rgba(255,255,255,0.03) !important; }
 
-/* ── Admin nav link hover ── */
-.a-nav-link { transition: color .12s, background .12s; }
-.a-nav-link:hover { color: #f4f4f5 !important; background: rgba(255,255,255,0.04) !important; }
+/* ── Admin nav links ── */
+.a-nav-link { transition: color .15s, background .15s; }
+.a-nav-link:hover { color: #d4d4d8 !important; background: rgba(255,255,255,0.04) !important; }
+.a-nav-item { transition: color .15s, background .15s; }
+.a-nav-item:hover { color: #d4d4d8 !important; background: rgba(255,255,255,0.04) !important; }
+.a-footer-btn { transition: color .15s, background .15s; }
+.a-footer-btn:hover { color: #d4d4d8 !important; background: rgba(255,255,255,0.04) !important; }
+.a-signout-btn { transition: color .15s, background .15s; }
+.a-signout-btn:hover { color: #f87171 !important; background: rgba(239,68,68,0.06) !important; }
 
 /* ── Status dot (no pulse — too gamer) ── */
 .dot-active { opacity: 1; }
