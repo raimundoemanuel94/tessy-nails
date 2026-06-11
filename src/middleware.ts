@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getPostAuthRedirectPath } from "@/lib/auth/post-auth-redirect";
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -25,9 +26,11 @@ export async function middleware(request: NextRequest) {
 
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") ||
                      request.nextUrl.pathname.startsWith("/cadastro");
+  const isAuthCallback = request.nextUrl.pathname.startsWith("/auth/callback");
   const isPublicPage = request.nextUrl.pathname.startsWith("/agendar") ||
                        request.nextUrl.pathname.startsWith("/cliente/agendar/sucesso") ||
-                       request.nextUrl.pathname === "/";
+                       request.nextUrl.pathname === "/" ||
+                       isAuthCallback;
   const isApiPublic = request.nextUrl.pathname.startsWith("/api/public");
   const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
 
@@ -41,10 +44,31 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+  if (user) {
+    const pathname = request.nextUrl.pathname;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, studio_id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const targetPath = getPostAuthRedirectPath(profile);
+    const isAdminPath = pathname.startsWith("/admin");
+    const isDashboardPath = pathname.startsWith("/dashboard");
+    const isSetupPath = pathname.startsWith("/setup");
+    const isLandingPath = isAuthPage || pathname === "/";
+
+    const shouldRedirect =
+      isLandingPath ||
+      (isDashboardPath && profile?.role === "superadmin") ||
+      (isSetupPath && (profile?.role === "superadmin" || Boolean(profile?.studio_id))) ||
+      (isAdminPath && profile?.role !== "superadmin");
+
+    if (shouldRedirect && targetPath !== pathname) {
+      const url = request.nextUrl.clone();
+      url.pathname = targetPath;
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

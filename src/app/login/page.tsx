@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { getPostAuthRedirectPath } from '@/lib/auth/post-auth-redirect'
 
 export default function LoginPage() {
   const [email, setEmail]       = useState('')
@@ -15,10 +16,14 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true); setError('')
     const sb = createClient()
-    const { error: err } = await sb.auth.signInWithPassword({ email, password })
+    const { data, error: err } = await sb.auth.signInWithPassword({ email, password })
     if (err) { setError('Email ou senha incorretos.'); setLoading(false); return }
-    // redirect handled by middleware + root page
-    router.push('/')
+    const userId = data.user?.id ?? (await sb.auth.getUser()).data.user?.id
+    const { data: profile } = userId
+      ? await sb.from('profiles').select('role, studio_id').eq('id', userId).maybeSingle()
+      : { data: null }
+
+    router.replace(getPostAuthRedirectPath(profile))
     router.refresh()
   }
 

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getPostAuthRedirectPath } from "@/lib/auth/post-auth-redirect";
 
 export default async function Root() {
   const supabase = await createClient();
@@ -8,13 +9,10 @@ export default async function Root() {
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
-    .from("profiles").select("role, studio_id").eq("id", user.id).single();
+    .from("profiles")
+    .select("role, studio_id")
+    .eq("id", user.id)
+    .maybeSingle();
 
-  // Superadmin vai direto pro dashboard (sem precisar de studio)
-  if (profile?.role === "superadmin") redirect("/dashboard");
-
-  // Profissional sem studio → setup
-  if (!profile?.studio_id) redirect("/setup");
-
-  redirect("/dashboard");
+  redirect(getPostAuthRedirectPath(profile));
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Scissors } from "lucide-react";
+import { getPostAuthRedirectPath } from "@/lib/auth/post-auth-redirect";
 
 const SERVICES_DEFAULT = [
   { name: "Manicure simples",   price: 35,  duration_minutes: 45  },
@@ -43,10 +44,10 @@ export default function SetupPage() {
         .from("profiles")
         .select("studio_id, role")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (profile?.studio_id || profile?.role === "superadmin") {
-        router.replace("/dashboard");
+        router.replace(getPostAuthRedirectPath(profile));
         return;
       }
       setChecking(false);
