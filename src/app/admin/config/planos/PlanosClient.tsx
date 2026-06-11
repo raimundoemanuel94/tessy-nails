@@ -1,7 +1,8 @@
 // @ts-nocheck
 "use client";
 import { useState } from "react";
-import { Pencil, X, Check, Lock, Tag, Users, DollarSign, TrendingUp } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { Pencil, X, Check, Loader2, DollarSign, TrendingUp } from "lucide-react";
 
 const C = {
   bg: "#0d0d10", card: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.08)",
@@ -24,9 +25,28 @@ const PLAN_DESC: Record<string, string> = {
 };
 
 export function PlanosClient({ planos }: { planos: any[] }) {
-  const [editing, setEditing] = useState<string | null>(null);
+  const [editing, setEditing]   = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState("");
   const [editPrice, setEditPrice] = useState("");
+  const [saving, setSaving]       = useState(false);
+  const [saved, setSaved]         = useState<string | null>(null); // plan key of last saved
+  const [saveErr, setSaveErr]     = useState("");
+  const sb = createClient();
+
+  async function savePlan(plan: string) {
+    const price = parseFloat(editPrice);
+    if (isNaN(price) || price < 0) { setSaveErr("Preço inválido."); return; }
+    if (!editLabel.trim()) { setSaveErr("Nome não pode ser vazio."); return; }
+    setSaving(true); setSaveErr("");
+    const { error } = await sb.from("plan_prices")
+      .update({ label: editLabel.trim(), price })
+      .eq("plan", plan);
+    setSaving(false);
+    if (error) { setSaveErr(error.message); return; }
+    setSaved(plan);
+    setEditing(null);
+    setTimeout(() => setSaved(null), 3000);
+  }
 
   const totalMrr = planos.reduce((s, p) => s + p.mrr, 0);
 
@@ -54,11 +74,12 @@ export function PlanosClient({ planos }: { planos: any[] }) {
           <div style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 500 }}>MRR total da plataforma</div>
           <div style={{ fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: "-0.02em" }}>{fmtBRL(totalMrr)}</div>
         </div>
-        {/* RLS warning */}
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 7, padding: "7px 12px", borderRadius: 8, background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.18)" }}>
-          <Lock size={12} color="#fbbf24" />
-          <span style={{ fontSize: 11, color: "#fbbf24", fontWeight: 500 }}>Edição desabilitada — RLS não configurada</span>
-        </div>
+        {saved && (
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 7, padding: "7px 12px", borderRadius: 8, background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.18)" }}>
+            <Check size={12} color="#4ade80" />
+            <span style={{ fontSize: 11, color: "#4ade80", fontWeight: 500 }}>Plano salvo com sucesso</span>
+          </div>
+        )}
       </div>
 
       {/* Plan cards */}
@@ -87,18 +108,21 @@ export function PlanosClient({ planos }: { planos: any[] }) {
                       <input type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)} className="input-base"
                         style={{ height: 36, fontSize: 13 }} />
                     </div>
-                    {/* Save disabled — RLS needed */}
-                    <div style={{ display: "flex", gap: 6, marginTop: 2 }}>
-                      <button
-                        title="Requer configuração de RLS no Supabase antes de salvar"
-                        disabled
-                        style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 7, background: "rgba(255,255,255,0.04)", border: `1px solid ${C.sep}`, color: C.muted, fontSize: 12, fontWeight: 500, cursor: "not-allowed", fontFamily: "inherit" }}>
-                        <Lock size={12} /> Salvar
-                      </button>
-                      <button onClick={() => setEditing(null)}
-                        style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 7, background: "rgba(255,255,255,0.04)", border: `1px solid ${C.sep}`, color: C.muted, cursor: "pointer", fontFamily: "inherit" }}>
-                        <X size={13} />
-                      </button>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <div style={{ display: "flex", gap: 6, marginTop: 2 }}>
+                        <button
+                          onClick={() => savePlan(p.plan)}
+                          disabled={saving}
+                          style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 7, background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.30)", color: "#818cf8", fontSize: 12, fontWeight: 600, cursor: saving ? "wait" : "pointer", fontFamily: "inherit", opacity: saving ? 0.6 : 1 }}>
+                          {saving ? <Loader2 size={12} className="spin" /> : <Check size={12} />}
+                          {saving ? "Salvando…" : "Salvar"}
+                        </button>
+                        <button onClick={() => { setEditing(null); setSaveErr(""); }}
+                          style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 7, background: "rgba(255,255,255,0.04)", border: `1px solid ${C.sep}`, color: C.muted, cursor: "pointer", fontFamily: "inherit" }}>
+                          <X size={13} />
+                        </button>
+                      </div>
+                      {saveErr && <span style={{ fontSize: 11, color: "#f87171" }}>{saveErr}</span>}
                     </div>
                   </div>
                 ) : (
@@ -134,8 +158,9 @@ export function PlanosClient({ planos }: { planos: any[] }) {
                     {/* Edit button */}
                     <button
                       onClick={() => openEdit(p)}
-                      title="UI pronta — salvar requer configuração de RLS"
-                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 7, background: "rgba(255,255,255,0.04)", border: `1px solid ${C.sep}`, color: C.muted, cursor: "pointer", fontSize: 12, fontWeight: 500, fontFamily: "inherit", flexShrink: 0 }}>
+                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 7, background: "rgba(255,255,255,0.04)", border: `1px solid ${C.sep}`, color: C.muted, cursor: "pointer", fontSize: 12, fontWeight: 500, fontFamily: "inherit", flexShrink: 0, transition: "color .15s, border-color .15s" }}
+                      onMouseEnter={e => { (e.currentTarget as any).style.color = "#818cf8"; (e.currentTarget as any).style.borderColor = "rgba(99,102,241,0.30)"; }}
+                      onMouseLeave={e => { (e.currentTarget as any).style.color = C.muted; (e.currentTarget as any).style.borderColor = C.sep; }}>
                       <Pencil size={12} /> Editar
                     </button>
                   </div>
@@ -159,17 +184,7 @@ export function PlanosClient({ planos }: { planos: any[] }) {
         })}
       </div>
 
-      {/* RLS info box */}
-      <div style={{ display: "flex", gap: 12, padding: "14px 18px", background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.15)", borderRadius: 10 }}>
-        <Lock size={15} color="#fbbf24" style={{ flexShrink: 0, marginTop: 1 }} />
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "#fbbf24", marginBottom: 3 }}>Edição de preços aguarda configuração de segurança</div>
-          <p style={{ fontSize: 12, color: C.muted, margin: 0, lineHeight: 1.6 }}>
-            A tabela <code style={{ fontFamily: "monospace", background: "rgba(255,255,255,0.06)", padding: "1px 5px", borderRadius: 3 }}>plan_prices</code> não tem políticas RLS configuradas.
-            Para habilitar a edição com segurança, o Codex precisa rodar a migration de RLS antes de salvar pelo frontend.
-          </p>
-        </div>
-      </div>
+
     </div>
   );
 }
