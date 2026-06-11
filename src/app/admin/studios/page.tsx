@@ -90,6 +90,8 @@ export default function AdminStudiosPage() {
   const [saving,     setSaving]     = useState(false);
   const [search,     setSearch]     = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [sortKey, setSortKey] = useState<string>("created");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [nome,       setNome]       = useState("");
   const [slug,       setSlug]       = useState("");
   const [phone,      setPhone]      = useState("");
@@ -175,6 +177,31 @@ export default function AdminStudiosPage() {
     if (activeFilter === "free")     return s.plan === "free";
     return true;
   });
+
+  /* ── Sort ── */
+  function toggleSort(key: string) {
+    if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  }
+  const HEALTH_RANK: Record<string,number> = { active: 3, warm: 2, risk: 1 };
+  const sorted = [...filtered].sort((a, b) => {
+    let av: any, bv: any;
+    if      (sortKey === "name")   { av = a.name.toLowerCase();              bv = b.name.toLowerCase(); }
+    else if (sortKey === "plan")   { av = a.plan;                            bv = b.plan; }
+    else if (sortKey === "status") { av = a.is_active ? 1 : 0;              bv = b.is_active ? 1 : 0; }
+    else if (sortKey === "health") { av = HEALTH_RANK[health[a.id]?.status ?? "risk"]; bv = HEALTH_RANK[health[b.id]?.status ?? "risk"]; }
+    else if (sortKey === "last")   { av = health[a.id]?.last ?? "";          bv = health[b.id]?.last ?? ""; }
+    else                           { av = a.created_at;                      bv = b.created_at; }
+    if (av < bv) return sortDir === "asc" ? -1 : 1;
+    if (av > bv) return sortDir === "asc" ? 1 : -1;
+    return 0;
+  });
+  function healthTooltip(hd: any): string {
+    if (!hd?.last) return "Sem agendamentos registrados";
+    const days = Math.floor((Date.now() - new Date(hd.last).getTime()) / 86400000);
+    const ago = days === 0 ? "hoje" : days === 1 ? "ontem" : `há ${days} dias`;
+    return `Último agendamento ${ago} · ${hd.d7} nos últimos 7d · ${hd.d30} em 30d`;
+  }
 
   const total    = studios.length;
   const nActive  = studios.filter(s => s.is_active).length;
@@ -308,27 +335,47 @@ export default function AdminStudiosPage() {
 
         ) : (
           <>
-            {/* Table header */}
+            {/* Table header — sortable */}
             <div style={{
               display: "grid", gridTemplateColumns: COLS,
               padding: "8px 18px", borderBottom: `1px solid ${C.sep}`,
             }}>
-              {["Studio", "Responsável", "Plano", "Último agend.", "Saúde", "Status", ""].map(h => (
-                <span key={h} style={{
-                  fontSize: 10, fontWeight: 500, color: C.muted,
-                  letterSpacing: "0.06em", textTransform: "uppercase",
-                }}>{h}</span>
-              ))}
+              {[
+                { label: "Studio",        key: "name"   },
+                { label: "Responsável",   key: null     },
+                { label: "Plano",         key: "plan"   },
+                { label: "Último agend.", key: "last"   },
+                { label: "Saúde",         key: "health" },
+                { label: "Status",        key: "status" },
+                { label: "",              key: null     },
+              ].map(h => {
+                const active = h.key && sortKey === h.key;
+                return (
+                  <span key={h.label || "act"}
+                    onClick={h.key ? () => toggleSort(h.key!) : undefined}
+                    style={{
+                      fontSize: 10, fontWeight: 500,
+                      color: active ? "#818cf8" : C.muted,
+                      letterSpacing: "0.06em", textTransform: "uppercase",
+                      cursor: h.key ? "pointer" : "default",
+                      userSelect: "none",
+                      display: "inline-flex", alignItems: "center", gap: 3,
+                    }}>
+                    {h.label}
+                    {active && <span style={{ fontSize: 8 }}>{sortDir === "asc" ? "▲" : "▼"}</span>}
+                  </span>
+                );
+              })}
             </div>
 
             {/* Rows */}
-            {filtered.map((s, i) => {
+            {sorted.map((s, i) => {
               const pc  = PC[s.plan] ?? PC.free;
               const hd  = health[s.id];
               const hs  = (hd?.status ?? "risk") as keyof typeof HEALTH_CFG;
               const hc  = HEALTH_CFG[hs];
               const lastFmt = fmtDate(hd?.last ?? null);
-              const isLast  = i === filtered.length - 1;
+              const isLast  = i === sorted.length - 1;
 
               return (
                 <div
@@ -394,16 +441,16 @@ export default function AdminStudiosPage() {
                     )}
                   </div>
 
-                  {/* Saúde */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  {/* Saúde — tooltip explica critério */}
+                  <div title={healthTooltip(hd)} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "help" }}>
                     <div style={{
                       width: 6, height: 6, borderRadius: "50%", flexShrink: 0,
                       background: hc.dot,
                       boxShadow: hs === "active" ? `0 0 6px ${hc.dot}66` : "none",
                     }}/>
                     <span style={{
-                      fontSize: 11, fontWeight: 500,
-                      color: hc.color,
+                      fontSize: 11, fontWeight: 500, color: hc.color,
+                      borderBottom: "1px dotted rgba(255,255,255,0.15)",
                     }}>
                       {hc.label}
                     </span>

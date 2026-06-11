@@ -88,7 +88,7 @@ function NavLink({ href, icon: Icon, label, badge, active, count, onClick }: {
       className="adm-nav-link"
       style={{
         display: "flex", alignItems: "center", gap: 9,
-        padding: "8px 10px 8px 10px",
+        padding: "9px 11px",
         borderRadius: 7, textDecoration: "none",
         fontSize: 13, fontWeight: active ? 600 : 400,
         color: active ? T.text : T.sub,
@@ -150,13 +150,13 @@ function SidebarBody({ name, email, onNav, isActive, getCount, signOut }: {
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, padding: "8px 8px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+      <nav style={{ flex: 1, padding: "10px 10px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
         {GROUPS.map((g, gi) => (
-          <div key={g.label} style={{ marginBottom: gi < GROUPS.length - 1 ? 6 : 0 }}>
+          <div key={g.label} style={{ marginBottom: gi < GROUPS.length - 1 ? 10 : 0 }}>
             <div style={{
               fontSize: 10, fontWeight: 600, color: T.dim,
-              letterSpacing: "0.09em", textTransform: "uppercase",
-              padding: "10px 12px 5px", userSelect: "none",
+              letterSpacing: "0.1em", textTransform: "uppercase",
+              padding: "12px 12px 6px", userSelect: "none",
             }}>{g.label}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
               {g.items.map(item => (
