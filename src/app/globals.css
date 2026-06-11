@@ -184,6 +184,7 @@ select.input-base { cursor: pointer; }
   margin-left: 220px;
   padding: 28px 32px;
   box-sizing: border-box;
+  min-height: 100vh;
 }
 .dash-admin {
   flex: 1;
@@ -191,11 +192,43 @@ select.input-base { cursor: pointer; }
   margin-left: 220px;
   padding: 32px 36px;
   box-sizing: border-box;
+  min-height: 100vh;
+  background-image: radial-gradient(rgba(255,255,255,0.028) 1px, transparent 1px);
+  background-size: 26px 26px;
+  position: relative;
+}
+.dash-admin::before {
+  content: "";
+  position: fixed;
+  top: 0; right: 0;
+  width: 500px; height: 350px;
+  background: radial-gradient(ellipse at top right, rgba(245,158,11,0.055) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
 }
 @media (max-width: 768px) {
   .dash-main  { margin-left: 0; padding: 16px 16px 80px; }
   .dash-admin { margin-left: 0; padding: 16px; }
 }
+
+/* ── Admin table rows ── */
+.a-row { transition: background .1s; cursor: default; }
+.a-row:hover { background: rgba(255,255,255,0.045) !important; }
+.a-link-row { transition: background .1s; text-decoration: none; }
+.a-link-row:hover { background: rgba(255,255,255,0.045) !important; }
+
+/* ── Pulse animation for active status dots ── */
+@keyframes pulse-active {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.5); }
+  50%       { box-shadow: 0 0 0 4px rgba(52,211,153,0); }
+}
+.dot-active {
+  animation: pulse-active 2.2s ease-in-out infinite;
+}
+
+/* ── Spin ── */
+@keyframes admin-spin { to { transform: rotate(360deg); } }
+.spin { animation: admin-spin 1s linear infinite; }
 
 /* ── Auth layout ── */
 .auth-bg {
