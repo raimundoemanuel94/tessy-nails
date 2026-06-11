@@ -187,7 +187,7 @@ select.input-base { cursor: pointer; }
 }
 .dash-admin {
   flex: 1; min-width: 0;
-  margin-left: 220px;
+  margin-left: 240px;
   padding: 32px 40px;
   box-sizing: border-box;
   min-height: 100vh;
@@ -242,6 +242,16 @@ select.input-base { cursor: pointer; }
 .a-footer-btn:hover { color: #d4d4d8 !important; background: rgba(255,255,255,0.04) !important; }
 .a-signout-btn { transition: color .15s, background .15s; }
 .a-signout-btn:hover { color: #f87171 !important; background: rgba(239,68,68,0.06) !important; }
+
+/* ── Admin sidebar nav links (new class names) ── */
+.adm-nav-link { transition: color .15s, background .15s; }
+.adm-nav-link:hover { color: #d4d4d8 !important; background: rgba(255,255,255,0.04) !important; }
+.adm-footer-btn { transition: color .15s, background .15s; }
+.adm-footer-btn:hover { color: #c4c4c8 !important; background: rgba(255,255,255,0.05) !important; }
+.adm-signout-btn { transition: color .15s, background .15s; }
+.adm-signout-btn:hover { color: #f87171 !important; background: rgba(239,68,68,0.07) !important; }
+.adm-icon-btn { transition: color .15s, background .15s; }
+.adm-icon-btn:hover { color: #d4d4d8 !important; background: rgba(255,255,255,0.06) !important; }
 
 /* ── Status dot (no pulse — too gamer) ── */
 .dot-active { opacity: 1; }
