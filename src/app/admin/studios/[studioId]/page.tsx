@@ -1,101 +1,38 @@
+/* eslint-disable */
 // @ts-nocheck
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  Calendar,
+  Check,
+  Clock,
+  CreditCard,
+  DollarSign,
+  ExternalLink,
   Loader2,
   Pencil,
-  Trash2,
   Plus,
-  Check,
-  X,
-  Scissors,
-  User,
-  Calendar,
-  Clock,
-  DollarSign,
-  AlertCircle,
   RefreshCw,
+  Scissors,
+  ShieldAlert,
+  Trash2,
+  User,
+  X,
 } from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import {
+  AdminActionButton,
+  AdminEmptyState,
+  AdminMetricCard,
+  AdminPageHeader,
+  AdminPanel,
+  AdminStatusBadge,
+} from "@/components/admin/AdminUI";
+import { formatCurrency, formatDuration } from "@/lib/utils";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface StudioDetail {
-  id: string;
-  name: string;
-  slug: string;
-  plan: string;
-  isActive: boolean;
-  ownerId: string;
-  createdAt: string | null;
-  updatedAt: string | null;
-  trialEndsAt: string | null;
-}
-
-interface Owner {
-  uid: string;
-  name: string;
-  email: string;
-  phone?: string;
-  role: string;
-}
-
-interface Service {
-  id: string;
-  name: string;
-  price: number;
-  durationMinutes: number;
-  bufferMinutes: number;
-  isActive: boolean;
-}
-
-interface Settings {
-  slotDuration: number;
-  advanceDays: number;
-  cancelHours: number;
-  autoConfirm: boolean;
-  workingHours: Record<string, { open: string; close: string; isOpen: boolean }>;
-}
-
-interface StudioData {
-  studio: StudioDetail;
-  owner: Owner | null;
-  services: Service[];
-  settings: Settings | null;
-  stats: { appointments: number; services: number };
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDate(iso: string | null): string {
-  if (!iso) return "—";
-  try {
-    return format(parseISO(iso), "dd/MM/yyyy", { locale: ptBR });
-  } catch {
-    return "—";
-  }
-}
-
-function formatPrice(price: number): string {
-  return `R$ ${price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-}
-
-function formatDuration(min: number): string {
-  if (min < 60) return `${min} min`;
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return m > 0 ? `${h}h${m}min` : `${h}h`;
-}
-
-const PLAN_COLORS: Record<string, string> = {
-  pro: "text-purple-400 bg-purple-500/10 border-purple-500/20",
-  free: "text-slate-400 bg-slate-500/10 border-slate-500/20",
-  starter: "text-blue-400 bg-blue-500/10 border-blue-500/20",
-};
+type Tab = "overview" | "billing" | "services" | "settings";
 
 const DAY_LABELS: Record<string, string> = {
   monday: "Seg",
@@ -106,614 +43,439 @@ const DAY_LABELS: Record<string, string> = {
   saturday: "Sáb",
   sunday: "Dom",
 };
-
 const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+function fmtDate(value?: string | null) {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function daysUntil(value?: string | null) {
+  if (!value) return null;
+  const target = new Date(value);
+  target.setHours(0, 0, 0, 0);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Math.round((target.getTime() - now.getTime()) / 86400000);
+}
+
+function subscriptionTone(status?: string | null) {
+  if (status === "active") return "success";
+  if (status === "past_due") return "danger";
+  if (status === "trial" || status === "trialing") return "warning";
+  return "muted";
+}
+
+function subscriptionLabel(status?: string | null) {
+  if (status === "active") return "Ativa";
+  if (status === "past_due") return "Atrasada";
+  if (status === "trial" || status === "trialing") return "Trial";
+  if (status === "canceled") return "Cancelada";
+  return "Sem assinatura";
+}
+
+function Field({ label, value, onChange, type = "text", placeholder }: any) {
+  return (
+    <label style={{ display: "grid", gap: 6 }}>
+      <span style={{ color: "#71717a", fontSize: 10, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase" }}>{label}</span>
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="input-base"
+        style={{ height: 38, borderRadius: 9 }}
+      />
+    </label>
+  );
+}
 
 export default function AdminStudioDetailPage() {
   const params = useParams();
   const router = useRouter();
   const studioId = params?.studioId as string;
 
-  const [data, setData] = useState<StudioData | null>(null);
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [tab, setTab] = useState<Tab>("overview");
 
-  // Edit studio
   const [editingStudio, setEditingStudio] = useState(false);
   const [editName, setEditName] = useState("");
   const [editSlug, setEditSlug] = useState("");
-  const [editPlan, setEditPlan] = useState("");
+  const [editPlan, setEditPlan] = useState("pro");
   const [editActive, setEditActive] = useState(true);
   const [savingStudio, setSavingStudio] = useState(false);
 
-  // Services
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
-  const [svcName, setSvcName] = useState("");
-  const [svcPrice, setSvcPrice] = useState("");
-  const [svcDuration, setSvcDuration] = useState("");
-  const [svcBuffer, setSvcBuffer] = useState("0");
-  const [savingSvc, setSavingSvc] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  // New service form
+  const [serviceForm, setServiceForm] = useState({ name: "", price: "", duration: "", buffer: "0" });
   const [addingService, setAddingService] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newPrice, setNewPrice] = useState("");
-  const [newDuration, setNewDuration] = useState("");
-  const [newBuffer, setNewBuffer] = useState("0");
+  const [savingService, setSavingService] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setError("");
     try {
-      const res = await fetch(`/api/admin/studios/${studioId}`);
-      const json = await res.json();
-      if (!res.ok || json.error) throw new Error(json.error ?? "Erro ao carregar studio");
+      const response = await fetch(`/api/admin/studios/${studioId}`);
+      const json = await response.json();
+      if (!response.ok || json.error) throw new Error(json.error ?? "Erro ao carregar studio");
       setData(json);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
+    } catch (err: any) {
+      setError(err.message ?? String(err));
     } finally {
       setLoading(false);
     }
   }, [studioId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  // ─── Studio edit ───────────────────────────────────────────────────────────
+  const studio = data?.studio;
+  const services = data?.services ?? [];
+  const activeServices = services.filter((service: any) => service.isActive);
+  const subscriptionStatus = studio?.subscriptionStatus;
+  const trialDays = daysUntil(studio?.trialEndsAt);
+  const renewalDays = daysUntil(studio?.nextBillingDate);
+  const health = useMemo(() => {
+    if (!studio?.isActive) return { label: "Inativo", tone: "muted", description: "Acesso do tenant está pausado." };
+    if (!data?.owner) return { label: "Atenção", tone: "warning", description: "Studio sem profissional/owner vinculado." };
+    if (subscriptionStatus === "past_due") return { label: "Crítico", tone: "danger", description: "Assinatura atrasada coloca MRR em risco." };
+    if (activeServices.length === 0) return { label: "Atenção", tone: "warning", description: "Nenhum serviço ativo para o cliente agendar." };
+    return { label: "Saudável", tone: "success", description: "Tenant ativo, com owner e serviços disponíveis." };
+  }, [activeServices.length, data?.owner, studio?.isActive, subscriptionStatus]);
 
-  function openEditStudio() {
-    if (!data) return;
-    setEditName(data.studio.name);
-    setEditSlug(data.studio.slug);
-    setEditPlan(data.studio.plan);
-    setEditActive(data.studio.isActive);
+  function openStudioEdit() {
+    setEditName(studio.name);
+    setEditSlug(studio.slug);
+    setEditPlan(studio.plan);
+    setEditActive(studio.isActive);
     setEditingStudio(true);
   }
 
   async function saveStudio() {
-    if (!data) return;
     setSavingStudio(true);
     try {
-      const res = await fetch(`/api/admin/studios/${studioId}`, {
+      const response = await fetch(`/api/admin/studios/${studioId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: editName, slug: editSlug, plan: editPlan, isActive: editActive }),
       });
-      const json = await res.json();
-      if (!res.ok || json.error) throw new Error(json.error);
+      const json = await response.json();
+      if (!response.ok || json.error) throw new Error(json.error ?? "Erro ao salvar");
       setEditingStudio(false);
       await load();
-    } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : String(e));
+    } catch (err: any) {
+      setError(err.message ?? String(err));
     } finally {
       setSavingStudio(false);
     }
   }
 
-  // ─── Service edit ──────────────────────────────────────────────────────────
-
-  function openEditService(svc: Service) {
-    setEditingServiceId(svc.id);
-    setSvcName(svc.name);
-    setSvcPrice(String(svc.price));
-    setSvcDuration(String(svc.durationMinutes));
-    setSvcBuffer(String(svc.bufferMinutes));
+  function openServiceEdit(service: any) {
+    setEditingServiceId(service.id);
+    setServiceForm({
+      name: service.name,
+      price: String(service.price),
+      duration: String(service.durationMinutes),
+      buffer: String(service.bufferMinutes ?? 0),
+    });
   }
 
-  async function saveService(id: string) {
-    setSavingSvc(true);
+  async function saveService(id?: string) {
+    const isNew = !id;
+    setSavingService(true);
     try {
-      const res = await fetch(`/api/admin/studios/${studioId}/services/${id}`, {
-        method: "PUT",
+      const response = await fetch(`/api/admin/studios/${studioId}/services${isNew ? "" : `/${id}`}`, {
+        method: isNew ? "POST" : "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: svcName,
-          price: Number(svcPrice),
-          durationMinutes: Number(svcDuration),
-          bufferMinutes: Number(svcBuffer),
+          name: serviceForm.name,
+          price: Number(serviceForm.price),
+          durationMinutes: Number(serviceForm.duration),
+          bufferMinutes: Number(serviceForm.buffer || 0),
         }),
       });
-      const json = await res.json();
-      if (!res.ok || json.error) throw new Error(json.error);
-      setEditingServiceId(null);
-      await load();
-    } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : String(e));
-    } finally {
-      setSavingSvc(false);
-    }
-  }
-
-  async function deleteService(id: string) {
-    if (!confirm("Excluir este serviço?")) return;
-    setDeletingId(id);
-    try {
-      const res = await fetch(`/api/admin/studios/${studioId}/services/${id}`, { method: "DELETE" });
-      const json = await res.json();
-      if (!res.ok || json.error) throw new Error(json.error);
-      await load();
-    } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : String(e));
-    } finally {
-      setDeletingId(null);
-    }
-  }
-
-  async function toggleService(svc: Service) {
-    try {
-      await fetch(`/api/admin/studios/${studioId}/services/${svc.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: !svc.isActive }),
-      });
-      await load();
-    } catch { /* noop */ }
-  }
-
-  // ─── Add service ───────────────────────────────────────────────────────────
-
-  async function addService() {
-    if (!newName || !newPrice || !newDuration) return;
-    setSavingSvc(true);
-    try {
-      const res = await fetch(`/api/admin/studios/${studioId}/services`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newName,
-          price: Number(newPrice),
-          durationMinutes: Number(newDuration),
-          bufferMinutes: Number(newBuffer),
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok || json.error) throw new Error(json.error);
+      const json = await response.json();
+      if (!response.ok || json.error) throw new Error(json.error ?? "Erro ao salvar serviço");
       setAddingService(false);
-      setNewName(""); setNewPrice(""); setNewDuration(""); setNewBuffer("0");
+      setEditingServiceId(null);
+      setServiceForm({ name: "", price: "", duration: "", buffer: "0" });
       await load();
-    } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : String(e));
+    } catch (err: any) {
+      setError(err.message ?? String(err));
     } finally {
-      setSavingSvc(false);
+      setSavingService(false);
     }
   }
 
-  // ─── Render ────────────────────────────────────────────────────────────────
+  async function toggleService(service: any) {
+    await fetch(`/api/admin/studios/${studioId}/services/${service.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: !service.isActive }),
+    });
+    await load();
+  }
+
+  async function deleteService() {
+    if (!deleteTarget) return;
+    setSavingService(true);
+    try {
+      const response = await fetch(`/api/admin/studios/${studioId}/services/${deleteTarget.id}`, { method: "DELETE" });
+      const json = await response.json();
+      if (!response.ok || json.error) throw new Error(json.error ?? "Erro ao excluir serviço");
+      setDeleteTarget(null);
+      await load();
+    } catch (err: any) {
+      setError(err.message ?? String(err));
+    } finally {
+      setSavingService(false);
+    }
+  }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin text-purple-400" size={32} />
-      </div>
+      <AdminPanel>
+        <div style={{ padding: 56, display: "flex", justifyContent: "center", color: "#71717a" }}>
+          <Loader2 className="spin" />
+        </div>
+      </AdminPanel>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <AlertCircle className="text-red-400" size={32} />
-        <p className="text-sm text-slate-400">{error ?? "Não foi possível carregar."}</p>
-        <button onClick={load} className="text-sm text-purple-400 underline">Tentar novamente</button>
-      </div>
+      <AdminEmptyState
+        title="Não foi possível carregar o Studio"
+        description={error || "Tente novamente em alguns instantes."}
+        tone="danger"
+        action={<AdminActionButton onClick={load} tone="danger">Tentar novamente</AdminActionButton>}
+      />
     );
   }
 
-  const { studio, owner, services, settings, stats } = data;
-  const trialDaysLeft = studio.trialEndsAt
-    ? Math.max(0, Math.ceil((new Date(studio.trialEndsAt).getTime() - Date.now()) / 86400000))
-    : null;
-
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-      {/* Back + Header */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-xl font-black text-white">{studio.name}</h1>
-          <p className="text-xs text-slate-500 font-mono">{studio.id}</p>
-        </div>
-        <button
-          onClick={load}
-          className="p-2 rounded-xl hover:bg-white/5 text-slate-400 transition"
-          title="Recarregar"
-        >
-          <RefreshCw size={16} />
-        </button>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1120 }}>
+      <AdminPageHeader
+        eyebrow="Studio 360"
+        title={studio.name}
+        description={`Tenant /${studio.slug} · criado em ${fmtDate(studio.createdAt)}`}
+        actions={
+          <>
+            <AdminActionButton onClick={() => router.back()} tone="muted"><ArrowLeft size={13} /> Voltar</AdminActionButton>
+            <AdminActionButton href={`/agendar/${studio.slug}`} tone="brand"><ExternalLink size={13} /> Página pública</AdminActionButton>
+            <AdminActionButton onClick={load} tone="muted"><RefreshCw size={13} /> Atualizar</AdminActionButton>
+            <AdminActionButton onClick={openStudioEdit} tone="warning"><Pencil size={13} /> Editar</AdminActionButton>
+          </>
+        }
+      />
+
+      {error && <AdminStatusBadge tone="danger">{error}</AdminStatusBadge>}
+
+      <div style={{ display: "grid", gridTemplateColumns: "1.3fr repeat(3, 1fr)", gap: 12 }}>
+        <AdminMetricCard label="Saúde" value={health.label} sub={health.description} icon={ShieldAlert} tone={health.tone as any} large />
+        <AdminMetricCard label="MRR" value={formatCurrency(Number(studio.mrr ?? 0))} sub={subscriptionLabel(subscriptionStatus)} icon={DollarSign} tone={subscriptionTone(subscriptionStatus) as any} />
+        <AdminMetricCard label="Agendamentos" value={data.stats.appointments} sub="histórico do studio" icon={Calendar} tone="brand" />
+        <AdminMetricCard label="Serviços ativos" value={activeServices.length} sub={`${services.length} cadastrados`} icon={Scissors} tone={activeServices.length ? "success" : "warning"} />
       </div>
 
-      {/* Studio Info Card */}
-      <Card
-        title="Informações do Studio"
-        action={
-          !editingStudio ? (
-            <IconBtn onClick={openEditStudio} title="Editar"><Pencil size={14} /></IconBtn>
-          ) : null
-        }
-      >
-        {editingStudio ? (
-          <div className="space-y-3">
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {[
+          ["overview", "Visão geral"],
+          ["billing", "Assinatura"],
+          ["services", "Serviços"],
+          ["settings", "Horários"],
+        ].map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setTab(key as Tab)}
+            className="admin-action-button"
+            style={{
+              color: tab === key ? "#818cf8" : "#71717a",
+              background: tab === key ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.03)",
+              borderColor: tab === key ? "rgba(99,102,241,0.30)" : "rgba(255,255,255,0.08)",
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {editingStudio && (
+        <AdminPanel title="Editar studio" description="Ajustes administrativos do tenant." tone="warning">
+          <div style={{ padding: 18, display: "grid", gridTemplateColumns: "1.2fr 1fr 150px auto", gap: 12, alignItems: "end" }}>
             <Field label="Nome" value={editName} onChange={setEditName} />
             <Field label="Slug" value={editSlug} onChange={setEditSlug} />
-            <div>
-              <label className="label">Plano</label>
-              <select
-                value={editPlan}
-                onChange={(e) => setEditPlan(e.target.value)}
-                className="select"
-              >
+            <label style={{ display: "grid", gap: 6 }}>
+              <span style={{ color: "#71717a", fontSize: 10, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase" }}>Plano</span>
+              <select value={editPlan} onChange={(event) => setEditPlan(event.target.value)} className="input-base" style={{ height: 38, borderRadius: 9 }}>
                 <option value="free">Free</option>
                 <option value="starter">Starter</option>
                 <option value="pro">Pro</option>
+                <option value="studio">Studio</option>
               </select>
-            </div>
-            <div className="flex items-center gap-3">
-              <label className="label mb-0">Status</label>
-              <button
-                onClick={() => setEditActive((v) => !v)}
-                className={`px-3 py-1 rounded-lg text-xs font-black border transition ${
-                  editActive
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                    : "bg-red-500/10 text-red-400 border-red-500/20"
-                }`}
-              >
+            </label>
+            <div style={{ display: "flex", gap: 8 }}>
+              <AdminActionButton onClick={() => setEditActive((value) => !value)} tone={editActive ? "success" : "danger"}>
                 {editActive ? "Ativo" : "Inativo"}
-              </button>
-            </div>
-            <div className="flex gap-2 pt-1">
-              <SaveBtn onClick={saveStudio} loading={savingStudio} />
-              <CancelBtn onClick={() => setEditingStudio(false)} />
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <InfoCell label="Status">
-              <span className={`px-2 py-0.5 rounded-lg text-xs font-black border ${studio.isActive ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
-                {studio.isActive ? "Ativo" : "Inativo"}
-              </span>
-            </InfoCell>
-            <InfoCell label="Plano">
-              <span className={`px-2 py-0.5 rounded-lg text-xs font-black border capitalize ${PLAN_COLORS[studio.plan] ?? PLAN_COLORS.free}`}>
-                {studio.plan}
-              </span>
-            </InfoCell>
-            <InfoCell label="Slug">
-              <span className="text-xs font-mono text-slate-300">{studio.slug || "—"}</span>
-            </InfoCell>
-            <InfoCell label="Trial até">
-              <span className="text-xs font-bold text-slate-300">
-                {formatDate(studio.trialEndsAt)}
-                {trialDaysLeft !== null && (
-                  <span className={`ml-1 text-[10px] font-black ${trialDaysLeft <= 7 ? "text-amber-400" : "text-slate-500"}`}>
-                    ({trialDaysLeft}d)
-                  </span>
-                )}
-              </span>
-            </InfoCell>
-            <InfoCell label="Criado em">
-              <span className="text-xs font-bold text-slate-300">{formatDate(studio.createdAt)}</span>
-            </InfoCell>
-            <InfoCell label="Agendamentos">
-              <span className="text-sm font-black text-white">{stats.appointments}</span>
-            </InfoCell>
-            <InfoCell label="Serviços">
-              <span className="text-sm font-black text-white">{stats.services}</span>
-            </InfoCell>
-          </div>
-        )}
-      </Card>
-
-      {/* Profissional */}
-      <Card title="Profissional" icon={<User size={14} />}>
-        {owner ? (
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-300 font-black text-lg">
-              {(owner.name ?? "?").charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3">
-              <InfoCell label="Nome">
-                <span className="text-sm font-black text-white">{owner.name || "—"}</span>
-              </InfoCell>
-              <InfoCell label="Email">
-                <span className="text-xs text-slate-300">{owner.email || "—"}</span>
-              </InfoCell>
-              <InfoCell label="Telefone">
-                <span className="text-xs text-slate-300">{owner.phone || "—"}</span>
-              </InfoCell>
-              <InfoCell label="UID">
-                <span className="text-[10px] font-mono text-slate-500">{owner.uid?.slice(0, 12)}...</span>
-              </InfoCell>
+              </AdminActionButton>
+              <AdminActionButton onClick={saveStudio} tone="brand" disabled={savingStudio}>
+                {savingStudio ? <Loader2 size={13} className="spin" /> : <Check size={13} />} Salvar
+              </AdminActionButton>
+              <AdminActionButton onClick={() => setEditingStudio(false)} tone="muted"><X size={13} /></AdminActionButton>
             </div>
           </div>
-        ) : (
-          <p className="text-sm text-slate-500">
-            Owner não encontrado.{" "}
-            <span className="text-[10px] font-mono text-slate-600">{studio.ownerId}</span>
-          </p>
-        )}
-      </Card>
+        </AdminPanel>
+      )}
 
-      {/* Serviços */}
-      <Card
-        title={`Serviços (${services.length})`}
-        icon={<Scissors size={14} />}
-        action={
-          !addingService ? (
-            <button
-              onClick={() => setAddingService(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 text-xs font-black hover:bg-purple-500/20 transition"
-            >
-              <Plus size={12} /> Adicionar
-            </button>
-          ) : null
-        }
-      >
-        {/* Formulário de novo serviço */}
-        {addingService && (
-          <div className="mb-4 p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
-            <p className="text-xs font-black text-purple-400 uppercase tracking-wider">Novo serviço</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="col-span-2">
-                <Field label="Nome *" value={newName} onChange={setNewName} placeholder="Ex: Manicure simples" />
-              </div>
-              <Field label="Preço (R$) *" value={newPrice} onChange={setNewPrice} placeholder="35" type="number" />
-              <Field label="Duração (min) *" value={newDuration} onChange={setNewDuration} placeholder="45" type="number" />
-            </div>
-            <div className="flex gap-2">
-              <SaveBtn onClick={addService} loading={savingSvc} label="Criar serviço" />
-              <CancelBtn onClick={() => { setAddingService(false); setNewName(""); setNewPrice(""); setNewDuration(""); }} />
-            </div>
-          </div>
-        )}
-
-        {/* Lista de serviços */}
-        {services.length === 0 ? (
-          <p className="text-sm text-slate-500 py-4 text-center">Nenhum serviço cadastrado.</p>
-        ) : (
-          <div className="space-y-2">
-            {services
-              .slice()
-              .sort((a, b) => a.name.localeCompare(b.name))
-              .map((svc) => {
-                const isEditing = editingServiceId === svc.id;
-                const isDeleting = deletingId === svc.id;
-
-                return (
-                  <div
-                    key={svc.id}
-                    className={`rounded-2xl border p-4 transition-all ${
-                      svc.isActive
-                        ? "bg-white/5 border-white/10"
-                        : "bg-white/2 border-white/5 opacity-50"
-                    }`}
-                  >
-                    {isEditing ? (
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          <div className="col-span-2">
-                            <Field label="Nome" value={svcName} onChange={setSvcName} />
-                          </div>
-                          <Field label="Preço (R$)" value={svcPrice} onChange={setSvcPrice} type="number" />
-                          <Field label="Duração (min)" value={svcDuration} onChange={setSvcDuration} type="number" />
-                        </div>
-                        <div className="flex gap-2">
-                          <SaveBtn onClick={() => saveService(svc.id)} loading={savingSvc} />
-                          <CancelBtn onClick={() => setEditingServiceId(null)} />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-black text-white text-sm truncate">{svc.name}</span>
-                            {!svc.isActive && (
-                              <span className="text-[10px] font-black text-slate-500 border border-slate-700 rounded px-1">INATIVO</span>
-                            )}
-                          </div>
-                          <div className="flex gap-3 mt-1">
-                            <span className="flex items-center gap-1 text-xs text-emerald-400 font-black">
-                              <DollarSign size={10} />
-                              {formatPrice(svc.price)}
-                            </span>
-                            <span className="flex items-center gap-1 text-xs text-slate-400 font-bold">
-                              <Clock size={10} />
-                              {formatDuration(svc.durationMinutes)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => toggleService(svc)}
-                            className={`px-2 py-1 rounded-lg text-[10px] font-black border transition ${
-                              svc.isActive
-                                ? "text-slate-400 border-slate-700 hover:text-amber-400 hover:border-amber-500/30"
-                                : "text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10"
-                            }`}
-                          >
-                            {svc.isActive ? "Desativar" : "Ativar"}
-                          </button>
-                          <IconBtn onClick={() => openEditService(svc)} title="Editar">
-                            <Pencil size={13} />
-                          </IconBtn>
-                          <IconBtn
-                            onClick={() => deleteService(svc.id)}
-                            title="Excluir"
-                            className="hover:text-red-400 hover:bg-red-500/10"
-                          >
-                            {isDeleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-                          </IconBtn>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-          </div>
-        )}
-      </Card>
-
-      {/* Horários de funcionamento */}
-      {settings?.workingHours && (
-        <Card title="Horários de Funcionamento" icon={<Calendar size={14} />}>
-          <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
-            {DAY_ORDER.map((day) => {
-              const config = settings.workingHours[day];
-              return (
-                <div
-                  key={day}
-                  className={`rounded-xl p-3 text-center border transition ${
-                    config?.isOpen
-                      ? "bg-white/5 border-white/10"
-                      : "bg-white/2 border-white/5 opacity-40"
-                  }`}
-                >
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">
-                    {DAY_LABELS[day]}
-                  </p>
-                  {config?.isOpen ? (
-                    <>
-                      <p className="text-xs font-black text-white">{config.open}</p>
-                      <p className="text-[10px] text-slate-500">–</p>
-                      <p className="text-xs font-black text-white">{config.close}</p>
-                    </>
-                  ) : (
-                    <p className="text-xs text-slate-600 font-bold">Fechado</p>
-                  )}
+      {tab === "overview" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <AdminPanel title="Profissional responsável" description="Quem opera este studio." tone={data.owner ? "success" : "warning"}>
+            {data.owner ? (
+              <div style={{ padding: 18, display: "grid", gridTemplateColumns: "52px 1fr", gap: 14, alignItems: "center" }}>
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.24)", display: "flex", alignItems: "center", justifyContent: "center", color: "#818cf8", fontSize: 20, fontWeight: 850 }}>
+                  {(data.owner.name || "?").charAt(0).toUpperCase()}
                 </div>
-              );
-            })}
+                <div>
+                  <p style={{ color: "#f4f4f5", fontWeight: 800, margin: 0 }}>{data.owner.name || "Sem nome"}</p>
+                  <p style={{ color: "#71717a", margin: "4px 0 0", fontSize: 12 }}>{data.owner.email || "Sem email"}</p>
+                  <p style={{ color: "#71717a", margin: "3px 0 0", fontSize: 12 }}>{data.owner.phone || "Sem telefone"}</p>
+                </div>
+              </div>
+            ) : (
+              <AdminEmptyState
+                title="Studio sem owner"
+                description="Vincule um profissional para liberar uma operação SaaS completa."
+                tone="warning"
+                action={<AdminActionButton href="/admin/profissionais" tone="warning"><User size={13} /> Vincular profissional</AdminActionButton>}
+              />
+            )}
+          </AdminPanel>
+
+          <AdminPanel title="Resumo operacional" description="Sinais rápidos de uso e configuração." tone="brand">
+            <div style={{ padding: 18, display: "grid", gap: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#71717a", fontSize: 12 }}>Status do tenant</span>
+                <AdminStatusBadge tone={studio.isActive ? "success" : "muted"} dot>{studio.isActive ? "Ativo" : "Inativo"}</AdminStatusBadge>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#71717a", fontSize: 12 }}>Plano</span>
+                <AdminStatusBadge tone="brand">{studio.plan}</AdminStatusBadge>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#71717a", fontSize: 12 }}>Trial até</span>
+                <strong style={{ color: trialDays !== null && trialDays <= 7 ? "#fbbf24" : "#f4f4f5", fontSize: 12 }}>{fmtDate(studio.trialEndsAt)}{trialDays !== null ? ` · ${trialDays}d` : ""}</strong>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#71717a", fontSize: 12 }}>Próxima cobrança</span>
+                <strong style={{ color: renewalDays !== null && renewalDays < 0 ? "#f87171" : "#f4f4f5", fontSize: 12 }}>{fmtDate(studio.nextBillingDate)}{renewalDays !== null ? ` · ${renewalDays >= 0 ? `em ${renewalDays}d` : `${Math.abs(renewalDays)}d atrasado`}` : ""}</strong>
+              </div>
+            </div>
+          </AdminPanel>
+        </div>
+      )}
+
+      {tab === "billing" && (
+        <AdminPanel title="Assinatura e monetização" description="Estado comercial do tenant e riscos de cobrança." tone={subscriptionTone(subscriptionStatus) as any}>
+          <div style={{ padding: 18, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+            <AdminMetricCard label="Status" value={subscriptionLabel(subscriptionStatus)} icon={CreditCard} tone={subscriptionTone(subscriptionStatus) as any} />
+            <AdminMetricCard label="MRR" value={formatCurrency(Number(studio.mrr ?? 0))} icon={DollarSign} tone={Number(studio.mrr) > 0 ? "success" : "muted"} />
+            <AdminMetricCard label="Trial" value={trialDays === null ? "—" : `${trialDays}d`} sub={fmtDate(studio.trialEndsAt)} icon={Clock} tone={trialDays !== null && trialDays <= 7 ? "warning" : "muted"} />
+            <AdminMetricCard label="Renovação" value={renewalDays === null ? "—" : renewalDays >= 0 ? `${renewalDays}d` : "Atrasada"} sub={fmtDate(studio.nextBillingDate)} icon={Calendar} tone={renewalDays !== null && renewalDays < 0 ? "danger" : "brand"} />
           </div>
-          <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-400 font-bold">
-            <span>Slot: <strong className="text-white">{settings.slotDuration}min</strong></span>
-            <span>Antecedência: <strong className="text-white">{settings.advanceDays} dias</strong></span>
-            <span>Cancelar até: <strong className="text-white">{settings.cancelHours}h antes</strong></span>
-            <span>Auto-confirmar: <strong className="text-white">{settings.autoConfirm ? "Sim" : "Não"}</strong></span>
-          </div>
-        </Card>
+        </AdminPanel>
+      )}
+
+      {tab === "services" && (
+        <AdminPanel
+          title={`Serviços (${services.length})`}
+          description="Catálogo que controla a experiência pública de agendamento."
+          actions={<AdminActionButton onClick={() => { setAddingService(true); setServiceForm({ name: "", price: "", duration: "", buffer: "0" }); }} tone="brand"><Plus size={13} /> Novo serviço</AdminActionButton>}
+          tone={activeServices.length ? "success" : "warning"}
+        >
+          {(addingService || editingServiceId) && (
+            <div style={{ padding: 16, borderBottom: "1px solid rgba(255,255,255,0.05)", display: "grid", gridTemplateColumns: "1.3fr 120px 130px 120px auto", gap: 10, alignItems: "end" }}>
+              <Field label="Nome" value={serviceForm.name} onChange={(value: string) => setServiceForm((form) => ({ ...form, name: value }))} />
+              <Field label="Preço" type="number" value={serviceForm.price} onChange={(value: string) => setServiceForm((form) => ({ ...form, price: value }))} />
+              <Field label="Duração" type="number" value={serviceForm.duration} onChange={(value: string) => setServiceForm((form) => ({ ...form, duration: value }))} />
+              <Field label="Buffer" type="number" value={serviceForm.buffer} onChange={(value: string) => setServiceForm((form) => ({ ...form, buffer: value }))} />
+              <div style={{ display: "flex", gap: 8 }}>
+                <AdminActionButton onClick={() => saveService(editingServiceId ?? undefined)} tone="brand" disabled={savingService}>
+                  {savingService ? <Loader2 size={13} className="spin" /> : <Check size={13} />} Salvar
+                </AdminActionButton>
+                <AdminActionButton onClick={() => { setAddingService(false); setEditingServiceId(null); }} tone="muted"><X size={13} /></AdminActionButton>
+              </div>
+            </div>
+          )}
+
+          {services.length === 0 ? (
+            <AdminEmptyState title="Nenhum serviço cadastrado" description="Sem serviços, a página pública não converte agendamentos." tone="warning" />
+          ) : (
+            services.map((service: any) => (
+              <div key={service.id} style={{ display: "grid", gridTemplateColumns: "1fr 110px 110px auto", alignItems: "center", gap: 12, padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)", opacity: service.isActive ? 1 : 0.55 }}>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ color: "#f4f4f5", margin: 0, fontSize: 13, fontWeight: 800 }}>{service.name}</p>
+                  <p style={{ color: "#71717a", margin: "4px 0 0", fontSize: 11 }}>{service.isActive ? "Disponível para agendamento" : "Oculto da vitrine"}</p>
+                </div>
+                <strong style={{ color: "#4ade80", fontSize: 12 }}>{formatCurrency(service.price)}</strong>
+                <span style={{ color: "#a1a1aa", fontSize: 12 }}>{formatDuration(service.durationMinutes)}</span>
+                <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                  <AdminActionButton onClick={() => toggleService(service)} tone={service.isActive ? "warning" : "success"}>{service.isActive ? "Desativar" : "Ativar"}</AdminActionButton>
+                  <AdminActionButton onClick={() => openServiceEdit(service)} tone="muted"><Pencil size={12} /></AdminActionButton>
+                  <AdminActionButton onClick={() => setDeleteTarget(service)} tone="danger"><Trash2 size={12} /></AdminActionButton>
+                </div>
+              </div>
+            ))
+          )}
+        </AdminPanel>
+      )}
+
+      {tab === "settings" && (
+        <AdminPanel title="Horários e regras" description="Configuração usada para gerar disponibilidade pública." tone="brand">
+          {data.settings?.workingHours ? (
+            <div style={{ padding: 18 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 9 }}>
+                {DAY_ORDER.map((day) => {
+                  const config = data.settings.workingHours[day];
+                  return (
+                    <div key={day} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12, background: config?.isOpen ? "rgba(255,255,255,0.035)" : "rgba(255,255,255,0.015)", opacity: config?.isOpen ? 1 : 0.45, textAlign: "center" }}>
+                      <p style={{ color: "#71717a", fontSize: 10, fontWeight: 800, margin: "0 0 8px", textTransform: "uppercase" }}>{DAY_LABELS[day]}</p>
+                      {config?.isOpen ? (
+                        <p style={{ color: "#f4f4f5", fontSize: 12, fontWeight: 800, margin: 0 }}>{config.open}<br />{config.close}</p>
+                      ) : (
+                        <p style={{ color: "#71717a", fontSize: 12, fontWeight: 700, margin: 0 }}>Fechado</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 14 }}>
+                <AdminStatusBadge tone="brand">Slot {data.settings.slotDuration}min</AdminStatusBadge>
+                <AdminStatusBadge tone="brand">Agenda {data.settings.advanceDays} dias</AdminStatusBadge>
+                <AdminStatusBadge tone="brand">Cancelamento {data.settings.cancelHours}h</AdminStatusBadge>
+                <AdminStatusBadge tone={data.settings.autoConfirm ? "success" : "warning"}>{data.settings.autoConfirm ? "Auto-confirma" : "Confirmação manual"}</AdminStatusBadge>
+              </div>
+            </div>
+          ) : (
+            <AdminEmptyState title="Configuração não encontrada" description="Crie as regras de agenda para o studio operar corretamente." tone="warning" />
+          )}
+        </AdminPanel>
+      )}
+
+      {deleteTarget && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, background: "rgba(0,0,0,.72)", backdropFilter: "blur(8px)" }}>
+          <AdminPanel title="Excluir serviço?" description={`Esta ação remove "${deleteTarget.name}" do catálogo do studio.`} tone="danger">
+            <div style={{ padding: 18, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <AdminActionButton onClick={() => setDeleteTarget(null)} tone="muted">Cancelar</AdminActionButton>
+              <AdminActionButton onClick={deleteService} tone="danger" disabled={savingService}>
+                {savingService ? <Loader2 size={13} className="spin" /> : <Trash2 size={13} />} Excluir
+              </AdminActionButton>
+            </div>
+          </AdminPanel>
+        </div>
       )}
     </div>
-  );
-}
-
-// ─── Sub-componentes ──────────────────────────────────────────────────────────
-
-function Card({
-  title,
-  icon,
-  action,
-  children,
-}: {
-  title: string;
-  icon?: React.ReactNode;
-  action?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          {icon && <span className="text-purple-400">{icon}</span>}
-          <h2 className="text-sm font-black text-white uppercase tracking-wider">{title}</h2>
-        </div>
-        {action}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function InfoCell({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">{label}</p>
-      {children}
-    </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  type?: string;
-}) {
-  return (
-    <div>
-      <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full h-9 px-3 rounded-xl border border-white/10 bg-white/5 text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500/50 transition"
-      />
-    </div>
-  );
-}
-
-function IconBtn({
-  onClick,
-  title,
-  className = "",
-  children,
-}: {
-  onClick: () => void;
-  title: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      title={title}
-      className={`p-2 rounded-xl text-slate-400 hover:bg-white/10 hover:text-white transition ${className}`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function SaveBtn({
-  onClick,
-  loading,
-  label = "Salvar",
-}: {
-  onClick: () => void;
-  loading: boolean;
-  label?: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={loading}
-      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-black hover:bg-purple-500/30 disabled:opacity-50 transition"
-    >
-      {loading ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
-      {label}
-    </button>
-  );
-}
-
-function CancelBtn({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/5 text-slate-400 border border-white/10 text-xs font-black hover:bg-white/10 transition"
-    >
-      <X size={12} /> Cancelar
-    </button>
   );
 }

@@ -1,105 +1,120 @@
+/* eslint-disable */
 // @ts-nocheck
-import { createClient } from "@/lib/supabase/server";
-import { formatCurrency } from "@/lib/utils";
 import {
+  AlertTriangle,
   ArrowRight,
-  ArrowUpRight,
   Building2,
+  CalendarClock,
   CreditCard,
   DollarSign,
+  Link2,
+  ShieldAlert,
   TrendingUp,
   Users,
 } from "lucide-react";
-import Link from "next/link";
+import {
+  AdminActionButton,
+  AdminEmptyState,
+  AdminMetricCard,
+  AdminPageHeader,
+  AdminPanel,
+  AdminStatusBadge,
+} from "@/components/admin/AdminUI";
+import { createClient } from "@/lib/supabase/server";
+import { formatCurrency } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-const PLAN_STYLE: Record<string, { color: string; bg: string; border: string }> = {
-  pro: { color: "#a78bfa", bg: "rgba(167,139,250,0.12)", border: "rgba(167,139,250,0.26)" },
-  starter: { color: "#60a5fa", bg: "rgba(96,165,250,0.12)", border: "rgba(96,165,250,0.26)" },
-  studio: { color: "#f59e0b", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.26)" },
-  free: { color: "#85809b", bg: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.10)" },
+const PLAN_LABEL: Record<string, string> = {
+  free: "Free",
+  starter: "Starter",
+  pro: "Pro",
+  studio: "Studio",
 };
 
-const STATUS_COPY: Record<string, string> = {
-  active: "Ativo",
-  trialing: "Trial",
-  past_due: "Atrasado",
-  canceled: "Cancelado",
-};
+function daysBetween(date: string | null | undefined) {
+  if (!date) return null;
+  return Math.floor((Date.now() - new Date(date).getTime()) / 86400000);
+}
 
-function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Bom dia";
-  if (hour < 18) return "Boa tarde";
-  return "Boa noite";
+function daysUntil(date: string | null | undefined) {
+  if (!date) return null;
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Math.round((target.getTime() - now.getTime()) / 86400000);
 }
 
 function getStudioMrr(studio: any, priceByPlan: Map<string, number>) {
   if (studio.subscription_status !== "active") return 0;
-
-  const explicitMrr = Number(studio.mrr ?? 0);
-  if (Number.isFinite(explicitMrr) && explicitMrr > 0) return explicitMrr;
-
-  const planPrice = Number(priceByPlan.get(studio.plan) ?? 0);
-  return Number.isFinite(planPrice) ? planPrice : 0;
+  const explicit = Number(studio.mrr ?? 0);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  return Number(priceByPlan.get(studio.plan) ?? 0);
 }
 
-function buildMonthlySeries(studios: any[], priceByPlan: Map<string, number>) {
-  const months = [];
+function buildMrrSeries(studios: any[], priceByPlan: Map<string, number>) {
+  return Array.from({ length: 6 }, (_, index) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - (5 - index));
+    date.setDate(1);
+    date.setHours(0, 0, 0, 0);
 
-  for (let i = 5; i >= 0; i--) {
-    const start = new Date();
-    start.setMonth(start.getMonth() - i);
-    start.setDate(1);
-    start.setHours(0, 0, 0, 0);
-
-    const end = new Date(start);
+    const end = new Date(date);
     end.setMonth(end.getMonth() + 1);
 
     const cumulative = studios.filter((studio) => new Date(studio.created_at) < end);
     const mrr = cumulative.reduce((sum, studio) => sum + getStudioMrr(studio, priceByPlan), 0);
 
-    months.push({
-      label: start.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
+    return {
+      label: date.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
       mrr,
       studios: cumulative.length,
-    });
-  }
-
-  return months;
+    };
+  });
 }
 
-function MrrBars({ months }: { months: { label: string; mrr: number; studios: number }[] }) {
-  const max = Math.max(...months.map((month) => month.mrr), 1);
+function MiniBars({ data }: { data: { label: string; mrr: number }[] }) {
+  const max = Math.max(...data.map((item) => item.mrr), 1);
 
   return (
-    <div style={{ height: 150, display: "flex", alignItems: "end", gap: 12, paddingTop: 10 }}>
-      {months.map((month) => {
-        const height = Math.max(8, Math.round((month.mrr / max) * 120));
-
-        return (
-          <div key={month.label} style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ height: 124, display: "flex", alignItems: "end" }}>
-              <div
-                title={`${month.label}: ${formatCurrency(month.mrr)}`}
-                style={{
-                  width: "100%",
-                  height,
-                  borderRadius: "6px 6px 2px 2px",
-                  background: month.mrr > 0
-                    ? "linear-gradient(180deg,#34d399,#1f8f62)"
-                    : "rgba(255,255,255,0.07)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }}
-              />
-            </div>
-            <div style={{ marginTop: 8, textAlign: "center", fontSize: 10, fontWeight: 800, color: "#6b6585", textTransform: "uppercase" }}>
-              {month.label}
-            </div>
+    <div style={{ display: "grid", gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))`, gap: 10, alignItems: "end", height: 140, padding: "18px" }}>
+      {data.map((item) => (
+        <div key={item.label} style={{ minWidth: 0 }}>
+          <div style={{ height: 104, display: "flex", alignItems: "end" }}>
+            <div
+              title={`${item.label}: ${formatCurrency(item.mrr)}`}
+              style={{
+                width: "100%",
+                height: Math.max(8, Math.round((item.mrr / max) * 100)),
+                borderRadius: "7px 7px 3px 3px",
+                background: item.mrr > 0 ? "linear-gradient(180deg,#4ade80,#15803d)" : "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            />
           </div>
-        );
-      })}
+          <p style={{ marginTop: 8, textAlign: "center", fontSize: 10, color: "#71717a", fontWeight: 700, textTransform: "uppercase" }}>
+            {item.label}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RiskRow({ icon: Icon, title, description, href, tone }: any) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "34px 1fr auto", gap: 12, alignItems: "center", padding: "13px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+      <div style={{ width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.04)", color: tone === "danger" ? "#f87171" : tone === "warning" ? "#fbbf24" : "#818cf8" }}>
+        <Icon size={16} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p style={{ margin: 0, color: "#f4f4f5", fontSize: 13, fontWeight: 750 }}>{title}</p>
+        <p style={{ margin: "3px 0 0", color: "#71717a", fontSize: 12 }}>{description}</p>
+      </div>
+      <AdminActionButton href={href} tone={tone}>
+        Resolver <ArrowRight size={12} />
+      </AdminActionButton>
     </div>
   );
 }
@@ -107,359 +122,188 @@ function MrrBars({ months }: { months: { label: string; mrr: number; studios: nu
 export default async function AdminPage() {
   const supabase = await createClient();
 
-  const [{ data: studios }, { data: profiles }, { data: prices }] = await Promise.all([
+  const [{ data: studios }, { data: profiles }, { data: prices }, { data: appointments }] = await Promise.all([
     supabase
       .from("studios")
-      .select("id, name, slug, plan, is_active, subscription_status, mrr, created_at")
+      .select("id, name, slug, owner_id, plan, is_active, subscription_status, mrr, trial_ends_at, next_billing_date, created_at")
       .order("created_at", { ascending: false }),
-    supabase.from("profiles").select("id, role"),
+    supabase.from("profiles").select("id, role, studio_id, created_at"),
     supabase.from("plan_prices").select("plan, price, label"),
+    supabase.from("appointments").select("id, studio_id, appointment_date, status, price, created_at"),
   ]);
 
   const studioList = studios ?? [];
   const profileList = profiles ?? [];
   const priceList = prices ?? [];
+  const appointmentList = appointments ?? [];
   const priceByPlan = new Map(priceList.map((price) => [price.plan, Number(price.price ?? 0)]));
-  const labelByPlan = new Map(priceList.map((price) => [price.plan, price.label ?? price.plan]));
 
-  const totalStudios = studioList.length;
-  const activeStudios = studioList.filter((studio) => studio.is_active).length;
-  const paidStudios = studioList.filter((studio) => getStudioMrr(studio, priceByPlan) > 0).length;
+  const paidStudios = studioList.filter((studio) => getStudioMrr(studio, priceByPlan) > 0);
+  const activeStudios = studioList.filter((studio) => studio.is_active);
+  const trials = studioList.filter((studio) => studio.subscription_status === "trial" || studio.subscription_status === "trialing");
+  const pastDue = studioList.filter((studio) => studio.subscription_status === "past_due");
+  const withoutOwner = studioList.filter((studio) => !studio.owner_id);
+  const inactiveStudios = studioList.filter((studio) => !studio.is_active);
   const mrr = studioList.reduce((sum, studio) => sum + getStudioMrr(studio, priceByPlan), 0);
   const arr = mrr * 12;
-  const arpu = paidStudios ? mrr / paidStudios : 0;
-  const monthlySeries = buildMonthlySeries(studioList, priceByPlan);
-  const mrrDelta = monthlySeries.length >= 2 ? monthlySeries[monthlySeries.length - 1].mrr - monthlySeries[monthlySeries.length - 2].mrr : 0;
-  const recentStudios = studioList.slice(0, 6);
+  const arpu = paidStudios.length ? mrr / paidStudios.length : 0;
+
+  const lastByStudio = new Map<string, string>();
+  for (const appointment of appointmentList) {
+    if (!appointment.studio_id || !appointment.appointment_date) continue;
+    const current = lastByStudio.get(appointment.studio_id);
+    if (!current || appointment.appointment_date > current) lastByStudio.set(appointment.studio_id, appointment.appointment_date);
+  }
+
+  const staleStudios = activeStudios.filter((studio) => {
+    const days = daysBetween(lastByStudio.get(studio.id));
+    return days === null || days > 30;
+  });
+  const trialExpiring = trials.filter((studio) => {
+    const days = daysUntil(studio.trial_ends_at);
+    return days !== null && days >= 0 && days <= 7;
+  });
+  const mrrAtRisk = pastDue.reduce((sum, studio) => sum + Number(studio.mrr ?? priceByPlan.get(studio.plan) ?? 0), 0);
+  const mrrSeries = buildMrrSeries(studioList, priceByPlan);
+  const currentMrr = mrrSeries.at(-1)?.mrr ?? 0;
+  const previousMrr = mrrSeries.at(-2)?.mrr ?? 0;
+  const mrrDelta = currentMrr - previousMrr;
 
   const planRows = ["studio", "pro", "starter", "free"].map((plan) => {
-    const count = studioList.filter((studio) => studio.plan === plan).length;
-    const revenue = studioList
-      .filter((studio) => studio.plan === plan)
-      .reduce((sum, studio) => sum + getStudioMrr(studio, priceByPlan), 0);
-
-    return {
-      plan,
-      label: labelByPlan.get(plan) ?? plan,
-      count,
-      revenue,
-      pct: mrr > 0 ? Math.round((revenue / mrr) * 100) : 0,
-      style: PLAN_STYLE[plan] ?? PLAN_STYLE.free,
-    };
+    const inPlan = studioList.filter((studio) => studio.plan === plan);
+    const revenue = inPlan.reduce((sum, studio) => sum + getStudioMrr(studio, priceByPlan), 0);
+    return { plan, count: inPlan.length, revenue, pct: mrr ? Math.round((revenue / mrr) * 100) : 0 };
   });
 
-  const C = {
-    panel: "rgba(255,255,255,0.045)",
-    panel2: "rgba(255,255,255,0.025)",
-    border: "rgba(255,255,255,0.10)",
-    borderSoft: "rgba(255,255,255,0.06)",
-    text: "#ede9fe",
-    muted: "#6b6585",
-    gold: "#f59e0b",
-  };
-
-  const kpis = [
-    {
-      label: "MRR",
-      value: formatCurrency(mrr),
-      sub: mrrDelta === 0 ? "sem variação no mês" : `${mrrDelta > 0 ? "+" : ""}${formatCurrency(mrrDelta)} vs mês anterior`,
-      icon: DollarSign,
-      color: "#34d399",
+  const urgentItems = [
+    withoutOwner.length > 0 && {
+      icon: Link2,
+      title: `${withoutOwner.length} studio${withoutOwner.length > 1 ? "s" : ""} sem profissional`,
+      description: "Esses tenants existem, mas ainda não têm owner vinculado.",
+      href: "/admin/profissionais",
+      tone: "warning",
     },
-    {
-      label: "Salões pagantes",
-      value: `${paidStudios}`,
-      sub: `${totalStudios} salões cadastrados`,
+    pastDue.length > 0 && {
+      icon: ShieldAlert,
+      title: `${pastDue.length} assinatura${pastDue.length > 1 ? "s" : ""} inadimplente${pastDue.length > 1 ? "s" : ""}`,
+      description: `${formatCurrency(mrrAtRisk)} de MRR em risco por atraso.`,
+      href: "/admin/financeiro/inadimplencia",
+      tone: "danger",
+    },
+    trialExpiring.length > 0 && {
       icon: CreditCard,
-      color: "#60a5fa",
+      title: `${trialExpiring.length} trial${trialExpiring.length > 1 ? "s" : ""} vencendo`,
+      description: "Boa hora para converter antes de perder ativação.",
+      href: "/admin/financeiro/assinaturas",
+      tone: "warning",
     },
-    {
-      label: "ARR",
-      value: formatCurrency(arr),
-      sub: "receita anual recorrente",
-      icon: TrendingUp,
-      color: "#a78bfa",
+    staleStudios.length > 0 && {
+      icon: CalendarClock,
+      title: `${staleStudios.length} studio${staleStudios.length > 1 ? "s" : ""} sem agenda recente`,
+      description: "Possível risco de churn ou onboarding incompleto.",
+      href: "/admin/studios",
+      tone: "brand",
     },
-    {
-      label: "Usuarios",
-      value: `${profileList.length}`,
-      sub: `${profileList.filter((profile) => profile.role === "superadmin").length} superadmin`,
-      icon: Users,
-      color: "#f59e0b",
+    inactiveStudios.length > 0 && {
+      icon: AlertTriangle,
+      title: `${inactiveStudios.length} studio${inactiveStudios.length > 1 ? "s" : ""} inativo${inactiveStudios.length > 1 ? "s" : ""}`,
+      description: "Revise se é churn, suspensão temporária ou erro operacional.",
+      href: "/admin/studios",
+      tone: "muted",
     },
-  ];
+  ].filter(Boolean);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 1160, position: "relative", zIndex: 1 }}>
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 18 }}>
-        <div>
-          <p style={{
-            fontSize: 11,
-            fontWeight: 900,
-            color: C.gold,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            marginBottom: 8,
-          }}>
-            Platform Overview
-          </p>
-          <h1 style={{ fontSize: 31, fontWeight: 950, color: C.text, margin: 0, lineHeight: 1 }}>
-            {getGreeting()}, Admin
-          </h1>
-          <p style={{ color: C.muted, margin: "9px 0 0", fontSize: 13 }}>
-            {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-          </p>
-        </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 22, maxWidth: 1180 }}>
+      <AdminPageHeader
+        eyebrow="Central de comando"
+        title="Operação SaaS"
+        description="Visão executiva para receita, ativação, risco e ações do dia na plataforma Nailit."
+        actions={
+          <>
+            <AdminActionButton href="/admin/studios" tone="brand">
+              Novo studio <ArrowRight size={13} />
+            </AdminActionButton>
+            <AdminActionButton href="/admin/financeiro" tone="success">
+              Ver financeiro
+            </AdminActionButton>
+          </>
+        }
+      />
 
-        <Link href="/admin/studios" style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-          height: 40,
-          padding: "0 16px",
-          borderRadius: 8,
-          textDecoration: "none",
-          background: "rgba(245,158,11,0.12)",
-          border: "1px solid rgba(245,158,11,0.30)",
-          color: C.gold,
-          fontSize: 12,
-          fontWeight: 850,
-        }}>
-          Novo studio <ArrowRight size={13} />
-        </Link>
+      <div style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", gap: 12 }}>
+        <AdminMetricCard label="MRR atual" value={formatCurrency(mrr)} sub={`${mrrDelta >= 0 ? "+" : ""}${formatCurrency(mrrDelta)} vs mês anterior`} icon={DollarSign} tone="success" large />
+        <AdminMetricCard label="ARR" value={formatCurrency(arr)} sub="receita anual recorrente" icon={TrendingUp} tone="brand" />
+        <AdminMetricCard label="Pagantes" value={paidStudios.length} sub={`${studioList.length} studios totais`} icon={CreditCard} tone="default" />
+        <AdminMetricCard label="ARPU" value={formatCurrency(arpu)} sub={`${trials.length} em trial`} icon={Users} tone="warning" />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 12 }}>
-        {kpis.map(({ label, value, sub, icon: Icon, color }) => (
-          <div key={label} style={{
-            background: C.panel,
-            border: `1px solid ${C.border}`,
-            borderRadius: 10,
-            padding: "18px 18px 16px",
-            position: "relative",
-            overflow: "hidden",
-          }}>
-            <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 2, background: color, opacity: 0.75 }} />
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-              <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.10em", textTransform: "uppercase", color: C.muted }}>
-                {label}
-              </span>
-              <div style={{
-                width: 30,
-                height: 30,
-                borderRadius: 8,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: `${color}18`,
-                border: `1px solid ${color}30`,
-              }}>
-                <Icon size={15} color={color} />
-              </div>
-            </div>
-            <div style={{ fontSize: 28, fontWeight: 950, color: "#fff", lineHeight: 1, marginBottom: 8 }}>
-              {value}
-            </div>
-            <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.35 }}>
-              {sub}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 330px", gap: 16, alignItems: "start" }}>
-        <section style={{
-          background: C.panel,
-          border: `1px solid ${C.border}`,
-          borderRadius: 10,
-          overflow: "hidden",
-        }}>
-          <div style={{
-            padding: "18px 20px",
-            borderBottom: `1px solid ${C.borderSoft}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background: C.panel2,
-          }}>
-            <div>
-              <h2 style={{ fontSize: 14, fontWeight: 900, color: C.text, margin: 0 }}>Studios recentes</h2>
-              <p style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>Status comercial e plano atual</p>
-            </div>
-            <Link href="/admin/studios" style={{ display: "inline-flex", alignItems: "center", gap: 5, color: C.gold, fontSize: 11, fontWeight: 850, textDecoration: "none" }}>
-              Ver todos <ArrowUpRight size={12} />
-            </Link>
-          </div>
-
-          {recentStudios.length > 0 && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 88px 104px 88px 28px", padding: "8px 20px", borderBottom: `1px solid ${C.borderSoft}` }}>
-              {["Studio", "Plano", "Assinatura", "MRR", ""].map((heading) => (
-                <span key={heading} style={{ fontSize: 10, fontWeight: 900, color: C.muted, letterSpacing: "0.09em", textTransform: "uppercase" }}>
-                  {heading}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {recentStudios.length === 0 ? (
-            <div style={{ padding: "50px 20px", textAlign: "center" }}>
-              <Building2 size={28} color={C.muted} />
-              <p style={{ fontSize: 14, fontWeight: 850, color: C.text, marginTop: 14 }}>Nenhum studio cadastrado</p>
-            </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1.15fr .85fr", gap: 14, alignItems: "start" }}>
+        <AdminPanel
+          title="Ações urgentes"
+          description="O que pede atenção antes de virar churn, suporte ou perda de receita."
+          tone={urgentItems.length ? "warning" : "success"}
+        >
+          {urgentItems.length ? (
+            urgentItems.slice(0, 6).map((item: any) => <RiskRow key={item.title} {...item} />)
           ) : (
-            recentStudios.map((studio, index) => {
-              const planStyle = PLAN_STYLE[studio.plan] ?? PLAN_STYLE.free;
-              const studioMrr = getStudioMrr(studio, priceByPlan);
-              const status = studio.subscription_status ?? (studio.is_active ? "active" : "canceled");
-              const statusColor = status === "active" ? "#34d399" : status === "past_due" ? "#f5c842" : "#85809b";
-
-              return (
-                <Link
-                  key={studio.id}
-                  href={`/admin/studios/${studio.id}`}
-                  className="a-link-row"
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 88px 104px 88px 28px",
-                    alignItems: "center",
-                    padding: "14px 20px",
-                    textDecoration: "none",
-                    borderBottom: index < recentStudios.length - 1 ? `1px solid ${C.borderSoft}` : "none",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-                    <div style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 8,
-                      background: "linear-gradient(135deg,#f59e0b,#fcd34d)",
-                      color: "#05050a",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 13,
-                      fontWeight: 950,
-                      flexShrink: 0,
-                    }}>
-                      {studio.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 850, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {studio.name}
-                      </div>
-                      <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginTop: 2 }}>/{studio.slug}</div>
-                    </div>
-                  </div>
-
-                  <span style={{
-                    width: "fit-content",
-                    fontSize: 10,
-                    fontWeight: 900,
-                    padding: "3px 8px",
-                    borderRadius: 6,
-                    background: planStyle.bg,
-                    color: planStyle.color,
-                    border: `1px solid ${planStyle.border}`,
-                    textTransform: "uppercase",
-                  }}>
-                    {studio.plan}
-                  </span>
-
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 800, color: statusColor }}>
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: statusColor }} />
-                    {STATUS_COPY[status] ?? status}
-                  </span>
-
-                  <span style={{ fontSize: 12, fontWeight: 900, color: studioMrr > 0 ? "#34d399" : C.muted }}>
-                    {formatCurrency(studioMrr)}
-                  </span>
-
-                  <ArrowRight size={13} color={C.muted} />
-                </Link>
-              );
-            })
+            <AdminEmptyState title="Operação sem alertas críticos" description="Nenhum trial vencendo, inadimplente ou studio sem owner no momento." tone="success" />
           )}
-        </section>
+        </AdminPanel>
 
-        <aside style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <section style={{
-            background: C.panel,
-            border: `1px solid ${C.border}`,
-            borderRadius: 10,
-            padding: "18px 18px 16px",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div>
-                <h2 style={{ fontSize: 14, fontWeight: 900, color: C.text, margin: 0 }}>MRR por plano</h2>
-              <p style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{paidStudios} salões pagantes</p>
+        <AdminPanel title="Saúde da base" description="Resumo rápido dos tenants ativos e em risco." tone="brand">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: 16 }}>
+            <AdminMetricCard label="Ativos" value={activeStudios.length} sub="com acesso liberado" icon={Building2} tone="success" />
+            <AdminMetricCard label="Risco" value={staleStudios.length + pastDue.length} sub="uso baixo ou atraso" icon={AlertTriangle} tone={staleStudios.length + pastDue.length ? "danger" : "muted"} />
+          </div>
+          <div style={{ padding: "0 16px 16px", display: "grid", gap: 10 }}>
+            {planRows.map((row) => (
+              <div key={row.plan}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: "#f4f4f5", fontWeight: 700 }}>{PLAN_LABEL[row.plan] ?? row.plan}</span>
+                  <span style={{ fontSize: 12, color: "#71717a" }}>{row.count} studios · {formatCurrency(row.revenue)}</span>
+                </div>
+                <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                  <div style={{ width: `${row.pct}%`, height: "100%", background: row.plan === "studio" ? "#f472b6" : row.plan === "pro" ? "#818cf8" : row.plan === "starter" ? "#60a5fa" : "#71717a" }} />
+                </div>
               </div>
-              <Link href="/admin/config/planos" style={{ color: C.gold, textDecoration: "none", fontSize: 11, fontWeight: 850 }}>
-                Editar
-              </Link>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
-              {planRows.map(({ plan, label, count, revenue, pct, style }) => (
-                <div key={plan}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 850, color: C.text }}>{label}</div>
-                      <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>{count} salões</div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 12, fontWeight: 950, color: style.color }}>{formatCurrency(revenue)}</div>
-                      <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>{pct}%</div>
-                    </div>
-                  </div>
-                  <div style={{ height: 6, borderRadius: 6, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${pct}%`, borderRadius: 6, background: style.color }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section style={{
-            background: C.panel,
-            border: `1px solid ${C.border}`,
-            borderRadius: 10,
-            padding: "18px 18px 16px",
-          }}>
-            <h2 style={{ fontSize: 14, fontWeight: 900, color: C.text, margin: 0 }}>Saude da base</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
-              {[
-                { label: "Ativos", value: activeStudios },
-                { label: "ARPU", value: formatCurrency(arpu) },
-              ].map((item) => (
-                <div key={item.label} style={{ border: `1px solid ${C.borderSoft}`, borderRadius: 8, padding: 12, background: C.panel2 }}>
-                  <div style={{ fontSize: 10, fontWeight: 900, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                    {item.label}
-                  </div>
-                  <div style={{ fontSize: 18, fontWeight: 950, color: C.text, marginTop: 8 }}>{item.value}</div>
-                </div>
-              ))}
-            </div>
-          </section>
-        </aside>
+            ))}
+          </div>
+        </AdminPanel>
       </div>
 
-      <section style={{
-        background: C.panel,
-        border: `1px solid ${C.border}`,
-        borderRadius: 10,
-        padding: "18px 20px 16px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-          <div>
-            <h2 style={{ fontSize: 14, fontWeight: 900, color: C.text, margin: 0 }}>Evolucao do MRR</h2>
-            <p style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>últimos 6 meses</p>
-          </div>
-          <span style={{ fontSize: 12, fontWeight: 900, color: mrrDelta >= 0 ? "#34d399" : "#f55a5a" }}>
-            {mrrDelta >= 0 ? "+" : ""}{formatCurrency(mrrDelta)}
-          </span>
-        </div>
-        <MrrBars months={monthlySeries} />
-      </section>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "start" }}>
+        <AdminPanel
+          title="Studios recentes"
+          description="Novos tenants e status comercial."
+          actions={<AdminActionButton href="/admin/studios" tone="muted">Ver todos</AdminActionButton>}
+        >
+          {studioList.slice(0, 7).map((studio) => {
+            const status = studio.subscription_status ?? (studio.is_active ? "active" : "canceled");
+            const statusTone = status === "active" ? "success" : status === "past_due" ? "danger" : status === "trial" || status === "trialing" ? "warning" : "muted";
+            return (
+              <a
+                key={studio.id}
+                href={`/admin/studios/${studio.id}`}
+                style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 12, alignItems: "center", padding: "13px 16px", color: "inherit", textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ margin: 0, color: "#f4f4f5", fontSize: 13, fontWeight: 750, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{studio.name}</p>
+                  <p style={{ margin: "3px 0 0", color: "#71717a", fontSize: 11, fontFamily: "monospace" }}>/{studio.slug}</p>
+                </div>
+                <AdminStatusBadge tone={statusTone as any} dot>{status === "past_due" ? "Atrasado" : status === "trialing" || status === "trial" ? "Trial" : studio.is_active ? "Ativo" : "Inativo"}</AdminStatusBadge>
+                <span style={{ color: getStudioMrr(studio, priceByPlan) ? "#4ade80" : "#71717a", fontSize: 12, fontWeight: 800 }}>
+                  {formatCurrency(getStudioMrr(studio, priceByPlan))}
+                </span>
+              </a>
+            );
+          })}
+        </AdminPanel>
+
+        <AdminPanel title="Evolução do MRR" description="Últimos 6 meses, calculado a partir dos dados atuais." tone="success">
+          <MiniBars data={mrrSeries} />
+        </AdminPanel>
+      </div>
     </div>
   );
 }

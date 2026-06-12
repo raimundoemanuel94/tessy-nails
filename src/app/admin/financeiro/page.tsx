@@ -1,77 +1,58 @@
+/* eslint-disable */
 // @ts-nocheck
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { DollarSign, TrendingUp, TrendingDown, Users, Layers, ArrowRight } from "lucide-react";
+import { ArrowRight, CreditCard, DollarSign, Layers, ShieldAlert, TrendingDown, TrendingUp, Users } from "lucide-react";
+import {
+  AdminActionButton,
+  AdminMetricCard,
+  AdminPageHeader,
+  AdminPanel,
+  AdminStatusBadge,
+} from "@/components/admin/AdminUI";
+import { createClient } from "@/lib/supabase/server";
+import { formatCurrency } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-/* ── tokens (mesmo padrão do /admin) ── */
-const C = {
-  bg: "#0d0d10", card: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.08)",
-  sep: "rgba(255,255,255,0.05)", text: "#f4f4f5", sub: "#a1a1aa", muted: "#52525b",
-};
-const PLAN_C: Record<string,{color:string;bg:string;border:string}> = {
-  pro:     { color:"#818cf8", bg:"rgba(99,102,241,0.10)",  border:"rgba(99,102,241,0.22)"  },
-  starter: { color:"#60a5fa", bg:"rgba(96,165,250,0.10)",  border:"rgba(96,165,250,0.22)"  },
-  free:    { color:"#71717a", bg:"rgba(113,113,122,0.10)", border:"rgba(113,113,122,0.20)" },
-  studio:  { color:"#f472b6", bg:"rgba(244,114,182,0.10)", border:"rgba(244,114,182,0.22)" },
+const PLAN_COLOR: Record<string, string> = {
+  studio: "#f472b6",
+  pro: "#818cf8",
+  starter: "#60a5fa",
+  free: "#71717a",
 };
 
-const fmtBRL = (n: number) =>
-  n === 0 ? "R$ 0,00" : `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-
-function fmtK(n: number) {
-  if (n >= 1000) return `R$ ${(n/1000).toFixed(1)}k`;
-  return fmtBRL(n);
+function monthBounds(offset = 0) {
+  const start = new Date();
+  start.setMonth(start.getMonth() + offset);
+  start.setDate(1);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + 1);
+  return { start, end };
 }
 
-/* ── SVG Area Chart ── */
-function AreaChart({ pts, color, h=110 }: { pts:{x:number;y:number;label:string;v:number}[]; color:string; h?:number }) {
-  if (!pts.length) return null;
-  const path = pts.map((p,i) => `${i===0?"M":"L"} ${p.x} ${p.y}`).join(" ");
-  const area = `${path} L ${pts[pts.length-1].x} ${h-20} L ${pts[0].x} ${h-20} Z`;
+function daysUntil(date?: string | null) {
+  if (!date) return null;
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Math.round((target.getTime() - now.getTime()) / 86400000);
+}
+
+function MiniArea({ data }: { data: { label: string; value: number }[] }) {
+  const max = Math.max(...data.map((item) => item.value), 1);
   return (
-    <svg viewBox={`0 0 300 ${h}`} style={{ width:"100%", height:"auto" }}>
-      <defs>
-        <linearGradient id={`g-${color.replace(/[^a-z]/gi,"")}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.25"/>
-          <stop offset="100%" stopColor={color} stopOpacity="0"/>
-        </linearGradient>
-      </defs>
-      <path d={area} fill={`url(#g-${color.replace(/[^a-z]/gi,"")})`}/>
-      <path d={path} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      {pts.map((p,i) => (
-        <g key={i}>
-          <circle cx={p.x} cy={p.y} r="3.5" fill="#0d0d10" stroke={color} strokeWidth="1.8"/>
-          <text x={p.x} y={h-4} textAnchor="middle" fontSize="9" fill={C.muted}>{p.label}</text>
-        </g>
+    <div style={{ padding: 18, display: "grid", gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))`, gap: 10, alignItems: "end", height: 150 }}>
+      {data.map((item) => (
+        <div key={item.label} style={{ minWidth: 0 }}>
+          <div style={{ height: 108, display: "flex", alignItems: "end" }}>
+            <div style={{ width: "100%", height: Math.max(8, Math.round((item.value / max) * 104)), borderRadius: "7px 7px 3px 3px", background: "linear-gradient(180deg,#4ade80,#166534)", border: "1px solid rgba(255,255,255,0.08)" }} />
+          </div>
+          <p style={{ marginTop: 8, textAlign: "center", color: "#71717a", fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>{item.label}</p>
+        </div>
       ))}
-      <text x={pts[pts.length-1].x} y={pts[pts.length-1].y-7} textAnchor="end" fontSize="10" fontWeight="700" fill={color}>
-        {fmtK(pts[pts.length-1].v)}
-      </text>
-    </svg>
-  );
-}
-
-/* ── Bar Chart ── */
-function BarChart({ data, color }: { data:{label:string;v:number}[]; color:string }) {
-  const W=300, H=90, PB=18, max=Math.max(...data.map(d=>d.v),1);
-  const gap = W / data.length, bw = gap * 0.5;
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width:"100%", height:"auto" }}>
-      {data.map((d,i) => {
-        const bh = (d.v/max)*(H-PB-8);
-        const x = i*gap+(gap-bw)/2, y = H-PB-bh;
-        return (
-          <g key={i}>
-            <rect x={x} y={y} width={bw} height={Math.max(bh,2)} rx="3" fill={color} opacity="0.8"/>
-            <text x={x+bw/2} y={H-4} textAnchor="middle" fontSize="9" fill={C.muted}>{d.label}</text>
-            {d.v>0 && <text x={x+bw/2} y={y-4} textAnchor="middle" fontSize="9" fontWeight="700" fill={color}>{d.v}</text>}
-          </g>
-        );
-      })}
-    </svg>
+    </div>
   );
 }
 
@@ -79,162 +60,157 @@ export default async function FinanceiroPage() {
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect("/login");
+
   const { data: me } = await sb.from("profiles").select("role").eq("id", user.id).single();
   if (me?.role !== "superadmin") redirect("/dashboard");
 
   const [{ data: studios }, { data: prices }] = await Promise.all([
-    sb.from("studios").select("id,name,slug,plan,is_active,subscription_status,mrr,created_at"),
+    sb.from("studios").select("id,name,slug,plan,is_active,subscription_status,mrr,next_billing_date,trial_ends_at,created_at"),
     sb.from("plan_prices").select("plan,price,label").order("price"),
   ]);
 
-  const list   = studios ?? [];
-  const pList  = prices  ?? [];
+  const studioList = studios ?? [];
+  const priceList = prices ?? [];
+  const priceByPlan = new Map(priceList.map((price) => [price.plan, Number(price.price ?? 0)]));
+  const labelByPlan = new Map(priceList.map((price) => [price.plan, price.label ?? price.plan]));
 
-  /* ── Métricas (REAIS via subscription_status + mrr) ── */
-  const active  = list.filter(s => s.subscription_status === "active");
-  const mrr     = active.reduce((s,x) => s + Number(x.mrr||0), 0);
-  const arr     = mrr * 12;
-  const arpu    = active.length ? mrr / active.length : 0;
-
-  // Crescimento 30d vs 30-60d (REAL via created_at)
-  const now=Date.now(), d30=now-30*864e5, d60=now-60*864e5;
-  const new30  = list.filter(s => new Date(s.created_at).getTime()>=d30).length;
-  const prev30 = list.filter(s => { const t=new Date(s.created_at).getTime(); return t>=d60&&t<d30; }).length;
-  const growPct = prev30===0 ? (new30>0?100:0) : Math.round(((new30-prev30)/prev30)*100);
-
-  // Receita por plano (REAL)
-  const byPlan = pList.map(p => {
-    const inPlan = list.filter(s => s.plan===p.plan && s.subscription_status==="active");
-    const rev = inPlan.reduce((s,x) => s+Number(x.mrr||0), 0);
-    return { plan:p.plan, label:p.label, price:Number(p.price), count:inPlan.length, rev };
+  const active = studioList.filter((studio) => studio.subscription_status === "active");
+  const pastDue = studioList.filter((studio) => studio.subscription_status === "past_due");
+  const trials = studioList.filter((studio) => studio.subscription_status === "trial" || studio.subscription_status === "trialing");
+  const canceled = studioList.filter((studio) => studio.subscription_status === "canceled" || !studio.is_active);
+  const expiringTrials = trials.filter((studio) => {
+    const days = daysUntil(studio.trial_ends_at);
+    return days !== null && days >= 0 && days <= 7;
   });
 
-  // Série mensal — ⚠️ APROXIMAÇÃO: recalculada de created_at, não snapshot histórico
-  const series: {label:string;mrr:number;newStudios:number}[] = [];
-  for (let i=5;i>=0;i--) {
-    const dt=new Date(); dt.setMonth(dt.getMonth()-i); dt.setDate(1); dt.setHours(0,0,0,0);
-    const end=new Date(dt); end.setMonth(end.getMonth()+1);
-    const cum = list.filter(s => new Date(s.created_at)<end);
-    const newM= list.filter(s => { const t=new Date(s.created_at); return t>=dt&&t<end; }).length;
-    series.push({
-      label: dt.toLocaleDateString("pt-BR",{month:"short"}),
-      mrr:   cum.filter(s=>s.subscription_status==="active").reduce((s,x)=>s+Number(x.mrr||0),0),
-      newStudios: newM,
-    });
-  }
+  const getMrr = (studio: any) => {
+    const explicit = Number(studio.mrr ?? 0);
+    if (Number.isFinite(explicit) && explicit > 0) return explicit;
+    return studio.subscription_status === "active" ? Number(priceByPlan.get(studio.plan) ?? 0) : 0;
+  };
 
-  // Chart points helper
-  function toPoints(data:{v:number}[], W=300, H=110, PB=20) {
-    const vals=data.map(d=>d.v), max=Math.max(...vals,1);
-    const stepX=(W-16)/(data.length-1||1);
-    return data.map((d,i)=>({ x:8+i*stepX, y:H-PB-(d.v/max)*(H-PB-10), v:d.v, label:(series[i]||{label:""}).label }));
-  }
+  const mrr = active.reduce((sum, studio) => sum + getMrr(studio), 0);
+  const arr = mrr * 12;
+  const arpu = active.length ? mrr / active.length : 0;
+  const mrrAtRisk = pastDue.reduce((sum, studio) => sum + Number(studio.mrr ?? priceByPlan.get(studio.plan) ?? 0), 0);
 
-  const mrrPts = toPoints(series.map(s=>({v:s.mrr})));
-  const newPts = series.map(s=>({label:s.label,v:s.newStudios}));
-  const mrrGrowth = series.length>=2 ? series[series.length-1].mrr-series[0].mrr : 0;
+  const currentMonth = monthBounds(0);
+  const previousMonth = monthBounds(-1);
+  const newThisMonth = active.filter((studio) => {
+    const created = new Date(studio.created_at);
+    return created >= currentMonth.start && created < currentMonth.end;
+  });
+  const newMrr = newThisMonth.reduce((sum, studio) => sum + getMrr(studio), 0);
+  const churnedThisMonth = canceled.filter((studio) => {
+    const created = new Date(studio.created_at);
+    return created < currentMonth.start;
+  });
+  const churnedMrrApprox = churnedThisMonth.reduce((sum, studio) => sum + Number(priceByPlan.get(studio.plan) ?? 0), 0);
+  const previousNew = active.filter((studio) => {
+    const created = new Date(studio.created_at);
+    return created >= previousMonth.start && created < previousMonth.end;
+  }).length;
+  const growthRate = previousNew === 0 ? (newThisMonth.length > 0 ? 100 : 0) : Math.round(((newThisMonth.length - previousNew) / previousNew) * 100);
 
-  const KPIS = [
-    { label:"Receita Mensal (MRR)", value:fmtBRL(mrr), sub:`ARR: ${fmtBRL(arr)}`, icon:DollarSign, color:"#4ade80", accent:"rgba(74,222,128,0.10)", big:true },
-    { label:"Crescimento (30d)",    value:`${growPct>=0?"+":""}${growPct}%`, sub:`${new30} novos salões`, icon:growPct>=0?TrendingUp:TrendingDown, color:growPct>=0?"#4ade80":"#f87171", accent:growPct>=0?"rgba(74,222,128,0.08)":"rgba(248,113,113,0.08)" },
-    { label:"ARPU",  value:fmtBRL(arpu),  sub:"receita média/salão",   icon:Users,  color:"#818cf8", accent:"rgba(99,102,241,0.08)" },
-    { label:"Pagantes", value:String(active.length), sub:`de ${list.length} salões`, icon:Layers, color:"#60a5fa", accent:"rgba(96,165,250,0.08)" },
-  ];
+  const series = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - (5 - index));
+    date.setDate(1);
+    date.setHours(0, 0, 0, 0);
+    const end = new Date(date);
+    end.setMonth(end.getMonth() + 1);
+    const cumulative = studioList.filter((studio) => new Date(studio.created_at) < end && studio.subscription_status === "active");
+    return {
+      label: date.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
+      value: cumulative.reduce((sum, studio) => sum + getMrr(studio), 0),
+    };
+  });
+
+  const byPlan = ["studio", "pro", "starter", "free"].map((plan) => {
+    const rows = active.filter((studio) => studio.plan === plan);
+    const revenue = rows.reduce((sum, studio) => sum + getMrr(studio), 0);
+    return {
+      plan,
+      label: labelByPlan.get(plan) ?? plan,
+      price: Number(priceByPlan.get(plan) ?? 0),
+      count: rows.length,
+      revenue,
+      pct: mrr ? Math.round((revenue / mrr) * 100) : 0,
+      color: PLAN_COLOR[plan] ?? "#71717a",
+    };
+  });
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:20, maxWidth:1100 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 22, maxWidth: 1160 }}>
+      <AdminPageHeader
+        eyebrow="Financeiro SaaS"
+        title="Receita e assinaturas"
+        description="MRR, risco, trials e distribuição de receita por plano. Métricas históricas usam aproximação até existir snapshot financeiro."
+        actions={
+          <>
+            <AdminActionButton href="/admin/financeiro/assinaturas" tone="brand">Assinaturas <ArrowRight size={13} /></AdminActionButton>
+            <AdminActionButton href="/admin/financeiro/inadimplencia" tone={pastDue.length ? "danger" : "muted"}>Inadimplência</AdminActionButton>
+          </>
+        }
+      />
 
-      {/* Header */}
-      <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between" }}>
-        <div>
-          <p style={{ fontSize:11, fontWeight:500, color:C.muted, letterSpacing:"0.07em", textTransform:"uppercase", margin:"0 0 5px" }}>Financeiro</p>
-          <h1 style={{ fontSize:22, fontWeight:700, color:C.text, margin:0, letterSpacing:"-0.025em" }}>Receita</h1>
-          <p style={{ fontSize:13, color:C.muted, marginTop:4 }}>Quanto você fatura, de onde vem e como cresce</p>
-        </div>
-        <div style={{ display:"flex", gap:8 }}>
-          {[{href:"/admin/financeiro/assinaturas",l:"Assinaturas"},{href:"/admin/financeiro/inadimplencia",l:"Inadimplência"}].map(x=>(
-            <Link key={x.href} href={x.href} style={{ display:"flex", alignItems:"center", gap:5, padding:"8px 14px", borderRadius:8, border:`1px solid ${C.border}`, background:C.card, color:C.sub, fontSize:12, fontWeight:500, textDecoration:"none" }}>
-              {x.l} <ArrowRight size={12}/>
-            </Link>
+      <div style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", gap: 12 }}>
+        <AdminMetricCard label="MRR atual" value={formatCurrency(mrr)} sub={`${active.length} assinaturas ativas`} icon={DollarSign} tone="success" large />
+        <AdminMetricCard label="ARR" value={formatCurrency(arr)} sub="recorrência anual" icon={TrendingUp} tone="brand" />
+        <AdminMetricCard label="ARPU" value={formatCurrency(arpu)} sub="receita média por pagante" icon={Users} tone="default" />
+        <AdminMetricCard label="MRR em risco" value={formatCurrency(mrrAtRisk)} sub={`${pastDue.length} inadimplentes`} icon={ShieldAlert} tone={pastDue.length ? "danger" : "muted"} />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+        <AdminMetricCard label="New MRR" value={formatCurrency(newMrr)} sub={`${newThisMonth.length} novos pagantes no mês`} icon={CreditCard} tone="success" />
+        <AdminMetricCard label="Churned MRR aprox." value={formatCurrency(churnedMrrApprox)} sub={`${churnedThisMonth.length} contas canceladas/inativas`} icon={TrendingDown} tone={churnedMrrApprox ? "danger" : "muted"} />
+        <AdminMetricCard label="Trials" value={trials.length} sub={`${expiringTrials.length} vencendo em 7 dias`} icon={Layers} tone={expiringTrials.length ? "warning" : "brand"} />
+        <AdminMetricCard label="Crescimento" value={`${growthRate >= 0 ? "+" : ""}${growthRate}%`} sub="novos ativos vs mês anterior" icon={growthRate >= 0 ? TrendingUp : TrendingDown} tone={growthRate >= 0 ? "success" : "danger"} />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1.35fr .65fr", gap: 14, alignItems: "start" }}>
+        <AdminPanel title="Evolução do MRR" description="Série de 6 meses calculada com os registros atuais." tone="success">
+          <MiniArea data={series} />
+        </AdminPanel>
+
+        <AdminPanel title="Status da carteira" description="Distribuição comercial atual." tone="brand">
+          <div style={{ padding: 16, display: "grid", gap: 10 }}>
+            {[
+              ["Ativas", active.length, "success"],
+              ["Trials", trials.length, "warning"],
+              ["Inadimplentes", pastDue.length, pastDue.length ? "danger" : "muted"],
+              ["Canceladas/inativas", canceled.length, "muted"],
+            ].map(([label, value, tone]) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ color: "#71717a", fontSize: 12 }}>{label}</span>
+                <AdminStatusBadge tone={tone as any} dot>{value}</AdminStatusBadge>
+              </div>
+            ))}
+          </div>
+        </AdminPanel>
+      </div>
+
+      <AdminPanel title="Receita por plano" description="Quais planos sustentam o MRR atual." tone="brand">
+        <div style={{ padding: 18, display: "grid", gap: 14 }}>
+          {byPlan.map((plan) => (
+            <div key={plan.plan}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 7 }}>
+                <div>
+                  <strong style={{ color: "#f4f4f5", fontSize: 13 }}>{plan.label}</strong>
+                  <span style={{ color: "#71717a", fontSize: 12, marginLeft: 8 }}>{plan.count} pagantes · {formatCurrency(plan.price)}/mês</span>
+                </div>
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <span style={{ color: "#71717a", fontSize: 11 }}>{plan.pct}%</span>
+                  <strong style={{ color: plan.color, fontSize: 13, minWidth: 88, textAlign: "right" }}>{formatCurrency(plan.revenue)}</strong>
+                </div>
+              </div>
+              <div style={{ height: 7, borderRadius: 999, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${plan.pct}%`, background: `linear-gradient(90deg,${plan.color},${plan.color}99)` }} />
+              </div>
+            </div>
           ))}
         </div>
-      </div>
-
-      {/* KPIs */}
-      <div style={{ display:"grid", gridTemplateColumns:"1.5fr 1fr 1fr 1fr", gap:12 }}>
-        {KPIS.map(({label,value,sub,icon:Icon,color,accent,big})=>(
-          <div key={label} style={{ position:"relative", overflow:"hidden", background:big?`linear-gradient(135deg,${accent},${C.card})`:`${C.card}`, border:`1px solid ${big?color+"33":C.border}`, borderRadius:12, padding:"18px 16px" }}>
-            <div style={{ position:"absolute",top:0,left:10,right:10,height:1,background:`linear-gradient(90deg,transparent,${color}44,transparent)` }}/>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-              <span style={{ fontSize:10, fontWeight:500, color:C.muted, letterSpacing:"0.07em", textTransform:"uppercase" }}>{label}</span>
-              <div style={{ width:30,height:30,borderRadius:8,background:accent,display:"flex",alignItems:"center",justifyContent:"center" }}>
-                <Icon size={14} color={color}/>
-              </div>
-            </div>
-            <div style={{ fontSize:big?30:24, fontWeight:700, color:C.text, letterSpacing:"-0.03em", lineHeight:1 }}>{value}</div>
-            <div style={{ fontSize:11, color, fontWeight:500, marginTop:8 }}>{sub}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Charts row */}
-      <div style={{ display:"grid", gridTemplateColumns:"1.6fr 1fr", gap:12 }}>
-        {/* MRR evolution */}
-        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:12, padding:20 }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-            <div>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ fontSize:13, fontWeight:600, color:C.text }}>Evolução do MRR</span>
-                <span title="Recalculado de created_at — não é snapshot histórico real" style={{ fontSize:9, fontWeight:600, padding:"1px 6px", borderRadius:4, background:"rgba(234,179,8,0.10)", color:"#fbbf24", border:"1px solid rgba(234,179,8,0.20)", cursor:"help" }}>aprox.</span>
-              </div>
-              <p style={{ fontSize:11, color:C.muted, margin:"3px 0 0" }}>últimos 6 meses</p>
-            </div>
-            {mrrGrowth!==0 && <span style={{ fontSize:12, fontWeight:600, color:mrrGrowth>0?"#4ade80":"#f87171" }}>{mrrGrowth>0?"+":""}{fmtK(mrrGrowth)}</span>}
-          </div>
-          <AreaChart pts={mrrPts} color="#4ade80"/>
-        </div>
-
-        {/* Novos salões */}
-        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:12, padding:20 }}>
-          <div style={{ marginBottom:16 }}>
-            <span style={{ fontSize:13, fontWeight:600, color:C.text }}>Novos salões / mês</span>
-            <p style={{ fontSize:11, color:C.muted, margin:"3px 0 0" }}>aquisição</p>
-          </div>
-          <BarChart data={newPts} color="#818cf8"/>
-        </div>
-      </div>
-
-      {/* Receita por plano */}
-      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:12, overflow:"hidden" }}>
-        <div style={{ padding:"14px 18px", borderBottom:`1px solid ${C.sep}`, display:"flex", alignItems:"center", gap:10 }}>
-          <Layers size={15} color="#818cf8"/>
-          <span style={{ fontSize:13, fontWeight:600, color:C.text }}>Receita por Plano</span>
-          <span style={{ marginLeft:"auto", fontSize:11, color:C.muted }}>qual plano vende mais</span>
-        </div>
-        <div style={{ padding:18, display:"flex", flexDirection:"column", gap:13 }}>
-          {byPlan.map(p=>{
-            const pct = mrr>0 ? Math.round((p.rev/mrr)*100) : 0;
-            const pc  = PLAN_C[p.plan]||PLAN_C.free;
-            return (
-              <div key={p.plan}>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                    <span style={{ fontSize:13, fontWeight:500, color:C.text, minWidth:60 }}>{p.label}</span>
-                    <span style={{ fontSize:11, color:C.muted }}>{p.count} {p.count===1?"salão":"salões"} · {fmtBRL(p.price)}/mês</span>
-                  </div>
-                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                    <span style={{ fontSize:11, color:C.muted }}>{pct}%</span>
-                    <span style={{ fontSize:13, fontWeight:600, color:pc.color, minWidth:72, textAlign:"right" }}>{fmtBRL(p.rev)}</span>
-                  </div>
-                </div>
-                <div style={{ height:6, borderRadius:3, background:"rgba(255,255,255,0.05)" }}>
-                  <div style={{ height:"100%", width:`${pct}%`, background:`linear-gradient(90deg,${pc.color},${pc.color}88)`, borderRadius:3 }}/>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      </AdminPanel>
     </div>
   );
 }
