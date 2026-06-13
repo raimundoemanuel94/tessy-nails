@@ -1,185 +1,139 @@
 // @ts-nocheck
 "use client";
+
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
-  LayoutDashboard, Calendar, Users, Scissors, BarChart3,
-  Settings, LogOut, CalendarDays, Shield, Sparkles,
-  ChevronRight, Pencil, User
+  BarChart3,
+  Calendar,
+  CalendarDays,
+  ChevronRight,
+  LayoutDashboard,
+  LogOut,
+  Pencil,
+  Scissors,
+  Settings,
+  Shield,
+  Sparkles,
+  Users,
 } from "lucide-react";
 
 const NAV = [
-  { href: "/dashboard",     icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/agenda",        icon: Calendar,        label: "Agenda" },
-  { href: "/agendamentos",  icon: CalendarDays,    label: "Agendamentos" },
-  { href: "/clientes",      icon: Users,           label: "Clientes" },
-  { href: "/servicos",      icon: Scissors,        label: "Serviços" },
-  { href: "/relatorios",    icon: BarChart3,       label: "Relatórios" },
-  { href: "/configuracoes", icon: Settings,        label: "Configurações" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/agenda", icon: Calendar, label: "Agenda" },
+  { href: "/agendamentos", icon: CalendarDays, label: "Agendamentos" },
+  { href: "/clientes", icon: Users, label: "Clientes" },
+  { href: "/servicos", icon: Scissors, label: "Serviços" },
+  { href: "/relatorios", icon: BarChart3, label: "Relatórios" },
+  { href: "/configuracoes", icon: Settings, label: "Configurações" },
+];
+
+const SECTIONS = [
+  { label: "Atendimento", items: NAV.slice(0, 3) },
+  { label: "Gestão", items: NAV.slice(3, 5) },
+  { label: "Studio", items: NAV.slice(5) },
 ];
 
 export function Sidebar({ profile }: { profile: any }) {
-  const pathname     = usePathname();
-  const router       = useRouter();
+  const pathname = usePathname();
+  const router = useRouter();
   const isSuperadmin = profile?.role === "superadmin";
-  const studio       = profile?.studios;
+  const studio = profile?.studios;
 
   async function signOut() {
     await createClient().auth.signOut();
-    router.push("/login"); router.refresh();
+    router.push("/login");
+    router.refresh();
   }
+
+  function isActive(href: string) {
+    return href === "/dashboard" ? pathname === href : pathname.startsWith(href);
+  }
+
+  const bottomItems = isSuperadmin
+    ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 4)]
+    : NAV.slice(0, 5);
+  const displayName = profile?.full_name ?? profile?.email?.split("@")[0] ?? "Usuário";
+  const shortEmail = profile?.email ? (profile.email.length > 25 ? `${profile.email.slice(0, 22)}...` : profile.email) : "";
+  const initial = (studio?.name ?? displayName ?? "N").charAt(0).toUpperCase();
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside style={{
-        position: "fixed", left: 0, top: 0, height: "100%", width: 240,
-        display: "flex", flexDirection: "column",
-        background: "var(--surface)",
-        borderRight: "1px solid var(--border)",
-        zIndex: 10
-      }} className="hidden md:flex">
-
-        {/* Logo */}
-        <div style={{ padding: "20px 16px", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: 12,
-              background: isSuperadmin
-                ? "linear-gradient(135deg, #f59e0b 0%, #fcd34d 100%)"
-                : "linear-gradient(135deg, #7C5CBF 0%, #9D7FD4 100%)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: isSuperadmin ? "0 4px 15px rgba(245,158,11,0.3)" : "0 4px 15px rgba(124,92,191,0.3)",
-              flexShrink: 0
-            }}>
-              {isSuperadmin
-                ? <Shield size={17} color="#000" />
-                : <Sparkles size={17} color="#fff" />}
+      <aside className="manicure-sidebar hidden md:flex">
+        <div className="manicure-sidebar-shell">
+          <div className="manicure-sidebar-brand">
+            <div className={`manicure-logo ${isSuperadmin ? "is-admin" : ""}`}>
+              {isSuperadmin ? <Shield size={16} /> : <Sparkles size={16} />}
             </div>
-            <div style={{ minWidth: 0 }}>
-              <p style={{ fontSize: 13, fontWeight: 800, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio")}
-              </p>
-              <p style={{ fontSize: 11, color: "var(--muted)" }}>
-                {isSuperadmin ? "Superadmin" : `Plano ${studio?.plan ?? "Pro"}`}
-              </p>
+            <div className="manicure-brand-copy">
+              <div>
+                <strong>{studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio")}</strong>
+                <span>{isSuperadmin ? "Superadmin" : "Agenda e operação"}</span>
+              </div>
+              <small>{isSuperadmin ? "Admin" : studio?.plan ?? "Pro"}</small>
             </div>
           </div>
-        </div>
 
-        {/* Admin button */}
-        {isSuperadmin && (
-          <div style={{ padding: "10px 10px 0" }}>
-            <Link href="/admin" style={{
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "10px 12px", borderRadius: 12, textDecoration: "none",
-              background: "rgba(245,158,11,0.1)",
-              border: "1px solid rgba(245,158,11,0.25)",
-              color: "#f59e0b", fontSize: 13, fontWeight: 700
-            }}>
-              <Shield size={15} /> Painel Admin
-            </Link>
-          </div>
-        )}
-
-        {/* Nav */}
-        <nav style={{ flex: 1, padding: "10px", display: "flex", flexDirection: "column", gap: 2, overflowY: "auto" }}>
-          {NAV.map(({ href, icon: Icon, label }) => {
-            const active = pathname === href;
-            return (
-              <Link key={href} href={href} style={{
-                display: "flex", alignItems: "center", gap: 10,
-                padding: "10px 12px", borderRadius: 12, textDecoration: "none",
-                fontSize: 13, fontWeight: active ? 700 : 500,
-                transition: "all .15s",
-                background: active ? "rgba(124,92,191,0.15)" : "transparent",
-                border: active ? "1px solid rgba(124,92,191,0.25)" : "1px solid transparent",
-                color: active ? "var(--brand-light)" : "var(--muted)",
-              }}>
-                <Icon size={16} style={{ flexShrink: 0 }} />
-                <span style={{ flex: 1 }}>{label}</span>
-                {active && <ChevronRight size={13} style={{ opacity: 0.5 }} />}
+          {isSuperadmin && (
+            <div className="manicure-admin-shortcut">
+              <Link href="/admin">
+                <Shield size={15} />
+                <span>Painel Admin</span>
+                <ChevronRight size={13} />
               </Link>
-            );
-          })}
-        </nav>
-
-        {/* User footer */}
-        <div style={{ padding: "10px", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 4 }}>
-          {/* User info */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 10,
-            padding: "8px 12px", borderRadius: 10,
-            background: "rgba(124,92,191,0.06)",
-            border: "1px solid rgba(124,92,191,0.12)",
-          }}>
-            <div style={{
-              width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
-              background: "linear-gradient(135deg,#7C5CBF,#f472b6)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <User size={14} color="#fff" />
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {profile?.full_name ?? profile?.email?.split("@")[0] ?? "Usuário"}
+          )}
+
+          <nav className="manicure-nav">
+            {SECTIONS.map((section) => (
+              <div key={section.label} className="manicure-nav-section">
+                <p>{section.label}</p>
+                <div>
+                  {section.items.map(({ href, icon: Icon, label }) => {
+                    const active = isActive(href);
+                    return (
+                      <Link key={href} href={href} className={`manicure-nav-link ${active ? "is-active" : ""}`}>
+                        <Icon size={15} />
+                        <span>{label}</span>
+                        {active && <ChevronRight size={13} />}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
-              <div style={{ fontSize: 10, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {profile?.email ?? ""}
+            ))}
+          </nav>
+
+          <footer className="manicure-sidebar-footer">
+            <div className="manicure-account-card">
+              <div className="manicure-avatar">
+                <span>{initial}</span>
+              </div>
+              <div className="manicure-account-copy">
+                <strong>{displayName}</strong>
+                <span>{shortEmail}</span>
+              </div>
+              <div className="manicure-footer-actions">
+                <Link href="/configuracoes" title="Editar perfil" aria-label="Editar perfil">
+                  <Pencil size={14} />
+                </Link>
+                <button type="button" onClick={signOut} title="Sair da conta" aria-label="Sair da conta">
+                  <LogOut size={14} />
+                </button>
               </div>
             </div>
-          </div>
-
-          {/* Edit profile */}
-          <Link href="/configuracoes" style={{
-            display: "flex", alignItems: "center", gap: 10,
-            padding: "9px 12px", borderRadius: 10, textDecoration: "none",
-            background: "none", border: "1px solid transparent",
-            fontSize: 12, fontWeight: 600, color: "var(--muted)", transition: "all .15s",
-          }}
-            onMouseEnter={(e: any) => { e.currentTarget.style.color = "var(--brand-light)"; e.currentTarget.style.borderColor = "rgba(124,92,191,0.2)"; }}
-            onMouseLeave={(e: any) => { e.currentTarget.style.color = "var(--muted)"; e.currentTarget.style.borderColor = "transparent"; }}>
-            <Pencil size={14} /> Editar perfil
-          </Link>
-
-          {/* Sign out */}
-          <button onClick={signOut} style={{
-            display: "flex", alignItems: "center", gap: 10, width: "100%",
-            padding: "9px 12px", borderRadius: 10,
-            background: "none", border: "1px solid transparent", cursor: "pointer",
-            fontSize: 12, fontWeight: 600, color: "var(--muted)", transition: "all .15s", fontFamily: "inherit",
-          }}
-            onMouseEnter={(e: any) => { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.borderColor = "rgba(248,113,113,0.2)"; e.currentTarget.style.background = "rgba(248,113,113,0.06)"; }}
-            onMouseLeave={(e: any) => { e.currentTarget.style.color = "var(--muted)"; e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.background = "none"; }}>
-            <LogOut size={14} /> Sair da conta
-          </button>
+          </footer>
         </div>
       </aside>
 
-      {/* Mobile bottom nav */}
-      <nav style={{
-        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 10,
-        display: "flex",
-        background: "rgba(17,14,31,0.9)",
-        backdropFilter: "blur(20px)",
-        borderTop: "1px solid var(--border)",
-      }} className="md:hidden">
-        {(isSuperadmin
-          ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 4)]
-          : NAV.slice(0, 5)
-        ).map(({ href, icon: Icon, label }) => {
-          const active = pathname.startsWith(href);
+      <nav className="manicure-bottom-nav md:hidden">
+        {bottomItems.map(({ href, icon: Icon, label }) => {
+          const active = href === "/admin" ? pathname.startsWith("/admin") : isActive(href);
           return (
-            <Link key={href} href={href} style={{
-              flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 4, padding: "10px 0", textDecoration: "none",
-              fontSize: 10, fontWeight: 700,
-              color: active ? "var(--brand-light)" : "var(--muted)",
-              transition: "color .15s"
-            }}>
+            <Link key={href} href={href} className={active ? "is-active" : ""}>
               <Icon size={20} />
-              {label.split(" ")[0]}
+              <span>{label.split(" ")[0]}</span>
             </Link>
           );
         })}

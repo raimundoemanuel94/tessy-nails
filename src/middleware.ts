@@ -29,16 +29,19 @@ export async function middleware(request: NextRequest) {
   const isAuthCallback = request.nextUrl.pathname.startsWith("/auth/callback");
   const isPublicPage = request.nextUrl.pathname.startsWith("/agendar") ||
                        request.nextUrl.pathname.startsWith("/cliente/agendar/sucesso") ||
+                       request.nextUrl.pathname.startsWith("/cliente/agendar/consultar") ||
                        request.nextUrl.pathname === "/" ||
                        isAuthCallback;
   const isApiPublic = request.nextUrl.pathname.startsWith("/api/public");
+  const isApiLegacyPublic = request.nextUrl.pathname.startsWith("/api/studios") ||
+                            request.nextUrl.pathname.startsWith("/api/slots");
   const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
 
-  if (!user && isApiRoute && !isApiPublic) {
+  if (!user && isApiRoute && !isApiPublic && !isApiLegacyPublic) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!user && !isAuthPage && !isPublicPage && !isApiPublic) {
+  if (!user && !isAuthPage && !isPublicPage && !isApiPublic && !isApiLegacyPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

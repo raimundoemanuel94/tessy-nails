@@ -1,3 +1,4 @@
+/* eslint-disable */
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import { mapServiceRow, mapSettingsRow, mapStudioRow, requireSuperadmin } from "../../_shared";
@@ -11,7 +12,7 @@ export async function GET(_: Request, { params }: { params: { studioId: string }
 
   const { data: studio, error: studioError } = await admin
     .from("studios")
-    .select("id, name, slug, owner_id, phone, plan, is_active, trial_ends_at, created_at, updated_at")
+    .select("id, name, slug, owner_id, phone, plan, is_active, subscription_status, mrr, next_billing_date, trial_ends_at, created_at, updated_at")
     .eq("id", studioId)
     .maybeSingle();
 

@@ -1,9 +1,10 @@
 // @ts-nocheck
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronLeft, ChevronRight, TrendingUp, Calendar, Users, DollarSign, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, TrendingUp, Calendar, Users, DollarSign, Clock, CheckCircle2, XCircle, AlertCircle, CalendarCheck } from "lucide-react";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const bg     = "#07071a";
@@ -36,6 +37,7 @@ const MONTHS = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov
 const fmt    = (n:number) => `R$ ${n.toLocaleString("pt-BR",{minimumFractionDigits:2})}`;
 const fmtT   = (iso:string) => new Date(iso).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
 const fmtD   = (d:Date) => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+const fmtFull = (iso:string) => new Date(iso).toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"2-digit"});
 const toISO  = (d:Date) => d.toISOString().slice(0,10);
 const addD   = (d:Date, n:number) => { const r=new Date(d); r.setDate(r.getDate()+n); return r; };
 
@@ -88,6 +90,7 @@ function KpiCard({icon:Icon,label,value,sub,color,gradient,loading}:{
           background:`linear-gradient(90deg,${color}60,transparent)`,
         }}/>
       </div>
+
     </div>
   );
 }
@@ -117,9 +120,9 @@ export default function DashboardPage() {
     (async () => {
       const sb = createClient();
       const { data:{ user } } = await sb.auth.getUser();
-      if (!user) return;
+      if (!user) { setLoading(false); return; }
       const { data:p } = await sb.from("profiles").select("studio_id").eq("id",user.id).single();
-      if (!p?.studio_id) return;
+      if (!p?.studio_id) { setLoading(false); return; }
       const { data } = await sb.from("appointments").select("*")
         .eq("studio_id", p.studio_id).order("appointment_date",{ascending:true});
       if (data) setApts(data);
@@ -131,6 +134,9 @@ export default function DashboardPage() {
   const weekApts   = apts.filter(a => { const d=a.appointment_date.slice(0,10); return d>=toISO(wStart)&&d<=toISO(wEnd); });
   const monthApts  = apts.filter(a => { const d=a.appointment_date.slice(0,10); return d>=mStart&&d<=mEnd; });
   const pendingAll = apts.filter(a => a.status==="pending");
+  const nextApt    = apts
+    .filter(a => a.appointment_date >= now.toISOString() && !["completed","cancelled"].includes(a.status))
+    .sort((a,b) => a.appointment_date.localeCompare(b.appointment_date))[0];
   const mRevenue   = monthApts.filter(a=>a.status==="completed").reduce((s,a)=>s+(a.price||0),0);
   const uniqueM    = new Set(monthApts.map(a=>a.client_name)).size;
 
@@ -190,6 +196,52 @@ export default function DashboardPage() {
       </div>
 
       {/* ── CONTENT GRID ────────────────────────────────────────────────────── */}
+      {!loading && nextApt && (
+        <div style={{
+          display:"grid",gridTemplateColumns:"auto minmax(0,1fr) auto",gap:16,
+          alignItems:"center",padding:"16px 18px",borderRadius:18,
+          background:`linear-gradient(135deg, ${grn}14, rgba(167,139,250,0.06))`,
+          border:`1px solid ${grn}30`,
+          boxShadow:"0 18px 50px rgba(52,211,153,0.08)",
+        }}>
+          <div style={{
+            width:52,height:52,borderRadius:16,display:"grid",placeItems:"center",
+            background:`${grn}16`,border:`1px solid ${grn}36`,color:grn,flexShrink:0,
+          }}>
+            <CalendarCheck size={22}/>
+          </div>
+          <div style={{minWidth:0}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:4}}>
+              <span style={{fontSize:11,fontWeight:900,letterSpacing:".12em",textTransform:"uppercase",color:grn}}>
+                Proximo horario
+              </span>
+              <span style={{
+                fontSize:10,fontWeight:800,color:nextApt.status==="pending"?amb:grn,
+                background:`${nextApt.status==="pending"?amb:grn}18`,
+                border:`1px solid ${nextApt.status==="pending"?amb:grn}30`,
+                borderRadius:999,padding:"2px 8px",
+              }}>
+                {STATUS[nextApt.status]?.label || nextApt.status}
+              </span>
+            </div>
+            <div style={{fontSize:16,fontWeight:900,color:text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+              {nextApt.client_name} - {nextApt.service_name}
+            </div>
+            <div style={{fontSize:12,color:muted,marginTop:4}}>
+              {fmtFull(nextApt.appointment_date)} as {fmtT(nextApt.appointment_date)} - {fmt(nextApt.price || 0)}
+            </div>
+          </div>
+          <Link href="/agendamentos" style={{
+            height:38,padding:"0 14px",borderRadius:11,
+            border:`1px solid ${grn}35`,background:`${grn}14`,color:grn,
+            display:"inline-flex",alignItems:"center",justifyContent:"center",
+            textDecoration:"none",fontSize:12,fontWeight:900,whiteSpace:"nowrap",
+          }}>
+            Ver agenda
+          </Link>
+        </div>
+      )}
+
       <div style={{display:"grid",gridTemplateColumns:"1fr 1.6fr",gap:18,alignItems:"start"}}>
 
         {/* AGENDA DO DIA */}

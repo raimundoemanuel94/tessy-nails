@@ -49,11 +49,11 @@ export default function ConfiguracoesPage() {
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) { setLoading(false); return; }
 
       const { data: profile } = await supabase
         .from("profiles").select("studio_id").eq("id", user.id).single();
-      if (!profile?.studio_id) return;
+      if (!profile?.studio_id) { setLoading(false); return; }
 
       setStudioId(profile.studio_id);
 
@@ -153,8 +153,14 @@ export default function ConfiguracoesPage() {
   }
 
   return (
-    <div style={{ maxWidth: 700, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 22, fontWeight: 900, color: "var(--text)", marginBottom: 24 }}>Configurações</h1>
+    <div className="studio-settings-page" style={{ maxWidth: 760, margin: "0 auto" }}>
+      <div className="studio-page-header" style={{ marginBottom: 22 }}>
+        <div>
+          <span className="studio-eyebrow">Preferências</span>
+          <h1>Configurações</h1>
+          <p>Ajustes do studio, agendamento online e horários de funcionamento.</p>
+        </div>
+      </div>
 
       {/* Studio info */}
       <section className="card" style={{ marginBottom: 20 }}>
@@ -241,8 +247,8 @@ export default function ConfiguracoesPage() {
           {DAYS.map(({ key, label }) => {
             const day = workingHours[key] ?? DEFAULT_HOURS[key];
             return (
-              <div key={key} style={{
-                display: "grid", gridTemplateColumns: "140px 40px 1fr 1fr", alignItems: "center", gap: 10,
+              <div key={key} className="working-hours-row" style={{
+                display: "grid", gridTemplateColumns: "140px 40px minmax(0,1fr) minmax(0,1fr)", alignItems: "center", gap: 10,
                 padding: "10px 12px", borderRadius: 10,
                 background: day.is_open ? "rgba(124,92,191,0.06)" : "var(--surface3)",
                 border: `1px solid ${day.is_open ? "rgba(124,92,191,0.2)" : "var(--border)"}`,

@@ -1,164 +1,155 @@
+/* eslint-disable */
 // @ts-nocheck
 "use client";
-import { useEffect, useState, useMemo } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { AlertTriangle, DollarSign, Clock, Loader2, CheckCircle2 } from "lucide-react";
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { AlertTriangle, ArrowRight, CheckCircle2, Clock, DollarSign, Loader2, PauseCircle, Send } from "lucide-react";
+import {
+  AdminActionButton,
+  AdminEmptyState,
+  AdminMetricCard,
+  AdminPageHeader,
+  AdminPanel,
+  AdminStatusBadge,
+} from "@/components/admin/AdminUI";
+import { createClient } from "@/lib/supabase/client";
+import { formatCurrency } from "@/lib/utils";
 
-const C = {
-  card:"rgba(255,255,255,0.03)", border:"rgba(255,255,255,0.08)",
-  sep:"rgba(255,255,255,0.05)", text:"#f4f4f5", sub:"#a1a1aa", muted:"#52525b",
-};
-const fmtBRL = (n: number) => n===0 ? "R$ 0,00" : `R$ ${n.toLocaleString("pt-BR",{minimumFractionDigits:2})}`;
-
-// ⚠️ APROXIMAÇÃO: atraso calculado de next_billing_date (data esperada, não gateway real)
-function daysLate(d: string|null): number {
-  if (!d) return 0;
-  const dt=new Date(d); dt.setHours(0,0,0,0);
-  const now=new Date(); now.setHours(0,0,0,0);
-  const diff = Math.round((now.getTime()-dt.getTime())/86400000);
-  return Math.max(0,diff);
+function daysLate(date: string | null): number {
+  if (!date) return 0;
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.round((now.getTime() - target.getTime()) / 86400000));
 }
 
-function SeverityDot({ days }: { days:number }) {
-  const color = days>=7 ? "#f87171" : days>=1 ? "#fbbf24" : "#71717a";
-  return <div style={{ width:6,height:6,borderRadius:"50%",background:color,boxShadow:days>=7?`0 0 6px ${color}66`:"none",flexShrink:0 }}/>;
+function severity(days: number) {
+  if (days >= 14) return { label: "Crítico", tone: "danger" };
+  if (days >= 7) return { label: "Alto", tone: "danger" };
+  if (days >= 1) return { label: "Atenção", tone: "warning" };
+  return { label: "Monitorar", tone: "muted" };
 }
 
 export default function InadimplenciaPage() {
   const [studios, setStudios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [suspendTarget, setSuspendTarget] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
   const sb = createClient();
 
   useEffect(() => {
     sb.from("studios")
       .select("id,name,slug,plan,is_active,subscription_status,mrr,next_billing_date")
-      .then(({ data }) => { setStudios(data ?? []); setLoading(false); });
+      .then(({ data }) => {
+        setStudios(data ?? []);
+        setLoading(false);
+      });
   }, []);
-
-  async function suspend(id: string) {
-    if (!confirm("Suspender acesso deste studio?")) return;
-    await sb.from("studios").update({ is_active:false }).eq("id",id);
-    setStudios(p => p.map(s => s.id===id ? {...s,is_active:false} : s));
-  }
 
   const overdue = useMemo(() => {
     return studios
-      .filter(s => s.subscription_status==="past_due")
-      .map(s => ({ ...s, daysLate: daysLate(s.next_billing_date) }))
-      .sort((a,b) => b.daysLate-a.daysLate); // mais atrasado no topo
+      .filter((studio) => studio.subscription_status === "past_due")
+      .map((studio) => ({ ...studio, daysLate: daysLate(studio.next_billing_date) }))
+      .sort((a, b) => b.daysLate - a.daysLate);
   }, [studios]);
 
-  const mrrAtRisk = overdue.reduce((s,x) => s+Number(x.mrr||0), 0);
-  const avgLate   = overdue.length ? Math.round(overdue.reduce((s,x)=>s+x.daysLate,0)/overdue.length) : 0;
+  const mrrAtRisk = overdue.reduce((sum, studio) => sum + Number(studio.mrr ?? 0), 0);
+  const avgLate = overdue.length ? Math.round(overdue.reduce((sum, studio) => sum + studio.daysLate, 0) / overdue.length) : 0;
+  const critical = overdue.filter((studio) => studio.daysLate >= 14);
 
-  const KPIS = [
-    { label:"MRR em risco",     value:fmtBRL(mrrAtRisk), sub:"receita comprometida",  icon:DollarSign,    color:"#f87171" },
-    { label:"Inadimplentes",    value:String(overdue.length), sub:"salões com atraso", icon:AlertTriangle, color:"#fbbf24" },
-    { label:"Atraso médio",     value:`${avgLate}d`,     sub:"via next_billing_date ⚠", icon:Clock,       color:"#a1a1aa" },
-  ];
+  async function suspend() {
+    if (!suspendTarget) return;
+    setSaving(true);
+    await sb.from("studios").update({ is_active: false }).eq("id", suspendTarget.id);
+    setStudios((rows) => rows.map((studio) => studio.id === suspendTarget.id ? { ...studio, is_active: false } : studio));
+    setSuspendTarget(null);
+    setSaving(false);
+  }
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:20, maxWidth:1100 }}>
-      {/* Header */}
-      <div>
-        <p style={{ fontSize:11, fontWeight:500, color:C.muted, letterSpacing:"0.07em", textTransform:"uppercase", margin:"0 0 5px" }}>Financeiro</p>
-        <h1 style={{ fontSize:22, fontWeight:700, color:"#f4f4f5", margin:0, letterSpacing:"-0.025em" }}>Inadimplência</h1>
-        <p style={{ fontSize:13, color:C.muted, marginTop:4 }}>Quem está atrasado, há quanto tempo e o valor em risco</p>
+    <div style={{ display: "flex", flexDirection: "column", gap: 22, maxWidth: 1120 }}>
+      <AdminPageHeader
+        eyebrow="Financeiro"
+        title="Inadimplência"
+        description="Fila de cobrança para proteger a receita recorrente, priorizar contatos e controlar suspensão de acesso."
+        actions={
+          <>
+            <AdminActionButton href="/admin/financeiro" tone="muted">Resumo financeiro</AdminActionButton>
+            <AdminActionButton href="/admin/financeiro/assinaturas" tone="brand">Assinaturas <ArrowRight size={13} /></AdminActionButton>
+          </>
+        }
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+        <AdminMetricCard label="Receita em risco" value={formatCurrency(mrrAtRisk)} sub="MRR de contas atrasadas" icon={DollarSign} tone={mrrAtRisk ? "danger" : "muted"} />
+        <AdminMetricCard label="Contas atrasadas" value={overdue.length} sub="assinaturas pendentes" icon={AlertTriangle} tone={overdue.length ? "warning" : "success"} />
+        <AdminMetricCard label="Casos críticos" value={critical.length} sub="14 dias ou mais" icon={PauseCircle} tone={critical.length ? "danger" : "muted"} />
+        <AdminMetricCard label="Atraso médio" value={`${avgLate}d`} sub="dias após vencimento" icon={Clock} tone={avgLate >= 7 ? "danger" : avgLate > 0 ? "warning" : "muted"} />
       </div>
 
-      {/* KPIs */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
-        {KPIS.map(({ label,value,sub,icon:Icon,color }) => (
-          <div key={label} style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:10, padding:"16px 18px", position:"relative", overflow:"hidden" }}>
-            <div style={{ position:"absolute",top:0,left:8,right:8,height:1,background:`linear-gradient(90deg,transparent,${color}44,transparent)` }}/>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-              <span style={{ fontSize:10, fontWeight:500, color:C.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>{label}</span>
-              <Icon size={14} color={color}/>
-            </div>
-            <div style={{ fontSize:24, fontWeight:700, color:"#f4f4f5", letterSpacing:"-0.02em" }}>{value}</div>
-            <div style={{ fontSize:11, color, marginTop:6, fontWeight:500 }}>{sub}</div>
+      <AdminPanel title="Fila de cobrança" description="Priorize pelo atraso e pela receita em risco. A cobrança automática ainda depende da integração com gateway." tone={overdue.length ? "danger" : "success"}>
+        {loading ? (
+          <div style={{ padding: 50, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, color: "#71717a" }}>
+            <Loader2 size={16} className="spin" /> Carregando
           </div>
-        ))}
-      </div>
-
-      {/* Lista ou estado vazio */}
-      {loading ? (
-        <div style={{ display:"flex",justifyContent:"center",alignItems:"center",padding:"48px 0",gap:10 }}>
-          <Loader2 size={15} color={C.muted} style={{ animation:"admin-spin 1s linear infinite" }}/>
-          <span style={{ fontSize:13, color:C.muted }}>Carregando…</span>
-        </div>
-      ) : overdue.length===0 ? (
-        /* Estado vazio POSITIVO */
-        <div style={{ background:C.card, border:`1px solid rgba(74,222,128,0.20)`, borderRadius:12, padding:"52px 24px", textAlign:"center", display:"flex", flexDirection:"column", alignItems:"center", gap:12 }}>
-          <div style={{ width:48,height:48,borderRadius:14,background:"rgba(74,222,128,0.10)",border:"1px solid rgba(74,222,128,0.20)",display:"flex",alignItems:"center",justifyContent:"center" }}>
-            <CheckCircle2 size={22} color="#4ade80"/>
-          </div>
+        ) : overdue.length === 0 ? (
+          <AdminEmptyState
+            title="Nenhuma inadimplência"
+            description="Todos os salões estão em dia. A carteira está saudável neste momento."
+            tone="success"
+          />
+        ) : (
           <div>
-            <p style={{ fontSize:15, fontWeight:600, color:"#f4f4f5", margin:"0 0 4px" }}>Nenhuma inadimplência</p>
-            <p style={{ fontSize:13, color:C.muted, margin:0 }}>Todos os salões estão em dia 🎉</p>
-          </div>
-        </div>
-      ) : (
-        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:10, overflow:"hidden" }}>
-          {/* Table header */}
-          <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr auto", gap:12, padding:"8px 18px", borderBottom:`1px solid ${C.sep}` }}>
-            {["Salão","Plano","Venceu em","Atraso","MRR em risco","Ações"].map(h=>(
-              <span key={h} style={{ fontSize:10, fontWeight:500, color:C.muted, letterSpacing:"0.06em", textTransform:"uppercase" }}>{h}</span>
-            ))}
-          </div>
-
-          {overdue.map((s:any,i:number)=>{
-            const severity = s.daysLate>=7 ? "crítico" : s.daysLate>=1 ? "atenção" : "";
-            const rowColor = s.daysLate>=7 ? "rgba(248,113,113,0.04)" : s.daysLate>=1 ? "rgba(251,191,36,0.03)" : "transparent";
-            const mrr = Number(s.mrr||0);
-            return (
-              <div key={s.id} style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr auto", gap:12, alignItems:"center", padding:"13px 18px", background:rowColor, borderBottom:i<overdue.length-1?`1px solid ${C.sep}`:"none" }}>
-                {/* Salão */}
-                <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
-                  <SeverityDot days={s.daysLate}/>
-                  <div style={{ minWidth:0 }}>
-                    <div style={{ fontSize:13,fontWeight:500,color:"#f4f4f5",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{s.name}</div>
-                    {severity && <span style={{ fontSize:9,fontWeight:600,padding:"1px 6px",borderRadius:4,background:s.daysLate>=7?"rgba(248,113,113,0.12)":"rgba(251,191,36,0.12)",color:s.daysLate>=7?"#f87171":"#fbbf24" }}>{severity}</span>}
+            <div style={{ display: "grid", gridTemplateColumns: "2fr .8fr .9fr .8fr 1fr auto", gap: 12, padding: "9px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              {["Salão", "Plano", "Vencimento", "Atraso", "MRR", "Ações"].map((heading) => (
+                <span key={heading} style={{ color: "#71717a", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
+              ))}
+            </div>
+            {overdue.map((studio) => {
+              const sev = severity(studio.daysLate);
+              return (
+                <div key={studio.id} style={{ display: "grid", gridTemplateColumns: "2fr .8fr .9fr .8fr 1fr auto", gap: 12, alignItems: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)", background: studio.daysLate >= 14 ? "rgba(248,113,113,0.04)" : "transparent" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <Link href={`/admin/studios/${studio.id}`} style={{ color: "#f4f4f5", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>{studio.name}</Link>
+                    <p style={{ color: "#71717a", fontSize: 11, margin: "4px 0 0", fontFamily: "monospace" }}>/{studio.slug}</p>
+                  </div>
+                  <AdminStatusBadge tone="brand">{studio.plan}</AdminStatusBadge>
+                  <span style={{ color: "#a1a1aa", fontSize: 12 }}>{studio.next_billing_date ? new Date(studio.next_billing_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "-"}</span>
+                  <AdminStatusBadge tone={sev.tone as any} dot>{studio.daysLate}d · {sev.label}</AdminStatusBadge>
+                  <strong style={{ color: "#f87171", fontSize: 13 }}>{Number(studio.mrr ?? 0) > 0 ? formatCurrency(Number(studio.mrr)) : "-"}</strong>
+                  <div style={{ display: "flex", gap: 7, justifyContent: "flex-end" }}>
+                    <AdminActionButton tone="warning" disabled>
+                      <Send size={12} /> Gateway pendente
+                    </AdminActionButton>
+                    <AdminActionButton onClick={() => setSuspendTarget(studio)} tone="danger">
+                      Suspender
+                    </AdminActionButton>
                   </div>
                 </div>
-                {/* Plano */}
-                <div style={{ fontSize:12, color:C.sub, textTransform:"capitalize" }}>{s.plan}</div>
-                {/* Venceu em */}
-                <div style={{ fontSize:12, color:C.sub }}>
-                  {s.next_billing_date ? new Date(s.next_billing_date).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}) : "—"}
-                </div>
-                {/* Atraso */}
-                <div style={{ fontSize:13, fontWeight:600, color:s.daysLate>=7?"#f87171":s.daysLate>=1?"#fbbf24":C.muted }}>
-                  {s.daysLate>0 ? `${s.daysLate}d` : "—"}
-                </div>
-                {/* MRR */}
-                <div style={{ fontSize:13, fontWeight:600, color:"#f87171" }}>{mrr>0?fmtBRL(mrr):"—"}</div>
-                {/* Ações */}
-                <div style={{ display:"flex", gap:6 }}>
-                  <button
-                    title="Requer integração de pagamento"
-                    disabled
-                    style={{ padding:"5px 10px",borderRadius:6,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.03)",color:C.muted,fontSize:11,fontWeight:500,cursor:"not-allowed",fontFamily:"inherit" }}>
-                    Cobrar
-                  </button>
-                  <button
-                    onClick={()=>suspend(s.id)}
-                    style={{ padding:"5px 10px",borderRadius:6,border:"1px solid rgba(248,113,113,0.25)",background:"rgba(248,113,113,0.08)",color:"#f87171",fontSize:11,fontWeight:500,cursor:"pointer",fontFamily:"inherit" }}>
-                    Suspender
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        )}
+      </AdminPanel>
+
+      <p style={{ color: "#71717a", fontSize: 11, margin: 0 }}>
+        A cobrança automática depende de integração com Stripe, Pagar.me ou outro gateway. Enquanto isso, esta fila serve para priorização manual e suspensão controlada.
+      </p>
+
+      {suspendTarget && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(0,0,0,.72)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <AdminPanel title="Suspender acesso?" description={`O salão ${suspendTarget.name} ficará inativo até a reativação manual.`} tone="danger">
+            <div style={{ padding: 18, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <AdminActionButton onClick={() => setSuspendTarget(null)} tone="muted">Cancelar</AdminActionButton>
+              <AdminActionButton onClick={suspend} tone="danger" disabled={saving}>
+                {saving ? <Loader2 size={13} className="spin" /> : <PauseCircle size={13} />} Suspender
+              </AdminActionButton>
+            </div>
+          </AdminPanel>
         </div>
       )}
-
-      {/* Nota sobre dados */}
-      <p style={{ fontSize:11, color:C.muted, margin:0 }}>
-        ⚠ Atraso calculado a partir de <code style={{ fontFamily:"monospace" }}>next_billing_date</code> — data esperada de cobrança, não confirmada por gateway.
-        O botão "Cobrar" requer integração com Stripe / Pagar.me.
-      </p>
     </div>
   );
 }

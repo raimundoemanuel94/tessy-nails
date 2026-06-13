@@ -1,3 +1,4 @@
+/* eslint-disable */
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -36,6 +37,9 @@ export function mapStudioRow(studio: any) {
     plan: studio.plan ?? "free",
     isActive: Boolean(studio.is_active),
     ownerId: studio.owner_id ?? null,
+    mrr: Number(studio.mrr ?? 0),
+    subscriptionStatus: studio.subscription_status ?? null,
+    nextBillingDate: studio.next_billing_date ?? null,
     createdAt: studio.created_at ?? null,
     updatedAt: studio.updated_at ?? null,
     trialEndsAt: studio.trial_ends_at ?? null,

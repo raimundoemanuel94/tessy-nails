@@ -1,12 +1,46 @@
 // @ts-nocheck
 'use client'
+
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-type Studio   = { id:string; name:string; slug:string; avatar_url:string|null; brand_color:string; whatsapp:string|null; instagram:string|null; address:string|null; phone:string|null }
-type Service  = { id:string; name:string; description:string|null; price:number; duration_minutes:number; category:string|null }
-type Settings = { slot_duration:number; advance_days:number; cancel_hours:number; auto_confirm:boolean; working_hours:any } | null
+type Studio = {
+  id: string
+  name: string
+  slug: string
+  avatar_url: string | null
+  brand_color: string
+  whatsapp: string | null
+  instagram: string | null
+  address: string | null
+  phone: string | null
+}
+
+type Service = {
+  id: string
+  name: string
+  description: string | null
+  price: number
+  duration_minutes: number
+  category: string | null
+}
+
+type Settings = {
+  slot_duration: number
+  advance_days: number
+  cancel_hours: number
+  auto_confirm: boolean
+  working_hours: any
+} | null
+
+type Professional = {
+  id: string
+  name: string
+  avatar_url: string | null
+  role: string
+} | null
+
 type CreatedAppointment = {
   id: string
   status: string
@@ -20,126 +54,135 @@ type CreatedAppointment = {
   studio_id?: string
 }
 
-const fmtR = (n: number) => `R$ ${Number(n||0).toFixed(2).replace('.',',')}`
-const WD = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
-const WDFULL = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
-const pad2 = (value: number) => String(value).padStart(2, '0')
-const formatLocalYmd = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
-const formatPtBrDate = (value: string) => new Date(value).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-const formatPtBrDateTime = (value: string) =>
-  new Date(value).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-const statusLabel: Record<string, string> = {
-  confirmed: 'Confirmado',
-  pending: 'Pendente de confirmação',
-  cancelled: 'Cancelado',
-}
+const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const weekdayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 
-function hexToRgb(hex: string) {
-  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16)
+const money = (value: number) => `R$ ${Number(value || 0).toFixed(2).replace('.', ',')}`
+const pad2 = (value: number) => String(value).padStart(2, '0')
+const localYmd = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
+
+function safeRgb(hex?: string | null) {
+  const value = hex && /^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : '#7C5CBF'
+  const r = parseInt(value.slice(1, 3), 16)
+  const g = parseInt(value.slice(3, 5), 16)
+  const b = parseInt(value.slice(5, 7), 16)
   return `${r},${g},${b}`
 }
 
-export default function AgendarClient({ studio, services, settings }: { studio:Studio; services:Service[]; settings:Settings }) {
-  const brand = studio.brand_color || '#7C5CBF'
-  const rgb   = hexToRgb(brand)
+function formatDate(value: string) {
+  return new Date(value + 'T00:00').toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
+}
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function StepBar({ step }: { step: string }) {
+  const steps = ['service', 'date', 'time', 'info']
+  const current = Math.max(0, steps.indexOf(step))
+
+  return (
+    <div className="booking-progress" aria-label="Progresso do agendamento">
+      {steps.map((item, index) => (
+        <span key={item} className={index <= current ? 'is-active' : ''} />
+      ))}
+    </div>
+  )
+}
+
+export default function AgendarClient({ studio, services, settings, professional }: { studio: Studio; services: Service[]; settings: Settings; professional?: Professional }) {
+  const brand = /^#[0-9A-Fa-f]{6}$/.test(studio.brand_color || '') ? studio.brand_color : '#7C5CBF'
+  const rgb = safeRgb(brand)
   const router = useRouter()
 
-  const [step, setStep]           = useState<'service'|'date'|'time'|'info'|'done'>('service')
-  const [selSvc, setSelSvc]       = useState<Service | null>(null)
-  const [selDate, setSelDate]     = useState('')
-  const [selTime, setSelTime]     = useState('')
-  const [name, setName]           = useState('')
-  const [phone, setPhone]         = useState('')
-  const [notes, setNotes]         = useState('')
-  const [loading, setLoading]     = useState(false)
-  const [slots, setSlots]         = useState<string[]>([])
+  const [step, setStep] = useState<'service' | 'date' | 'time' | 'info' | 'done'>('service')
+  const [selectedService, setSelectedService] = useState<Service | null>(null)
+  const [selectedDate, setSelectedDate] = useState('')
+  const [selectedTime, setSelectedTime] = useState('')
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [notes, setNotes] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [slots, setSlots] = useState<string[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
-  const [slotState, setSlotState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const [slotError, setSlotError]  = useState('')
+  const [slotError, setSlotError] = useState('')
   const [bookingError, setBookingError] = useState('')
   const [createdAppointment, setCreatedAppointment] = useState<CreatedAppointment | null>(null)
 
-  // CSS vars injected inline — brand color is fully dynamic
-  const style: any = {
-    '--brand': brand, '--brand-rgb': rgb,
-    '--brand-light': `color-mix(in srgb, ${brand} 66%, white)`,
-    '--brand-glow': `rgba(${rgb},.35)`,
-    '--brand-soft': `rgba(${rgb},.14)`,
-    '--bg':'#080612', '--surface':'#120F22', '--surface2':'#1A1530',
-    '--border':'rgba(255,255,255,.07)', '--border2':'rgba(255,255,255,.12)',
-    '--text':'#F4F2FB', '--muted':'#736C8E', '--green':'#22d47b',
-  }
-
-  // Available dates based on working_hours
-  const wh = settings?.working_hours || {}
+  const workingHours = settings?.working_hours || {}
   const advanceDays = settings?.advance_days || 30
   const availableDates: string[] = []
+
   for (let i = 0; i < advanceDays; i++) {
-    const d = new Date()
-    d.setHours(12, 0, 0, 0)
-    d.setDate(d.getDate() + i)
-    const dayKey = WDFULL[d.getDay()]
-    const h = wh[dayKey]
-    if (h?.is_open) availableDates.push(formatLocalYmd(d))
+    const date = new Date()
+    date.setHours(12, 0, 0, 0)
+    date.setDate(date.getDate() + i)
+    const config = workingHours[weekdayKeys[date.getDay()]]
+    if (config?.is_open) availableDates.push(localYmd(date))
   }
 
-  const fetchSlots = async (date: string, svc: Service) => {
+  async function fetchSlots(date: string, service: Service) {
     setLoadingSlots(true)
     setSlots([])
     setSlotError('')
-    setSlotState('loading')
+
     try {
       const params = new URLSearchParams({
         studioId: studio.id,
-        serviceId: svc.id,
+        serviceId: service.id,
         date,
       })
-      const res = await fetch(`/api/public/slots?${params.toString()}`)
-      const data = await res.json().catch(() => null)
-      if (!res.ok) {
-        throw new Error(data?.error || 'Erro ao carregar horários, tente novamente')
-      }
+      if (professional?.id) params.set('professionalId', professional.id)
+      const response = await fetch(`/api/public/slots?${params.toString()}`)
+      const data = await response.json().catch(() => null)
+
+      if (!response.ok) throw new Error(data?.error || 'Erro ao carregar horários.')
       setSlots(Array.isArray(data?.slots) ? data.slots : [])
-      setSlotState('ready')
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao carregar horários, tente novamente'
-      setSlotError(message)
-      setSlotState('error')
+      setSlotError(error instanceof Error ? error.message : 'Erro ao carregar horários.')
       setSlots([])
     } finally {
       setLoadingSlots(false)
     }
   }
 
-  const submit = async () => {
-    if (!selSvc || !selDate || !selTime || !name || !phone) return
+  async function submit() {
+    if (!selectedService || !selectedDate || !selectedTime || !name.trim() || !phone.trim()) return
+
     setLoading(true)
     setBookingError('')
 
     try {
-      const res = await fetch('/api/public/appointments', {
+      const response = await fetch('/api/public/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           studioId: studio.id,
           slug: studio.slug,
-          serviceId: selSvc.id,
-          appointmentDate: `${selDate}T${selTime}:00`,
+          serviceId: selectedService.id,
+          appointmentDate: `${selectedDate}T${selectedTime}:00`,
           clientName: name.trim(),
           clientPhone: phone.trim(),
           notes: notes.trim() || undefined,
-        })
+          professionalId: professional?.id ?? undefined,
+        }),
       })
+      const data = await response.json().catch(() => null)
 
-      const data = await res.json().catch(() => null)
-      if (!res.ok) {
-        throw new Error(data?.error || 'Não foi possível confirmar o agendamento.')
-      }
+      if (!response.ok) throw new Error(data?.error || 'Não foi possível confirmar o agendamento.')
 
       const appointment = data?.appointment as CreatedAppointment | undefined
-      if (!appointment?.id) {
-        throw new Error('A confirmação não retornou os dados do agendamento.')
-      }
+      if (!appointment?.id) throw new Error('A confirmação não retornou os dados do agendamento.')
 
       setCreatedAppointment(appointment)
       setStep('done')
@@ -153,273 +196,1289 @@ export default function AgendarClient({ studio, services, settings }: { studio:S
     }
   }
 
-  const waLink = () => {
-    const num = (studio.whatsapp || studio.phone || '').replace(/\D/g,'')
-    const msg = encodeURIComponent(`Olá! Agendei um(a) ${selSvc?.name} para ${selDate?.split('-').reverse().join('/')} às ${selTime}. Meu nome é ${name}.`)
-    return `https://wa.me/55${num}?text=${msg}`
+  function whatsappLink() {
+    const number = (studio.whatsapp || studio.phone || '').replace(/\D/g, '')
+    const message = encodeURIComponent(
+      `Olá! Agendei ${selectedService?.name} para ${selectedDate.split('-').reverse().join('/')} às ${selectedTime}. Meu nome é ${name}.`,
+    )
+    return `https://wa.me/55${number}?text=${message}`
   }
 
-  const C = { brand, bg:'#080612', surface:'#120F22', surface2:'#1A1530', border:'rgba(255,255,255,.07)', border2:'rgba(255,255,255,.12)', text:'#F4F2FB', muted:'#736C8E', green:'#22d47b' }
+  function reset() {
+    setStep('service')
+    setSelectedService(null)
+    setSelectedDate('')
+    setSelectedTime('')
+    setName('')
+    setPhone('')
+    setNotes('')
+    setSlots([])
+    setSlotError('')
+    setBookingError('')
+    setCreatedAppointment(null)
+  }
+
+  const css = `
+    .booking-shell {
+      --booking-brand: ${brand};
+      --booking-rgb: ${rgb};
+      min-height: 100vh;
+      color: #1a1a1a;
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      padding-bottom: 40px;
+    }
+    .booking-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 68px;
+      padding: 12px 20px;
+      background: rgba(255,255,255,.85);
+      border-bottom: 1px solid #eeeeee;
+      backdrop-filter: saturate(180%) blur(14px);
+    }
+    .booking-logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      background: var(--booking-brand);
+      flex: 0 0 auto;
+    }
+    .booking-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .booking-brand-copy { min-width: 0; flex: 1; }
+    .booking-brand-copy strong,
+    .booking-brand-copy span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .booking-brand-copy strong { font-size: 15px; font-weight: 600; color: #1a1a1a; letter-spacing: -.01em; }
+    .booking-brand-copy span { color: #777; font-size: 12px; margin-top: 2px; font-weight: 400; }
+    .booking-instagram {
+      color: #555;
+      text-decoration: none;
+      border: 1px solid #e5e5e5;
+      background: #fafafa;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .booking-header-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .booking-header-action {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      padding: 0 12px;
+      color: #555;
+      text-decoration: none;
+      border: 1px solid #e5e5e5;
+      background: #ffffff;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: background .15s;
+    }
+    .booking-header-action:hover { background: #fafafa; }
+    .booking-header-action.is-brand {
+      border-color: var(--booking-brand);
+      color: var(--booking-brand);
+      background: #ffffff;
+    }
+    .booking-main {
+      width: min(100% - 32px, 1080px);
+      margin: 0 auto;
+      padding-top: 32px;
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(420px, 1fr);
+      align-items: start;
+      gap: 36px;
+    }
+    .booking-side {
+      position: sticky;
+      top: 88px;
+      border-radius: 14px;
+      padding: 24px;
+      background: #fafafa;
+      border: 1px solid #eeeeee;
+    }
+    .booking-side-content {
+      display: flex;
+      flex-direction: column;
+    }
+    .booking-side-badge {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      background: var(--booking-brand);
+      overflow: hidden;
+    }
+    .booking-side-badge img { width: 100%; height: 100%; object-fit: cover; }
+    .booking-side h1 {
+      margin: 18px 0 0;
+      color: #111;
+      font-size: 26px;
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: -.025em;
+    }
+    .booking-side p {
+      margin: 8px 0 0;
+      color: #777;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+    .booking-side-meta {
+      margin-top: 22px;
+      display: grid;
+      gap: 1px;
+      background: #eeeeee;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .booking-side-meta div {
+      padding: 12px 14px;
+      background: #ffffff;
+    }
+    .booking-side-meta span {
+      display: block;
+      color: #999;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .booking-side-meta strong {
+      display: block;
+      margin-top: 3px;
+      color: #1a1a1a;
+      font-size: 13px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .booking-professional {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid #eeeeee;
+      margin-top: 18px;
+    }
+    .booking-professional-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      background: var(--booking-brand);
+    }
+    .booking-professional-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .booking-professional-info { min-width: 0; flex: 1; }
+    .booking-professional-info span {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: #999;
+    }
+    .booking-professional-info strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .booking-professional-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      flex: 0 0 auto;
+    }
+    .booking-client-card { display: none; }
+    .booking-flow {
+      display: grid;
+      gap: 22px;
+    }
+    .booking-progress {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .booking-progress span {
+      height: 3px;
+      border-radius: 999px;
+      background: #eeeeee;
+    }
+    .booking-progress span.is-active {
+      background: var(--booking-brand);
+    }
+    .booking-title span {
+      display: block;
+      color: #999;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .booking-title h1,
+    .booking-title h2 {
+      margin: 0;
+      color: #111;
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: -.025em;
+    }
+    .booking-title p { margin: 6px 0 0; color: #777; font-size: 13.5px; line-height: 1.5; }
+    .booking-list { display: grid; gap: 10px; }
+    .booking-service {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      padding: 16px;
+      border: 1px solid #eeeeee;
+      border-radius: 12px;
+      background: #ffffff;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color .15s, background .15s;
+    }
+    .booking-service:hover { border-color: #cccccc; background: #fafafa; }
+    .booking-service-icon {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      background: var(--booking-brand);
+    }
+    .booking-service-copy { flex: 1; min-width: 0; }
+    .booking-service-copy strong,
+    .booking-service-copy span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .booking-service-copy strong { color: #1a1a1a; font-size: 14.5px; font-weight: 600; }
+    .booking-service-copy span { color: #888; font-size: 12.5px; margin-top: 3px; font-weight: 400; }
+    .booking-price { color: #1a1a1a; font-size: 16px; font-weight: 700; white-space: nowrap; }
+    .booking-back {
+      min-height: 34px;
+      padding: 0 14px;
+      border-radius: 8px;
+      border: 1px solid #e5e5e5;
+      background: #ffffff;
+      color: #555;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background .15s;
+    }
+    .booking-back:hover { background: #fafafa; }
+    .booking-step-head { display: flex; gap: 14px; align-items: flex-start; }
+    .booking-date-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+    .booking-date,
+    .booking-time {
+      min-height: 70px;
+      border-radius: 11px;
+      border: 1px solid #eeeeee;
+      background: #ffffff;
+      color: #1a1a1a;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      padding: 8px 6px;
+      transition: border-color .15s, background .15s;
+    }
+    .booking-date:hover,
+    .booking-time:hover { border-color: #cccccc; background: #fafafa; }
+    .booking-date.is-active,
+    .booking-time.is-active {
+      border-color: var(--booking-brand);
+      background: var(--booking-brand);
+      color: #ffffff;
+    }
+    .booking-date.is-active small,
+    .booking-date.is-active em {
+      color: rgba(255,255,255,.85);
+    }
+    .booking-date small { color: #999; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .booking-date strong { font-size: 20px; line-height: 1; font-weight: 700; }
+    .booking-date em { color: #999; font-size: 11px; font-style: normal; font-weight: 500; }
+    .booking-time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .booking-time { min-height: 46px; font-size: 14.5px; font-weight: 600; }
+    .booking-state {
+      min-height: 160px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: #888;
+      border-radius: 12px;
+      border: 1px dashed #dddddd;
+      background: #fafafa;
+      padding: 24px;
+      font-size: 13.5px;
+    }
+    .booking-summary,
+    .booking-confirm-card {
+      border-radius: 12px;
+      padding: 16px;
+      background: #fafafa;
+      border: 1px solid #eeeeee;
+      display: flex;
+      gap: 14px;
+    }
+    .booking-summary-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      background: var(--booking-brand);
+      color: #fff;
+      font-weight: 700;
+      flex: 0 0 auto;
+    }
+    .booking-summary strong { color: #1a1a1a; font-size: 14.5px; font-weight: 600; }
+    .booking-summary p { margin: 4px 0 0; color: #777; font-size: 12.5px; line-height: 1.5; }
+    .booking-field { display: grid; gap: 6px; }
+    .booking-field label {
+      color: #555;
+      font-size: 12.5px;
+      font-weight: 500;
+    }
+    .booking-field input,
+    .booking-field textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 10px;
+      border: 1px solid #e5e5e5;
+      background: #ffffff;
+      color: #1a1a1a;
+      outline: none;
+      font: inherit;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .booking-field input { height: 44px; padding: 0 14px; font-size: 14.5px; }
+    .booking-field textarea { min-height: 80px; resize: none; padding: 11px 14px; font-size: 14px; }
+    .booking-field input:focus,
+    .booking-field textarea:focus {
+      border-color: var(--booking-brand);
+      box-shadow: 0 0 0 3px rgba(var(--booking-rgb), .12);
+    }
+    .booking-primary {
+      min-height: 50px;
+      border: 0;
+      border-radius: 12px;
+      color: #fff;
+      background: var(--booking-brand);
+      cursor: pointer;
+      font-size: 14.5px;
+      font-weight: 600;
+      transition: opacity .15s;
+    }
+    .booking-primary:hover { opacity: .92; }
+    .booking-primary:disabled { cursor: default; opacity: .45; }
+    .booking-error {
+      border-radius: 10px;
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #b91c1c;
+      padding: 11px 13px;
+      font-size: 12.5px;
+    }
+    .booking-done { text-align: center; display: grid; gap: 18px; }
+    .booking-check {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 30px;
+      font-weight: 700;
+      background: #22c55e;
+    }
+    .booking-confirm-card { display: grid; gap: 10px; text-align: left; }
+    .booking-confirm-card div { display: flex; justify-content: space-between; gap: 14px; font-size: 13.5px; }
+    .booking-confirm-card span { color: #888; font-weight: 500; }
+    .booking-confirm-card strong { color: #1a1a1a; text-align: right; font-weight: 600; }
+    .booking-whatsapp {
+      min-height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: #fff;
+      background: #22c55e;
+      font-size: 14px;
+      font-weight: 600;
+      transition: opacity .15s;
+    }
+    .booking-whatsapp:hover { opacity: .92; }
+    /* ─── HERO PROFISSIONAL ─── */
+    .booking-hero {
+      text-align: center;
+      padding: 32px 20px 24px;
+      background: #ffffff;
+    }
+    .booking-hero-avatar-wrap {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 14px;
+    }
+    .booking-hero-avatar {
+      width: 104px;
+      height: 104px;
+      border-radius: 50%;
+      background: var(--booking-brand);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 36px;
+      font-weight: 600;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+    .booking-hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .booking-hero-badge {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #22c55e;
+      border: 3px solid #ffffff;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .booking-hero-name {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: -0.025em;
+      margin: 0;
+    }
+    .booking-hero-role {
+      font-size: 14px;
+      color: #777;
+      margin: 4px 0 0;
+    }
+    .booking-hero-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 5px 12px;
+      background: #fef9c3;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #854d0e;
+    }
+    .booking-hero-info {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 14px;
+      font-size: 12.5px;
+      color: #666;
+      flex-wrap: wrap;
+    }
+    .booking-hero-info span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .booking-hero-whatsapp {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      max-width: 360px;
+      margin: 22px auto 0;
+      padding: 13px 18px;
+      background: #22c55e;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity .15s;
+    }
+    .booking-hero-whatsapp:hover { opacity: .92; }
+
+    /* ─── SEÇÃO GENÉRICA ─── */
+    .booking-section {
+      padding: 24px 20px;
+      border-top: 1px solid #eeeeee;
+      background: #ffffff;
+    }
+    .booking-section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 0 0 14px;
+    }
+
+    /* ─── GALERIA ─── */
+    .booking-gallery {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .booking-gallery-item {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      background: #f4f4f5;
+      overflow: hidden;
+    }
+    .booking-gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+    .booking-gallery-empty {
+      grid-column: 1 / -1;
+      padding: 24px;
+      text-align: center;
+      color: #999;
+      font-size: 13px;
+      border: 1px dashed #e5e5e5;
+      border-radius: 10px;
+    }
+
+    /* ─── SERVIÇO CARD GRANDE ─── */
+    .booking-svc-card {
+      border: 1px solid #eeeeee;
+      border-radius: 14px;
+      padding: 16px;
+      background: #ffffff;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color .15s, background .15s;
+      width: 100%;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .booking-svc-card:hover { border-color: #cccccc; background: #fafafa; }
+    .booking-svc-card.is-featured {
+      border-width: 2px;
+      border-color: var(--booking-brand);
+    }
+    .booking-svc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      background: rgba(var(--booking-rgb), .12);
+      color: var(--booking-brand);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .booking-svc-name {
+      font-size: 15.5px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 0;
+    }
+    .booking-svc-meta {
+      font-size: 12.5px;
+      color: #888;
+      margin: 3px 0 0;
+    }
+    .booking-svc-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+    }
+    .booking-svc-price {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .booking-svc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 9px 15px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid #e5e5e5;
+      background: #ffffff;
+      color: #555;
+      transition: background .15s, border-color .15s;
+    }
+    .booking-svc-card.is-featured .booking-svc-btn {
+      background: var(--booking-brand);
+      color: #ffffff;
+      border-color: var(--booking-brand);
+    }
+    .booking-svc-btn:hover { background: #fafafa; }
+    .booking-svc-card.is-featured .booking-svc-btn:hover { opacity: .92; background: var(--booking-brand); }
+
+    /* ─── HORÁRIO ─── */
+    .booking-hours {
+      font-size: 13.5px;
+      color: #555;
+    }
+    .booking-hours-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+    }
+    .booking-hours-row strong {
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+    .booking-hours-row.closed strong { color: #999; font-weight: 500; }
+
+    /* ─── COMO FUNCIONA ─── */
+    .booking-howto {
+      background: #fafafa;
+    }
+    .booking-howto-step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .booking-howto-step:last-child { margin-bottom: 0; }
+    .booking-howto-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--booking-brand);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 12.5px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .booking-howto-text {
+      font-size: 13.5px;
+      color: #555;
+      padding-top: 2px;
+    }
+
+    /* ─── RESUMO STICKY DURANTE FLUXO ─── */
+    .booking-summary-sticky {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: #fafafa;
+      border: 1px solid #eeeeee;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+    .booking-summary-sticky-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .booking-summary-sticky-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #1a1a1a;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .booking-summary-sticky-meta {
+      font-size: 11.5px;
+      color: #888;
+      margin-top: 2px;
+    }
+    .booking-summary-sticky-when {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .booking-summary-sticky-when strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--booking-brand);
+      text-transform: capitalize;
+    }
+    .booking-summary-sticky-when span {
+      display: block;
+      font-size: 11.5px;
+      color: #888;
+      margin-top: 1px;
+    }
+
+    /* ─── INDICADOR DE PASSO ─── */
+    .booking-step-indicator {
+      margin-bottom: 18px;
+    }
+    .booking-step-indicator span {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #999;
+      margin-bottom: 6px;
+      letter-spacing: .03em;
+    }
+
+    /* ─── TELA DE CONFIRMAÇÃO ─── */
+    .booking-done-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .booking-calendar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #1a1a1a;
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background .15s;
+    }
+    .booking-calendar:hover { background: #fafafa; }
+    .booking-policy {
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+      margin: 16px 0 0;
+      line-height: 1.5;
+    }
+
+    /* ─── RODAPÉ ─── */
+    .booking-footer {
+      border-top: 1px solid #eeeeee;
+      background: #fafafa;
+      padding: 28px 20px 32px;
+      margin-top: 8px;
+    }
+    .booking-footer-content {
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .booking-footer-brand {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 10px;
+    }
+    .booking-footer-line {
+      font-size: 13px;
+      color: #666;
+      margin: 4px 0;
+    }
+    .booking-footer-line a {
+      color: var(--booking-brand);
+      text-decoration: none;
+    }
+    .booking-footer-policy {
+      font-size: 11.5px;
+      color: #999;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #eeeeee;
+    }
+
+    /* ─── BOTÃO FLUTUANTE WHATSAPP ─── */
+    .booking-fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #22c55e;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      text-decoration: none;
+      box-shadow: 0 6px 18px rgba(34,197,94,.32);
+      z-index: 20;
+      font-size: 24px;
+    }
+
+    /* ─── LAYOUT: hero ocupa largura, conteúdo abaixo centralizado ─── */
+    .booking-main-hero {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 860px) {
+      .booking-main {
+        width: min(100% - 28px, 540px);
+        grid-template-columns: 1fr;
+        padding-top: 20px;
+        gap: 22px;
+      }
+      .booking-side {
+        position: relative;
+        top: auto;
+        padding: 18px;
+      }
+      .booking-side h1 {
+        font-size: 22px;
+      }
+      .booking-side-meta {
+        margin-top: 16px;
+      }
+    }
+    @media (max-width: 420px) {
+      .booking-header { padding-inline: 14px; }
+      .booking-instagram { display: none; }
+      .booking-header-actions { gap: 5px; }
+      .booking-header-action { padding: 0 10px; }
+      .booking-header-action.is-whatsapp { display: none; }
+      .booking-date-grid { grid-template-columns: repeat(3, 1fr); }
+      .booking-time-grid { grid-template-columns: repeat(2, 1fr); }
+      .booking-title h1, .booking-title h2 { font-size: 22px; }
+      .booking-service { gap: 11px; padding: 14px; }
+      .booking-price { font-size: 15px; }
+    }
+  `
 
   return (
-    <div style={{ ...style, minHeight:'100vh', background:C.bg, fontFamily:'"Plus Jakarta Sans",-apple-system,sans-serif', paddingBottom:32,
-      backgroundImage:`radial-gradient(600px circle at 50% -100px, rgba(${rgb},.2), transparent 70%)` }}>
-
-      {/* Header */}
-      <header style={{ padding:'18px 20px', display:'flex', alignItems:'center', gap:14, borderBottom:`1px solid ${C.border}`,
-        background:'rgba(8,6,18,.8)', backdropFilter:'blur(16px)', position:'sticky', top:0, zIndex:10 }}>
-        <div style={{ width:46, height:46, borderRadius:15, background:`linear-gradient(140deg,${brand},rgba(0,0,0,.4))`,
-          display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, fontWeight:800, color:'#fff',
-          boxShadow:`0 6px 20px rgba(${rgb},.4)`, flexShrink:0 }}>
-          {studio.avatar_url
-            ? <img src={studio.avatar_url} style={{ width:'100%', height:'100%', borderRadius:13, objectFit:'cover' }} alt="logo"/>
-            : studio.name.slice(0,2).toUpperCase()}
+    <main className="booking-shell">
+      <style>{css}</style>
+      <header className="booking-header">
+        <div className="booking-logo">
+          {studio.avatar_url ? <img src={studio.avatar_url} alt={studio.name} /> : studio.name.slice(0, 2).toUpperCase()}
         </div>
-        <div>
-          <div style={{ fontFamily:'Georgia,serif', fontSize:17, fontWeight:600, color:C.text }}>{studio.name}</div>
-          <div style={{ fontSize:11, color:C.muted }}>Agendar horário</div>
+        <div className="booking-brand-copy">
+          <strong>{studio.name}</strong>
+          <span>{studio.address || 'Agendamento online'}</span>
         </div>
-        {studio.instagram && (
-          <a href={`https://instagram.com/${studio.instagram.replace('@','')}`} target="_blank" rel="noreferrer"
-            style={{ marginLeft:'auto', fontSize:10, color:brand, border:`1px solid rgba(${rgb},.3)`, borderRadius:8, padding:'5px 10px', textDecoration:'none', fontWeight:600 }}>
-            {studio.instagram}
+        <div className="booking-header-actions">
+          {step !== 'service' && step !== 'done' && (
+            <button
+              className="booking-header-action"
+              onClick={() => {
+                if (step === 'date') setStep('service')
+                else if (step === 'time') setStep('date')
+                else if (step === 'info') setStep('time')
+              }}
+            >
+              ← Voltar
+            </button>
+          )}
+          {studio.instagram && (
+            <a className="booking-instagram" href={`https://instagram.com/${studio.instagram.replace('@', '')}`} target="_blank" rel="noreferrer">
+              {studio.instagram}
+            </a>
+          )}
+          <a className="booking-header-action" href="/cliente/agendar/consultar" title="Consultar agendamento">
+            Meus agendamentos
           </a>
-        )}
+        </div>
       </header>
 
-      <div style={{ maxWidth:480, margin:'0 auto', padding:'20px 16px', display:'flex', flexDirection:'column', gap:20 }}>
-
-        {/* Progress */}
-        {step !== 'done' && (
-          <div style={{ display:'flex', gap:6 }}>
-            {(['service','date','time','info'] as const).map((s,i) => (
-              <div key={s} style={{ flex:1, height:3, borderRadius:3, background: ['service','date','time','info'].indexOf(step) >= i ? brand : C.border, transition:'.3s' }}/>
-            ))}
-          </div>
-        )}
-
-        {/* STEP 1: Serviço */}
+      <section className="booking-main-hero">
         {step === 'service' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <div>
-              <h1 style={{ fontFamily:'Georgia,serif', fontSize:22, fontWeight:600, color:C.text, margin:0 }}>Escolha o serviço</h1>
-              <p style={{ fontSize:12, color:C.muted, margin:'4px 0 0' }}>{services.length} serviços disponíveis</p>
-            </div>
-            {services.map(svc => (
-              <button key={svc.id} onClick={() => {
-                setSelSvc(svc)
-                setSelDate('')
-                setSelTime('')
-                setSlots([])
-                setSlotError('')
-                setSlotState('idle')
-                setBookingError('')
-                setCreatedAppointment(null)
-                setStep('date')
-              }}
-                style={{ display:'flex', alignItems:'center', gap:14, background:`linear-gradient(180deg,${C.surface2},${C.surface})`,
-                  border:`1px solid ${C.border}`, borderRadius:16, padding:16, cursor:'pointer', textAlign:'left', fontFamily:'inherit', transition:'.15s' }}
-                onMouseEnter={e => (e.currentTarget as any).style.borderColor = brand}
-                onMouseLeave={e => (e.currentTarget as any).style.borderColor = C.border}>
-                <div style={{ width:46, height:46, borderRadius:14, background:`rgba(${rgb},.15)`, border:`1px solid rgba(${rgb},.25)`,
-                  display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>💅</div>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:14, fontWeight:700, color:C.text }}>{svc.name}</div>
-                  {svc.description && <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{svc.description}</div>}
-                  <div style={{ fontSize:11, color:C.muted, marginTop:3 }}>{svc.duration_minutes} min</div>
+          <>
+            {/* HERO */}
+            <div className="booking-hero">
+              <div className="booking-hero-avatar-wrap">
+                <div className="booking-hero-avatar">
+                  {professional?.avatar_url
+                    ? <img src={professional.avatar_url} alt={professional.name} />
+                    : professional
+                      ? professional.name.slice(0, 1).toUpperCase()
+                      : studio.avatar_url
+                        ? <img src={studio.avatar_url} alt={studio.name} />
+                        : studio.name.slice(0, 2).toUpperCase()}
                 </div>
-                <div style={{ fontFamily:'Georgia,serif', fontSize:18, fontWeight:600, color:C.green }}>{fmtR(svc.price)}</div>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* STEP 2: Data */}
-        {step === 'date' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <button onClick={() => setStep('service')} style={{ background:'none', border:`1px solid ${C.border2}`, borderRadius:9, padding:'6px 12px', color:C.muted, cursor:'pointer', fontSize:13 }}>← Voltar</button>
-              <div>
-                <h2 style={{ fontFamily:'Georgia,serif', fontSize:20, fontWeight:600, color:C.text, margin:0 }}>Escolha a data</h2>
-                <p style={{ fontSize:11, color:C.muted, margin:'2px 0 0' }}>{selSvc?.name}</p>
+                <div className="booking-hero-badge">✓</div>
               </div>
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:9 }}>
-              {availableDates.slice(0,28).map(d => {
-                const dt = new Date(d+'T00:00'), on = d === selDate
-                return (
-                  <button key={d} onClick={() => {
-                    setSelDate(d)
-                    setSelTime('')
-                    setSlots([])
-                    setSlotError('')
-                    setSlotState('loading')
-                    setStep('time')
-                    void fetchSlots(d, selSvc!)
-                  }}
-                    style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, padding:'10px 6px',
-                      borderRadius:13, border:`1px solid ${on?brand:C.border}`, background:on?`rgba(${rgb},.15)`:C.surface,
-                      cursor:'pointer', fontFamily:'inherit', transition:'.15s' }}>
-                    <span style={{ fontSize:9, color:on?brand:C.muted, textTransform:'uppercase', fontWeight:700 }}>{WD[dt.getDay()]}</span>
-                    <span style={{ fontFamily:'Georgia,serif', fontSize:16, fontWeight:600, color:on?brand:C.text }}>{dt.getDate()}</span>
-                    <span style={{ fontSize:9, color:C.muted }}>{dt.toLocaleDateString('pt-BR',{ month:'short' })}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Horário */}
-        {step === 'time' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <button onClick={() => setStep('date')} style={{ background:'none', border:`1px solid ${C.border2}`, borderRadius:9, padding:'6px 12px', color:C.muted, cursor:'pointer', fontSize:13 }}>← Voltar</button>
-              <div>
-                <h2 style={{ fontFamily:'Georgia,serif', fontSize:20, fontWeight:600, color:C.text, margin:0 }}>Escolha o horário</h2>
-                <p style={{ fontSize:11, color:C.muted, margin:'2px 0 0' }}>{new Date(selDate+'T00:00').toLocaleDateString('pt-BR',{ weekday:'long', day:'numeric', month:'long' })}</p>
-              </div>
-            </div>
-            {loadingSlots || slotState === 'loading' ? (
-              <div style={{ textAlign:'center', padding:32, color:C.muted }}>
-                <div style={{ width:28, height:28, borderRadius:'50%', border:`3px solid ${brand}`, borderTopColor:'transparent', animation:'spin .8s linear infinite', margin:'0 auto' }}/>
-                <div style={{ marginTop:12 }}>Carregando horários...</div>
-                <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-              </div>
-            ) : slotState === 'error' ? (
-              <div style={{ textAlign:'center', padding:32, color:C.muted }}>
-                <div style={{ fontSize:28, marginBottom:8 }}>⚠</div>
-                <div>{slotError || 'Erro ao carregar horários, tente novamente'}</div>
-                <button onClick={() => { if (selSvc && selDate) void fetchSlots(selDate, selSvc) }}
-                  style={{ marginTop:12, background:'none', border:`1px solid ${C.border2}`, borderRadius:9, padding:'8px 16px', color:C.muted, cursor:'pointer', fontFamily:'inherit' }}>
-                  Tentar novamente
-                </button>
-              </div>
-            ) : slots.length === 0 ? (
-              <div style={{ textAlign:'center', padding:32, color:C.muted }}>
-                <div style={{ fontSize:28, marginBottom:8 }}>😔</div>
-                <div>Sem horários disponíveis</div>
-                <button onClick={() => setStep('date')} style={{ marginTop:12, background:'none', border:`1px solid ${C.border2}`, borderRadius:9, padding:'8px 16px', color:C.muted, cursor:'pointer', fontFamily:'inherit' }}>Escolher outro dia</button>
-              </div>
-            ) : (
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:9 }}>
-                {slots.map((t: string) => {
-                  const on = t === selTime
-                  return (
-                    <button key={t} onClick={() => { setSelTime(t); setStep('info') }}
-                      style={{ padding:'12px 8px', borderRadius:13, border:`1px solid ${on?brand:C.border}`,
-                        background:on?`rgba(${rgb},.16)`:C.surface, cursor:'pointer', fontFamily:'inherit',
-                        fontFamily:'Georgia,serif', fontSize:15, fontWeight:600, color:on?brand:C.text, transition:'.15s' }}>
-                      {t}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* STEP 4: Dados */}
-        {step === 'info' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <button onClick={() => setStep('time')} style={{ background:'none', border:`1px solid ${C.border2}`, borderRadius:9, padding:'6px 12px', color:C.muted, cursor:'pointer', fontSize:13 }}>← Voltar</button>
-              <div>
-                <h2 style={{ fontFamily:'Georgia,serif', fontSize:20, fontWeight:600, color:C.text, margin:0 }}>Seus dados</h2>
-                <p style={{ fontSize:11, color:C.muted, margin:'2px 0 0' }}>{selSvc?.name} · {selDate?.split('-').reverse().join('/')} às {selTime}</p>
-              </div>
-            </div>
-            {/* Resumo */}
-            <div style={{ background:`rgba(${rgb},.1)`, border:`1px solid rgba(${rgb},.25)`, borderRadius:14, padding:16, display:'flex', gap:14 }}>
-              <div style={{ width:44, height:44, borderRadius:13, background:`rgba(${rgb},.2)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>💅</div>
-              <div>
-                <div style={{ fontSize:14, fontWeight:700, color:C.text }}>{selSvc?.name}</div>
-                <div style={{ fontSize:12, color:C.muted }}>{new Date(selDate+'T00:00').toLocaleDateString('pt-BR',{ weekday:'long', day:'numeric', month:'long' })} · {selTime}</div>
-                <div style={{ fontSize:14, fontWeight:700, color:C.green, marginTop:4 }}>{fmtR(selSvc?.price||0)}</div>
-              </div>
-            </div>
-            {[['Nome completo','text',name,setName,'Ex: Ana Silva'],['WhatsApp','tel',phone,setPhone,'(66) 99999-0000']].map(([l,t,v,set,ph]) => (
-              <div key={l as string} style={{ display:'flex', flexDirection:'column', gap:5 }}>
-                <label style={{ fontSize:10, color:C.muted, fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase' }}>{l as string}</label>
-                <input type={t as string} value={v as string} onChange={e => (set as any)(e.target.value)} placeholder={ph as string}
-                  style={{ height:46, padding:'0 15px', background:C.surface2, border:`1px solid ${C.border2}`, borderRadius:13, color:C.text, fontSize:14, fontFamily:'inherit', outline:'none' }}
-                  onFocus={e => e.target.style.borderColor=brand} onBlur={e => e.target.style.borderColor=C.border2}/>
-              </div>
-            ))}
-            <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
-              <label style={{ fontSize:10, color:C.muted, fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase' }}>Observações (opcional)</label>
-              <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Alergias, preferências de esmalte..." rows={3}
-                style={{ padding:'12px 15px', background:C.surface2, border:`1px solid ${C.border2}`, borderRadius:13, color:C.text, fontSize:13, fontFamily:'inherit', outline:'none', resize:'none' }}/>
-            </div>
-                  <button onClick={submit} disabled={loading || !name || !phone}
-              style={{ height:50, borderRadius:14, background:`linear-gradient(135deg,color-mix(in srgb,${brand},white 34%),${brand})`, color:'#fff',
-                fontSize:14, fontWeight:700, border:'none', cursor:'pointer', fontFamily:'inherit',
-                boxShadow:`0 6px 22px rgba(${rgb},.45)`, opacity:(loading||!name||!phone)?0.6:1 }}>
-              {loading ? 'Confirmando...' : 'Confirmar agendamento'}
-            </button>
-            {bookingError && (
-              <div style={{ background:'rgba(248,113,113,.1)', border:'1px solid rgba(248,113,113,.25)', borderRadius:12, padding:'10px 12px', color:'#fca5a5', fontSize:12 }}>
-                {bookingError}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* STEP 5: Confirmado */}
-        {step === 'done' && (
-          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:22, padding:'20px 0', textAlign:'center' }}>
-            <div style={{ width:80, height:80, borderRadius:'50%', background:`rgba(${rgb},.15)`, border:`2px solid rgba(${rgb},.4)`,
-              display:'flex', alignItems:'center', justifyContent:'center', fontSize:36,
-              boxShadow:`0 0 30px rgba(${rgb},.3), 0 0 60px rgba(${rgb},.15)` }}>
-              ✓
-            </div>
-            <div>
-              <h1 style={{ fontFamily:'Georgia,serif', fontSize:24, fontWeight:600, color:C.text, margin:0 }}>Agendamento confirmado!</h1>
-              <p style={{ fontSize:13, color:C.muted, margin:'8px 0 0', lineHeight:1.5 }}>
-                Seu <b style={{ color:C.text }}>{createdAppointment?.service_name || selSvc?.name}</b> foi registrado com sucesso.<br/>
-                <b style={{ color:C.text }}>
-                  {createdAppointment ? formatPtBrDateTime(createdAppointment.appointment_date) : `${selDate?.split('-').reverse().join('/')} às ${selTime}`}
-                </b>
+              <h1 className="booking-hero-name">{professional ? professional.name : studio.name}</h1>
+              <p className="booking-hero-role">
+                {professional ? `Manicure no ${studio.name}` : 'Agendamento online'}
               </p>
+
+              <div className="booking-hero-info">
+                {studio.address && <span>📍 {studio.address}</span>}
+                <span>🕐 Atende seg–sáb</span>
+              </div>
+
+              {(studio.whatsapp || studio.phone) && (
+                <a
+                  className="booking-hero-whatsapp"
+                  href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  💬 Conversar no WhatsApp
+                </a>
+              )}
             </div>
-            <div style={{ background:`linear-gradient(180deg,${C.surface2},${C.surface})`, border:`1px solid ${C.border}`, borderRadius:18, padding:18, width:'100%', display:'flex', flexDirection:'column', gap:10 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Cliente</span><span style={{ color:C.text, fontWeight:600 }}>{createdAppointment?.client_name || name}</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Serviço</span><span style={{ color:C.text, fontWeight:600 }}>{createdAppointment?.service_name || selSvc?.name}</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Data</span><span style={{ color:C.text, fontWeight:600 }}>{createdAppointment ? formatPtBrDate(createdAppointment.appointment_date) : selDate?.split('-').reverse().join('/')}</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Horário</span><span style={{ color:C.text, fontWeight:600 }}>{createdAppointment ? new Date(createdAppointment.appointment_date).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }) : selTime}</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Valor</span><span style={{ color:C.green, fontWeight:700 }}>{fmtR((createdAppointment?.price ?? selSvc?.price) || 0)}</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Status</span><span style={{ color:C.text, fontWeight:600 }}>{statusLabel[createdAppointment?.status || 'confirmed'] || createdAppointment?.status || 'Confirmado'}</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}><span style={{ color:C.muted }}>Código</span><span style={{ color:C.text, fontWeight:600 }}>{createdAppointment?.id?.slice(0, 8).toUpperCase() || '—'}</span></div>
+
+            {/* GALERIA — placeholder pra Fase B */}
+            <div className="booking-section">
+              <div className="booking-section-title">Trabalhos recentes</div>
+              <div className="booking-gallery">
+                <div className="booking-gallery-empty">
+                  Em breve, fotos dos trabalhos da {professional ? professional.name : 'manicure'}
+                </div>
+              </div>
             </div>
-            {studio.whatsapp && (
-              <a href={waLink()} target="_blank" rel="noreferrer"
-                style={{ display:'flex', alignItems:'center', gap:10, height:50, padding:'0 24px', borderRadius:14, width:'100%', justifyContent:'center',
-                  background:'linear-gradient(135deg,#25d366,#128c7e)', color:'#fff', fontWeight:700, fontSize:14, textDecoration:'none',
-                  boxShadow:'0 6px 22px rgba(37,211,102,.3)' }}>
-                📱 Falar no WhatsApp
-              </a>
+
+            {/* SERVIÇOS */}
+            <div className="booking-section">
+              <div className="booking-section-title">Serviços</div>
+              {services.length === 0 ? (
+                <div className="booking-state">Nenhum serviço disponível no momento.</div>
+              ) : (
+                services.map((service, idx) => (
+                  <button
+                    key={service.id}
+                    className="booking-svc-card"
+                    onClick={() => {
+                      setSelectedService(service)
+                      setSelectedDate('')
+                      setSelectedTime('')
+                      setSlots([])
+                      setSlotError('')
+                      setBookingError('')
+                      setCreatedAppointment(null)
+                      setStep('date')
+                    }}
+                  >
+                    <div className="booking-svc-name">{service.name}</div>
+                    <div className="booking-svc-meta">
+                      {service.duration_minutes} min
+                      {service.category && ` · ${service.category}`}
+                    </div>
+                    <div className="booking-svc-footer">
+                      <div className="booking-svc-price">{money(service.price)}</div>
+                      <div className="booking-svc-btn">
+                        Agendar →
+                      </div>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+
+            {/* HORÁRIO DE FUNCIONAMENTO */}
+            {settings?.working_hours && (
+              <div className="booking-section">
+                <div className="booking-section-title">Horário de funcionamento</div>
+                <div className="booking-hours">
+                  {weekdayKeys.map((key, i) => {
+                    const cfg = settings.working_hours[key]
+                    const open = cfg?.is_open
+                    return (
+                      <div key={key} className={`booking-hours-row${!open ? ' closed' : ''}`}>
+                        <span>{['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][i]}</span>
+                        <strong>
+                          {open ? `${cfg.open || '09:00'} – ${cfg.close || '18:00'}` : 'Fechado'}
+                        </strong>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
             )}
-            <button onClick={() => {
-              setStep('service')
-              setSelSvc(null)
-              setSelDate('')
-              setSelTime('')
-              setName('')
-              setPhone('')
-              setNotes('')
-              setSlots([])
-              setSlotError('')
-              setSlotState('idle')
-              setBookingError('')
-              setCreatedAppointment(null)
-            }}
-              style={{ background:'none', border:`1px solid ${C.border2}`, borderRadius:12, padding:'10px 20px', color:C.muted, cursor:'pointer', fontFamily:'inherit', fontSize:13 }}>
-              Fazer outro agendamento
-            </button>
-            {studio.address && <p style={{ fontSize:11, color:C.muted }}>📍 {studio.address}</p>}
+
+            {/* COMO FUNCIONA */}
+            <div className="booking-section booking-howto">
+              <div className="booking-section-title">Como funciona</div>
+              <div className="booking-howto-step">
+                <div className="booking-howto-num">1</div>
+                <div className="booking-howto-text">Escolha o serviço que você quer</div>
+              </div>
+              <div className="booking-howto-step">
+                <div className="booking-howto-num">2</div>
+                <div className="booking-howto-text">Veja os horários disponíveis</div>
+              </div>
+              <div className="booking-howto-step">
+                <div className="booking-howto-num">3</div>
+                <div className="booking-howto-text">Confirme com seu nome e WhatsApp</div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Outros steps (date, time, info, done) usam layout simples sem hero */}
+        {step !== 'service' && (
+          <div className="booking-flow" style={{ padding: '20px 20px 40px', maxWidth: 540, margin: '0 auto' }}>
+            {/* Resumo sempre visível durante o fluxo */}
+            {step !== 'done' && selectedService && (
+              <div className="booking-summary-sticky">
+                <div className="booking-summary-sticky-info">
+                  <div className="booking-summary-sticky-name">{selectedService.name}</div>
+                  <div className="booking-summary-sticky-meta">
+                    {selectedService.duration_minutes} min · {money(selectedService.price)}
+                    {professional && ` · com ${professional.name}`}
+                  </div>
+                </div>
+                {selectedDate && selectedTime && (
+                  <div className="booking-summary-sticky-when">
+                    <strong>{new Date(selectedDate + 'T00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</strong>
+                    <span>{selectedTime}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Indicador de passo */}
+            {step !== 'done' && (
+              <div className="booking-step-indicator">
+                <span>Passo {step === 'service' ? 1 : step === 'date' ? 2 : step === 'time' ? 3 : 4} de 4</span>
+                <StepBar step={step} />
+              </div>
+            )}
+
+            {step === 'date' && selectedService && (
+              <>
+                <div className="booking-step-head">
+                  <div className="booking-title">
+                    <span>{selectedService.name}</span>
+                    <h2>Escolha a data</h2>
+                    <p>Mostramos apenas dias abertos para agendamento.</p>
+                  </div>
+                </div>
+                <div className="booking-date-grid">
+                  {availableDates.slice(0, 28).map((date) => {
+                    const parsed = new Date(date + 'T00:00')
+                    const active = date === selectedDate
+                    return (
+                      <button
+                        key={date}
+                        className={`booking-date ${active ? 'is-active' : ''}`}
+                        onClick={() => {
+                          setSelectedDate(date)
+                          setSelectedTime('')
+                          setSlots([])
+                          setStep('time')
+                          void fetchSlots(date, selectedService)
+                        }}
+                      >
+                        <small>{weekdays[parsed.getDay()]}</small>
+                        <strong>{parsed.getDate()}</strong>
+                        <em>{parsed.toLocaleDateString('pt-BR', { month: 'short' })}</em>
+                      </button>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+
+            {step === 'time' && selectedService && (
+              <>
+                <div className="booking-step-head">
+                  <div className="booking-title">
+                    <span>{formatDate(selectedDate)}</span>
+                    <h2>Escolha o horário</h2>
+                    <p>{selectedService.name}</p>
+                  </div>
+                </div>
+                {loadingSlots ? (
+                  <div className="booking-state">Carregando horários...</div>
+                ) : slotError ? (
+                  <div className="booking-state">
+                    <div>
+                      <p>{slotError}</p>
+                      <button className="booking-back" onClick={() => void fetchSlots(selectedDate, selectedService)}>Tentar novamente</button>
+                    </div>
+                  </div>
+                ) : slots.length === 0 ? (
+                  <div className="booking-state">
+                    <div>
+                      <p>Sem horários disponíveis neste dia.</p>
+                      <button className="booking-back" onClick={() => setStep('date')}>Escolher outro dia</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="booking-time-grid">
+                    {slots.map((time) => (
+                      <button
+                        key={time}
+                        className={`booking-time ${time === selectedTime ? 'is-active' : ''}`}
+                        onClick={() => {
+                          setSelectedTime(time)
+                          setStep('info')
+                        }}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {step === 'info' && selectedService && (
+              <>
+                <div className="booking-step-head">
+                  <div className="booking-title">
+                    <span>Último passo</span>
+                    <h2>Seus dados</h2>
+                    <p>Confirme suas informações para reservar o horário.</p>
+                  </div>
+                </div>
+                <div className="booking-summary">
+                  <span className="booking-summary-mark">{selectedService.name.slice(0, 1).toUpperCase()}</span>
+                  <div>
+                    <strong>{selectedService.name}</strong>
+                    <p>{formatDate(selectedDate)} às {selectedTime} · {money(selectedService.price)}</p>
+                  </div>
+                </div>
+                <div className="booking-field">
+                  <label>Nome completo</label>
+                  <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Ex: Ana Silva" />
+                </div>
+                <div className="booking-field">
+                  <label>WhatsApp</label>
+                  <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="(66) 99999-0000" inputMode="tel" />
+                </div>
+                <div className="booking-field">
+                  <label>Observações (opcional)</label>
+                  <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Alergias, preferências de esmalte..." />
+                </div>
+                <button className="booking-primary" onClick={submit} disabled={loading || !name.trim() || !phone.trim()}>
+                  {loading ? 'Confirmando...' : 'Confirmar agendamento'}
+                </button>
+                {bookingError && <div className="booking-error">{bookingError}</div>}
+              </>
+            )}
+
+            {step === 'done' && (
+              <div className="booking-done">
+                <div className="booking-check">✓</div>
+                <div className="booking-title">
+                  <span>Agendamento confirmado</span>
+                  <h1>Tudo certo, {(createdAppointment?.client_name || name).split(' ')[0]}!</h1>
+                  <p>
+                    Te esperamos {createdAppointment ? formatDateTime(createdAppointment.appointment_date) : `dia ${selectedDate} às ${selectedTime}`}
+                    {studio.address && `, em ${studio.address}`}.
+                  </p>
+                </div>
+                <div className="booking-confirm-card">
+                  <div><span>Serviço</span><strong>{createdAppointment?.service_name || selectedService?.name}</strong></div>
+                  {professional && <div><span>Com</span><strong>{professional.name}</strong></div>}
+                  <div><span>Quando</span><strong>{createdAppointment ? formatDateTime(createdAppointment.appointment_date) : `${selectedDate} ${selectedTime}`}</strong></div>
+                  <div><span>Valor</span><strong>{money((createdAppointment?.price ?? selectedService?.price) || 0)}</strong></div>
+                </div>
+
+                {/* Ações pós-agendamento */}
+                <div className="booking-done-actions">
+                  {studio.whatsapp && (
+                    <a className="booking-whatsapp" href={whatsappLink()} target="_blank" rel="noreferrer">
+                      💬 Confirmar no WhatsApp
+                    </a>
+                  )}
+                  
+                    className="booking-calendar"
+                    href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent((createdAppointment?.service_name || selectedService?.name || 'Agendamento') + (professional ? ` com ${professional.name}` : ''))}&dates=${(createdAppointment?.appointment_date || `${selectedDate}T${selectedTime}:00`).replace(/[-:]/g, '').slice(0,15)}/${(createdAppointment?.appointment_date || `${selectedDate}T${selectedTime}:00`).replace(/[-:]/g, '').slice(0,15)}&details=${encodeURIComponent(`${studio.name}${studio.address ? '\n' + studio.address : ''}${studio.phone || studio.whatsapp ? '\nContato: ' + (studio.phone || studio.whatsapp) : ''}`)}&location=${encodeURIComponent(studio.address || studio.name)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    📅 Adicionar ao Google Agenda
+                  </a>
+                </div>
+
+                <button className="booking-back" onClick={reset}>Fazer outro agendamento</button>
+
+                <p className="booking-policy">
+                  Precisa cancelar? Avise pelo WhatsApp com pelo menos {settings?.cancel_hours || 24}h de antecedência.
+                </p>
+              </div>
+            )}
           </div>
         )}
-      </div>
-    </div>
+
+        {/* FAB do WhatsApp — só na tela inicial */}
+        {step === 'service' && (studio.whatsapp || studio.phone) && (
+          <a
+            className="booking-fab"
+            href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '')}`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="WhatsApp"
+          >
+            💬
+          </a>
+        )}
+      </section>
+
+      {/* Rodapé com info do salão */}
+      {step === 'service' && (
+        <footer className="booking-footer">
+          <div className="booking-footer-content">
+            <div className="booking-footer-brand">{studio.name}</div>
+            {studio.address && <div className="booking-footer-line">📍 {studio.address}</div>}
+            {(studio.phone || studio.whatsapp) && <div className="booking-footer-line">📞 {studio.phone || studio.whatsapp}</div>}
+            {studio.instagram && (
+              <div className="booking-footer-line">
+                <a href={`https://instagram.com/${studio.instagram.replace('@', '')}`} target="_blank" rel="noreferrer">
+                  {studio.instagram.startsWith('@') ? studio.instagram : '@' + studio.instagram}
+                </a>
+              </div>
+            )}
+            <div className="booking-footer-policy">
+              Cancele com {settings?.cancel_hours || 24}h de antecedência.
+            </div>
+          </div>
+        </footer>
+      )}
+    </main>
   )
 }
