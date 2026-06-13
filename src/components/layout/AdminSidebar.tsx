@@ -104,7 +104,11 @@ function LogoMark() {
 
 function CountBadge({ n }: { n: number }) {
   if (!n) return null;
-  return <span className="adm-count">{n > 99 ? "99+" : n}</span>;
+  return (
+    <span className="adm-count" aria-label={`${n} itens`}>
+      {n > 99 ? "99+" : n}
+    </span>
+  );
 }
 
 function NavGroup({ item, isActive, onNav, open, onToggle, getCount }: any) {
@@ -282,7 +286,7 @@ export function AdminSidebar({ name, email }: { name: string; email?: string }) 
 
       {mobileOpen && <div className="adm-mobile-backdrop" onClick={() => setMobileOpen(false)} />}
 
-      <aside className={`admin-sidebar-mobile ${mobileOpen ? "open" : ""}`}>
+      <aside className={`admin-sidebar-mobile ${mobileOpen ? "open" : ""}`} aria-hidden={!mobileOpen}>
         <button type="button" onClick={() => setMobileOpen(false)} aria-label="Fechar menu" className="adm-mobile-close">
           <X size={15} />
         </button>

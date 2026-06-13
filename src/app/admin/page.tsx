@@ -3,6 +3,7 @@
 import {
   AlertTriangle,
   ArrowRight,
+  BarChart3,
   Building2,
   CalendarClock,
   CreditCard,
@@ -122,7 +123,7 @@ function RiskRow({ icon: Icon, title, description, href, tone }: any) {
 export default async function AdminPage() {
   const supabase = await createClient();
 
-  const [{ data: studios }, { data: profiles }, { data: prices }, { data: appointments }] = await Promise.all([
+  const [{ data: studios }, { data: profiles }, { data: prices }, { data: appointments }, { data: clients }] = await Promise.all([
     supabase
       .from("studios")
       .select("id, name, slug, owner_id, plan, is_active, subscription_status, mrr, trial_ends_at, next_billing_date, created_at")
@@ -130,12 +131,14 @@ export default async function AdminPage() {
     supabase.from("profiles").select("id, role, studio_id, created_at"),
     supabase.from("plan_prices").select("plan, price, label"),
     supabase.from("appointments").select("id, studio_id, appointment_date, status, price, created_at"),
+    supabase.from("clients").select("id, studio_id, source, is_active, created_at"),
   ]);
 
   const studioList = studios ?? [];
   const profileList = profiles ?? [];
   const priceList = prices ?? [];
   const appointmentList = appointments ?? [];
+  const clientList = clients ?? [];
   const priceByPlan = new Map(priceList.map((price) => [price.plan, Number(price.price ?? 0)]));
 
   const paidStudios = studioList.filter((studio) => getStudioMrr(studio, priceByPlan) > 0);
@@ -147,6 +150,11 @@ export default async function AdminPage() {
   const mrr = studioList.reduce((sum, studio) => sum + getStudioMrr(studio, priceByPlan), 0);
   const arr = mrr * 12;
   const arpu = paidStudios.length ? mrr / paidStudios.length : 0;
+  const nowIso = new Date().toISOString();
+  const completedAppointments = appointmentList.filter((appointment) => appointment.status === "completed");
+  const upcomingAppointments = appointmentList.filter((appointment) => appointment.appointment_date >= nowIso && !["completed", "cancelled", "canceled"].includes(appointment.status));
+  const publicClients = clientList.filter((client) => client.source === "public").length;
+  const completedRevenue = completedAppointments.reduce((sum, appointment) => sum + Number(appointment.price ?? 0), 0);
 
   const lastByStudio = new Map<string, string>();
   for (const appointment of appointmentList) {
@@ -174,6 +182,28 @@ export default async function AdminPage() {
     const revenue = inPlan.reduce((sum, studio) => sum + getStudioMrr(studio, priceByPlan), 0);
     return { plan, count: inPlan.length, revenue, pct: mrr ? Math.round((revenue / mrr) * 100) : 0 };
   });
+
+  const studioOps = studioList.map((studio) => {
+    const studioAppointments = appointmentList.filter((appointment) => appointment.studio_id === studio.id);
+    const studioClients = clientList.filter((client) => client.studio_id === studio.id && client.is_active !== false);
+    const completed = studioAppointments.filter((appointment) => appointment.status === "completed");
+    const upcoming = studioAppointments.filter((appointment) => appointment.appointment_date >= nowIso && !["completed", "cancelled", "canceled"].includes(appointment.status));
+    const revenue = completed.reduce((sum, appointment) => sum + Number(appointment.price ?? 0), 0);
+    const last = studioAppointments
+      .filter((appointment) => appointment.appointment_date)
+      .sort((a, b) => String(b.appointment_date).localeCompare(String(a.appointment_date)))[0]?.appointment_date ?? null;
+
+    return {
+      studio,
+      clients: studioClients.length,
+      publicClients: studioClients.filter((client) => client.source === "public").length,
+      appointments: studioAppointments.length,
+      completed: completed.length,
+      upcoming: upcoming.length,
+      revenue,
+      last,
+    };
+  }).sort((a, b) => b.upcoming - a.upcoming || b.revenue - a.revenue || b.appointments - a.appointments);
 
   const urgentItems = [
     withoutOwner.length > 0 && {
@@ -237,6 +267,57 @@ export default async function AdminPage() {
         <AdminMetricCard label="Pagantes" value={paidStudios.length} sub={`${studioList.length} studios totais`} icon={CreditCard} tone="default" />
         <AdminMetricCard label="ARPU" value={formatCurrency(arpu)} sub={`${trials.length} em trial`} icon={Users} tone="warning" />
       </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+        <AdminMetricCard label="Clientes totais" value={clientList.length} sub={`${publicClients} vieram do link publico`} icon={Users} tone="brand" />
+        <AdminMetricCard label="Proximos horarios" value={upcomingAppointments.length} sub="agenda futura ativa" icon={CalendarClock} tone="warning" />
+        <AdminMetricCard label="Concluidos" value={completedAppointments.length} sub={formatCurrency(completedRevenue)} icon={BarChart3} tone="success" />
+        <AdminMetricCard label="Ticket medio" value={formatCurrency(completedAppointments.length ? completedRevenue / completedAppointments.length : 0)} sub="por atendimento concluido" icon={DollarSign} tone="default" />
+      </div>
+
+      <AdminPanel
+        title="Mapa operacional por salao"
+        description="Clientes, agenda futura, atendimentos concluidos e receita por tenant."
+        tone="brand"
+        actions={<AdminActionButton href="/admin/clientes" tone="muted">Ver clientes</AdminActionButton>}
+      >
+        {studioOps.length === 0 ? (
+          <AdminEmptyState title="Nenhum salao encontrado" description="Quando houver studios cadastrados, eles aparecem neste mapa operacional." />
+        ) : (
+          <div>
+            <div style={{ display: "grid", gridTemplateColumns: "1.25fr .7fr .75fr .75fr .75fr .8fr .8fr", gap: 12, padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              {["Salao", "Clientes", "Publicos", "Proximos", "Concluidos", "Receita", "Ultimo"].map((heading) => (
+                <span key={heading} style={{ color: "#71717a", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
+              ))}
+            </div>
+            {studioOps.slice(0, 12).map((row) => {
+              const status = row.studio.subscription_status ?? (row.studio.is_active ? "active" : "canceled");
+              const statusTone = status === "active" ? "success" : status === "past_due" ? "danger" : status === "trial" || status === "trialing" ? "warning" : "muted";
+              return (
+                <a
+                  key={row.studio.id}
+                  href={`/admin/studios/${row.studio.id}`}
+                  style={{ display: "grid", gridTemplateColumns: "1.25fr .7fr .75fr .75fr .75fr .8fr .8fr", gap: 12, alignItems: "center", padding: "14px 16px", color: "inherit", textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <strong style={{ display: "block", color: "#f4f4f5", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.studio.name}</strong>
+                    <span style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                      <span style={{ color: "#71717a", fontSize: 11, fontFamily: "monospace" }}>/{row.studio.slug}</span>
+                      <AdminStatusBadge tone={statusTone as any} dot>{row.studio.is_active ? "Ativo" : "Inativo"}</AdminStatusBadge>
+                    </span>
+                  </div>
+                  <strong style={{ color: "#f4f4f5", fontSize: 13 }}>{row.clients}</strong>
+                  <span style={{ color: row.publicClients ? "#818cf8" : "#71717a", fontSize: 13, fontWeight: 800 }}>{row.publicClients}</span>
+                  <span style={{ color: row.upcoming ? "#fbbf24" : "#71717a", fontSize: 13, fontWeight: 800 }}>{row.upcoming}</span>
+                  <span style={{ color: row.completed ? "#4ade80" : "#71717a", fontSize: 13, fontWeight: 800 }}>{row.completed}</span>
+                  <strong style={{ color: row.revenue ? "#4ade80" : "#71717a", fontSize: 13 }}>{formatCurrency(row.revenue)}</strong>
+                  <span style={{ color: "#a1a1aa", fontSize: 12 }}>{row.last ? new Date(row.last).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "Sem agenda"}</span>
+                </a>
+              );
+            })}
+          </div>
+        )}
+      </AdminPanel>
 
       <div style={{ display: "grid", gridTemplateColumns: "1.15fr .85fr", gap: 14, alignItems: "start" }}>
         <AdminPanel

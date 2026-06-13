@@ -19,7 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (profile.role !== "superadmin" && !profile.studio_id) redirect("/setup");
 
   return (
-    <div className="flex min-h-screen" style={{ background: "var(--bg)" }}>
+    <div className="flex min-h-screen" style={{ background: "#080812" }}>
       <Sidebar profile={profile} />
       <main className="dash-main">
         {children}

@@ -92,7 +92,7 @@ function BookingSuccessContent() {
     async function load() {
       if (!appointmentId) {
         if (!active) return
-        setError('O identificador do agendamento não foi informado.')
+        setError('O identificador do agendamento nao foi informado.')
         setLoading(false)
         return
       }
@@ -107,7 +107,7 @@ function BookingSuccessContent() {
         const data = await res.json().catch(() => null)
 
         if (!res.ok) {
-          throw new Error(data?.error || 'Não foi possível carregar os dados do agendamento.')
+          throw new Error(data?.error || 'Nao foi possivel carregar os dados do agendamento.')
         }
 
         if (!active) return
@@ -115,7 +115,7 @@ function BookingSuccessContent() {
         setStudio(data?.studio ?? null)
       } catch (err) {
         if (!active) return
-        const message = err instanceof Error ? err.message : 'Não foi possível carregar os dados do agendamento.'
+        const message = err instanceof Error ? err.message : 'Nao foi possivel carregar os dados do agendamento.'
         setError(message)
       } finally {
         if (active) setLoading(false)
@@ -133,13 +133,15 @@ function BookingSuccessContent() {
   const rgb = brand.startsWith('#') && brand.length === 7
     ? `${parseInt(brand.slice(1, 3), 16)},${parseInt(brand.slice(3, 5), 16)},${parseInt(brand.slice(5, 7), 16)}`
     : '124,92,191'
+  const brandSoft = `rgba(${rgb}, 0.13)`
 
-  const shortCode = appointment?.id ? appointment.id.slice(0, 8).toUpperCase() : '—'
+  const shortCode = appointment?.id ? appointment.id.slice(0, 8).toUpperCase() : '-'
   const bookingLink = studio?.slug ? `/agendar/${studio.slug}` : '/'
+  const consultLink = appointment?.id ? `/cliente/agendar/consultar?appointmentId=${encodeURIComponent(appointment.id)}` : '/cliente/agendar/consultar'
   const whatsappNumber = (studio?.whatsapp || studio?.phone || '').replace(/\D/g, '')
   const whatsappMessage = appointment
     ? encodeURIComponent(
-        `Olá! Queria falar sobre o agendamento de ${appointment.service_name} em ${formatDateTime(appointment.appointment_date)}.`,
+        `Ola! Queria falar sobre o agendamento de ${appointment.service_name} em ${formatDateTime(appointment.appointment_date)}.`,
       )
     : ''
   const whatsappLink = whatsappNumber ? `https://wa.me/55${whatsappNumber}?text=${whatsappMessage}` : ''
@@ -160,7 +162,7 @@ function BookingSuccessContent() {
         style={{
           width: '100%',
           maxWidth: 720,
-          background: 'rgba(255,255,255,0.88)',
+          background: 'rgba(255,255,255,0.9)',
           backdropFilter: 'blur(18px)',
           border: '1px solid rgba(120, 90, 80, 0.12)',
           borderRadius: 28,
@@ -182,7 +184,7 @@ function BookingSuccessContent() {
                   margin: '0 auto',
                 }}
               />
-              <p style={{ marginTop: 14, color: '#7A665E', fontSize: 14 }}>Carregando confirmação...</p>
+              <p style={{ marginTop: 14, color: '#7A665E', fontSize: 14 }}>Carregando confirmacao...</p>
             </div>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
@@ -205,7 +207,7 @@ function BookingSuccessContent() {
               >
                 !
               </div>
-              <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 30, margin: 0 }}>Não conseguimos abrir a confirmação</h1>
+              <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 30, margin: 0 }}>Nao conseguimos abrir a confirmacao</h1>
               <p style={{ color: '#7A665E', fontSize: 14, lineHeight: 1.6, marginTop: 10 }}>{error}</p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
                 <button
@@ -215,7 +217,7 @@ function BookingSuccessContent() {
                     padding: '0 18px',
                     borderRadius: 14,
                     border: 'none',
-                    background: `linear-gradient(135deg, ${brand}, color-mix(in srgb, ${brand}, white 24%))`,
+                    background: brand,
                     color: '#fff',
                     cursor: 'pointer',
                     fontWeight: 700,
@@ -250,15 +252,16 @@ function BookingSuccessContent() {
                   width: 52,
                   height: 52,
                   borderRadius: 18,
-                  background: `linear-gradient(145deg, ${brand}, color-mix(in srgb, ${brand}, black 18%))`,
+                  background: brand,
                   display: 'grid',
                   placeItems: 'center',
                   color: '#fff',
                   boxShadow: `0 10px 28px rgba(${rgb}, 0.28)`,
                   flexShrink: 0,
+                  fontWeight: 900,
                 }}
               >
-                ✓
+                OK
               </div>
               <div>
                 <p style={{ margin: 0, color: '#8A7469', fontSize: 11, fontWeight: 800, letterSpacing: '.22em', textTransform: 'uppercase' }}>
@@ -271,7 +274,7 @@ function BookingSuccessContent() {
             </div>
 
             <p style={{ margin: 0, color: '#7A665E', lineHeight: 1.6, fontSize: 14 }}>
-              Seu agendamento foi registrado com sucesso. Confira abaixo os dados reais retornados pelo sistema.
+              Seu horario foi registrado com sucesso. Confira abaixo os dados enviados para o painel do studio.
             </p>
 
             <div
@@ -286,12 +289,12 @@ function BookingSuccessContent() {
             >
               {[
                 ['Cliente', appointment.client_name],
-                ['Serviço', appointment.service_name],
+                ['Servico', appointment.service_name],
                 ['Data', formatDate(appointment.appointment_date)],
-                ['Horário', formatTime(appointment.appointment_date)],
+                ['Horario', formatTime(appointment.appointment_date)],
                 ['Valor', formatCurrency(appointment.price)],
                 ['Status', formatStatus(appointment.status)],
-                ['Código', shortCode],
+                ['Codigo', shortCode],
               ].map(([label, value]) => (
                 <div key={String(label)} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, fontSize: 14 }}>
                   <span style={{ color: '#8A7469' }}>{label}</span>
@@ -307,7 +310,7 @@ function BookingSuccessContent() {
                   height: 48,
                   padding: '0 20px',
                   borderRadius: 14,
-                  background: `linear-gradient(135deg, ${brand}, color-mix(in srgb, ${brand}, white 26%))`,
+                  background: brand,
                   color: '#fff',
                   fontWeight: 800,
                   display: 'inline-flex',
@@ -329,6 +332,7 @@ function BookingSuccessContent() {
                     borderRadius: 14,
                     border: '1px solid rgba(120, 90, 80, 0.18)',
                     color: '#5B4740',
+                    background: brandSoft,
                     display: 'inline-flex',
                     alignItems: 'center',
                     textDecoration: 'none',
@@ -338,10 +342,27 @@ function BookingSuccessContent() {
                   Falar no WhatsApp
                 </a>
               )}
+
+              <Link
+                href={consultLink}
+                style={{
+                  height: 48,
+                  padding: '0 20px',
+                  borderRadius: 14,
+                  border: '1px solid rgba(120, 90, 80, 0.18)',
+                  color: '#5B4740',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  fontWeight: 800,
+                }}
+              >
+                Consultar depois
+              </Link>
             </div>
 
             <p style={{ margin: 0, color: '#9A877D', fontSize: 12 }}>
-              {studio?.slug ? `Acesse novamente: /agendar/${studio.slug}` : 'A confirmação ficou salva no sistema.'}
+              {studio?.slug ? `Acesse novamente: /agendar/${studio.slug}` : 'A confirmacao ficou salva no sistema.'}
             </p>
           </div>
         ) : null}
