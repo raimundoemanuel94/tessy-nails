@@ -34,6 +34,13 @@ type Settings = {
   working_hours: any
 } | null
 
+type Professional = {
+  id: string
+  name: string
+  avatar_url: string | null
+  role: string
+} | null
+
 type CreatedAppointment = {
   id: string
   status: string
@@ -93,7 +100,7 @@ function StepBar({ step }: { step: string }) {
   )
 }
 
-export default function AgendarClient({ studio, services, settings }: { studio: Studio; services: Service[]; settings: Settings }) {
+export default function AgendarClient({ studio, services, settings, professional }: { studio: Studio; services: Service[]; settings: Settings; professional?: Professional }) {
   const brand = /^#[0-9A-Fa-f]{6}$/.test(studio.brand_color || '') ? studio.brand_color : '#7C5CBF'
   const rgb = safeRgb(brand)
   const router = useRouter()
@@ -135,6 +142,7 @@ export default function AgendarClient({ studio, services, settings }: { studio: 
         serviceId: service.id,
         date,
       })
+      if (professional?.id) params.set('professionalId', professional.id)
       const response = await fetch(`/api/public/slots?${params.toString()}`)
       const data = await response.json().catch(() => null)
 
@@ -166,6 +174,7 @@ export default function AgendarClient({ studio, services, settings }: { studio: 
           clientName: name.trim(),
           clientPhone: phone.trim(),
           notes: notes.trim() || undefined,
+          professionalId: professional?.id ?? undefined,
         }),
       })
       const data = await response.json().catch(() => null)
@@ -368,6 +377,59 @@ export default function AgendarClient({ studio, services, settings }: { studio: 
       margin-top: auto;
       display: grid;
       gap: 9px;
+    }
+    .booking-professional {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(8,8,18,.40);
+      border: 1px solid rgba(255,255,255,.09);
+      margin-top: 18px;
+    }
+    .booking-professional-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      font-weight: 860;
+      color: #fff;
+      background: linear-gradient(145deg, var(--booking-brand), rgba(0,0,0,.38));
+      border: 2px solid rgba(var(--booking-rgb), .40);
+      box-shadow: 0 0 0 3px rgba(var(--booking-rgb), .12);
+    }
+    .booking-professional-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .booking-professional-info { min-width: 0; flex: 1; }
+    .booking-professional-info span {
+      display: block;
+      font-size: 10px;
+      font-weight: 840;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--booking-brand), white 36%);
+    }
+    .booking-professional-info strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 820;
+      color: #f7f4ff;
+      margin-top: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .booking-professional-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 6px rgba(74,222,128,.55);
+      flex: 0 0 auto;
     }
     .booking-client-card {
       margin-top: 18px;
@@ -726,7 +788,22 @@ export default function AgendarClient({ studio, services, settings }: { studio: 
               {studio.avatar_url ? <img src={studio.avatar_url} alt={studio.name} /> : studio.name.slice(0, 2).toUpperCase()}
             </div>
             <h1>{studio.name}</h1>
-            <p>Escolha o serviço, encontre um horário disponível e confirme seu agendamento online.</p>
+            <p>{professional ? `Agendamento com ${professional.name}.` : 'Escolha o serviço, encontre um horário disponível e confirme seu agendamento online.'}</p>
+
+            {professional && (
+              <div className="booking-professional">
+                <div className="booking-professional-avatar">
+                  {professional.avatar_url
+                    ? <img src={professional.avatar_url} alt={professional.name} />
+                    : professional.name.slice(0, 1).toUpperCase()}
+                </div>
+                <div className="booking-professional-info">
+                  <span>Sua manicure</span>
+                  <strong>{professional.name}</strong>
+                </div>
+                <div className="booking-professional-dot" />
+              </div>
+            )}
             <div className="booking-client-card">
               <span>Cliente</span>
               <strong>Agende sem criar conta</strong>
@@ -925,6 +1002,7 @@ export default function AgendarClient({ studio, services, settings }: { studio: 
             <div className="booking-confirm-card">
               <div><span>Cliente</span><strong>{createdAppointment?.client_name || name}</strong></div>
               <div><span>Serviço</span><strong>{createdAppointment?.service_name || selectedService?.name}</strong></div>
+              {professional && <div><span>Manicure</span><strong>{professional.name}</strong></div>}
               <div><span>Data</span><strong>{createdAppointment ? formatDateTime(createdAppointment.appointment_date) : `${selectedDate} ${selectedTime}`}</strong></div>
               <div><span>Valor</span><strong>{money((createdAppointment?.price ?? selectedService?.price) || 0)}</strong></div>
             </div>
