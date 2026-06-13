@@ -657,6 +657,285 @@ export default function AgendarClient({ studio, services, settings, professional
       transition: opacity .15s;
     }
     .booking-whatsapp:hover { opacity: .92; }
+    /* ─── HERO PROFISSIONAL ─── */
+    .booking-hero {
+      text-align: center;
+      padding: 32px 20px 24px;
+      background: #ffffff;
+    }
+    .booking-hero-avatar-wrap {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 14px;
+    }
+    .booking-hero-avatar {
+      width: 104px;
+      height: 104px;
+      border-radius: 50%;
+      background: var(--booking-brand);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 36px;
+      font-weight: 600;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+    .booking-hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .booking-hero-badge {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #22c55e;
+      border: 3px solid #ffffff;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .booking-hero-name {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: -0.025em;
+      margin: 0;
+    }
+    .booking-hero-role {
+      font-size: 14px;
+      color: #777;
+      margin: 4px 0 0;
+    }
+    .booking-hero-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 5px 12px;
+      background: #fef9c3;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #854d0e;
+    }
+    .booking-hero-info {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 14px;
+      font-size: 12.5px;
+      color: #666;
+      flex-wrap: wrap;
+    }
+    .booking-hero-info span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .booking-hero-whatsapp {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      max-width: 360px;
+      margin: 22px auto 0;
+      padding: 13px 18px;
+      background: #22c55e;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity .15s;
+    }
+    .booking-hero-whatsapp:hover { opacity: .92; }
+
+    /* ─── SEÇÃO GENÉRICA ─── */
+    .booking-section {
+      padding: 24px 20px;
+      border-top: 1px solid #eeeeee;
+      background: #ffffff;
+    }
+    .booking-section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 0 0 14px;
+    }
+
+    /* ─── GALERIA ─── */
+    .booking-gallery {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .booking-gallery-item {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      background: #f4f4f5;
+      overflow: hidden;
+    }
+    .booking-gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+    .booking-gallery-empty {
+      grid-column: 1 / -1;
+      padding: 24px;
+      text-align: center;
+      color: #999;
+      font-size: 13px;
+      border: 1px dashed #e5e5e5;
+      border-radius: 10px;
+    }
+
+    /* ─── SERVIÇO CARD GRANDE ─── */
+    .booking-svc-card {
+      border: 1px solid #eeeeee;
+      border-radius: 14px;
+      padding: 16px;
+      background: #ffffff;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color .15s, background .15s;
+      width: 100%;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .booking-svc-card:hover { border-color: #cccccc; background: #fafafa; }
+    .booking-svc-card.is-featured {
+      border-width: 2px;
+      border-color: var(--booking-brand);
+    }
+    .booking-svc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      background: rgba(var(--booking-rgb), .12);
+      color: var(--booking-brand);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .booking-svc-name {
+      font-size: 15.5px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 0;
+    }
+    .booking-svc-meta {
+      font-size: 12.5px;
+      color: #888;
+      margin: 3px 0 0;
+    }
+    .booking-svc-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+    }
+    .booking-svc-price {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .booking-svc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 9px 15px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid #e5e5e5;
+      background: #ffffff;
+      color: #555;
+      transition: background .15s, border-color .15s;
+    }
+    .booking-svc-card.is-featured .booking-svc-btn {
+      background: var(--booking-brand);
+      color: #ffffff;
+      border-color: var(--booking-brand);
+    }
+    .booking-svc-btn:hover { background: #fafafa; }
+    .booking-svc-card.is-featured .booking-svc-btn:hover { opacity: .92; background: var(--booking-brand); }
+
+    /* ─── HORÁRIO ─── */
+    .booking-hours {
+      font-size: 13.5px;
+      color: #555;
+    }
+    .booking-hours-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+    }
+    .booking-hours-row strong {
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+    .booking-hours-row.closed strong { color: #999; font-weight: 500; }
+
+    /* ─── COMO FUNCIONA ─── */
+    .booking-howto {
+      background: #fafafa;
+    }
+    .booking-howto-step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .booking-howto-step:last-child { margin-bottom: 0; }
+    .booking-howto-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--booking-brand);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 12.5px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .booking-howto-text {
+      font-size: 13.5px;
+      color: #555;
+      padding-top: 2px;
+    }
+
+    /* ─── BOTÃO FLUTUANTE WHATSAPP ─── */
+    .booking-fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #22c55e;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      text-decoration: none;
+      box-shadow: 0 6px 18px rgba(34,197,94,.32);
+      z-index: 20;
+      font-size: 24px;
+    }
+
+    /* ─── LAYOUT: hero ocupa largura, conteúdo abaixo centralizado ─── */
+    .booking-main-hero {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
     @media (max-width: 860px) {
       .booking-main {
         width: min(100% - 28px, 540px);
@@ -717,236 +996,296 @@ export default function AgendarClient({ studio, services, settings, professional
         </div>
       </header>
 
-      <section className="booking-main">
-        <aside className="booking-side">
-          <div className="booking-side-content">
-            <div className="booking-side-badge">
-              {studio.avatar_url ? <img src={studio.avatar_url} alt={studio.name} /> : studio.name.slice(0, 2).toUpperCase()}
-            </div>
-            <h1>{studio.name}</h1>
-            <p>{professional ? `Agendamento com ${professional.name}.` : 'Escolha o serviço, encontre um horário disponível e confirme seu agendamento online.'}</p>
-
-            {professional && (
-              <div className="booking-professional">
-                <div className="booking-professional-avatar">
-                  {professional.avatar_url
-                    ? <img src={professional.avatar_url} alt={professional.name} />
-                    : professional.name.slice(0, 1).toUpperCase()}
-                </div>
-                <div className="booking-professional-info">
-                  <span>Sua manicure</span>
-                  <strong>{professional.name}</strong>
-                </div>
-                <div className="booking-professional-dot" />
-              </div>
-            )}
-            <div className="booking-client-card">
-              <span>Cliente</span>
-              <strong>Agende sem criar conta</strong>
-              <p>Informe seu nome e WhatsApp no último passo. Depois do envio, você recebe uma confirmação com os dados do horário.</p>
-              <div className="booking-client-actions">
-                <a href="/login">Entrar</a>
-                {(studio.whatsapp || studio.phone) && (
-                  <a href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '')}`} target="_blank" rel="noreferrer">
-                    Falar no WhatsApp
-                  </a>
-                )}
-              </div>
-            </div>
-            <div className="booking-side-meta">
-              <div>
-                <span>Serviços</span>
-                <strong>{services.length} disponíveis</strong>
-              </div>
-              <div>
-                <span>Endereço</span>
-                <strong>{studio.address || 'Consulte o studio'}</strong>
-              </div>
-              <div>
-                <span>Contato</span>
-                <strong>{studio.phone || studio.whatsapp || 'WhatsApp do studio'}</strong>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        <div className="booking-flow">
-        {step !== 'done' && <StepBar step={step} />}
-
+      <section className="booking-main-hero">
         {step === 'service' && (
           <>
-            <div className="booking-title">
-              <span>Agendar horário</span>
-              <h1>Escolha o serviço</h1>
-              <p>{services.length} serviços disponíveis para este studio.</p>
+            {/* HERO */}
+            <div className="booking-hero">
+              <div className="booking-hero-avatar-wrap">
+                <div className="booking-hero-avatar">
+                  {professional?.avatar_url
+                    ? <img src={professional.avatar_url} alt={professional.name} />
+                    : professional
+                      ? professional.name.slice(0, 1).toUpperCase()
+                      : studio.avatar_url
+                        ? <img src={studio.avatar_url} alt={studio.name} />
+                        : studio.name.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="booking-hero-badge">✓</div>
+              </div>
+              <h1 className="booking-hero-name">{professional ? professional.name : studio.name}</h1>
+              <p className="booking-hero-role">
+                {professional ? `Manicure no ${studio.name}` : 'Agendamento online'}
+              </p>
+
+              {/* Rating — placeholder pra Fase B */}
+              <div className="booking-hero-rating">
+                ⭐ <span>Nova no app</span>
+              </div>
+
+              <div className="booking-hero-info">
+                {studio.address && <span>📍 {studio.address}</span>}
+                <span>🕐 Atende seg–sáb</span>
+              </div>
+
+              {(studio.whatsapp || studio.phone) && (
+                
+                  className="booking-hero-whatsapp"
+                  href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  💬 Conversar no WhatsApp
+                </a>
+              )}
             </div>
-            <div className="booking-list">
+
+            {/* GALERIA — placeholder pra Fase B */}
+            <div className="booking-section">
+              <div className="booking-section-title">Trabalhos recentes</div>
+              <div className="booking-gallery">
+                <div className="booking-gallery-empty">
+                  Em breve, fotos dos trabalhos da {professional ? professional.name : 'manicure'}
+                </div>
+              </div>
+            </div>
+
+            {/* SERVIÇOS */}
+            <div className="booking-section">
+              <div className="booking-section-title">Serviços</div>
               {services.length === 0 ? (
                 <div className="booking-state">Nenhum serviço disponível no momento.</div>
-              ) : services.map((service) => (
-                <button
-                  key={service.id}
-                  className="booking-service"
-                  onClick={() => {
-                    setSelectedService(service)
-                    setSelectedDate('')
-                    setSelectedTime('')
-                    setSlots([])
-                    setSlotError('')
-                    setBookingError('')
-                    setCreatedAppointment(null)
-                    setStep('date')
-                  }}
-                >
-                  <span className="booking-service-icon">{service.name.slice(0, 1).toUpperCase()}</span>
-                  <span className="booking-service-copy">
-                    <strong>{service.name}</strong>
-                    <span>{service.description || `${service.duration_minutes} min${service.category ? ` · ${service.category}` : ''}`}</span>
-                  </span>
-                  <span className="booking-price">{money(service.price)}</span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {step === 'date' && selectedService && (
-          <>
-            <div className="booking-step-head">
-              <button className="booking-back" onClick={() => setStep('service')}>Voltar</button>
-              <div className="booking-title">
-                <span>{selectedService.name}</span>
-                <h2>Escolha a data</h2>
-                <p>Mostramos apenas dias abertos para agendamento.</p>
-              </div>
-            </div>
-            <div className="booking-date-grid">
-              {availableDates.slice(0, 28).map((date) => {
-                const parsed = new Date(date + 'T00:00')
-                const active = date === selectedDate
-                return (
+              ) : (
+                services.map((service, idx) => (
                   <button
-                    key={date}
-                    className={`booking-date ${active ? 'is-active' : ''}`}
+                    key={service.id}
+                    className={`booking-svc-card${idx === 0 ? ' is-featured' : ''}`}
                     onClick={() => {
-                      setSelectedDate(date)
+                      setSelectedService(service)
+                      setSelectedDate('')
                       setSelectedTime('')
                       setSlots([])
-                      setStep('time')
-                      void fetchSlots(date, selectedService)
+                      setSlotError('')
+                      setBookingError('')
+                      setCreatedAppointment(null)
+                      setStep('date')
                     }}
                   >
-                    <small>{weekdays[parsed.getDay()]}</small>
-                    <strong>{parsed.getDate()}</strong>
-                    <em>{parsed.toLocaleDateString('pt-BR', { month: 'short' })}</em>
+                    {idx === 0 && (
+                      <div className="booking-svc-badge">⭐ Mais procurado</div>
+                    )}
+                    <div className="booking-svc-name">{service.name}</div>
+                    <div className="booking-svc-meta">
+                      {service.duration_minutes} min
+                      {service.category && ` · ${service.category}`}
+                    </div>
+                    <div className="booking-svc-footer">
+                      <div className="booking-svc-price">{money(service.price)}</div>
+                      <div className="booking-svc-btn">
+                        Agendar →
+                      </div>
+                    </div>
                   </button>
-                )
-              })}
+                ))
+              )}
             </div>
-          </>
-        )}
 
-        {step === 'time' && selectedService && (
-          <>
-            <div className="booking-step-head">
-              <button className="booking-back" onClick={() => setStep('date')}>Voltar</button>
-              <div className="booking-title">
-                <span>{formatDate(selectedDate)}</span>
-                <h2>Escolha o horário</h2>
-                <p>{selectedService.name}</p>
-              </div>
-            </div>
-            {loadingSlots ? (
-              <div className="booking-state">Carregando horários...</div>
-            ) : slotError ? (
-              <div className="booking-state">
-                <div>
-                  <p>{slotError}</p>
-                  <button className="booking-back" onClick={() => void fetchSlots(selectedDate, selectedService)}>Tentar novamente</button>
+            {/* HORÁRIO DE FUNCIONAMENTO */}
+            {settings?.working_hours && (
+              <div className="booking-section">
+                <div className="booking-section-title">Horário de funcionamento</div>
+                <div className="booking-hours">
+                  {weekdayKeys.map((key, i) => {
+                    const cfg = settings.working_hours[key]
+                    const open = cfg?.is_open
+                    return (
+                      <div key={key} className={`booking-hours-row${!open ? ' closed' : ''}`}>
+                        <span>{['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][i]}</span>
+                        <strong>
+                          {open ? `${cfg.open || '09:00'} – ${cfg.close || '18:00'}` : 'Fechado'}
+                        </strong>
+                      </div>
+                    )
+                  })}
                 </div>
-              </div>
-            ) : slots.length === 0 ? (
-              <div className="booking-state">
-                <div>
-                  <p>Sem horários disponíveis neste dia.</p>
-                  <button className="booking-back" onClick={() => setStep('date')}>Escolher outro dia</button>
-                </div>
-              </div>
-            ) : (
-              <div className="booking-time-grid">
-                {slots.map((time) => (
-                  <button
-                    key={time}
-                    className={`booking-time ${time === selectedTime ? 'is-active' : ''}`}
-                    onClick={() => {
-                      setSelectedTime(time)
-                      setStep('info')
-                    }}
-                  >
-                    {time}
-                  </button>
-                ))}
               </div>
             )}
+
+            {/* COMO FUNCIONA */}
+            <div className="booking-section booking-howto">
+              <div className="booking-section-title">Como funciona</div>
+              <div className="booking-howto-step">
+                <div className="booking-howto-num">1</div>
+                <div className="booking-howto-text">Escolha o serviço que você quer</div>
+              </div>
+              <div className="booking-howto-step">
+                <div className="booking-howto-num">2</div>
+                <div className="booking-howto-text">Veja os horários disponíveis</div>
+              </div>
+              <div className="booking-howto-step">
+                <div className="booking-howto-num">3</div>
+                <div className="booking-howto-text">Confirme com seu nome e WhatsApp</div>
+              </div>
+            </div>
           </>
         )}
 
-        {step === 'info' && selectedService && (
-          <>
-            <div className="booking-step-head">
-              <button className="booking-back" onClick={() => setStep('time')}>Voltar</button>
-              <div className="booking-title">
-                <span>Último passo</span>
-                <h2>Seus dados</h2>
-                <p>Confirme suas informações para reservar o horário.</p>
-              </div>
-            </div>
-            <div className="booking-summary">
-              <span className="booking-summary-mark">{selectedService.name.slice(0, 1).toUpperCase()}</span>
-              <div>
-                <strong>{selectedService.name}</strong>
-                <p>{formatDate(selectedDate)} às {selectedTime} · {money(selectedService.price)}</p>
-              </div>
-            </div>
-            <div className="booking-field">
-              <label>Nome completo</label>
-              <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Ex: Ana Silva" />
-            </div>
-            <div className="booking-field">
-              <label>WhatsApp</label>
-              <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="(66) 99999-0000" inputMode="tel" />
-            </div>
-            <div className="booking-field">
-              <label>Observações (opcional)</label>
-              <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Alergias, preferências de esmalte..." />
-            </div>
-            <button className="booking-primary" onClick={submit} disabled={loading || !name.trim() || !phone.trim()}>
-              {loading ? 'Confirmando...' : 'Confirmar agendamento'}
-            </button>
-            {bookingError && <div className="booking-error">{bookingError}</div>}
-          </>
-        )}
+        {/* Outros steps (date, time, info, done) usam layout simples sem hero */}
+        {step !== 'service' && (
+          <div className="booking-flow" style={{ padding: '24px 20px', maxWidth: 540, margin: '0 auto' }}>
+            {step !== 'done' && <StepBar step={step} />}
 
-        {step === 'done' && (
-          <div className="booking-done">
-            <div className="booking-check">✓</div>
-            <div className="booking-title">
-              <span>Agendamento confirmado</span>
-              <h1>Tudo certo</h1>
-              <p>Seu horário foi registrado no sistema do studio.</p>
-            </div>
-            <div className="booking-confirm-card">
-              <div><span>Cliente</span><strong>{createdAppointment?.client_name || name}</strong></div>
-              <div><span>Serviço</span><strong>{createdAppointment?.service_name || selectedService?.name}</strong></div>
-              {professional && <div><span>Manicure</span><strong>{professional.name}</strong></div>}
-              <div><span>Data</span><strong>{createdAppointment ? formatDateTime(createdAppointment.appointment_date) : `${selectedDate} ${selectedTime}`}</strong></div>
-              <div><span>Valor</span><strong>{money((createdAppointment?.price ?? selectedService?.price) || 0)}</strong></div>
-            </div>
-            {studio.whatsapp && <a className="booking-whatsapp" href={whatsappLink()} target="_blank" rel="noreferrer">Falar no WhatsApp</a>}
-            <button className="booking-back" onClick={reset}>Fazer outro agendamento</button>
+            {step === 'date' && selectedService && (
+              <>
+                <div className="booking-step-head">
+                  <button className="booking-back" onClick={() => setStep('service')}>← Voltar</button>
+                  <div className="booking-title">
+                    <span>{selectedService.name}</span>
+                    <h2>Escolha a data</h2>
+                    <p>Mostramos apenas dias abertos para agendamento.</p>
+                  </div>
+                </div>
+                <div className="booking-date-grid">
+                  {availableDates.slice(0, 28).map((date) => {
+                    const parsed = new Date(date + 'T00:00')
+                    const active = date === selectedDate
+                    return (
+                      <button
+                        key={date}
+                        className={`booking-date ${active ? 'is-active' : ''}`}
+                        onClick={() => {
+                          setSelectedDate(date)
+                          setSelectedTime('')
+                          setSlots([])
+                          setStep('time')
+                          void fetchSlots(date, selectedService)
+                        }}
+                      >
+                        <small>{weekdays[parsed.getDay()]}</small>
+                        <strong>{parsed.getDate()}</strong>
+                        <em>{parsed.toLocaleDateString('pt-BR', { month: 'short' })}</em>
+                      </button>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+
+            {step === 'time' && selectedService && (
+              <>
+                <div className="booking-step-head">
+                  <button className="booking-back" onClick={() => setStep('date')}>← Voltar</button>
+                  <div className="booking-title">
+                    <span>{formatDate(selectedDate)}</span>
+                    <h2>Escolha o horário</h2>
+                    <p>{selectedService.name}</p>
+                  </div>
+                </div>
+                {loadingSlots ? (
+                  <div className="booking-state">Carregando horários...</div>
+                ) : slotError ? (
+                  <div className="booking-state">
+                    <div>
+                      <p>{slotError}</p>
+                      <button className="booking-back" onClick={() => void fetchSlots(selectedDate, selectedService)}>Tentar novamente</button>
+                    </div>
+                  </div>
+                ) : slots.length === 0 ? (
+                  <div className="booking-state">
+                    <div>
+                      <p>Sem horários disponíveis neste dia.</p>
+                      <button className="booking-back" onClick={() => setStep('date')}>Escolher outro dia</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="booking-time-grid">
+                    {slots.map((time) => (
+                      <button
+                        key={time}
+                        className={`booking-time ${time === selectedTime ? 'is-active' : ''}`}
+                        onClick={() => {
+                          setSelectedTime(time)
+                          setStep('info')
+                        }}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {step === 'info' && selectedService && (
+              <>
+                <div className="booking-step-head">
+                  <button className="booking-back" onClick={() => setStep('time')}>← Voltar</button>
+                  <div className="booking-title">
+                    <span>Último passo</span>
+                    <h2>Seus dados</h2>
+                    <p>Confirme suas informações para reservar o horário.</p>
+                  </div>
+                </div>
+                <div className="booking-summary">
+                  <span className="booking-summary-mark">{selectedService.name.slice(0, 1).toUpperCase()}</span>
+                  <div>
+                    <strong>{selectedService.name}</strong>
+                    <p>{formatDate(selectedDate)} às {selectedTime} · {money(selectedService.price)}</p>
+                  </div>
+                </div>
+                <div className="booking-field">
+                  <label>Nome completo</label>
+                  <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Ex: Ana Silva" />
+                </div>
+                <div className="booking-field">
+                  <label>WhatsApp</label>
+                  <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="(66) 99999-0000" inputMode="tel" />
+                </div>
+                <div className="booking-field">
+                  <label>Observações (opcional)</label>
+                  <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Alergias, preferências de esmalte..." />
+                </div>
+                <button className="booking-primary" onClick={submit} disabled={loading || !name.trim() || !phone.trim()}>
+                  {loading ? 'Confirmando...' : 'Confirmar agendamento'}
+                </button>
+                {bookingError && <div className="booking-error">{bookingError}</div>}
+              </>
+            )}
+
+            {step === 'done' && (
+              <div className="booking-done">
+                <div className="booking-check">✓</div>
+                <div className="booking-title">
+                  <span>Agendamento confirmado</span>
+                  <h1>Tudo certo</h1>
+                  <p>Seu horário foi registrado no sistema do studio.</p>
+                </div>
+                <div className="booking-confirm-card">
+                  <div><span>Cliente</span><strong>{createdAppointment?.client_name || name}</strong></div>
+                  <div><span>Serviço</span><strong>{createdAppointment?.service_name || selectedService?.name}</strong></div>
+                  {professional && <div><span>Manicure</span><strong>{professional.name}</strong></div>}
+                  <div><span>Data</span><strong>{createdAppointment ? formatDateTime(createdAppointment.appointment_date) : `${selectedDate} ${selectedTime}`}</strong></div>
+                  <div><span>Valor</span><strong>{money((createdAppointment?.price ?? selectedService?.price) || 0)}</strong></div>
+                </div>
+                {studio.whatsapp && <a className="booking-whatsapp" href={whatsappLink()} target="_blank" rel="noreferrer">Falar no WhatsApp</a>}
+                <button className="booking-back" onClick={reset}>Fazer outro agendamento</button>
+              </div>
+            )}
           </div>
         )}
-        </div>
+
+        {/* FAB do WhatsApp — só na tela inicial */}
+        {step === 'service' && (studio.whatsapp || studio.phone) && (
+          
+            className="booking-fab"
+            href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '')}`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="WhatsApp"
+          >
+            💬
+          </a>
+        )}
       </section>
     </main>
   )
