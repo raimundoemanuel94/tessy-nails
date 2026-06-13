@@ -1029,7 +1029,7 @@ export default function AgendarClient({ studio, services, settings, professional
               </div>
 
               {(studio.whatsapp || studio.phone) && (
-                
+                <a
                   className="booking-hero-whatsapp"
                   href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '')}`}
                   target="_blank"
@@ -1276,7 +1276,7 @@ export default function AgendarClient({ studio, services, settings, professional
 
         {/* FAB do WhatsApp — só na tela inicial */}
         {step === 'service' && (studio.whatsapp || studio.phone) && (
-          
+          <a
             className="booking-fab"
             href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '')}`}
             target="_blank"
