@@ -1,19 +1,14 @@
 // @ts-nocheck
 import { createClient } from '@/lib/supabase/server'
-import AgendarClient from './AgendarClient'
-import { notFound, redirect } from 'next/navigation'
+import AgendarClient from '../AgendarClient'
+import { notFound } from 'next/navigation'
 
-export default async function AgendarPage({
+export default async function AgendarComProfissionalPage({
   params,
-  searchParams,
 }: {
-  params: Promise<{ slug: string }>
-  searchParams: Promise<Record<string, string>>
+  params: Promise<{ slug: string; prof: string }>
 }) {
-  const { slug } = await params
-  const sp = await searchParams
-  const professionalIdParam = sp?.profissional ?? null
-
+  const { slug, prof: profSlug } = await params
   const sb = await createClient()
 
   const { data: studio } = await sb
@@ -24,7 +19,7 @@ export default async function AgendarPage({
 
   if (!studio || !studio.is_active) notFound()
 
-  const [{ data: services }, { data: settings }] = await Promise.all([
+  const [{ data: services }, { data: settings }, { data: professional }] = await Promise.all([
     sb
       .from('services')
       .select('id, name, description, price, duration_minutes, category')
@@ -36,23 +31,16 @@ export default async function AgendarPage({
       .select('slot_duration, advance_days, cancel_hours, auto_confirm, working_hours')
       .eq('studio_id', studio.id)
       .single(),
-  ])
-
-  // Compatibilidade: link antigo ?profissional=UUID redireciona pro link curto
-  let professional = null
-  if (professionalIdParam) {
-    const { data: prof } = await sb
+    sb
       .from('profiles')
       .select('id, name, avatar_url, role, slug')
-      .eq('id', professionalIdParam)
+      .eq('studio_id', studio.id)
+      .eq('slug', profSlug)
       .in('role', ['owner', 'professional'])
-      .maybeSingle()
-    if (prof?.slug) {
-      // Redireciona pro link bonito
-      redirect(`/agendar/${slug}/${prof.slug}`)
-    }
-    if (prof) professional = prof
-  }
+      .maybeSingle(),
+  ])
+
+  if (!professional) notFound()
 
   return (
     <AgendarClient
