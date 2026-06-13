@@ -911,6 +911,132 @@ export default function AgendarClient({ studio, services, settings, professional
       padding-top: 2px;
     }
 
+    /* ─── RESUMO STICKY DURANTE FLUXO ─── */
+    .booking-summary-sticky {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: #fafafa;
+      border: 1px solid #eeeeee;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+    .booking-summary-sticky-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .booking-summary-sticky-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #1a1a1a;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .booking-summary-sticky-meta {
+      font-size: 11.5px;
+      color: #888;
+      margin-top: 2px;
+    }
+    .booking-summary-sticky-when {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .booking-summary-sticky-when strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--booking-brand);
+      text-transform: capitalize;
+    }
+    .booking-summary-sticky-when span {
+      display: block;
+      font-size: 11.5px;
+      color: #888;
+      margin-top: 1px;
+    }
+
+    /* ─── INDICADOR DE PASSO ─── */
+    .booking-step-indicator {
+      margin-bottom: 18px;
+    }
+    .booking-step-indicator span {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #999;
+      margin-bottom: 6px;
+      letter-spacing: .03em;
+    }
+
+    /* ─── TELA DE CONFIRMAÇÃO ─── */
+    .booking-done-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .booking-calendar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #1a1a1a;
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background .15s;
+    }
+    .booking-calendar:hover { background: #fafafa; }
+    .booking-policy {
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+      margin: 16px 0 0;
+      line-height: 1.5;
+    }
+
+    /* ─── RODAPÉ ─── */
+    .booking-footer {
+      border-top: 1px solid #eeeeee;
+      background: #fafafa;
+      padding: 28px 20px 32px;
+      margin-top: 8px;
+    }
+    .booking-footer-content {
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .booking-footer-brand {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 10px;
+    }
+    .booking-footer-line {
+      font-size: 13px;
+      color: #666;
+      margin: 4px 0;
+    }
+    .booking-footer-line a {
+      color: var(--booking-brand);
+      text-decoration: none;
+    }
+    .booking-footer-policy {
+      font-size: 11.5px;
+      color: #999;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #eeeeee;
+    }
+
     /* ─── BOTÃO FLUTUANTE WHATSAPP ─── */
     .booking-fab {
       position: fixed;
@@ -981,18 +1107,26 @@ export default function AgendarClient({ studio, services, settings, professional
           <span>{studio.address || 'Agendamento online'}</span>
         </div>
         <div className="booking-header-actions">
-          <a className="booking-header-action" href="/cliente/agendar/consultar">Consultar</a>
-          {studio.whatsapp || studio.phone ? (
-            <a className="booking-header-action is-whatsapp" href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '')}`} target="_blank" rel="noreferrer">
-              WhatsApp
-            </a>
-          ) : null}
-          <a className="booking-header-action is-brand" href="/login">Entrar</a>
+          {step !== 'service' && step !== 'done' && (
+            <button
+              className="booking-header-action"
+              onClick={() => {
+                if (step === 'date') setStep('service')
+                else if (step === 'time') setStep('date')
+                else if (step === 'info') setStep('time')
+              }}
+            >
+              ← Voltar
+            </button>
+          )}
           {studio.instagram && (
             <a className="booking-instagram" href={`https://instagram.com/${studio.instagram.replace('@', '')}`} target="_blank" rel="noreferrer">
               {studio.instagram}
             </a>
           )}
+          <a className="booking-header-action" href="/cliente/agendar/consultar" title="Consultar agendamento">
+            Meus agendamentos
+          </a>
         </div>
       </header>
 
@@ -1017,11 +1151,6 @@ export default function AgendarClient({ studio, services, settings, professional
               <p className="booking-hero-role">
                 {professional ? `Manicure no ${studio.name}` : 'Agendamento online'}
               </p>
-
-              {/* Rating — placeholder pra Fase B */}
-              <div className="booking-hero-rating">
-                ⭐ <span>Nova no app</span>
-              </div>
 
               <div className="booking-hero-info">
                 {studio.address && <span>📍 {studio.address}</span>}
@@ -1059,7 +1188,7 @@ export default function AgendarClient({ studio, services, settings, professional
                 services.map((service, idx) => (
                   <button
                     key={service.id}
-                    className={`booking-svc-card${idx === 0 ? ' is-featured' : ''}`}
+                    className="booking-svc-card"
                     onClick={() => {
                       setSelectedService(service)
                       setSelectedDate('')
@@ -1071,9 +1200,6 @@ export default function AgendarClient({ studio, services, settings, professional
                       setStep('date')
                     }}
                   >
-                    {idx === 0 && (
-                      <div className="booking-svc-badge">⭐ Mais procurado</div>
-                    )}
                     <div className="booking-svc-name">{service.name}</div>
                     <div className="booking-svc-meta">
                       {service.duration_minutes} min
@@ -1132,13 +1258,37 @@ export default function AgendarClient({ studio, services, settings, professional
 
         {/* Outros steps (date, time, info, done) usam layout simples sem hero */}
         {step !== 'service' && (
-          <div className="booking-flow" style={{ padding: '24px 20px', maxWidth: 540, margin: '0 auto' }}>
-            {step !== 'done' && <StepBar step={step} />}
+          <div className="booking-flow" style={{ padding: '20px 20px 40px', maxWidth: 540, margin: '0 auto' }}>
+            {/* Resumo sempre visível durante o fluxo */}
+            {step !== 'done' && selectedService && (
+              <div className="booking-summary-sticky">
+                <div className="booking-summary-sticky-info">
+                  <div className="booking-summary-sticky-name">{selectedService.name}</div>
+                  <div className="booking-summary-sticky-meta">
+                    {selectedService.duration_minutes} min · {money(selectedService.price)}
+                    {professional && ` · com ${professional.name}`}
+                  </div>
+                </div>
+                {selectedDate && selectedTime && (
+                  <div className="booking-summary-sticky-when">
+                    <strong>{new Date(selectedDate + 'T00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</strong>
+                    <span>{selectedTime}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Indicador de passo */}
+            {step !== 'done' && (
+              <div className="booking-step-indicator">
+                <span>Passo {step === 'service' ? 1 : step === 'date' ? 2 : step === 'time' ? 3 : 4} de 4</span>
+                <StepBar step={step} />
+              </div>
+            )}
 
             {step === 'date' && selectedService && (
               <>
                 <div className="booking-step-head">
-                  <button className="booking-back" onClick={() => setStep('service')}>← Voltar</button>
                   <div className="booking-title">
                     <span>{selectedService.name}</span>
                     <h2>Escolha a data</h2>
@@ -1174,7 +1324,6 @@ export default function AgendarClient({ studio, services, settings, professional
             {step === 'time' && selectedService && (
               <>
                 <div className="booking-step-head">
-                  <button className="booking-back" onClick={() => setStep('date')}>← Voltar</button>
                   <div className="booking-title">
                     <span>{formatDate(selectedDate)}</span>
                     <h2>Escolha o horário</h2>
@@ -1219,7 +1368,6 @@ export default function AgendarClient({ studio, services, settings, professional
             {step === 'info' && selectedService && (
               <>
                 <div className="booking-step-head">
-                  <button className="booking-back" onClick={() => setStep('time')}>← Voltar</button>
                   <div className="booking-title">
                     <span>Último passo</span>
                     <h2>Seus dados</h2>
@@ -1257,18 +1405,41 @@ export default function AgendarClient({ studio, services, settings, professional
                 <div className="booking-check">✓</div>
                 <div className="booking-title">
                   <span>Agendamento confirmado</span>
-                  <h1>Tudo certo</h1>
-                  <p>Seu horário foi registrado no sistema do studio.</p>
+                  <h1>Tudo certo, {(createdAppointment?.client_name || name).split(' ')[0]}!</h1>
+                  <p>
+                    Te esperamos {createdAppointment ? formatDateTime(createdAppointment.appointment_date) : `dia ${selectedDate} às ${selectedTime}`}
+                    {studio.address && `, em ${studio.address}`}.
+                  </p>
                 </div>
                 <div className="booking-confirm-card">
-                  <div><span>Cliente</span><strong>{createdAppointment?.client_name || name}</strong></div>
                   <div><span>Serviço</span><strong>{createdAppointment?.service_name || selectedService?.name}</strong></div>
-                  {professional && <div><span>Manicure</span><strong>{professional.name}</strong></div>}
-                  <div><span>Data</span><strong>{createdAppointment ? formatDateTime(createdAppointment.appointment_date) : `${selectedDate} ${selectedTime}`}</strong></div>
+                  {professional && <div><span>Com</span><strong>{professional.name}</strong></div>}
+                  <div><span>Quando</span><strong>{createdAppointment ? formatDateTime(createdAppointment.appointment_date) : `${selectedDate} ${selectedTime}`}</strong></div>
                   <div><span>Valor</span><strong>{money((createdAppointment?.price ?? selectedService?.price) || 0)}</strong></div>
                 </div>
-                {studio.whatsapp && <a className="booking-whatsapp" href={whatsappLink()} target="_blank" rel="noreferrer">Falar no WhatsApp</a>}
+
+                {/* Ações pós-agendamento */}
+                <div className="booking-done-actions">
+                  {studio.whatsapp && (
+                    <a className="booking-whatsapp" href={whatsappLink()} target="_blank" rel="noreferrer">
+                      💬 Confirmar no WhatsApp
+                    </a>
+                  )}
+                  
+                    className="booking-calendar"
+                    href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent((createdAppointment?.service_name || selectedService?.name || 'Agendamento') + (professional ? ` com ${professional.name}` : ''))}&dates=${(createdAppointment?.appointment_date || `${selectedDate}T${selectedTime}:00`).replace(/[-:]/g, '').slice(0,15)}/${(createdAppointment?.appointment_date || `${selectedDate}T${selectedTime}:00`).replace(/[-:]/g, '').slice(0,15)}&details=${encodeURIComponent(`${studio.name}${studio.address ? '\n' + studio.address : ''}${studio.phone || studio.whatsapp ? '\nContato: ' + (studio.phone || studio.whatsapp) : ''}`)}&location=${encodeURIComponent(studio.address || studio.name)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    📅 Adicionar ao Google Agenda
+                  </a>
+                </div>
+
                 <button className="booking-back" onClick={reset}>Fazer outro agendamento</button>
+
+                <p className="booking-policy">
+                  Precisa cancelar? Avise pelo WhatsApp com pelo menos {settings?.cancel_hours || 24}h de antecedência.
+                </p>
               </div>
             )}
           </div>
@@ -1287,6 +1458,27 @@ export default function AgendarClient({ studio, services, settings, professional
           </a>
         )}
       </section>
+
+      {/* Rodapé com info do salão */}
+      {step === 'service' && (
+        <footer className="booking-footer">
+          <div className="booking-footer-content">
+            <div className="booking-footer-brand">{studio.name}</div>
+            {studio.address && <div className="booking-footer-line">📍 {studio.address}</div>}
+            {(studio.phone || studio.whatsapp) && <div className="booking-footer-line">📞 {studio.phone || studio.whatsapp}</div>}
+            {studio.instagram && (
+              <div className="booking-footer-line">
+                <a href={`https://instagram.com/${studio.instagram.replace('@', '')}`} target="_blank" rel="noreferrer">
+                  {studio.instagram.startsWith('@') ? studio.instagram : '@' + studio.instagram}
+                </a>
+              </div>
+            )}
+            <div className="booking-footer-policy">
+              Cancele com {settings?.cancel_hours || 24}h de antecedência.
+            </div>
+          </div>
+        </footer>
+      )}
     </main>
   )
 }
