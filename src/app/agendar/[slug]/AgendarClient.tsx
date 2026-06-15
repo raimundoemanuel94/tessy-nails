@@ -765,7 +765,7 @@ export default function AgendarClient({ studio, services, settings, professional
     /* ─── HERO PROFISSIONAL ─── */
     .booking-hero {
       text-align: center;
-      padding: 38px 20px 28px;
+      padding: 44px 20px 28px;
       background: transparent;
     }
     .booking-hero-avatar-wrap {
@@ -898,37 +898,58 @@ export default function AgendarClient({ studio, services, settings, professional
       font-weight: 700;
     }
     .booking-client-access {
-      margin: 6px 20px 20px;
-      border: 1px solid rgba(var(--booking-rgb), .14);
-      background: rgba(255,255,255,.82);
-      border-radius: 10px;
-      padding: 14px;
+      margin: 0 20px 24px;
+      border: 1.5px solid rgba(var(--booking-rgb), .22);
+      background: linear-gradient(135deg, rgba(var(--booking-rgb), .06) 0%, rgba(var(--booking-rgb), .02) 100%);
+      border-radius: 14px;
+      padding: 16px 18px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      gap: 14px;
       text-decoration: none;
       color: #1a1a1a;
-      box-shadow: 0 12px 34px rgba(20,20,20,.05);
+      transition: border-color .18s, background .18s, transform .15s;
+    }
+    .booking-client-access:hover {
+      border-color: rgba(var(--booking-rgb), .45);
+      background: linear-gradient(135deg, rgba(var(--booking-rgb), .10) 0%, rgba(var(--booking-rgb), .04) 100%);
+      transform: translateY(-1px);
+    }
+    .booking-client-access-icon {
+      font-size: 22px;
+      flex: 0 0 auto;
+      line-height: 1;
+    }
+    .booking-client-access-body {
+      flex: 1;
+      min-width: 0;
     }
     .booking-client-access span {
       display: block;
       color: var(--booking-brand);
       font-size: 11px;
-      font-weight: 850;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: .08em;
-      margin-bottom: 3px;
+      letter-spacing: .1em;
+      margin-bottom: 2px;
     }
     .booking-client-access strong {
       display: block;
-      font-size: 14px;
-      font-weight: 750;
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
     }
-    .booking-client-access small {
-      color: #777;
-      font-size: 12px;
-      white-space: nowrap;
+    .booking-client-access-arrow {
+      flex: 0 0 auto;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--booking-brand);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      font-weight: 700;
     }
 
     /* ─── SEÇÃO GENÉRICA ─── */
@@ -1330,18 +1351,6 @@ export default function AgendarClient({ studio, services, settings, professional
           <>
             {/* HERO */}
             <div className="booking-hero">
-              <div className="booking-hero-avatar-wrap">
-                <div className="booking-hero-avatar">
-                  {professional?.avatar_url
-                    ? <img src={professional.avatar_url} alt={professional.name} />
-                    : professional
-                      ? professional.name.slice(0, 1).toUpperCase()
-                      : studio.avatar_url
-                        ? <img src={studio.avatar_url} alt={studio.name} />
-                        : studio.name.slice(0, 2).toUpperCase()}
-                </div>
-                <div className="booking-hero-badge">✓</div>
-              </div>
               <h1 className="booking-hero-name">{professional ? professional.name : studio.name}</h1>
               <p className="booking-hero-role">
                 {professional ? `Manicure em Sorriso - MT` : 'Agendamento online premium'}
@@ -1372,11 +1381,12 @@ export default function AgendarClient({ studio, services, settings, professional
             </div>
 
             <a className="booking-client-access" href={`/cliente/agendar/consultar?slug=${encodeURIComponent(studio.slug)}`}>
-              <div>
-                <span>Já agendou?</span>
+              <div className="booking-client-access-icon">💅</div>
+              <div className="booking-client-access-body">
+                <span>Já tem agendamento?</span>
                 <strong>Ver meus agendamentos</strong>
               </div>
-              <small>Entrar →</small>
+              <div className="booking-client-access-arrow">→</div>
             </a>
 
             {/* SERVIÇOS */}
