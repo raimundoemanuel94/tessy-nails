@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import AgendarClient from '../AgendarClient'
 import { notFound } from 'next/navigation'
 
@@ -9,7 +9,7 @@ export default async function AgendarComProfissionalPage({
   params: Promise<{ slug: string; prof: string }>
 }) {
   const { slug, prof: profSlug } = await params
-  const sb = await createClient()
+  const sb = createAdminClient()
 
   const { data: studio } = await sb
     .from('studios')

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import AgendarClient from './AgendarClient'
 import { notFound, redirect } from 'next/navigation'
 
@@ -14,7 +14,7 @@ export default async function AgendarPage({
   const sp = await searchParams
   const professionalIdParam = sp?.profissional ?? null
 
-  const sb = await createClient()
+  const sb = createAdminClient()
 
   const { data: studio } = await sb
     .from('studios')

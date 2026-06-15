@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import type React from 'react'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Search } from 'lucide-react'
+import { CheckCircle2, Search, XCircle } from 'lucide-react'
 import { BOOKING_TIME_ZONE } from '@/lib/time'
 
 type Appointment = {
@@ -46,250 +47,339 @@ function formatDateTime(value: string) {
 function formatStatus(status: string) {
   const map: Record<string, string> = {
     confirmed: 'Confirmado',
-    pending: 'Pendente',
-    completed: 'Concluido',
+    pending: 'Aguardando confirmação',
+    completed: 'Concluído',
     cancelled: 'Cancelado',
+    canceled: 'Cancelado',
+    no_show: 'Falta registrada',
   }
-
   return map[status] || status
 }
 
-function onlyAppointmentId(value: string) {
-  return value.trim().replace(/^#/, '')
+function normalizePhone(value: string) {
+  const digits = value.replace(/\D/g, '')
+  return digits.startsWith('55') && digits.length > 11 ? digits.slice(2) : digits
+}
+
+function canClientChange(status: string) {
+  return !['completed', 'cancelled', 'canceled', 'no_show'].includes(status)
 }
 
 function ConsultarAgendamentoContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const initialId = useMemo(() => onlyAppointmentId(searchParams.get('appointmentId') ?? ''), [searchParams])
+  const initialId = useMemo(() => searchParams.get('appointmentId')?.trim() ?? '', [searchParams])
+  const slug = searchParams.get('slug')?.trim() || 'tessy-nails'
 
+  const [phone, setPhone] = useState('')
   const [code, setCode] = useState(initialId)
   const [loading, setLoading] = useState(false)
+  const [actionLoading, setActionLoading] = useState('')
   const [error, setError] = useState('')
-  const [appointment, setAppointment] = useState<Appointment | null>(null)
+  const [message, setMessage] = useState('')
+  const [appointments, setAppointments] = useState<Appointment[]>([])
   const [studio, setStudio] = useState<Studio | null>(null)
 
-  async function load(id: string) {
-    const appointmentId = onlyAppointmentId(id)
-    if (!appointmentId) {
-      setError('Informe o codigo completo do agendamento.')
-      setAppointment(null)
-      setStudio(null)
+  async function loadByPhone(nextPhone = phone) {
+    const cleanPhone = normalizePhone(nextPhone)
+    if (cleanPhone.length < 10) {
+      setError('Informe o WhatsApp usado no agendamento.')
+      setAppointments([])
       return
     }
 
     setLoading(true)
     setError('')
+    setMessage('')
 
     try {
-      const response = await fetch(`/api/public/appointments/${encodeURIComponent(appointmentId)}`, {
+      const response = await fetch(`/api/public/client-appointments?slug=${encodeURIComponent(slug)}&phone=${encodeURIComponent(cleanPhone)}`, {
         cache: 'no-store',
       })
       const data = await response.json().catch(() => null)
+      if (!response.ok) throw new Error(data?.error || 'Não foi possível consultar seus agendamentos.')
 
-      if (!response.ok) throw new Error(data?.error || 'Nao encontramos esse agendamento.')
-
-      setAppointment(data?.appointment ?? null)
       setStudio(data?.studio ?? null)
-      router.replace(`/cliente/agendar/consultar?appointmentId=${encodeURIComponent(appointmentId)}`, { scroll: false })
+      setAppointments(Array.isArray(data?.appointments) ? data.appointments : [])
+      router.replace(`/cliente/agendar/consultar?slug=${encodeURIComponent(slug)}&phone=${encodeURIComponent(cleanPhone)}`, { scroll: false })
+      if (!data?.appointments?.length) setMessage('Nenhum agendamento encontrado para este WhatsApp.')
     } catch (err) {
-      setAppointment(null)
-      setStudio(null)
-      setError(err instanceof Error ? err.message : 'Nao foi possivel consultar o agendamento.')
+      setAppointments([])
+      setError(err instanceof Error ? err.message : 'Não foi possível consultar seus agendamentos.')
     } finally {
       setLoading(false)
     }
   }
 
+  async function loadByCode(id: string) {
+    const appointmentId = id.trim().replace(/^#/, '')
+    if (!appointmentId) return
+
+    setLoading(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const response = await fetch(`/api/public/appointments/${encodeURIComponent(appointmentId)}`, { cache: 'no-store' })
+      const data = await response.json().catch(() => null)
+      if (!response.ok) throw new Error(data?.error || 'Não encontramos esse agendamento.')
+
+      setStudio(data?.studio ?? null)
+      setAppointments(data?.appointment ? [data.appointment] : [])
+    } catch (err) {
+      setAppointments([])
+      setError(err instanceof Error ? err.message : 'Não foi possível consultar o agendamento.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function updateAppointment(appointmentId: string, action: 'confirm' | 'cancel') {
+    const cleanPhone = normalizePhone(phone)
+    if (cleanPhone.length < 10) {
+      setError('Informe o WhatsApp para confirmar sua identidade.')
+      return
+    }
+
+    setActionLoading(`${appointmentId}:${action}`)
+    setError('')
+    setMessage('')
+
+    try {
+      const response = await fetch(`/api/public/appointments/${encodeURIComponent(appointmentId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, phone: cleanPhone }),
+      })
+      const data = await response.json().catch(() => null)
+      if (!response.ok) throw new Error(data?.error || 'Não foi possível atualizar o agendamento.')
+
+      setAppointments((current) => current.map((item) => item.id === appointmentId ? { ...item, status: data.appointment.status } : item))
+      setMessage(action === 'confirm' ? 'Presenca confirmada com sucesso.' : 'Agendamento cancelado com sucesso.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível atualizar o agendamento.')
+    } finally {
+      setActionLoading('')
+    }
+  }
+
   useEffect(() => {
-    if (initialId) void load(initialId)
+    const phoneParam = searchParams.get('phone') ?? ''
+    if (phoneParam) {
+      setPhone(phoneParam)
+      void loadByPhone(phoneParam)
+    } else if (initialId) {
+      void loadByCode(initialId)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialId])
 
   const brand = studio?.brand_color || '#7C5CBF'
-  const bookingLink = studio?.slug ? `/agendar/${studio.slug}` : '/'
+  const bookingLink = studio?.slug ? `/agendar/${studio.slug}` : `/agendar/${slug}`
   const whatsappNumber = (studio?.whatsapp || studio?.phone || '').replace(/\D/g, '')
-  const whatsappLink = whatsappNumber && appointment
-    ? `https://wa.me/55${whatsappNumber}?text=${encodeURIComponent(`Ola! Quero falar sobre meu agendamento ${appointment.id.slice(0, 8).toUpperCase()}.`)}`
-    : ''
 
   return (
     <main style={{
       minHeight: '100vh',
-      background: '#F7F3EF',
-      color: '#2B1E1A',
+      background: 'linear-gradient(180deg, rgba(124,92,191,.10), #fff 260px)',
+      color: '#1a1a1a',
       display: 'grid',
       placeItems: 'center',
-      padding: 24,
-      backgroundImage: 'radial-gradient(850px circle at 50% -180px, rgba(124,92,191,0.15), transparent 65%)',
+      padding: 20,
     }}>
       <section style={{
         width: '100%',
         maxWidth: 760,
-        background: 'rgba(255,255,255,0.92)',
-        border: '1px solid rgba(120,90,80,0.12)',
-        borderRadius: 28,
-        boxShadow: '0 24px 80px rgba(92,58,46,0.14)',
-        padding: 28,
+        background: 'rgba(255,255,255,0.96)',
+        border: '1px solid rgba(0,0,0,0.08)',
+        borderRadius: 18,
+        boxShadow: '0 24px 70px rgba(20,20,20,0.10)',
+        padding: 24,
         display: 'grid',
-        gap: 20,
+        gap: 18,
       }}>
-        <header style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+        <nav style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Link href={bookingLink} style={{
+            minHeight: 38,
+            padding: '0 13px',
+            borderRadius: 999,
+            border: '1px solid rgba(0,0,0,0.10)',
+            color: '#555',
+            background: '#fff',
+            display: 'inline-flex',
+            alignItems: 'center',
+            textDecoration: 'none',
+            fontSize: 13,
+            fontWeight: 800,
+          }}>
+            ← Voltar para agenda
+          </Link>
+          <span style={{
+            minHeight: 34,
+            padding: '0 11px',
+            borderRadius: 999,
+            background: `${brand}14`,
+            color: brand,
+            display: 'inline-flex',
+            alignItems: 'center',
+            fontSize: 12,
+            fontWeight: 900,
+          }}>
+            Consulta por WhatsApp
+          </span>
+        </nav>
+
+        <header style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{
-            width: 52,
-            height: 52,
-            borderRadius: 18,
+            width: 50,
+            height: 50,
+            borderRadius: 14,
             background: brand,
             color: '#fff',
             display: 'grid',
             placeItems: 'center',
-            fontWeight: 900,
           }}>
             <Search size={22} />
           </div>
           <div>
-            <p style={{ margin: 0, color: '#8A7469', fontSize: 11, fontWeight: 900, letterSpacing: '.2em', textTransform: 'uppercase' }}>
-              Area da cliente
+            <p style={{ margin: 0, color: brand, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>
+              Área da cliente
             </p>
-            <h1 style={{ margin: '4px 0 0', fontFamily: 'Georgia, serif', fontSize: 34, lineHeight: 1.05 }}>
-              Consultar agendamento
+            <h1 style={{ margin: '4px 0 0', fontSize: 28, lineHeight: 1.1 }}>
+              Meus agendamentos
             </h1>
+            <p style={{ margin: '7px 0 0', color: '#777', fontSize: 13, lineHeight: 1.45 }}>
+              Entre com o WhatsApp usado no agendamento para confirmar, cancelar ou consultar seus horários.
+            </p>
           </div>
         </header>
 
         <form
           onSubmit={(event) => {
             event.preventDefault()
-            void load(code)
+            void loadByPhone()
           }}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1fr) auto',
-            gap: 10,
-          }}
+          style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10 }}
         >
           <input
-            value={code}
-            onChange={(event) => setCode(event.target.value)}
-            placeholder="Cole o codigo completo do agendamento"
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
+            placeholder="Ex: 66999990000"
+            inputMode="tel"
             style={{
               height: 48,
-              borderRadius: 14,
-              border: '1px solid rgba(120,90,80,0.18)',
-              background: '#fff',
+              borderRadius: 12,
+              border: '1px solid rgba(0,0,0,0.12)',
               padding: '0 14px',
-              color: '#2B1E1A',
               fontSize: 14,
               outline: 'none',
               minWidth: 0,
             }}
           />
-          <button
-            disabled={loading}
-            style={{
-              height: 48,
-              borderRadius: 14,
-              border: 'none',
-              background: brand,
-              color: '#fff',
-              padding: '0 18px',
-              fontWeight: 850,
-              cursor: loading ? 'wait' : 'pointer',
-              opacity: loading ? 0.75 : 1,
-            }}
-          >
-            {loading ? 'Buscando...' : 'Consultar'}
+          <button disabled={loading} style={{
+            height: 48,
+            borderRadius: 12,
+            border: 'none',
+            background: brand,
+            color: '#fff',
+            padding: '0 16px',
+            fontWeight: 850,
+            cursor: loading ? 'wait' : 'pointer',
+            opacity: loading ? 0.75 : 1,
+          }}>
+            {loading ? 'Buscando...' : 'Entrar'}
           </button>
         </form>
+        <p style={{ margin: '-8px 0 0', color: '#777', fontSize: 12, lineHeight: 1.45 }}>
+          Digite DDD + número, sem espaços, pontos ou parênteses. Exemplo: <strong style={{ color: '#444' }}>66999990000</strong>.
+        </p>
 
-        {error && (
-          <div style={{
-            borderRadius: 16,
-            padding: 14,
-            background: 'rgba(160,110,92,0.10)',
-            border: '1px solid rgba(160,110,92,0.18)',
-            color: '#8D5B4A',
-            fontSize: 13,
-            fontWeight: 700,
-          }}>
-            {error}
-          </div>
-        )}
+        <details style={{ color: '#777', fontSize: 13 }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Tenho apenas o código do agendamento</summary>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              void loadByCode(code)
+            }}
+            style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10, marginTop: 10 }}
+          >
+            <input
+              value={code}
+              onChange={(event) => setCode(event.target.value)}
+              placeholder="Codigo completo"
+              style={{ height: 44, borderRadius: 12, border: '1px solid rgba(0,0,0,0.12)', padding: '0 14px', minWidth: 0 }}
+            />
+            <button disabled={loading} style={{ height: 44, borderRadius: 12, border: '1px solid rgba(0,0,0,0.12)', background: '#fff', padding: '0 14px', fontWeight: 800 }}>
+              Consultar
+            </button>
+          </form>
+        </details>
 
-        {appointment && (
-          <div style={{
-            borderRadius: 24,
-            padding: 22,
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,245,242,0.98))',
-            border: '1px solid rgba(120,90,80,0.12)',
-            display: 'grid',
-            gap: 13,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              <div>
-                <p style={{ margin: 0, color: '#8A7469', fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>
-                  {studio?.name || 'Studio'}
-                </p>
-                <h2 style={{ margin: '5px 0 0', color: '#2B1E1A', fontSize: 22 }}>
-                  {appointment.service_name}
-                </h2>
-              </div>
-              <span style={{
-                borderRadius: 999,
-                padding: '7px 11px',
-                background: 'rgba(52,211,153,0.13)',
-                border: '1px solid rgba(52,211,153,0.22)',
-                color: '#16794F',
-                fontSize: 11,
-                fontWeight: 900,
-                textTransform: 'uppercase',
-              }}>
-                {formatStatus(appointment.status)}
-              </span>
-            </div>
+        {error && <Notice tone="danger">{error}</Notice>}
+        {message && <Notice tone="success">{message}</Notice>}
 
-            {[
-              ['Cliente', appointment.client_name],
-              ['Data e horario', formatDateTime(appointment.appointment_date)],
-              ['Duracao', `${appointment.duration_minutes} minutos`],
-              ['Valor', formatCurrency(appointment.price)],
-              ['Codigo', appointment.id],
-            ].map(([label, value]) => (
-              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, fontSize: 14 }}>
-                <span style={{ color: '#8A7469' }}>{label}</span>
-                <strong style={{ color: '#2B1E1A', textAlign: 'right', overflowWrap: 'anywhere' }}>{value}</strong>
-              </div>
-            ))}
+        {appointments.length > 0 && (
+          <div style={{ display: 'grid', gap: 12 }}>
+            {appointments.map((appointment) => {
+              const changeable = canClientChange(appointment.status)
+              return (
+                <article key={appointment.id} style={{
+                  borderRadius: 16,
+                  padding: 18,
+                  border: '1px solid rgba(0,0,0,0.08)',
+                  background: '#fff',
+                  display: 'grid',
+                  gap: 12,
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
+                    <div>
+                      <p style={{ margin: 0, color: '#777', fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
+                        {studio?.name || 'Studio'}
+                      </p>
+                      <h2 style={{ margin: '5px 0 0', fontSize: 20 }}>{appointment.service_name}</h2>
+                    </div>
+                    <StatusBadge status={appointment.status} />
+                  </div>
+
+                  <Info label="Data e horário" value={formatDateTime(appointment.appointment_date)} />
+                  <Info label="Cliente" value={appointment.client_name} />
+                  <Info label="Valor" value={formatCurrency(appointment.price)} />
+
+                  {changeable && (
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => void updateAppointment(appointment.id, 'confirm')}
+                        disabled={Boolean(actionLoading)}
+                        style={actionStyle('#16a34a', actionLoading === `${appointment.id}:confirm`)}
+                      >
+                        <CheckCircle2 size={16} /> Confirmar presença
+                      </button>
+                      <button
+                        onClick={() => void updateAppointment(appointment.id, 'cancel')}
+                        disabled={Boolean(actionLoading)}
+                        style={actionStyle('#dc2626', actionLoading === `${appointment.id}:cancel`, true)}
+                      >
+                        <XCircle size={16} /> Cancelar
+                      </button>
+                    </div>
+                  )}
+                </article>
+              )
+            })}
           </div>
         )}
 
         <footer style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <Link href={bookingLink} style={{
-            height: 46,
-            padding: '0 18px',
-            borderRadius: 14,
-            background: appointment ? brand : 'transparent',
-            border: appointment ? 'none' : '1px solid rgba(120,90,80,0.18)',
-            color: appointment ? '#fff' : '#5B4740',
-            display: 'inline-flex',
-            alignItems: 'center',
-            textDecoration: 'none',
-            fontWeight: 850,
-          }}>
+          <Link href={bookingLink} style={footerButton(brand, true)}>
             Novo agendamento
           </Link>
-          {whatsappLink && (
-            <a href={whatsappLink} target="_blank" rel="noreferrer" style={{
-              height: 46,
-              padding: '0 18px',
-              borderRadius: 14,
-              border: '1px solid rgba(120,90,80,0.18)',
-              color: '#5B4740',
-              display: 'inline-flex',
-              alignItems: 'center',
-              textDecoration: 'none',
-              fontWeight: 850,
-            }}>
+          {whatsappNumber && (
+            <a
+              href={`https://wa.me/55${whatsappNumber}?text=${encodeURIComponent('Ola! Quero falar sobre meu agendamento.')}`}
+              target="_blank"
+              rel="noreferrer"
+              style={footerButton(brand, false)}
+            >
               Falar no WhatsApp
             </a>
           )}
@@ -299,10 +389,66 @@ function ConsultarAgendamentoContent() {
   )
 }
 
+function Notice({ children, tone }: { children: React.ReactNode; tone: 'success' | 'danger' }) {
+  const color = tone === 'success' ? '#15803d' : '#b91c1c'
+  const bg = tone === 'success' ? 'rgba(22,163,74,.09)' : 'rgba(220,38,38,.08)'
+  return <div style={{ borderRadius: 12, padding: 13, background: bg, color, fontSize: 13, fontWeight: 750 }}>{children}</div>
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const color = status === 'confirmed' ? '#15803d' : status === 'pending' ? '#b45309' : ['cancelled', 'canceled', 'no_show'].includes(status) ? '#b91c1c' : '#555'
+  return (
+    <span style={{ borderRadius: 999, padding: '7px 10px', background: `${color}14`, color, fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>
+      {formatStatus(status)}
+    </span>
+  )
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 14 }}>
+      <span style={{ color: '#777' }}>{label}</span>
+      <strong style={{ textAlign: 'right' }}>{value}</strong>
+    </div>
+  )
+}
+
+function actionStyle(color: string, loading: boolean, outline = false): React.CSSProperties {
+  return {
+    minHeight: 42,
+    borderRadius: 999,
+    border: `1px solid ${color}`,
+    background: outline ? '#fff' : color,
+    color: outline ? color : '#fff',
+    padding: '0 14px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 7,
+    fontWeight: 850,
+    cursor: loading ? 'wait' : 'pointer',
+    opacity: loading ? 0.7 : 1,
+  }
+}
+
+function footerButton(brand: string, primary: boolean): React.CSSProperties {
+  return {
+    height: 44,
+    padding: '0 16px',
+    borderRadius: 12,
+    background: primary ? brand : '#fff',
+    border: primary ? 'none' : '1px solid rgba(0,0,0,0.12)',
+    color: primary ? '#fff' : '#444',
+    display: 'inline-flex',
+    alignItems: 'center',
+    textDecoration: 'none',
+    fontWeight: 850,
+  }
+}
+
 function LoadingShell() {
   return (
-    <main style={{ minHeight: '100vh', background: '#F7F3EF', display: 'grid', placeItems: 'center', padding: 24 }}>
-      <div style={{ width: '100%', maxWidth: 760, minHeight: 420, borderRadius: 28, background: 'rgba(255,255,255,0.82)' }} />
+    <main style={{ minHeight: '100vh', background: '#fff', display: 'grid', placeItems: 'center', padding: 24 }}>
+      <div style={{ width: '100%', maxWidth: 760, minHeight: 420, borderRadius: 18, background: 'rgba(0,0,0,0.04)' }} />
     </main>
   )
 }

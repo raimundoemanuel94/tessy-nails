@@ -1,7 +1,7 @@
 'use client'
 
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
-import { CalendarCheck, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock } from 'lucide-react'
+import { CalendarCheck, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Appointment } from '@/types/database'
 
@@ -24,6 +24,7 @@ const ST: Record<string, { label: string; color: string }> = {
   pending: { label: 'pendente', color: C.amber },
   completed: { label: 'concluido', color: C.purple },
   cancelled: { label: 'cancelado', color: C.red },
+  no_show: { label: 'faltou', color: C.red },
 }
 
 const money = (n: number) => `R$ ${Number(n || 0).toFixed(2).replace('.', ',')}`
@@ -88,7 +89,7 @@ export default function AgendaPage() {
       const rows = data || []
       setApts(rows)
       const next = rows
-        .filter(item => item.appointment_date >= new Date().toISOString() && !['completed', 'cancelled'].includes(item.status))
+        .filter(item => item.appointment_date >= new Date().toISOString() && !['completed', 'cancelled', 'no_show'].includes(item.status))
         .sort((a, b) => a.appointment_date.localeCompare(b.appointment_date))[0]
       if (next) setSelectedDate(next.appointment_date.slice(0, 10))
       setLoading(false)
@@ -113,7 +114,7 @@ export default function AgendaPage() {
     .sort((a, b) => a.appointment_date.localeCompare(b.appointment_date))
 
   const nextApt = apts
-    .filter(item => item.appointment_date >= new Date().toISOString() && !['completed', 'cancelled'].includes(item.status))
+    .filter(item => item.appointment_date >= new Date().toISOString() && !['completed', 'cancelled', 'no_show'].includes(item.status))
     .sort((a, b) => a.appointment_date.localeCompare(b.appointment_date))[0]
 
   const selectedRevenue = selectedApts
@@ -212,7 +213,7 @@ export default function AgendaPage() {
           const isSelected = key === selectedDate
           const isToday = key === today
           const dayAppointments = apts.filter(item => item.appointment_date.slice(0, 10) === key)
-          const activeCount = dayAppointments.filter(item => !['completed', 'cancelled'].includes(item.status)).length
+                const activeCount = dayAppointments.filter(item => !['completed', 'cancelled', 'no_show'].includes(item.status)).length
 
           return (
             <button key={key} onClick={() => setSelectedDate(key)} style={{
@@ -342,6 +343,11 @@ export default function AgendaPage() {
                   {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
                     <button onClick={() => changeStatus(appointment.id, 'completed')} style={actionStyle(C.purple)}>
                       <CheckCircle2 size={13} /> Concluir
+                    </button>
+                  )}
+                  {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
+                    <button onClick={() => changeStatus(appointment.id, 'no_show')} style={actionStyle(C.red)}>
+                      <XCircle size={13} /> Faltou
                     </button>
                   )}
                 </div>

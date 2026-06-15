@@ -1,7 +1,7 @@
 'use client'
 
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
-import { CalendarDays, Check, CheckCircle2, Clock, Search, Sparkles } from 'lucide-react'
+import { CalendarDays, Check, CheckCircle2, Clock, Search, Sparkles, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Appointment } from '@/types/database'
 
@@ -25,6 +25,7 @@ const ST: Record<string, { label: string; color: string }> = {
   pending: { label: 'pendente', color: C.amber },
   completed: { label: 'concluido', color: C.purple },
   cancelled: { label: 'cancelado', color: C.red },
+  no_show: { label: 'faltou', color: C.red },
 }
 
 const money = (n: number) => `R$ ${Number(n || 0).toFixed(2).replace('.', ',')}`
@@ -150,6 +151,11 @@ function AppointmentRow({
             <CheckCircle2 size={13} /> Concluir
           </button>
         )}
+        {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
+          <button onClick={() => onStatus(appointment.id, 'no_show')} style={actionStyle(C.red)}>
+            <XCircle size={13} /> Faltou
+          </button>
+        )}
       </div>
     </div>
   )
@@ -211,7 +217,7 @@ export default function AgendamentosPage() {
   }, [apts, filter, q])
 
   const today = todayKey()
-  const upcoming = searched.filter(item => dateKey(item.appointment_date) >= today && !['completed', 'cancelled'].includes(item.status))
+  const upcoming = searched.filter(item => dateKey(item.appointment_date) >= today && !['completed', 'cancelled', 'no_show'].includes(item.status))
   const history = searched.filter(item => !upcoming.some(next => next.id === item.id)).sort((a, b) => b.appointment_date.localeCompare(a.appointment_date))
   const count = (status: string) => status === 'todos' ? apts.length : apts.filter(item => item.status === status).length
 
@@ -267,7 +273,7 @@ export default function AgendamentosPage() {
             }}
           />
         </label>
-        {['todos', 'pending', 'confirmed', 'completed', 'cancelled'].map(item => (
+        {['todos', 'pending', 'confirmed', 'completed', 'cancelled', 'no_show'].map(item => (
           <button key={item} onClick={() => setFilter(item)} style={{
             height: 36,
             padding: '0 13px',

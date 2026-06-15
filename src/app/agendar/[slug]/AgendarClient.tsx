@@ -93,6 +93,29 @@ function getMapsUrl(studio: Studio) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(studio.address)}`
 }
 
+function dateLabel(value: string) {
+  const date = new Date(value + 'T00:00')
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const diffDays = Math.round((date.getTime() - today.getTime()) / 86400000)
+  if (diffDays === 0) return 'Hoje'
+  if (diffDays === 1) return 'Amanhã'
+  return weekdays[date.getDay()]
+}
+
+function groupSlotsByPeriod(values: string[]) {
+  return [
+    { label: 'Manhã', slots: values.filter((time) => Number(time.slice(0, 2)) < 12) },
+    { label: 'Tarde', slots: values.filter((time) => Number(time.slice(0, 2)) >= 12 && Number(time.slice(0, 2)) < 18) },
+    { label: 'Noite', slots: values.filter((time) => Number(time.slice(0, 2)) >= 18) },
+  ].filter((group) => group.slots.length > 0)
+}
+
+function isFeaturedService(service: Service, index: number) {
+  const name = service.name.toLowerCase()
+  return name.includes('manicure em gel') || (index === 0 && name.includes('manicure'))
+}
+
 function StepBar({ step }: { step: string }) {
   const steps = ['service', 'date', 'time', 'info']
   const current = Math.max(0, steps.indexOf(step))
@@ -128,6 +151,7 @@ export default function AgendarClient({ studio, services, settings, professional
   const workingHours = settings?.working_hours || {}
   const advanceDays = settings?.advance_days || 30
   const mapsUrl = getMapsUrl(studio)
+  const slotGroups = groupSlotsByPeriod(slots)
   const availableDates: string[] = []
 
   for (let i = 0; i < advanceDays; i++) {
@@ -231,7 +255,7 @@ export default function AgendarClient({ studio, services, settings, professional
       --booking-rgb: ${rgb};
       min-height: 100vh;
       color: #1a1a1a;
-      background: #ffffff;
+      background: linear-gradient(180deg, rgba(var(--booking-rgb), .07), #ffffff 230px);
       font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
       padding-bottom: 40px;
     }
@@ -244,7 +268,7 @@ export default function AgendarClient({ studio, services, settings, professional
       gap: 12px;
       min-height: 68px;
       padding: 12px 20px;
-      background: rgba(255,255,255,.85);
+      background: rgba(255,255,255,.9);
       border-bottom: 1px solid #eeeeee;
       backdrop-filter: saturate(180%) blur(14px);
     }
@@ -463,10 +487,12 @@ export default function AgendarClient({ studio, services, settings, professional
     }
     .booking-title span {
       display: block;
-      color: #999;
+      color: var(--booking-brand);
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 700;
       margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
     }
     .booking-title h1,
     .booking-title h2 {
@@ -486,7 +512,7 @@ export default function AgendarClient({ studio, services, settings, professional
       width: 100%;
       padding: 16px;
       border: 1px solid #eeeeee;
-      border-radius: 12px;
+      border-radius: 10px;
       background: #ffffff;
       cursor: pointer;
       text-align: left;
@@ -562,13 +588,28 @@ export default function AgendarClient({ studio, services, settings, professional
     .booking-date em { color: #999; font-size: 11px; font-style: normal; font-weight: 500; }
     .booking-time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
     .booking-time { min-height: 46px; font-size: 14.5px; font-weight: 600; }
+    .booking-time-groups {
+      display: grid;
+      gap: 18px;
+    }
+    .booking-time-group {
+      display: grid;
+      gap: 9px;
+    }
+    .booking-time-label {
+      color: #555;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
     .booking-state {
       min-height: 160px;
       display: grid;
       place-items: center;
       text-align: center;
       color: #888;
-      border-radius: 12px;
+      border-radius: 10px;
       border: 1px dashed #dddddd;
       background: #fafafa;
       padding: 24px;
@@ -601,6 +642,12 @@ export default function AgendarClient({ studio, services, settings, professional
       color: #555;
       font-size: 12.5px;
       font-weight: 500;
+    }
+    .booking-field-help {
+      color: #888;
+      font-size: 12px;
+      line-height: 1.45;
+      margin: -1px 0 0;
     }
     .booking-field input,
     .booking-field textarea {
@@ -643,6 +690,21 @@ export default function AgendarClient({ studio, services, settings, professional
       font-size: 12.5px;
     }
     .booking-done { text-align: center; display: grid; gap: 18px; }
+    .booking-done-avatar {
+      width: 78px;
+      height: 78px;
+      margin: 0 auto -4px;
+      border-radius: 50%;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 700;
+      background: var(--booking-brand);
+      border: 4px solid #ffffff;
+      box-shadow: 0 14px 34px rgba(20,20,20,.12);
+    }
+    .booking-done-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .booking-check {
       width: 64px;
       height: 64px;
@@ -673,11 +735,24 @@ export default function AgendarClient({ studio, services, settings, professional
       transition: opacity .15s;
     }
     .booking-whatsapp:hover { opacity: .92; }
+    .booking-map-link {
+      min-height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: var(--booking-brand);
+      background: rgba(var(--booking-rgb), .08);
+      border: 1px solid rgba(var(--booking-rgb), .16);
+      font-size: 14px;
+      font-weight: 600;
+    }
     /* ─── HERO PROFISSIONAL ─── */
     .booking-hero {
       text-align: center;
-      padding: 32px 20px 24px;
-      background: #ffffff;
+      padding: 38px 20px 28px;
+      background: transparent;
     }
     .booking-hero-avatar-wrap {
       position: relative;
@@ -685,17 +760,19 @@ export default function AgendarClient({ studio, services, settings, professional
       margin-bottom: 14px;
     }
     .booking-hero-avatar {
-      width: 104px;
-      height: 104px;
+      width: 128px;
+      height: 128px;
       border-radius: 50%;
       background: var(--booking-brand);
       color: #fff;
       display: grid;
       place-items: center;
-      font-size: 36px;
+      font-size: 42px;
       font-weight: 600;
       overflow: hidden;
       margin: 0 auto;
+      border: 4px solid #ffffff;
+      box-shadow: 0 18px 46px rgba(20,20,20,.12);
     }
     .booking-hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .booking-hero-badge {
@@ -714,16 +791,16 @@ export default function AgendarClient({ studio, services, settings, professional
       font-weight: 700;
     }
     .booking-hero-name {
-      font-size: 24px;
+      font-size: 30px;
       font-weight: 700;
       color: #1a1a1a;
-      letter-spacing: -0.025em;
+      letter-spacing: 0;
       margin: 0;
     }
     .booking-hero-role {
       font-size: 14px;
-      color: #777;
-      margin: 4px 0 0;
+      color: #666;
+      margin: 6px 0 0;
     }
     .booking-hero-rating {
       display: inline-flex;
@@ -740,7 +817,7 @@ export default function AgendarClient({ studio, services, settings, professional
     .booking-hero-info {
       display: flex;
       justify-content: center;
-      gap: 18px;
+      gap: 8px;
       margin-top: 14px;
       font-size: 12.5px;
       color: #666;
@@ -751,6 +828,11 @@ export default function AgendarClient({ studio, services, settings, professional
       display: inline-flex;
       align-items: center;
       gap: 5px;
+      min-height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.76);
+      border: 1px solid rgba(0,0,0,.06);
     }
     .booking-hero-info a {
       color: #666;
@@ -763,32 +845,91 @@ export default function AgendarClient({ studio, services, settings, professional
       justify-content: center;
       gap: 8px;
       width: 100%;
-      max-width: 360px;
-      margin: 22px auto 0;
-      padding: 13px 18px;
+      max-width: 310px;
+      margin: 20px auto 0;
+      padding: 12px 18px;
       background: #22c55e;
       color: #fff;
       border: none;
-      border-radius: 12px;
-      font-size: 14.5px;
+      border-radius: 999px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       text-decoration: none;
       transition: opacity .15s;
     }
     .booking-hero-whatsapp:hover { opacity: .92; }
+    .booking-hero-actions {
+      width: min(100%, 360px);
+      margin: 20px auto 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .booking-hero-cta,
+    .booking-hero-whatsapp {
+      max-width: none;
+      margin: 0;
+    }
+    .booking-hero-cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      border-radius: 999px;
+      background: #1a1a1a;
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .booking-client-access {
+      margin: 6px 20px 20px;
+      border: 1px solid rgba(var(--booking-rgb), .14);
+      background: rgba(255,255,255,.82);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      text-decoration: none;
+      color: #1a1a1a;
+      box-shadow: 0 12px 34px rgba(20,20,20,.05);
+    }
+    .booking-client-access span {
+      display: block;
+      color: var(--booking-brand);
+      font-size: 11px;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 3px;
+    }
+    .booking-client-access strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 750;
+    }
+    .booking-client-access small {
+      color: #777;
+      font-size: 12px;
+      white-space: nowrap;
+    }
 
     /* ─── SEÇÃO GENÉRICA ─── */
     .booking-section {
-      padding: 24px 20px;
-      border-top: 1px solid #eeeeee;
+      padding: 22px 20px;
+      border-top: 1px solid rgba(0,0,0,.05);
       background: #ffffff;
     }
     .booking-section-title {
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 600;
-      color: #1a1a1a;
+      color: #555;
       margin: 0 0 14px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
     }
 
     /* ─── GALERIA ─── */
@@ -816,21 +957,23 @@ export default function AgendarClient({ studio, services, settings, professional
 
     /* ─── SERVIÇO CARD GRANDE ─── */
     .booking-svc-card {
-      border: 1px solid #eeeeee;
-      border-radius: 14px;
-      padding: 16px;
+      border: 1px solid rgba(0,0,0,.07);
+      border-radius: 10px;
+      padding: 18px;
       background: #ffffff;
       cursor: pointer;
       text-align: left;
-      transition: border-color .15s, background .15s;
+      transition: border-color .15s, background .15s, transform .15s, box-shadow .15s;
       width: 100%;
       display: block;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
+      box-shadow: 0 10px 30px rgba(20,20,20,.04);
     }
-    .booking-svc-card:hover { border-color: #cccccc; background: #fafafa; }
+    .booking-svc-card:hover { border-color: rgba(var(--booking-rgb), .35); background: #ffffff; transform: translateY(-1px); box-shadow: 0 16px 38px rgba(20,20,20,.08); }
     .booking-svc-card.is-featured {
       border-width: 2px;
       border-color: var(--booking-brand);
+      box-shadow: 0 18px 44px rgba(var(--booking-rgb), .14);
     }
     .booking-svc-badge {
       display: inline-flex;
@@ -842,11 +985,11 @@ export default function AgendarClient({ studio, services, settings, professional
       border-radius: 999px;
       font-size: 11px;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
     .booking-svc-name {
-      font-size: 15.5px;
-      font-weight: 600;
+      font-size: 16px;
+      font-weight: 650;
       color: #1a1a1a;
       margin: 0;
     }
@@ -859,7 +1002,7 @@ export default function AgendarClient({ studio, services, settings, professional
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: 12px;
+      margin-top: 14px;
     }
     .booking-svc-price {
       font-size: 18px;
@@ -871,21 +1014,16 @@ export default function AgendarClient({ studio, services, settings, professional
       align-items: center;
       gap: 5px;
       padding: 9px 15px;
-      border-radius: 9px;
+      border-radius: 999px;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      border: 1px solid #e5e5e5;
-      background: #ffffff;
-      color: #555;
-      transition: background .15s, border-color .15s;
-    }
-    .booking-svc-card.is-featured .booking-svc-btn {
+      border: 1px solid var(--booking-brand);
       background: var(--booking-brand);
       color: #ffffff;
-      border-color: var(--booking-brand);
+      transition: background .15s, border-color .15s;
     }
-    .booking-svc-btn:hover { background: #fafafa; }
+    .booking-svc-btn:hover { opacity: .9; }
     .booking-svc-card.is-featured .booking-svc-btn:hover { opacity: .92; background: var(--booking-brand); }
 
     /* ─── HORÁRIO ─── */
@@ -935,15 +1073,24 @@ export default function AgendarClient({ studio, services, settings, professional
 
     /* ─── RESUMO STICKY DURANTE FLUXO ─── */
     .booking-summary-sticky {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
       gap: 12px;
-      padding: 12px 14px;
-      background: #fafafa;
-      border: 1px solid #eeeeee;
+      padding: 15px 16px;
+      background: #ffffff;
+      border: 1px solid rgba(var(--booking-rgb), .14);
       border-radius: 10px;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 14px 34px rgba(20,20,20,.06);
+    }
+    .booking-summary-label {
+      grid-column: 1 / -1;
+      color: var(--booking-brand);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
     }
     .booking-summary-sticky-info {
       flex: 1;
@@ -951,7 +1098,7 @@ export default function AgendarClient({ studio, services, settings, professional
     }
     .booking-summary-sticky-name {
       font-size: 13.5px;
-      font-weight: 600;
+      font-weight: 700;
       color: #1a1a1a;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -978,6 +1125,12 @@ export default function AgendarClient({ studio, services, settings, professional
       font-size: 11.5px;
       color: #888;
       margin-top: 1px;
+    }
+    .booking-trust-note {
+      color: #888;
+      font-size: 12px;
+      line-height: 1.45;
+      margin-top: -4px;
     }
 
     /* ─── INDICADOR DE PASSO ─── */
@@ -1128,7 +1281,7 @@ export default function AgendarClient({ studio, services, settings, professional
           <strong>{studio.name}</strong>
           {studio.address && mapsUrl ? (
             <a className="booking-brand-address" href={mapsUrl} target="_blank" rel="noreferrer">
-              {studio.address}
+              Ver endereço
             </a>
           ) : (
             <span>{studio.address || 'Agendamento online'}</span>
@@ -1152,7 +1305,7 @@ export default function AgendarClient({ studio, services, settings, professional
               {studio.instagram}
             </a>
           )}
-          <a className="booking-header-action" href="/cliente/agendar/consultar" title="Consultar agendamento">
+          <a className="booking-header-action" href={`/cliente/agendar/consultar?slug=${encodeURIComponent(studio.slug)}`} title="Consultar agendamento">
             Meus agendamentos
           </a>
         </div>
@@ -1177,7 +1330,7 @@ export default function AgendarClient({ studio, services, settings, professional
               </div>
               <h1 className="booking-hero-name">{professional ? professional.name : studio.name}</h1>
               <p className="booking-hero-role">
-                {professional ? `Manicure no ${studio.name}` : 'Agendamento online'}
+                {professional ? `Manicure em Sorriso - MT` : 'Agendamento online premium'}
               </p>
 
               <div className="booking-hero-info">
@@ -1189,62 +1342,67 @@ export default function AgendarClient({ studio, services, settings, professional
                 <span>🕐 Atende seg–sáb</span>
               </div>
 
-              {(studio.whatsapp || studio.phone) && (
-                <a
-                  className="booking-hero-whatsapp"
-                  href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '')}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  💬 Conversar no WhatsApp
-                </a>
-              )}
-            </div>
-
-            {/* GALERIA — placeholder pra Fase B */}
-            <div className="booking-section">
-              <div className="booking-section-title">Trabalhos recentes</div>
-              <div className="booking-gallery">
-                <div className="booking-gallery-empty">
-                  Em breve, fotos dos trabalhos da {professional ? professional.name : 'manicure'}
-                </div>
+              <div className="booking-hero-actions">
+                <a className="booking-hero-cta" href="#servicos">Agendar agora</a>
+                {(studio.whatsapp || studio.phone) && (
+                  <a
+                    className="booking-hero-whatsapp"
+                    href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    WhatsApp
+                  </a>
+                )}
               </div>
             </div>
 
+            <a className="booking-client-access" href={`/cliente/agendar/consultar?slug=${encodeURIComponent(studio.slug)}`}>
+              <div>
+                <span>Já agendou?</span>
+                <strong>Ver meus agendamentos</strong>
+              </div>
+              <small>Entrar →</small>
+            </a>
+
             {/* SERVIÇOS */}
-            <div className="booking-section">
-              <div className="booking-section-title">Serviços</div>
+            <div className="booking-section" id="servicos">
+              <div className="booking-section-title">Escolha seu atendimento</div>
               {services.length === 0 ? (
                 <div className="booking-state">Nenhum serviço disponível no momento.</div>
               ) : (
-                services.map((service, idx) => (
-                  <button
-                    key={service.id}
-                    className="booking-svc-card"
-                    onClick={() => {
-                      setSelectedService(service)
-                      setSelectedDate('')
-                      setSelectedTime('')
-                      setSlots([])
-                      setSlotError('')
-                      setBookingError('')
-                      setCreatedAppointment(null)
-                      setStep('date')
-                    }}
-                  >
-                    <div className="booking-svc-name">{service.name}</div>
-                    <div className="booking-svc-meta">
-                      {service.duration_minutes} min
-                      {service.category && ` · ${service.category}`}
-                    </div>
+                services.map((service, idx) => {
+                  const featured = isFeaturedService(service, idx)
+                  return (
+                    <button
+                      key={service.id}
+                      className={`booking-svc-card ${featured ? 'is-featured' : ''}`}
+                      onClick={() => {
+                        setSelectedService(service)
+                        setSelectedDate('')
+                        setSelectedTime('')
+                        setSlots([])
+                        setSlotError('')
+                        setBookingError('')
+                        setCreatedAppointment(null)
+                        setStep('date')
+                      }}
+                    >
+                      {featured && <div className="booking-svc-badge">Mais escolhido</div>}
+                      <div className="booking-svc-name">{service.name}</div>
+                      <div className="booking-svc-meta">
+                        Atendimento de {service.duration_minutes} min
+                        {service.category && ` · ${service.category}`}
+                      </div>
                     <div className="booking-svc-footer">
                       <div className="booking-svc-price">{money(service.price)}</div>
                       <div className="booking-svc-btn">
-                        Agendar →
+                        Escolher
                       </div>
                     </div>
                   </button>
-                ))
+                  )
+                })
               )}
             </div>
 
@@ -1274,15 +1432,15 @@ export default function AgendarClient({ studio, services, settings, professional
               <div className="booking-section-title">Como funciona</div>
               <div className="booking-howto-step">
                 <div className="booking-howto-num">1</div>
-                <div className="booking-howto-text">Escolha o serviço que você quer</div>
+                <div className="booking-howto-text">Escolha o serviço</div>
               </div>
               <div className="booking-howto-step">
                 <div className="booking-howto-num">2</div>
-                <div className="booking-howto-text">Veja os horários disponíveis</div>
+                <div className="booking-howto-text">Selecione data e horário</div>
               </div>
               <div className="booking-howto-step">
                 <div className="booking-howto-num">3</div>
-                <div className="booking-howto-text">Confirme com seu nome e WhatsApp</div>
+                <div className="booking-howto-text">Confirme pelo WhatsApp</div>
               </div>
             </div>
           </>
@@ -1294,6 +1452,7 @@ export default function AgendarClient({ studio, services, settings, professional
             {/* Resumo sempre visível durante o fluxo */}
             {step !== 'done' && selectedService && (
               <div className="booking-summary-sticky">
+                <div className="booking-summary-label">Sua reserva</div>
                 <div className="booking-summary-sticky-info">
                   <div className="booking-summary-sticky-name">{selectedService.name}</div>
                   <div className="booking-summary-sticky-meta">
@@ -1322,9 +1481,9 @@ export default function AgendarClient({ studio, services, settings, professional
               <>
                 <div className="booking-step-head">
                   <div className="booking-title">
-                    <span>{selectedService.name}</span>
-                    <h2>Escolha a data</h2>
-                    <p>Mostramos apenas dias abertos para agendamento.</p>
+                    <span>Serviço escolhido</span>
+                    <h2>Escolha a melhor data</h2>
+                    <p>{selectedService.name} · {money(selectedService.price)}</p>
                   </div>
                 </div>
                 <div className="booking-date-grid">
@@ -1343,7 +1502,7 @@ export default function AgendarClient({ studio, services, settings, professional
                           void fetchSlots(date, selectedService)
                         }}
                       >
-                        <small>{weekdays[parsed.getDay()]}</small>
+                        <small>{dateLabel(date)}</small>
                         <strong>{parsed.getDate()}</strong>
                         <em>{parsed.toLocaleDateString('pt-BR', { month: 'short' })}</em>
                       </button>
@@ -1359,7 +1518,7 @@ export default function AgendarClient({ studio, services, settings, professional
                   <div className="booking-title">
                     <span>{formatDate(selectedDate)}</span>
                     <h2>Escolha o horário</h2>
-                    <p>{selectedService.name}</p>
+                    <p>{selectedService.name} · {selectedService.duration_minutes} min</p>
                   </div>
                 </div>
                 {loadingSlots ? (
@@ -1379,18 +1538,25 @@ export default function AgendarClient({ studio, services, settings, professional
                     </div>
                   </div>
                 ) : (
-                  <div className="booking-time-grid">
-                    {slots.map((time) => (
-                      <button
-                        key={time}
-                        className={`booking-time ${time === selectedTime ? 'is-active' : ''}`}
-                        onClick={() => {
-                          setSelectedTime(time)
-                          setStep('info')
-                        }}
-                      >
-                        {time}
-                      </button>
+                  <div className="booking-time-groups">
+                    {slotGroups.map((group) => (
+                      <section className="booking-time-group" key={group.label}>
+                        <div className="booking-time-label">{group.label}</div>
+                        <div className="booking-time-grid">
+                          {group.slots.map((time) => (
+                            <button
+                              key={time}
+                              className={`booking-time ${time === selectedTime ? 'is-active' : ''}`}
+                              onClick={() => {
+                                setSelectedTime(time)
+                                setStep('info')
+                              }}
+                            >
+                              {time}
+                            </button>
+                          ))}
+                        </div>
+                      </section>
                     ))}
                   </div>
                 )}
@@ -1403,7 +1569,7 @@ export default function AgendarClient({ studio, services, settings, professional
                   <div className="booking-title">
                     <span>Último passo</span>
                     <h2>Seus dados</h2>
-                    <p>Confirme suas informações para reservar o horário.</p>
+                    <p>Confirme nome e WhatsApp para reservar seu horário.</p>
                   </div>
                 </div>
                 <div className="booking-summary">
@@ -1413,20 +1579,26 @@ export default function AgendarClient({ studio, services, settings, professional
                     <p>{formatDate(selectedDate)} às {selectedTime} · {money(selectedService.price)}</p>
                   </div>
                 </div>
+                <p className="booking-trust-note">
+                  Atendimento com hora marcada. Cancelamento com até {settings?.cancel_hours || 24}h de antecedência.
+                </p>
                 <div className="booking-field">
                   <label>Nome completo</label>
                   <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Ex: Ana Silva" />
                 </div>
                 <div className="booking-field">
                   <label>WhatsApp</label>
-                  <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="(66) 99999-0000" inputMode="tel" />
+                  <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="66999990000" inputMode="tel" />
+                  <p className="booking-field-help">
+                    Use DDD + numero, sem espacos. Exemplo: 66999990000.
+                  </p>
                 </div>
                 <div className="booking-field">
                   <label>Observações (opcional)</label>
                   <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Alergias, preferências de esmalte..." />
                 </div>
                 <button className="booking-primary" onClick={submit} disabled={loading || !name.trim() || !phone.trim()}>
-                  {loading ? 'Confirmando...' : 'Confirmar agendamento'}
+                  {loading ? 'Confirmando...' : 'Confirmar horário'}
                 </button>
                 {bookingError && <div className="booking-error">{bookingError}</div>}
               </>
@@ -1434,9 +1606,16 @@ export default function AgendarClient({ studio, services, settings, professional
 
             {step === 'done' && (
               <div className="booking-done">
+                <div className="booking-done-avatar">
+                  {professional?.avatar_url
+                    ? <img src={professional.avatar_url} alt={professional.name} />
+                    : studio.avatar_url
+                      ? <img src={studio.avatar_url} alt={studio.name} />
+                      : (professional?.name || studio.name).slice(0, 1).toUpperCase()}
+                </div>
                 <div className="booking-check">✓</div>
                 <div className="booking-title">
-                  <span>Agendamento confirmado</span>
+                  <span>Horário reservado</span>
                   <h1>Tudo certo, {(createdAppointment?.client_name || name).split(' ')[0]}!</h1>
                   <p>
                     Te esperamos {createdAppointment ? formatDateTime(createdAppointment.appointment_date) : `dia ${selectedDate} às ${selectedTime}`}
@@ -1465,6 +1644,11 @@ export default function AgendarClient({ studio, services, settings, professional
                   >
                     📅 Adicionar ao Google Agenda
                   </a>
+                  {mapsUrl && (
+                    <a className="booking-map-link" href={mapsUrl} target="_blank" rel="noreferrer">
+                      📍 Ver endereço no mapa
+                    </a>
+                  )}
                 </div>
 
                 <button className="booking-back" onClick={reset}>Fazer outro agendamento</button>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BOOKING_TIME_ZONE, localDateTimeToUtc, zonedDateString, zonedDayRange } from "@/lib/time";
+import { normalizePhone } from "@/lib/booking/client-access";
 
 type AppointmentBody = {
   slug?: string;
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
   const clientEmail = body.clientEmail ?? body.client_email ?? "";
   const notes = body.notes?.trim() || null;
 
-  if (!appointmentInput || !serviceId || !clientName.trim() || (!studioIdInput && !slugInput)) {
+  if (!appointmentInput || !serviceId || !clientName.trim() || !clientPhone.trim() || (!studioIdInput && !slugInput)) {
     return bad("Campos obrigatórios: studioId ou slug, serviceId, appointmentDate, clientName");
   }
 
@@ -117,22 +118,32 @@ export async function POST(req: Request) {
     .eq("studio_id", studio.id)
     .single();
 
-  const status = settings?.auto_confirm ? "confirmed" : "pending";
+  let status = "pending";
 
   let clientId: string | null = null;
-  const phone = clientPhone.trim();
+  const phone = normalizePhone(clientPhone);
 
   if (phone) {
-    const { data: existing } = await supabase
+    const { data: existingClients } = await supabase
       .from("clients")
-      .select("id")
+      .select("id, phone")
       .eq("studio_id", studio.id)
-      .eq("phone", phone)
-      .maybeSingle();
+      .not("phone", "is", null);
+    const existing = (existingClients ?? []).find((client) => normalizePhone(client.phone) === phone);
     clientId = existing?.id ?? null;
   }
 
-  if (!clientId) {
+  if (clientId) {
+    await supabase
+      .from("clients")
+      .update({
+        name: clientName.trim(),
+        phone,
+        email: clientEmail.trim() || null,
+        is_active: true,
+      })
+      .eq("id", clientId);
+  } else {
     const { data: newClient, error: clientError } = await supabase
       .from("clients")
       .insert({
@@ -149,6 +160,22 @@ export async function POST(req: Request) {
     clientId = newClient.id;
   }
 
+  const { data: history } = await supabase
+    .from("appointments")
+    .select("status")
+    .eq("studio_id", studio.id)
+    .eq("client_id", clientId);
+
+  const noShows = (history ?? []).filter((appointment) => appointment.status === "no_show").length;
+  const cancellations = (history ?? []).filter((appointment) => ["cancelled", "canceled"].includes(appointment.status)).length;
+  const needsManualReview = noShows > 0 || cancellations >= 2;
+
+  if (noShows >= 2) {
+    return bad("Este WhatsApp tem faltas registradas. Para agendar novamente, fale com o salão pelo WhatsApp.", 403);
+  }
+
+  if (needsManualReview) status = "pending";
+
   const { data: appointment, error: appointmentError } = await supabase
     .from("appointments")
     .insert({
@@ -162,7 +189,10 @@ export async function POST(req: Request) {
       price: service.price,
       status,
       source: "public",
-      notes,
+      notes: [
+        notes,
+        needsManualReview ? "Atencao: cliente com historico de cancelamento/falta. Confirmar manualmente." : null,
+      ].filter(Boolean).join("\n") || null,
     })
     .select(
       "id, status, appointment_date, client_name, service_name, price, duration_minutes, client_id, service_id, studio_id",
