@@ -1,7 +1,7 @@
 'use client'
 
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
-import { CalendarCheck, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, XCircle } from 'lucide-react'
+import { CalendarCheck, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, Copy, ExternalLink, Share2, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Appointment } from '@/types/database'
 
@@ -73,6 +73,10 @@ export default function AgendaPage() {
   const [loading, setLoading] = useState(true)
   const [offset, setOffset] = useState(0)
   const [selectedDate, setSelectedDate] = useState(ymd(new Date()))
+  const [studioSlug, setStudioSlug] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [bannerOpen, setBannerOpen] = useState(false)
+  const [bannerSlots, setBannerSlots] = useState<string[]>([])
 
   useEffect(() => {
     const load = async () => {
@@ -81,6 +85,8 @@ export default function AgendaPage() {
       if (!user) { setLoading(false); return }
       const { data: profile } = await sb.from('profiles').select('studio_id').eq('id', user.id).single()
       if (!profile?.studio_id) { setLoading(false); return }
+      const { data: studioData } = await sb.from('studios').select('slug').eq('id', profile.studio_id).single()
+      if (studioData?.slug) setStudioSlug(studioData.slug)
       const { data } = await sb
         .from('appointments')
         .select('*')
@@ -127,6 +133,12 @@ export default function AgendaPage() {
     setApts(prev => prev.map(item => item.id === id ? { ...item, status } : item))
   }
 
+  const bookingUrl = studioSlug ? `${typeof window !== 'undefined' ? window.location.origin : ''}/agendar/${studioSlug}` : ''
+  const copyLink = () => {
+    if (!bookingUrl) return
+    navigator.clipboard.writeText(bookingUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+  }
+
   if (loading) {
     return <div style={{ display: 'grid', placeItems: 'center', minHeight: '60vh', color: C.muted }}>Carregando agenda...</div>
   }
@@ -155,6 +167,32 @@ export default function AgendaPage() {
           </button>
         </div>
       </header>
+
+      {studioSlug && (
+        <section style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) auto auto',
+          gap: 8,
+          alignItems: 'center',
+          padding: '12px 16px',
+          borderRadius: 14,
+          background: `${C.purple}12`,
+          border: `1px solid ${C.purple}28`,
+        }}>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ margin: 0, color: C.purple, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Seu link de agendamento</p>
+            <p style={{ margin: '3px 0 0', color: C.muted, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bookingUrl}</p>
+          </div>
+          <button onClick={copyLink} title="Copiar link" style={{ ...navButtonStyle, gap: 5, padding: '0 12px', minWidth: 'auto', color: copied ? C.green : C.purple, border: `1px solid ${copied ? C.green : C.purple}44` }}>
+            <Copy size={13} />
+            <span style={{ fontSize: 11, fontWeight: 850 }}>{copied ? 'Copiado!' : 'Copiar'}</span>
+          </button>
+          <a href={bookingUrl} target="_blank" rel="noreferrer" title="Abrir link" style={{ ...navButtonStyle, gap: 5, padding: '0 12px', minWidth: 'auto', color: C.muted, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+            <ExternalLink size={13} />
+            <span style={{ fontSize: 11, fontWeight: 850 }}>Abrir</span>
+          </a>
+        </section>
+      )}
 
       {nextApt && (
         <section style={{
@@ -356,6 +394,151 @@ export default function AgendaPage() {
           })
         )}
       </section>
+
+
+      {/* ─── BANNER DE VAGAS ─── */}
+      {studioSlug && (
+        <section style={{
+          background: C.card,
+          border: `1px solid ${C.border}`,
+          borderRadius: 16,
+          overflow: 'hidden',
+        }}>
+          <button
+            onClick={() => setBannerOpen(v => !v)}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '14px 18px',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Share2 size={16} color={C.pink} />
+              <span style={{ color: C.text, fontSize: 14, fontWeight: 850 }}>Montar banner de vagas</span>
+            </div>
+            <span style={{ color: C.muted, fontSize: 12 }}>{bannerOpen ? '▲ fechar' : '▼ abrir'}</span>
+          </button>
+
+          {bannerOpen && (() => {
+            const freeSlots = (() => {
+              const booked = selectedApts
+                .filter(a => !['cancelled', 'no_show'].includes(a.status))
+                .map(a => a.appointment_date.slice(11, 16))
+              const all = ['09:00','09:30','10:00','10:30','11:00','11:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30']
+              return all.filter(s => !booked.includes(s))
+            })()
+
+            const slugLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/agendar/${studioSlug}`
+
+            const toggle = (slot: string) =>
+              setBannerSlots(prev => prev.includes(slot) ? prev.filter(s => s !== slot) : [...prev, slot])
+
+            const shareText = bannerSlots.length === 0 ? '' :
+              `💅 Vagas disponíveis — ${new Date(selectedDate + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}\n\n` +
+              bannerSlots.map(s => `🕐 ${s}`).join('\n') +
+              `\n\n👉 Agende pelo link:\n${slugLink}`
+
+            const handleShare = async () => {
+              if (!shareText) return
+              if (navigator.share) {
+                try { await navigator.share({ text: shareText }) } catch {}
+              } else {
+                await navigator.clipboard.writeText(shareText)
+                alert('Texto copiado!')
+              }
+            }
+
+            return (
+              <div style={{ padding: '0 18px 18px', borderTop: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <p style={{ margin: '14px 0 4px', color: C.muted, fontSize: 12 }}>
+                  Dia: <strong style={{ color: C.text }}>{longDate(selectedDate)}</strong> · Selecione os horários livres para incluir no banner
+                </p>
+
+                {freeSlots.length === 0 ? (
+                  <p style={{ color: C.muted, fontSize: 13, textAlign: 'center', padding: '12px 0' }}>Nenhum horário livre neste dia.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {freeSlots.map(slot => {
+                      const active = bannerSlots.includes(slot)
+                      return (
+                        <button
+                          key={slot}
+                          onClick={() => toggle(slot)}
+                          style={{
+                            height: 36,
+                            padding: '0 14px',
+                            borderRadius: 10,
+                            border: `1px solid ${active ? C.pink : C.border2}`,
+                            background: active ? `${C.pink}22` : C.card2,
+                            color: active ? C.pink : C.muted,
+                            fontWeight: 850,
+                            fontSize: 13,
+                            cursor: 'pointer',
+                            fontFamily: 'inherit',
+                          }}
+                        >
+                          {slot}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {bannerSlots.length > 0 && (
+                  <>
+                    <div style={{
+                      background: C.card2,
+                      border: `1px solid ${C.border2}`,
+                      borderRadius: 12,
+                      padding: '14px 16px',
+                    }}>
+                      <p style={{ margin: '0 0 8px', color: C.pink, fontSize: 11, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>
+                        Prévia do banner
+                      </p>
+                      <p style={{ margin: '0 0 6px', color: C.text, fontSize: 13, fontWeight: 850 }}>
+                        💅 Vagas disponíveis — {new Date(selectedDate + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                      </p>
+                      {bannerSlots.map(s => (
+                        <p key={s} style={{ margin: '2px 0', color: C.muted, fontSize: 13 }}>🕐 {s}</p>
+                      ))}
+                      <p style={{ margin: '8px 0 0', color: C.purple, fontSize: 12 }}>
+                        👉 {slugLink}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => void handleShare()}
+                      style={{
+                        height: 44,
+                        borderRadius: 12,
+                        border: 'none',
+                        background: C.pink,
+                        color: '#fff',
+                        fontWeight: 850,
+                        fontSize: 14,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                      }}
+                    >
+                      <Share2 size={15} /> Compartilhar banner
+                    </button>
+                  </>
+                )}
+              </div>
+            )
+          })()}
+        </section>
+      )}
 
       <style>{`
         @media (max-width: 760px) {
