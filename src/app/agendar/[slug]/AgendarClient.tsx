@@ -87,6 +87,12 @@ function formatDateTime(value: string) {
   })
 }
 
+function getMapsUrl(studio: Studio) {
+  if (studio.slug === 'tessy-nails') return 'https://maps.app.goo.gl/kg9QsK72y4eAaNPL8'
+  if (!studio.address) return ''
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(studio.address)}`
+}
+
 function StepBar({ step }: { step: string }) {
   const steps = ['service', 'date', 'time', 'info']
   const current = Math.max(0, steps.indexOf(step))
@@ -121,6 +127,7 @@ export default function AgendarClient({ studio, services, settings, professional
 
   const workingHours = settings?.working_hours || {}
   const advanceDays = settings?.advance_days || 30
+  const mapsUrl = getMapsUrl(studio)
   const availableDates: string[] = []
 
   for (let i = 0; i < advanceDays; i++) {
@@ -257,7 +264,8 @@ export default function AgendarClient({ studio, services, settings, professional
     .booking-logo img { width: 100%; height: 100%; object-fit: cover; }
     .booking-brand-copy { min-width: 0; flex: 1; }
     .booking-brand-copy strong,
-    .booking-brand-copy span {
+    .booking-brand-copy span,
+    .booking-brand-address {
       display: block;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -265,6 +273,14 @@ export default function AgendarClient({ studio, services, settings, professional
     }
     .booking-brand-copy strong { font-size: 15px; font-weight: 600; color: #1a1a1a; letter-spacing: -.01em; }
     .booking-brand-copy span { color: #777; font-size: 12px; margin-top: 2px; font-weight: 400; }
+    .booking-brand-address {
+      color: #777;
+      font-size: 12px;
+      margin-top: 2px;
+      font-weight: 400;
+      text-decoration: none;
+    }
+    .booking-brand-address:hover { color: var(--booking-brand); }
     .booking-instagram {
       color: #555;
       text-decoration: none;
@@ -730,11 +746,17 @@ export default function AgendarClient({ studio, services, settings, professional
       color: #666;
       flex-wrap: wrap;
     }
-    .booking-hero-info span {
+    .booking-hero-info span,
+    .booking-hero-info a {
       display: inline-flex;
       align-items: center;
       gap: 5px;
     }
+    .booking-hero-info a {
+      color: #666;
+      text-decoration: none;
+    }
+    .booking-hero-info a:hover { color: var(--booking-brand); }
     .booking-hero-whatsapp {
       display: flex;
       align-items: center;
@@ -1104,7 +1126,13 @@ export default function AgendarClient({ studio, services, settings, professional
         </div>
         <div className="booking-brand-copy">
           <strong>{studio.name}</strong>
-          <span>{studio.address || 'Agendamento online'}</span>
+          {studio.address && mapsUrl ? (
+            <a className="booking-brand-address" href={mapsUrl} target="_blank" rel="noreferrer">
+              {studio.address}
+            </a>
+          ) : (
+            <span>{studio.address || 'Agendamento online'}</span>
+          )}
         </div>
         <div className="booking-header-actions">
           {step !== 'service' && step !== 'done' && (
@@ -1153,7 +1181,11 @@ export default function AgendarClient({ studio, services, settings, professional
               </p>
 
               <div className="booking-hero-info">
-                {studio.address && <span>📍 {studio.address}</span>}
+                {studio.address && mapsUrl && (
+                  <a href={mapsUrl} target="_blank" rel="noreferrer">
+                    📍 {studio.address}
+                  </a>
+                )}
                 <span>🕐 Atende seg–sáb</span>
               </div>
 
@@ -1464,7 +1496,11 @@ export default function AgendarClient({ studio, services, settings, professional
         <footer className="booking-footer">
           <div className="booking-footer-content">
             <div className="booking-footer-brand">{studio.name}</div>
-            {studio.address && <div className="booking-footer-line">📍 {studio.address}</div>}
+            {studio.address && mapsUrl && (
+              <div className="booking-footer-line">
+                <a href={mapsUrl} target="_blank" rel="noreferrer">📍 {studio.address}</a>
+              </div>
+            )}
             {(studio.phone || studio.whatsapp) && <div className="booking-footer-line">📞 {studio.phone || studio.whatsapp}</div>}
             {studio.instagram && (
               <div className="booking-footer-line">
