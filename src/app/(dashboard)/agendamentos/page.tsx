@@ -1,7 +1,7 @@
 'use client'
 
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
-import { CalendarDays, Check, CheckCircle2, Clock, Search, Sparkles, XCircle } from 'lucide-react'
+import { CalendarDays, Check, CheckCircle2, Clock, MessageSquare, Search, Sparkles, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Appointment } from '@/types/database'
 
@@ -78,10 +78,12 @@ function AppointmentRow({
   appointment,
   compact,
   onStatus,
+  onConfirmWithWhatsapp,
 }: {
   appointment: Appointment
   compact?: boolean
   onStatus: (id: string, status: string) => void
+  onConfirmWithWhatsapp: (id: string) => Promise<void>
 }) {
   const status = ST[appointment.status] || { label: appointment.status, color: C.muted }
   return (
@@ -142,7 +144,7 @@ function AppointmentRow({
       }}>
         <strong style={{ color: C.green, fontSize: 15 }}>{money(appointment.price)}</strong>
         {appointment.status === 'pending' && (
-          <button onClick={() => onStatus(appointment.id, 'confirmed')} style={actionStyle(C.green)}>
+          <button onClick={() => void onConfirmWithWhatsapp(appointment.id)} style={actionStyle(C.green)}>
             <Check size={13} /> Confirmar
           </button>
         )}
@@ -184,6 +186,7 @@ export default function AgendamentosPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('todos')
   const [q, setQ] = useState('')
+  const [studioPhone, setStudioPhone] = useState('')
 
   useEffect(() => {
     const load = async () => {
@@ -192,6 +195,8 @@ export default function AgendamentosPage() {
       if (!user) { setLoading(false); return }
       const { data: profile } = await sb.from('profiles').select('studio_id').eq('id', user.id).single()
       if (!profile?.studio_id) { setLoading(false); return }
+      const { data: studioData } = await sb.from('studios').select('whatsapp, phone').eq('id', profile.studio_id).single()
+      if (studioData) setStudioPhone(studioData.whatsapp || studioData.phone || '')
       const { data } = await sb
         .from('appointments')
         .select('*')
@@ -207,6 +212,41 @@ export default function AgendamentosPage() {
     const sb = createClient()
     await sb.from('appointments').update({ status }).eq('id', id)
     setApts(prev => prev.map(item => item.id === id ? { ...item, status } : item))
+  }
+
+  const confirmWithWhatsapp = async (id: string) => {
+    const apt = apts.find(item => item.id === id)
+    if (!apt) return
+
+    // Confirma no banco
+    await changeStatus(id, 'confirmed')
+
+    // Busca telefone da cliente
+    const sb = createClient()
+    let clientPhone = ''
+    if (apt.client_id) {
+      const { data: client } = await sb.from('clients').select('phone').eq('id', apt.client_id).single()
+      clientPhone = client?.phone || ''
+    }
+
+    if (!clientPhone) return // sem telefone, só confirma no banco
+
+    // Monta mensagem
+    const aptDate = new Date(apt.appointment_date)
+    const hoje = new Date()
+    hoje.setHours(0,0,0,0)
+    const amanha = new Date(hoje); amanha.setDate(hoje.getDate() + 1)
+    const aptDay = new Date(aptDate.getFullYear(), aptDate.getMonth(), aptDate.getDate())
+    const diffDays = Math.round((aptDay.getTime() - hoje.getTime()) / 86400000)
+    const quando = diffDays === 0 ? 'hoje' : diffDays === 1 ? 'amanhã' : aptDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+    const hora = aptDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    const nome = apt.client_name?.split(' ')[0] || 'cliente'
+
+    const msg = `Olá ${nome}! ✅ Seu agendamento de *${apt.service_name}* foi confirmado para *${quando} às ${hora}*. Te esperamos! 💅`
+
+    const number = clientPhone.replace(/\D/g, '')
+    const url = `https://wa.me/55${number}?text=${encodeURIComponent(msg)}`
+    window.open(url, '_blank')
   }
 
   const searched = useMemo(() => {
