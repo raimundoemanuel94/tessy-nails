@@ -79,11 +79,13 @@ function AppointmentRow({
   compact,
   onStatus,
   onConfirmWithWhatsapp,
+  onRecusar,
 }: {
   appointment: Appointment
   compact?: boolean
   onStatus: (id: string, status: string) => void
   onConfirmWithWhatsapp: (id: string) => Promise<void>
+  onRecusar: (id: string) => Promise<void>
 }) {
   const status = ST[appointment.status] || { label: appointment.status, color: C.muted }
   return (
@@ -144,9 +146,14 @@ function AppointmentRow({
       }}>
         <strong style={{ color: C.green, fontSize: 15 }}>{money(appointment.price)}</strong>
         {appointment.status === 'pending' && (
-          <button onClick={() => void onConfirmWithWhatsapp(appointment.id)} style={actionStyle(C.green)}>
-            <Check size={13} /> Confirmar
-          </button>
+          <>
+            <button onClick={() => void onConfirmWithWhatsapp(appointment.id)} style={actionStyle(C.green)}>
+              <Check size={13} /> Confirmar + Zap
+            </button>
+            <button onClick={() => void onRecusar(appointment.id)} style={actionStyle(C.red)}>
+              <XCircle size={13} /> Recusar
+            </button>
+          </>
         )}
         {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
           <button onClick={() => onStatus(appointment.id, 'completed')} style={actionStyle(C.purple)}>
@@ -249,7 +256,33 @@ export default function AgendamentosPage() {
     window.open(url, '_blank')
   }
 
-  const searched = useMemo(() => {
+  const recusarWithWhatsapp = async (id: string) => {
+    const apt = apts.find(item => item.id === id)
+    if (!apt) return
+
+    await changeStatus(id, 'cancelled')
+
+    const sb = createClient()
+    let clientPhone = ''
+    if (apt.client_id) {
+      const { data: client } = await sb.from('clients').select('phone').eq('id', apt.client_id).single()
+      clientPhone = client?.phone || ''
+    }
+    if (!clientPhone) return
+
+    const aptDate = new Date(apt.appointment_date)
+    const hoje = new Date(); hoje.setHours(0,0,0,0)
+    const diffDays = Math.round((new Date(aptDate.getFullYear(), aptDate.getMonth(), aptDate.getDate()).getTime() - hoje.getTime()) / 86400000)
+    const quando = diffDays === 0 ? 'hoje' : diffDays === 1 ? 'amanhã' : aptDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+    const hora = aptDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    const nome = apt.client_name?.split(' ')[0] || 'cliente'
+
+    const msg = `Olá ${nome}! 😔 Infelizmente não consigo te atender ${quando} às ${hora}. Por favor, entre em contato para remarcar. 💅`
+    const number = clientPhone.replace(/\D/g, '')
+    window.open('https://wa.me/55' + number + '?text=' + encodeURIComponent(msg), '_blank')
+  }
+
+    const searched = useMemo(() => {
     const term = q.trim().toLowerCase()
     return apts
       .filter(item => filter === 'todos' || item.status === filter)

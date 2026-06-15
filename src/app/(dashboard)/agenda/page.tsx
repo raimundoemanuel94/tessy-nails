@@ -155,6 +155,28 @@ export default function AgendaPage() {
     window.open(`https://wa.me/55${number}?text=${encodeURIComponent(msg)}`, '_blank')
   }
 
+  const recusarWithWhatsapp = async (id: string) => {
+    const apt = apts.find(item => item.id === id)
+    if (!apt) return
+    await changeStatus(id, 'cancelled')
+    const sb = createClient()
+    let clientPhone = ''
+    if (apt.client_id) {
+      const { data: client } = await sb.from('clients').select('phone').eq('id', apt.client_id).single()
+      clientPhone = client?.phone || ''
+    }
+    if (!clientPhone) return
+    const aptDate = new Date(apt.appointment_date)
+    const hoje = new Date(); hoje.setHours(0,0,0,0)
+    const diffDays = Math.round((new Date(aptDate.getFullYear(), aptDate.getMonth(), aptDate.getDate()).getTime() - hoje.getTime()) / 86400000)
+    const quando = diffDays === 0 ? 'hoje' : diffDays === 1 ? 'amanhã' : aptDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+    const hora = aptDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    const nome = apt.client_name?.split(' ')[0] || 'cliente'
+    const msg = 'Olá ' + nome + '! 😔 Infelizmente não consigo te atender ' + quando + ' às ' + hora + '. Por favor, entre em contato para remarcar. 💅'
+    const number = clientPhone.replace(/\D/g, '')
+    window.open('https://wa.me/55' + number + '?text=' + encodeURIComponent(msg), '_blank')
+  }
+
   const bookingUrl = studioSlug ? `${typeof window !== 'undefined' ? window.location.origin : ''}/agendar/${studioSlug}` : ''
   const copyLink = () => {
     if (!bookingUrl) return
@@ -396,9 +418,14 @@ export default function AgendaPage() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
                   {appointment.status === 'pending' && (
-                    <button onClick={() => void confirmWithWhatsapp(appointment.id)} style={actionStyle(C.green)}>
-                      <Check size={13} /> Confirmar
-                    </button>
+                    <>
+                      <button onClick={() => void confirmWithWhatsapp(appointment.id)} style={actionStyle(C.green)}>
+                        <Check size={13} /> Confirmar + Zap
+                      </button>
+                      <button onClick={() => void recusarWithWhatsapp(appointment.id)} style={actionStyle(C.red)}>
+                        <XCircle size={13} /> Recusar
+                      </button>
+                    </>
                   )}
                   {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
                     <button onClick={() => changeStatus(appointment.id, 'completed')} style={actionStyle(C.purple)}>

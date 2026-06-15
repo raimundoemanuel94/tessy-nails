@@ -48,12 +48,13 @@ export async function POST(req: Request) {
 
   const supabase = createAdminClient();
 
-  let studioQuery = supabase.from("studios").select("id, is_active");
+  let studioQuery = supabase.from("studios").select("id, is_active, whatsapp, phone, name");
   if (studioIdInput) studioQuery = studioQuery.eq("id", studioIdInput);
   else if (slugInput) studioQuery = studioQuery.eq("slug", slugInput);
 
   const { data: studio, error: studioError } = await studioQuery.single();
   if (studioError || !studio || !studio.is_active) return bad("Studio indisponível", 404);
+  const studioPhone = (studio as any).whatsapp || (studio as any).phone || null;
 
   const { data: service, error: serviceError } = await supabase
     .from("services")
@@ -217,6 +218,7 @@ export async function POST(req: Request) {
     {
       ok: true,
       appointment: normalizedAppointment,
+      studioPhone,
     },
     { status: 201 },
   );

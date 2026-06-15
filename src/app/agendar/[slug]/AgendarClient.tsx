@@ -218,6 +218,20 @@ export default function AgendarClient({ studio, services, settings, professional
       setCreatedAppointment(appointment)
       setStep('done')
       router.replace(`/cliente/agendar/sucesso?appointmentId=${encodeURIComponent(appointment.id)}`)
+
+      // Abre WhatsApp da Tessy com resumo do agendamento
+      const tessyPhone = data?.studioPhone as string | undefined
+      if (tessyPhone) {
+        const aptDate = new Date(`${selectedDate}T${selectedTime}:00`)
+        const hoje = new Date(); hoje.setHours(0,0,0,0)
+        const diffDays = Math.round((new Date(aptDate.getFullYear(), aptDate.getMonth(), aptDate.getDate()).getTime() - hoje.getTime()) / 86400000)
+        const quando = diffDays === 0 ? 'hoje' : diffDays === 1 ? 'amanhã' : aptDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+        const hora = aptDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        const clienteNome = name.trim().split(' ')[0]
+        const msg = `💅 *Nova reserva!*\n\n👤 *${name.trim()}*\n✂️ ${selectedService?.name}\n📅 ${quando} às ${hora}\n📱 ${phone.trim()}\n\nResponda *CONFIRMAR* ou *RECUSAR*`
+        const number = tessyPhone.replace(/\D/g, '')
+        window.open('https://wa.me/55' + number + '?text=' + encodeURIComponent(msg), '_blank')
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Não foi possível confirmar o agendamento.'
       setBookingError(message)
