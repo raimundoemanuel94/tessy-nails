@@ -765,8 +765,8 @@ export default function AgendarClient({ studio, services, settings, professional
     /* ─── HERO PREMIUM COVER ─── */
     .booking-hero {
       text-align: center;
-      padding: 0 0 0;
-      background: transparent;
+      padding: 0;
+      background: #ffffff;
       margin-bottom: 0;
     }
     .booking-hero-cover {
@@ -780,7 +780,7 @@ export default function AgendarClient({ studio, services, settings, professional
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center top;
+      object-position: center 20%;
     }
     .booking-hero-cover-overlay {
       position: absolute;
@@ -829,10 +829,10 @@ export default function AgendarClient({ studio, services, settings, professional
       justify-content: center;
       gap: 8px;
       margin-top: 16px;
-      font-size: 12.5px;
+      font-size: 12px;
       color: #555;
       flex-wrap: wrap;
-      padding: 0 20px;
+      padding: 0 16px;
     }
     .booking-hero-info span,
     .booking-hero-info a {
@@ -840,10 +840,14 @@ export default function AgendarClient({ studio, services, settings, professional
       align-items: center;
       gap: 5px;
       min-height: 30px;
-      padding: 0 10px;
+      padding: 0 12px;
       border-radius: 999px;
-      background: #f4f4f4;
-      border: 1px solid #ebebeb;
+      background: #f0f0f0;
+      border: 1px solid #e5e5e5;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .booking-hero-info a {
       color: #666;
@@ -872,7 +876,7 @@ export default function AgendarClient({ studio, services, settings, professional
     .booking-hero-whatsapp:hover { opacity: .92; }
     .booking-hero-actions {
       width: min(100% - 40px, 360px);
-      margin: 20px auto 0;
+      margin: 20px auto 24px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
@@ -938,14 +942,14 @@ export default function AgendarClient({ studio, services, settings, professional
     }
     .booking-client-access-arrow {
       flex: 0 0 auto;
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: var(--booking-brand);
-      color: #fff;
+      color: #fff !important;
       display: grid;
       place-items: center;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 700;
     }
 
@@ -954,7 +958,6 @@ export default function AgendarClient({ studio, services, settings, professional
       padding: 22px 20px;
       border-top: 1px solid rgba(0,0,0,.06);
       background: #ffffff;
-      margin-top: 4px;
     }
     .booking-section-title {
       font-size: 13px;
@@ -1400,7 +1403,7 @@ export default function AgendarClient({ studio, services, settings, professional
             </div>
 
             <a className="booking-client-access" href={`/cliente/agendar/consultar?slug=${encodeURIComponent(studio.slug)}`}>
-              <div className="booking-client-access-icon">💅</div>
+              <div className="booking-client-access-icon">📅</div>
               <div className="booking-client-access-body">
                 <span>Já tem agendamento?</span>
                 <strong>Ver meus agendamentos</strong>
