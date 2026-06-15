@@ -1425,7 +1425,7 @@ export default function AgendarClient({ studio, services, settings, professional
                       💬 Confirmar no WhatsApp
                     </a>
                   )}
-                  
+                  <a
                     className="booking-calendar"
                     href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent((createdAppointment?.service_name || selectedService?.name || 'Agendamento') + (professional ? ` com ${professional.name}` : ''))}&dates=${(createdAppointment?.appointment_date || `${selectedDate}T${selectedTime}:00`).replace(/[-:]/g, '').slice(0,15)}/${(createdAppointment?.appointment_date || `${selectedDate}T${selectedTime}:00`).replace(/[-:]/g, '').slice(0,15)}&details=${encodeURIComponent(`${studio.name}${studio.address ? '\n' + studio.address : ''}${studio.phone || studio.whatsapp ? '\nContato: ' + (studio.phone || studio.whatsapp) : ''}`)}&location=${encodeURIComponent(studio.address || studio.name)}`}
                     target="_blank"
