@@ -269,9 +269,9 @@ export default function AgendarClient({ studio, services, settings, professional
       --booking-rgb: ${rgb};
       min-height: 100vh;
       color: #1a1a1a;
-      background: linear-gradient(180deg, rgba(var(--booking-rgb), .07), #ffffff 230px);
+      background: #f4f4f4;
       font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
-      padding-bottom: 40px;
+      padding-bottom: 60px;
     }
     .booking-header {
       position: sticky;
@@ -762,60 +762,56 @@ export default function AgendarClient({ studio, services, settings, professional
       font-size: 14px;
       font-weight: 600;
     }
-    /* ─── HERO PROFISSIONAL ─── */
+    /* ─── HERO PREMIUM COVER ─── */
     .booking-hero {
       text-align: center;
-      padding: 44px 20px 28px;
+      padding: 0 0 0;
       background: transparent;
+      margin-bottom: 0;
     }
-    .booking-hero-avatar-wrap {
+    .booking-hero-cover {
       position: relative;
-      display: inline-block;
-      margin-bottom: 14px;
-    }
-    .booking-hero-avatar {
-      width: 128px;
-      height: 128px;
-      border-radius: 50%;
-      background: var(--booking-brand);
-      color: #fff;
-      display: grid;
-      place-items: center;
-      font-size: 42px;
-      font-weight: 600;
+      width: 100%;
+      height: 240px;
       overflow: hidden;
-      margin: 0 auto;
-      border: 4px solid #ffffff;
-      box-shadow: 0 18px 46px rgba(20,20,20,.12);
+      background: var(--booking-brand);
     }
-    .booking-hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .booking-hero-badge {
+    .booking-hero-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+    }
+    .booking-hero-cover-overlay {
       position: absolute;
-      bottom: 4px;
-      right: 4px;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: #22c55e;
-      border: 3px solid #ffffff;
-      display: grid;
-      place-items: center;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.55) 100%);
+    }
+    .booking-hero-cover-text {
+      position: absolute;
+      bottom: 20px;
+      left: 0; right: 0;
+      text-align: center;
       color: #fff;
-      font-size: 14px;
-      font-weight: 700;
     }
     .booking-hero-name {
-      font-size: 30px;
-      font-weight: 700;
-      color: #1a1a1a;
-      letter-spacing: 0;
+      font-size: 28px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -.01em;
       margin: 0;
+      text-shadow: 0 2px 12px rgba(0,0,0,.3);
     }
     .booking-hero-role {
-      font-size: 14px;
-      color: #666;
-      margin: 6px 0 0;
+      font-size: 13px;
+      color: rgba(255,255,255,.85);
+      margin: 4px 0 0;
+      font-weight: 500;
     }
+    .booking-hero-badge {
+      display: none;
+    }
+    .booking-hero-avatar-wrap { display: none; }
     .booking-hero-rating {
       display: inline-flex;
       align-items: center;
@@ -832,10 +828,11 @@ export default function AgendarClient({ studio, services, settings, professional
       display: flex;
       justify-content: center;
       gap: 8px;
-      margin-top: 14px;
+      margin-top: 16px;
       font-size: 12.5px;
-      color: #666;
+      color: #555;
       flex-wrap: wrap;
+      padding: 0 20px;
     }
     .booking-hero-info span,
     .booking-hero-info a {
@@ -845,8 +842,8 @@ export default function AgendarClient({ studio, services, settings, professional
       min-height: 30px;
       padding: 0 10px;
       border-radius: 999px;
-      background: rgba(255,255,255,.76);
-      border: 1px solid rgba(0,0,0,.06);
+      background: #f4f4f4;
+      border: 1px solid #ebebeb;
     }
     .booking-hero-info a {
       color: #666;
@@ -874,7 +871,7 @@ export default function AgendarClient({ studio, services, settings, professional
     }
     .booking-hero-whatsapp:hover { opacity: .92; }
     .booking-hero-actions {
-      width: min(100%, 360px);
+      width: min(100% - 40px, 360px);
       margin: 20px auto 0;
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -955,8 +952,9 @@ export default function AgendarClient({ studio, services, settings, professional
     /* ─── SEÇÃO GENÉRICA ─── */
     .booking-section {
       padding: 22px 20px;
-      border-top: 1px solid rgba(0,0,0,.05);
+      border-top: 1px solid rgba(0,0,0,.06);
       background: #ffffff;
+      margin-top: 4px;
     }
     .booking-section-title {
       font-size: 13px;
@@ -1048,15 +1046,15 @@ export default function AgendarClient({ studio, services, settings, professional
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 9px 15px;
+      padding: 9px 18px;
       border-radius: 999px;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      border: 1px solid var(--booking-brand);
-      background: var(--booking-brand);
-      color: #ffffff;
-      transition: background .15s, border-color .15s;
+      border: none;
+      background: var(--booking-brand) !important;
+      color: #ffffff !important;
+      transition: opacity .15s;
     }
     .booking-svc-btn:hover { opacity: .9; }
     .booking-svc-card.is-featured .booking-svc-btn:hover { opacity: .92; background: var(--booking-brand); }
@@ -1270,6 +1268,16 @@ export default function AgendarClient({ studio, services, settings, professional
       width: 100%;
       max-width: 720px;
       margin: 0 auto;
+      background: #ffffff;
+      overflow: hidden;
+    }
+    .booking-main-hero .booking-hero-cover {
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+      width: 100vw;
+      max-width: 720px;
+      margin-left: 0;
+      margin-right: 0;
     }
 
     @media (max-width: 860px) {
@@ -1349,12 +1357,23 @@ export default function AgendarClient({ studio, services, settings, professional
       <section className="booking-main-hero">
         {step === 'service' && (
           <>
-            {/* HERO */}
+            {/* HERO — cover premium */}
             <div className="booking-hero">
-              <h1 className="booking-hero-name">{professional ? professional.name : studio.name}</h1>
-              <p className="booking-hero-role">
-                {professional ? `Manicure em Sorriso - MT` : 'Agendamento online premium'}
-              </p>
+              <div className="booking-hero-cover">
+                {(professional?.avatar_url || studio.avatar_url) && (
+                  <img
+                    src={professional?.avatar_url || studio.avatar_url || ''}
+                    alt={professional ? professional.name : studio.name}
+                  />
+                )}
+                <div className="booking-hero-cover-overlay" />
+                <div className="booking-hero-cover-text">
+                  <h1 className="booking-hero-name">{professional ? professional.name : studio.name}</h1>
+                  <p className="booking-hero-role">
+                    {professional ? 'Manicure em Sorriso - MT' : 'Agendamento online premium'}
+                  </p>
+                </div>
+              </div>
 
               <div className="booking-hero-info">
                 {studio.address && mapsUrl && (
