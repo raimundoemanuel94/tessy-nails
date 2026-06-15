@@ -69,11 +69,38 @@ function formatDateTime(value: string) {
 function formatStatus(status: string) {
   const map: Record<string, string> = {
     confirmed: 'Confirmado',
-    pending: 'Pendente',
+    pending: 'Aguardando confirmação',
+    completed: 'Concluído',
     cancelled: 'Cancelado',
+    canceled: 'Cancelado',
+    no_show: 'Falta registrada',
   }
 
   return map[status] || status
+}
+
+function getSuccessCopy(status: string) {
+  if (status === 'confirmed') {
+    return {
+      eyebrow: 'Agendamento confirmado',
+      titleMark: 'OK',
+      body: 'Seu horário está confirmado. Confira abaixo os detalhes da sua reserva.',
+    }
+  }
+
+  if (['cancelled', 'canceled'].includes(status)) {
+    return {
+      eyebrow: 'Agendamento cancelado',
+      titleMark: '!',
+      body: 'Este horário consta como cancelado. Você pode fazer um novo agendamento quando quiser.',
+    }
+  }
+
+  return {
+    eyebrow: 'Pedido de agendamento enviado',
+    titleMark: 'OK',
+    body: 'Seu horário foi solicitado com sucesso. A equipe vai confirmar sua reserva pelo WhatsApp.',
+  }
 }
 
 function BookingSuccessContent() {
@@ -92,7 +119,7 @@ function BookingSuccessContent() {
     async function load() {
       if (!appointmentId) {
         if (!active) return
-        setError('O identificador do agendamento nao foi informado.')
+        setError('O identificador do agendamento não foi informado.')
         setLoading(false)
         return
       }
@@ -107,7 +134,7 @@ function BookingSuccessContent() {
         const data = await res.json().catch(() => null)
 
         if (!res.ok) {
-          throw new Error(data?.error || 'Nao foi possivel carregar os dados do agendamento.')
+          throw new Error(data?.error || 'Não foi possível carregar os dados do agendamento.')
         }
 
         if (!active) return
@@ -115,7 +142,7 @@ function BookingSuccessContent() {
         setStudio(data?.studio ?? null)
       } catch (err) {
         if (!active) return
-        const message = err instanceof Error ? err.message : 'Nao foi possivel carregar os dados do agendamento.'
+        const message = err instanceof Error ? err.message : 'Não foi possível carregar os dados do agendamento.'
         setError(message)
       } finally {
         if (active) setLoading(false)
@@ -141,10 +168,11 @@ function BookingSuccessContent() {
   const whatsappNumber = (studio?.whatsapp || studio?.phone || '').replace(/\D/g, '')
   const whatsappMessage = appointment
     ? encodeURIComponent(
-        `Ola! Queria falar sobre o agendamento de ${appointment.service_name} em ${formatDateTime(appointment.appointment_date)}.`,
+        `Olá! Queria falar sobre o agendamento de ${appointment.service_name} em ${formatDateTime(appointment.appointment_date)}.`,
       )
     : ''
   const whatsappLink = whatsappNumber ? `https://wa.me/55${whatsappNumber}?text=${whatsappMessage}` : ''
+  const successCopy = appointment ? getSuccessCopy(appointment.status) : null
 
   return (
     <main
@@ -184,7 +212,7 @@ function BookingSuccessContent() {
                   margin: '0 auto',
                 }}
               />
-              <p style={{ marginTop: 14, color: '#7A665E', fontSize: 14 }}>Carregando confirmacao...</p>
+              <p style={{ marginTop: 14, color: '#7A665E', fontSize: 14 }}>Carregando confirmação...</p>
             </div>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
@@ -207,7 +235,7 @@ function BookingSuccessContent() {
               >
                 !
               </div>
-              <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 30, margin: 0 }}>Nao conseguimos abrir a confirmacao</h1>
+              <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 30, margin: 0 }}>Não conseguimos abrir a confirmação</h1>
               <p style={{ color: '#7A665E', fontSize: 14, lineHeight: 1.6, marginTop: 10 }}>{error}</p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
                 <button
@@ -261,20 +289,20 @@ function BookingSuccessContent() {
                   fontWeight: 900,
                 }}
               >
-                OK
+                {successCopy?.titleMark || 'OK'}
               </div>
               <div>
                 <p style={{ margin: 0, color: '#8A7469', fontSize: 11, fontWeight: 800, letterSpacing: '.22em', textTransform: 'uppercase' }}>
-                  Agendamento confirmado
+                  {successCopy?.eyebrow}
                 </p>
                 <h1 style={{ margin: '4px 0 0', fontFamily: 'Georgia, serif', fontSize: 34, lineHeight: 1.05 }}>
-                  {studio?.name || 'Seu studio'}
+                  {studio?.name || 'Seu salão'}
                 </h1>
               </div>
             </div>
 
             <p style={{ margin: 0, color: '#7A665E', lineHeight: 1.6, fontSize: 14 }}>
-              Seu horario foi registrado com sucesso. Confira abaixo os dados enviados para o painel do studio.
+              {successCopy?.body}
             </p>
 
             <div
@@ -289,12 +317,12 @@ function BookingSuccessContent() {
             >
               {[
                 ['Cliente', appointment.client_name],
-                ['Servico', appointment.service_name],
+                ['Serviço', appointment.service_name],
                 ['Data', formatDate(appointment.appointment_date)],
-                ['Horario', formatTime(appointment.appointment_date)],
+                ['Horário', formatTime(appointment.appointment_date)],
                 ['Valor', formatCurrency(appointment.price)],
                 ['Status', formatStatus(appointment.status)],
-                ['Codigo', shortCode],
+                ['Código', shortCode],
               ].map(([label, value]) => (
                 <div key={String(label)} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, fontSize: 14 }}>
                   <span style={{ color: '#8A7469' }}>{label}</span>
@@ -362,7 +390,7 @@ function BookingSuccessContent() {
             </div>
 
             <p style={{ margin: 0, color: '#9A877D', fontSize: 12 }}>
-              {studio?.slug ? `Acesse novamente: /agendar/${studio.slug}` : 'A confirmacao ficou salva no sistema.'}
+              {studio?.slug ? `Acesse novamente: /agendar/${studio.slug}` : 'A confirmação ficou salva no sistema.'}
             </p>
           </div>
         ) : null}
