@@ -532,197 +532,235 @@ export default function AgendaPage() {
             const toggle = (slot: string) =>
               setBannerSlots(prev => prev.includes(slot) ? prev.filter(s => s !== slot) : [...prev, slot])
 
-            const shareText = bannerSlots.length === 0 ? '' :
-              `💅 Vagas disponíveis — ${new Date(selectedDate + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}\n\n` +
-              bannerSlots.map(s => `🕐 ${s}`).join('\n') +
-              `\n\n👉 Agende pelo link:\n${slugLink}`
+            // Share text — só o link, limpo
+            const shareText = slugLink
 
             const handleShare = async () => {
               if (!bannerSlots.length) return
 
-              // Generate visual banner on canvas
-              const W = 1080, H = 1080
+              // Story format 1080x1920 — premium
+              const W = 1080, H = 1920
               const canvas = document.createElement('canvas')
               canvas.width = W; canvas.height = H
               const ctx = canvas.getContext('2d')!
 
               const brand = studioBrandColor || '#7C5CBF'
-              const brandR = parseInt(brand.slice(1,3),16)
-              const brandG = parseInt(brand.slice(3,5),16)
-              const brandB = parseInt(brand.slice(5,7),16)
+              const br = parseInt(brand.slice(1,3),16)
+              const bg2 = parseInt(brand.slice(3,5),16)
+              const bb = parseInt(brand.slice(5,7),16)
 
-              // Background gradient
-              const bg = ctx.createLinearGradient(0, 0, 0, H)
-              bg.addColorStop(0, '#0d0d1a')
-              bg.addColorStop(1, '#1a1028')
-              ctx.fillStyle = bg
+              // ── FUNDO ──────────────────────────────────────────
+              const bgGrad = ctx.createLinearGradient(0, 0, 0, H)
+              bgGrad.addColorStop(0, '#08060f')
+              bgGrad.addColorStop(0.5, '#110d1f')
+              bgGrad.addColorStop(1, '#0d0a1a')
+              ctx.fillStyle = bgGrad
               ctx.fillRect(0, 0, W, H)
 
-              // Decorative circles
+              // Glow central grande
+              const glowC = ctx.createRadialGradient(W/2, H*0.38, 0, W/2, H*0.38, 700)
+              glowC.addColorStop(0, `rgba(${br},${bg2},${bb},0.22)`)
+              glowC.addColorStop(1, 'transparent')
+              ctx.fillStyle = glowC; ctx.fillRect(0, 0, W, H)
+
+              // Glow canto inferior esquerdo
+              const glowBL = ctx.createRadialGradient(0, H, 0, 0, H, 600)
+              glowBL.addColorStop(0, `rgba(${br},${bg2},${bb},0.12)`)
+              glowBL.addColorStop(1, 'transparent')
+              ctx.fillStyle = glowBL; ctx.fillRect(0, 0, W, H)
+
+              // Círculos decorativos
               ctx.save()
-              ctx.globalAlpha = 0.07
+              ctx.globalAlpha = 0.06
               ctx.fillStyle = brand
-              ctx.beginPath(); ctx.arc(-80, H + 80, 400, 0, Math.PI*2); ctx.fill()
-              ctx.beginPath(); ctx.arc(W + 80, -80, 350, 0, Math.PI*2); ctx.fill()
-              ctx.globalAlpha = 0.04
-              ctx.beginPath(); ctx.arc(W/2, H/2, 500, 0, Math.PI*2); ctx.fill()
+              ctx.beginPath(); ctx.arc(W+120, -120, 500, 0, Math.PI*2); ctx.fill()
+              ctx.beginPath(); ctx.arc(-120, H+120, 450, 0, Math.PI*2); ctx.fill()
+              ctx.globalAlpha = 0.035
+              ctx.beginPath(); ctx.arc(W*0.85, H*0.55, 300, 0, Math.PI*2); ctx.fill()
               ctx.restore()
 
-              // Subtle brand glow top-right
-              const glow = ctx.createRadialGradient(W, 0, 0, W, 0, 600)
-              glow.addColorStop(0, `rgba(${brandR},${brandG},${brandB},0.15)`)
-              glow.addColorStop(1, 'transparent')
-              ctx.fillStyle = glow
-              ctx.fillRect(0, 0, W, H)
+              // Linhas diagonais sutis
+              ctx.save()
+              ctx.globalAlpha = 0.03
+              ctx.strokeStyle = brand
+              ctx.lineWidth = 1
+              for (let i = -10; i < 30; i++) {
+                ctx.beginPath()
+                ctx.moveTo(i * 120 - H, 0)
+                ctx.lineTo(i * 120 - H + H, H)
+                ctx.stroke()
+              }
+              ctx.restore()
 
-              // Top bar brand line
-              ctx.fillStyle = brand
-              ctx.fillRect(0, 0, W, 8)
-              // Bottom bar
-              ctx.fillRect(0, H - 8, W, 8)
+              // Barra topo com gradiente
+              const topBar = ctx.createLinearGradient(0, 0, W, 0)
+              topBar.addColorStop(0, 'transparent')
+              topBar.addColorStop(0.2, brand)
+              topBar.addColorStop(0.8, brand)
+              topBar.addColorStop(1, 'transparent')
+              ctx.fillStyle = topBar; ctx.fillRect(0, 0, W, 6)
+              ctx.fillRect(0, H-6, W, 6)
 
-              // Draw avatar circle (async - load image if available)
               const drawContent = async () => {
-                // Sort slots chronologically
                 const sortedSlots = [...bannerSlots].sort()
 
-                const avatarSize = 160
-                const avatarX = W/2
-                const avatarY = 240
+                // ── AVATAR ─────────────────────────────────────
+                const aSize = 220
+                const aX = W/2, aY = 380
+
+                // Glow atrás do avatar
+                const aGlow = ctx.createRadialGradient(aX, aY, 0, aX, aY, aSize)
+                aGlow.addColorStop(0, `rgba(${br},${bg2},${bb},0.35)`)
+                aGlow.addColorStop(1, 'transparent')
+                ctx.fillStyle = aGlow; ctx.fillRect(aX-aSize, aY-aSize, aSize*2, aSize*2)
+
+                // Anel externo pulsante
+                ctx.beginPath()
+                ctx.arc(aX, aY, aSize/2 + 14, 0, Math.PI*2)
+                ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.25)`
+                ctx.lineWidth = 1
+                ctx.stroke()
+
+                // Anel interno da marca
+                ctx.beginPath()
+                ctx.arc(aX, aY, aSize/2 + 5, 0, Math.PI*2)
+                ctx.strokeStyle = brand
+                ctx.lineWidth = 3
+                ctx.stroke()
 
                 if (studioAvatar) {
                   try {
                     const img = new Image()
                     img.crossOrigin = 'anonymous'
-                    await new Promise((res, rej) => {
-                      img.onload = res; img.onerror = rej
-                      img.src = studioAvatar
-                    })
-                    // Circle clip for avatar
+                    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = studioAvatar })
                     ctx.save()
                     ctx.beginPath()
-                    ctx.arc(avatarX, avatarY, avatarSize/2, 0, Math.PI*2)
+                    ctx.arc(aX, aY, aSize/2, 0, Math.PI*2)
                     ctx.clip()
-                    ctx.drawImage(img, avatarX - avatarSize/2, avatarY - avatarSize/2, avatarSize, avatarSize)
+                    ctx.drawImage(img, aX - aSize/2, aY - aSize/2, aSize, aSize)
                     ctx.restore()
-                    // Avatar ring
-                    ctx.beginPath()
-                    ctx.arc(avatarX, avatarY, avatarSize/2 + 4, 0, Math.PI*2)
-                    ctx.strokeStyle = brand
-                    ctx.lineWidth = 3
-                    ctx.stroke()
                   } catch {
-                    // fallback circle
                     ctx.beginPath()
-                    ctx.arc(avatarX, avatarY, avatarSize/2, 0, Math.PI*2)
-                    ctx.fillStyle = brand
-                    ctx.fill()
-                    ctx.fillStyle = '#fff'
-                    ctx.font = 'bold 48px sans-serif'
-                    ctx.textAlign = 'center'
-                    ctx.textBaseline = 'middle'
-                    ctx.fillText('💅', avatarX, avatarY)
+                    ctx.arc(aX, aY, aSize/2, 0, Math.PI*2)
+                    ctx.fillStyle = brand; ctx.fill()
                   }
                 } else {
                   ctx.beginPath()
-                  ctx.arc(avatarX, avatarY, avatarSize/2, 0, Math.PI*2)
-                  ctx.fillStyle = brand
-                  ctx.fill()
+                  ctx.arc(aX, aY, aSize/2, 0, Math.PI*2)
+                  ctx.fillStyle = brand; ctx.fill()
                 }
 
-                // Studio name
+                // ── TEXTOS DE CABEÇALHO ────────────────────────
+                let y = aY + aSize/2 + 52
+
+                // Nome do studio
                 ctx.fillStyle = '#ffffff'
-                ctx.font = 'bold 54px -apple-system, sans-serif'
+                ctx.font = '700 72px system-ui, sans-serif'
                 ctx.textAlign = 'center'
                 ctx.textBaseline = 'top'
-                ctx.fillText(studioName || 'Studio', W/2, avatarY + avatarSize/2 + 24)
+                ctx.fillText(studioName || 'Studio', W/2, y)
+                y += 90
 
-                // "Vagas disponíveis" label
+                // Badge "VAGAS DISPONÍVEIS"
+                const badgeW = 520, badgeH = 56
+                const badgeX = W/2 - badgeW/2
+                ctx.fillStyle = `rgba(${br},${bg2},${bb},0.2)`
+                ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.6)`
+                ctx.lineWidth = 1.5
+                ctx.beginPath(); ctx.roundRect(badgeX, y, badgeW, badgeH, 28); ctx.fill(); ctx.stroke()
                 ctx.fillStyle = brand
-                ctx.font = 'bold 28px sans-serif'
-                ctx.fillText('💅 VAGAS DISPONÍVEIS', W/2, avatarY + avatarSize/2 + 96)
-
-                // Date
-                const dateStr = new Date(selectedDate + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
-                ctx.fillStyle = 'rgba(255,255,255,0.7)'
-                ctx.font = '32px sans-serif'
-                ctx.fillText(dateStr.charAt(0).toUpperCase() + dateStr.slice(1), W/2, avatarY + avatarSize/2 + 142)
-
-                // Divider
-                ctx.fillStyle = `rgba(${brandR},${brandG},${brandB},0.3)`
-                ctx.fillRect(120, avatarY + avatarSize/2 + 190, W - 240, 1)
-
-                // Time slots
-                const slotsPerRow = 3
-                const slotW = 240, slotH = 72
-                const totalRows = Math.ceil(sortedSlots.length / slotsPerRow)
-                const startY = avatarY + avatarSize/2 + 220
-                const totalGridH = totalRows * (slotH + 16)
-                const gridOffsetY = startY
-
-                sortedSlots.forEach((slot, i) => {
-                  const row = Math.floor(i / slotsPerRow)
-                  const col = i % slotsPerRow
-                  const totalInRow = Math.min(slotsPerRow, sortedSlots.length - row * slotsPerRow)
-                  const rowOffsetX = (W - totalInRow * slotW - (totalInRow-1) * 16) / 2
-                  const x = rowOffsetX + col * (slotW + 16)
-                  const y = gridOffsetY + row * (slotH + 16)
-
-                  // Slot pill background
-                  ctx.fillStyle = `rgba(${brandR},${brandG},${brandB},0.15)`
-                  ctx.strokeStyle = `rgba(${brandR},${brandG},${brandB},0.5)`
-                  ctx.lineWidth = 1.5
-                  const r = 16
-                  ctx.beginPath()
-                  ctx.roundRect(x, y, slotW, slotH, r)
-                  ctx.fill()
-                  ctx.stroke()
-
-                  // Time text
-                  ctx.fillStyle = '#ffffff'
-                  ctx.font = 'bold 36px sans-serif'
-                  ctx.textAlign = 'center'
-                  ctx.textBaseline = 'middle'
-                  ctx.fillText(`🕐 ${slot}`, x + slotW/2, y + slotH/2)
-                })
-
-                // CTA at bottom
-                const ctaY = gridOffsetY + totalGridH + 60
-                ctx.save()
-                ctx.fillStyle = brand
-                ctx.globalAlpha = 1
-                const ctaR = 20
-                ctx.beginPath()
-                ctx.roundRect(120, ctaY, W - 240, 84, ctaR)
-                ctx.fill()
-                ctx.restore()
-
-                ctx.fillStyle = '#ffffff'
-                ctx.globalAlpha = 1
-                ctx.font = 'bold 34px sans-serif'
+                ctx.font = '700 26px system-ui, sans-serif'
                 ctx.textAlign = 'center'
                 ctx.textBaseline = 'middle'
-                ctx.fillText('👉 Agende pelo link na bio', W/2, ctaY + 42)
+                ctx.fillText('💅  VAGAS DISPONÍVEIS', W/2, y + badgeH/2)
+                y += badgeH + 28
 
-                // Bottom URL
-                ctx.fillStyle = 'rgba(255,255,255,0.4)'
-                ctx.font = '22px monospace'
-                ctx.fillText(slugLink, W/2, H - 50)
+                // Data
+                const dateStr = new Date(selectedDate + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+                ctx.fillStyle = 'rgba(255,255,255,0.6)'
+                ctx.font = '400 34px system-ui, sans-serif'
+                ctx.textBaseline = 'top'
+                ctx.fillText(dateStr.charAt(0).toUpperCase() + dateStr.slice(1), W/2, y)
+                y += 54
 
-                // Share the canvas
+                // Linha separadora
+                const sepGrad = ctx.createLinearGradient(80, 0, W-80, 0)
+                sepGrad.addColorStop(0, 'transparent')
+                sepGrad.addColorStop(0.3, `rgba(${br},${bg2},${bb},0.5)`)
+                sepGrad.addColorStop(0.7, `rgba(${br},${bg2},${bb},0.5)`)
+                sepGrad.addColorStop(1, 'transparent')
+                ctx.fillStyle = sepGrad; ctx.fillRect(80, y, W-160, 1)
+                y += 48
+
+                // ── SLOTS ──────────────────────────────────────
+                const cols = sortedSlots.length <= 2 ? sortedSlots.length : sortedSlots.length <= 4 ? 2 : 3
+                const gap = 20
+                const slotW = cols === 1 ? 500 : cols === 2 ? 380 : 290
+                const slotH = 110
+                const totalRows = Math.ceil(sortedSlots.length / cols)
+                const totalGridH = totalRows * (slotH + gap) - gap
+
+                sortedSlots.forEach((slot, i) => {
+                  const row = Math.floor(i / cols)
+                  const col = i % cols
+                  const rowCount = Math.min(cols, sortedSlots.length - row * cols)
+                  const rowW = rowCount * slotW + (rowCount-1) * gap
+                  const x = W/2 - rowW/2 + col * (slotW + gap)
+                  const sy = y + row * (slotH + gap)
+
+                  // Slot card
+                  ctx.fillStyle = `rgba(${br},${bg2},${bb},0.12)`
+                  ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.45)`
+                  ctx.lineWidth = 1.5
+                  ctx.beginPath(); ctx.roundRect(x, sy, slotW, slotH, 22); ctx.fill(); ctx.stroke()
+
+                  // Linha vertical esquerda colorida
+                  ctx.fillStyle = brand
+                  ctx.beginPath(); ctx.roundRect(x, sy + 18, 4, slotH - 36, 2); ctx.fill()
+
+                  // Hora
+                  ctx.fillStyle = '#ffffff'
+                  ctx.font = '700 52px system-ui, sans-serif'
+                  ctx.textAlign = 'center'
+                  ctx.textBaseline = 'middle'
+                  ctx.fillText(slot, x + slotW/2, sy + slotH/2)
+                })
+                y += totalGridH + 64
+
+                // ── CTA BUTTON ─────────────────────────────────
+                const ctaH = 96
+                ctx.fillStyle = brand
+                ctx.beginPath(); ctx.roundRect(80, y, W-160, ctaH, 28); ctx.fill()
+
+                // Brilho interno no CTA
+                const ctaShine = ctx.createLinearGradient(80, y, 80, y+ctaH)
+                ctaShine.addColorStop(0, 'rgba(255,255,255,0.15)')
+                ctaShine.addColorStop(1, 'rgba(255,255,255,0)')
+                ctx.fillStyle = ctaShine
+                ctx.beginPath(); ctx.roundRect(80, y, W-160, ctaH, 28); ctx.fill()
+
+                ctx.fillStyle = '#ffffff'
+                ctx.font = '700 38px system-ui, sans-serif'
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'middle'
+                ctx.fillText('Agende agora  →', W/2, y + ctaH/2)
+                y += ctaH + 40
+
+                // ── URL ────────────────────────────────────────
+                ctx.fillStyle = 'rgba(255,255,255,0.35)'
+                ctx.font = '300 26px monospace'
+                ctx.fillText(slugLink, W/2, H - 60)
+
+                // ── SHARE ──────────────────────────────────────
                 canvas.toBlob(async (blob) => {
                   if (!blob) return
-                  const file = new File([blob], 'vagas-banner.png', { type: 'image/png' })
+                  const file = new File([blob], 'vagas-tessy.png', { type: 'image/png' })
                   if (navigator.share && navigator.canShare?.({ files: [file] })) {
-                    try {
-                      await navigator.share({ files: [file], text: shareText })
-                      return
-                    } catch {}
+                    try { await navigator.share({ files: [file], text: slugLink }); return } catch {}
                   }
-                  // Fallback: download
                   const url = URL.createObjectURL(blob)
                   const a = document.createElement('a')
-                  a.href = url; a.download = 'vagas-banner.png'; a.click()
+                  a.href = url; a.download = 'vagas-tessy.png'; a.click()
                   URL.revokeObjectURL(url)
                 }, 'image/png')
               }
