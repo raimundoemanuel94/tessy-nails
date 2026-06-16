@@ -648,96 +648,92 @@ export default function AgendaPage() {
                 sepG.addColorStop(0,'transparent'); sepG.addColorStop(0.3,`rgba(${br},${bgc},${bbc},0.5)`); sepG.addColorStop(0.7,`rgba(${br},${bgc},${bbc},0.5)`); sepG.addColorStop(1,'transparent')
                 ctx.fillStyle=sepG; ctx.fillRect(60,y,W-120,1.5); y += 30
 
-                // ── DIAS DA SEMANA ──
-                // Mostra dias que têm horários selecionados
+                // ── DIAS DA SEMANA — UMA LINHA POR DIA ──────────
                 const daysToShow = weekDays.filter(d => (weekSelection[d.dateStr]?.length || 0) > 0)
-
-                // Layout: cada dia numa linha com label à esq e pills à dir
-                // Pills fixas de largura uniforme em grid 3 colunas
-                const pillW2 = 200, pillH2 = 80, pillGap2 = 16
-                const labelW = 200  // largura reservada pro SEG/TER etc
-                const gridStartX = 80 + labelW + 20
-                const gridCols = 3
-                const gridColW = pillW2 + pillGap2
-                const gridW = gridCols * pillW2 + (gridCols-1) * pillGap2
-
-                // Pre-calculate row height based on max rows needed per day
-                const rowsPerDay = daysToShow.map(day => {
-                  const sel = weekSelection[day.dateStr] || []
-                  // Show: selected (free) + occupied slots from real apts
-                  const busySlots = day.allSlots.filter(s => !day.freeSlots.includes(s))
-                  const toShow = [...sel, ...busySlots.filter(s => !sel.includes(s))].sort()
-                  return Math.ceil(toShow.length / gridCols)
-                })
-                const maxRowsInDay = Math.max(...rowsPerDay, 1)
-                const dayH = maxRowsInDay * (pillH2 + pillGap2) + 24
-                const separatorH = 20
+                const rowH2 = 110
+                const rowGap = 12
 
                 daysToShow.forEach((day, idx) => {
                   const sel = weekSelection[day.dateStr] || []
                   const busySlots = day.allSlots.filter(s => !day.freeSlots.includes(s))
-                  // Merge: livres primeiro (selecionados), depois ocupados com apt real
                   const toShow = [...sel, ...busySlots.filter(s => !sel.includes(s))].sort()
 
-                  const rowY = y + idx * (dayH + separatorH)
+                  const rowY = y + idx * (rowH2 + rowGap)
+                  const midY = rowY + rowH2/2
 
-                  // Separador entre dias
-                  if (idx > 0) {
-                    const sdg = ctx.createLinearGradient(60,0,W-60,0)
-                    sdg.addColorStop(0,'transparent')
-                    sdg.addColorStop(0.2,`rgba(${br},${bgc},${bbc},0.25)`)
-                    sdg.addColorStop(0.8,`rgba(${br},${bgc},${bbc},0.25)`)
-                    sdg.addColorStop(1,'transparent')
-                    ctx.fillStyle=sdg; ctx.fillRect(60, rowY-separatorH/2, W-120, 1)
-                  }
+                  // Fundo da linha
+                  ctx.save()
+                  ctx.fillStyle = `rgba(${br},${bgc},${bbc},0.06)`
+                  ctx.beginPath(); ctx.roundRect(60, rowY, W-120, rowH2, 20); ctx.fill()
+                  ctx.restore()
 
-                  // Label do dia (SEG, TER...) — centralizado verticalmente
-                  const midY = rowY + dayH/2
-                  ctx.fillStyle=brand; ctx.font='800 64px Georgia,serif'
-                  ctx.textAlign='left'; ctx.textBaseline='middle'
-                  ctx.fillText(day.label, 80, midY)
+                  // Label dia (SEG, TER...)
+                  ctx.save()
+                  ctx.fillStyle = brand
+                  ctx.font = '800 52px Georgia, serif'
+                  ctx.textAlign = 'left'
+                  ctx.textBaseline = 'middle'
+                  ctx.fillText(day.label, 88, midY)
+                  ctx.restore()
 
-                  // Pills em grid 3 colunas
-                  ctx.font='700 38px system-ui,sans-serif'
+                  // Linha vertical separando label dos horários
+                  ctx.save()
+                  ctx.fillStyle = `rgba(${br},${bgc},${bbc},0.35)`
+                  ctx.fillRect(290, rowY + 20, 2, rowH2 - 40)
+                  ctx.restore()
+
+                  // Horários em linha separados por traço
+                  ctx.save()
+                  ctx.textAlign = 'left'
+                  ctx.textBaseline = 'middle'
+                  let tx = 318
+
                   toShow.forEach((slot, si) => {
                     const isFree = sel.includes(slot)
-                    const col = si % gridCols
-                    const row = Math.floor(si / gridCols)
-                    const px = gridStartX + col * (pillW2 + pillGap2)
-                    const py = rowY + row * (pillH2 + pillGap2) + 12
-                    const label = slot.replace(':','h').replace(/^0/,'') // "9h00" -> "09:00" -> "9h00"
-                    const labelClean = slot.slice(0,2).replace(/^0/,'') + 'h' + slot.slice(3,5)
+                    const h = parseInt(slot.slice(0,2))
+                    const m = slot.slice(3,5)
+                    const labelClean = h + (m === '00' ? 'h' : 'h' + m)
+
+                    if (si > 0) {
+                      // Traço separador
+                      ctx.fillStyle = 'rgba(255,255,255,0.2)'
+                      ctx.font = '300 36px system-ui, sans-serif'
+                      ctx.fillText(' - ', tx, midY)
+                      tx += ctx.measureText(' - ').width
+                    }
 
                     if (isFree) {
-                      // Verde — disponível
-                      ctx.save()
-                      ctx.fillStyle='rgba(34,197,94,0.18)'
-                      ctx.strokeStyle='rgba(34,197,94,0.65)'
-                      ctx.lineWidth=2
-                      ctx.beginPath(); ctx.roundRect(px, py, pillW2, pillH2, 18); ctx.fill(); ctx.stroke()
-                      ctx.fillStyle='#86efac'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='800 40px system-ui,sans-serif'
-                      ctx.fillText(labelClean, px+pillW2/2, py+pillH2/2)
-                      ctx.restore()
+                      ctx.fillStyle = '#86efac'
+                      ctx.font = '800 44px system-ui, sans-serif'
                     } else {
-                      // Riscado — ocupado
                       ctx.save()
-                      ctx.fillStyle='rgba(255,255,255,0.03)'
-                      ctx.strokeStyle='rgba(255,255,255,0.07)'
-                      ctx.lineWidth=1
-                      ctx.beginPath(); ctx.roundRect(px, py, pillW2, pillH2, 18); ctx.fill(); ctx.stroke()
-                      ctx.globalAlpha=0.25; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='400 40px system-ui,sans-serif'
-                      ctx.fillText(labelClean, px+pillW2/2, py+pillH2/2)
+                      ctx.globalAlpha = 0.3
+                      ctx.fillStyle = '#ffffff'
+                      ctx.font = '400 44px system-ui, sans-serif'
+                    }
+
+                    const tw = ctx.measureText(labelClean).width
+                    ctx.fillText(labelClean, tx, midY)
+
+                    if (!isFree) {
                       ctx.restore()
+                      // Risco
                       ctx.save()
-                      ctx.globalAlpha=0.65; ctx.strokeStyle='#ff4444'; ctx.lineWidth=3
-                      ctx.beginPath(); ctx.moveTo(px+12, py+pillH2/2+2); ctx.lineTo(px+pillW2-12, py+pillH2/2+2); ctx.stroke()
+                      ctx.globalAlpha = 0.6
+                      ctx.strokeStyle = '#ff4444'
+                      ctx.lineWidth = 3
+                      ctx.beginPath()
+                      ctx.moveTo(tx, midY + 2)
+                      ctx.lineTo(tx + tw, midY + 2)
+                      ctx.stroke()
                       ctx.restore()
                     }
+                    tx += tw
                   })
-                  ctx.textAlign='center'
+                  ctx.restore()
                 })
 
-                y += daysToShow.length * (dayH + separatorH) + 20
+                y += daysToShow.length * (rowH2 + rowGap) + 24
 
                 // Separador
                 ctx.fillStyle=sepG; ctx.fillRect(60,y,W-120,1.5); y += 36
