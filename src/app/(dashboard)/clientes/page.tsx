@@ -277,15 +277,13 @@ export default function ClientesPage() {
           return (
             <article
               key={client.id}
-              onClick={() => setSelected(active ? null : client)}
               style={{
                 borderRadius: 16,
                 border: `1px solid ${active ? accent : C.border}`,
                 background: active ? `${accent}12` : C.card,
                 padding: 16,
-                cursor: 'pointer',
                 display: 'grid',
-                gap: 14,
+                gap: 12,
                 minWidth: 0,
                 overflow: 'hidden',
               }}
@@ -304,7 +302,7 @@ export default function ClientesPage() {
                 }}>
                   {client.name.charAt(0).toUpperCase()}
                 </div>
-                <div style={{ minWidth: 0 }}>
+                <div style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
                   <strong style={{ display: 'block', color: C.text, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{client.name}</strong>
                   <span style={{ display: 'block', color: C.muted, fontSize: 11, marginTop: 3 }}>{sourceLabel(client.source)}</span>
                 </div>
@@ -334,19 +332,38 @@ export default function ClientesPage() {
                 </strong>
               </div>
 
-              <button
-                onClick={(e) => { e.stopPropagation(); openEdit(client) }}
-                style={{
-                  width: '100%', height: 34, borderRadius: 10,
-                  border: `1px solid ${C.purple}44`,
-                  background: `${C.purple}12`,
-                  color: C.purple, cursor: 'pointer',
-                  fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                }}
-              >
-                ✏️ Editar dados
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => openEdit(client)}
+                  style={{
+                    flex: 1, minHeight: 44, borderRadius: 12,
+                    border: `1.5px solid ${C.purple}55`,
+                    background: `${C.purple}18`,
+                    color: C.purple, cursor: 'pointer',
+                    fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                >
+                  ✏️ Editar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelected(active ? null : client)}
+                  style={{
+                    width: 44, minHeight: 44, borderRadius: 12,
+                    border: `1px solid ${C.border}`,
+                    background: C.card2,
+                    color: C.muted, cursor: 'pointer',
+                    fontFamily: 'inherit', fontSize: 13,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                >
+                  {active ? '▲' : '▼'}
+                </button>
+              </div>
             </article>
           )
         })}

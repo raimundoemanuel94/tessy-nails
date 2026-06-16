@@ -2223,3 +2223,52 @@ nextjs-portal {
   .manicure-sidebar { display: none !important; }
   .manicure-bottom-nav { display: flex !important; }
 }
+
+/* ── Mobile geral — painel Tessy ── */
+@media (max-width: 768px) {
+  /* Evita overflow horizontal em qualquer página */
+  .dash-main > div {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* Cards de cliente */
+  .dash-main article {
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Textos longos */
+  .dash-main strong, .dash-main span, .dash-main p {
+    word-break: break-word;
+  }
+
+  /* Botões touch-friendly */
+  .dash-main button {
+    min-height: 44px !important;
+    touch-action: manipulation !important;
+  }
+
+  /* Grids de 2+ colunas viram 1 coluna */
+  .dash-main [style*="grid-template-columns: 1fr 1fr"],
+  .dash-main [style*="grid-template-columns:1fr 1fr"],
+  .dash-main [style*="grid-template-columns: repeat(4,"],
+  .dash-main [style*="grid-template-columns: repeat(6,"],
+  .dash-main [style*="grid-template-columns: repeat(auto-fill, minmax(140px"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Inputs e modais */
+  .dash-main input,
+  .dash-main select,
+  .dash-main textarea {
+    font-size: 16px !important; /* Evita zoom no iOS */
+  }
+
+  /* Modal fullscreen no mobile */
+  .dash-main [style*="max-width: 520"],
+  .dash-main [style*="max-width: 400"],
+  .dash-main [style*="max-width: 380"] {
+    max-width: calc(100vw - 28px) !important;
+  }
+}
