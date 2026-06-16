@@ -304,38 +304,40 @@ export default function AgendarClient({ studio, services, settings, professional
       backdrop-filter: saturate(180%) blur(14px);
     }
     .booking-logo {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
       display: grid;
       place-items: center;
       overflow: hidden;
       color: #fff;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 15px;
       background: var(--booking-brand);
       flex: 0 0 auto;
+      border: 2px solid rgba(0,0,0,0.06);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
     }
-    .booking-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .booking-logo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
     .booking-brand-copy { min-width: 0; flex: 1; }
-    .booking-brand-copy strong,
-    .booking-brand-copy span,
-    .booking-brand-address {
+    .booking-brand-copy strong {
       display: block;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: -.01em;
     }
-    .booking-brand-copy strong { font-size: 15px; font-weight: 600; color: #1a1a1a; letter-spacing: -.01em; }
-    .booking-brand-copy span { color: #777; font-size: 12px; margin-top: 2px; font-weight: 400; }
-    .booking-brand-address {
-      color: #777;
-      font-size: 12px;
-      margin-top: 2px;
-      font-weight: 400;
-      text-decoration: none;
+    .booking-brand-copy span {
+      display: block;
+      color: #22c55e;
+      font-size: 11px;
+      margin-top: 1px;
+      font-weight: 500;
     }
-    .booking-brand-address:hover { color: var(--booking-brand); }
+    .booking-brand-address { display: none; }
     .booking-instagram {
       color: #555;
       text-decoration: none;
@@ -1341,14 +1343,8 @@ export default function AgendarClient({ studio, services, settings, professional
           {studio.avatar_url ? <img src={studio.avatar_url} alt={studio.name} /> : studio.name.slice(0, 2).toUpperCase()}
         </div>
         <div className="booking-brand-copy">
-          <strong>{studio.name}</strong>
-          {studio.address && mapsUrl ? (
-            <a className="booking-brand-address" href={mapsUrl} target="_blank" rel="noreferrer">
-              {studio.address ? `📍 ${studio.address}` : 'Ver endereço'}
-            </a>
-          ) : (
-            <span>{studio.address || 'Agendamento online'}</span>
-          )}
+          <strong>{professional ? professional.name : studio.name}</strong>
+          <span>● agendamento online</span>
         </div>
         <div className="booking-header-actions">
           {step !== 'service' && step !== 'done' && (
@@ -1368,7 +1364,7 @@ export default function AgendarClient({ studio, services, settings, professional
               {studio.instagram}
             </a>
           )}
-          <a className="booking-header-action" href={`/cliente/agendar/consultar?slug=${encodeURIComponent(studio.slug)}`} title="Consultar agendamento">
+          <a className="booking-header-action" href={`/cliente/agendar/consultar?slug=${encodeURIComponent(studio.slug)}`} title="Meus agendamentos" style={{ borderRadius: 20, paddingLeft: 14, paddingRight: 14, fontWeight: 600, fontSize: 12, border: '1px solid #e5e5e5' }}>
             Meus agendamentos
           </a>
         </div>
