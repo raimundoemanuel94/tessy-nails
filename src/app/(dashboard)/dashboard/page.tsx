@@ -292,48 +292,44 @@ export default function DashboardPage() {
                 const SIcon = s.icon;
                 return (
                   <div key={a.id} style={{
-                    display:"flex",alignItems:"center",gap:14,
-                    padding:"14px 20px",
+                    display:"flex", flexWrap:"wrap", alignItems:"center", gap:10,
+                    padding:"14px 16px",
                     borderBottom: i<todayApts.length-1 ? `1px solid ${border}` : "none",
-                    transition:"background .15s",
-                  }}
-                    onMouseEnter={(e:any) => e.currentTarget.style.background=card2}
-                    onMouseLeave={(e:any) => e.currentTarget.style.background="transparent"}
-                  >
+                  }}>
                     {/* time block */}
                     <div style={{
-                      minWidth:52,padding:"8px 6px",borderRadius:10,textAlign:"center",
-                      background:`${s.color}12`,border:`1px solid ${s.color}25`,flexShrink:0,
+                      width:58, padding:"8px 4px", borderRadius:10, textAlign:"center",
+                      background:`${s.color}12`, border:`1px solid ${s.color}25`, flexShrink:0,
                     }}>
-                      <div style={{fontSize:14,fontWeight:900,color:s.color,lineHeight:1}}>{fmtT(a.appointment_date)}</div>
-                      <div style={{fontSize:9,color:muted,marginTop:3}}>{a.duration_minutes}min</div>
+                      <div style={{fontSize:15,fontWeight:900,color:s.color,lineHeight:1}}>{fmtT(a.appointment_date)}</div>
+                      <div style={{fontSize:9,color:muted,marginTop:3,whiteSpace:"nowrap"}}>{a.duration_minutes}min</div>
                     </div>
 
-                    {/* info */}
-                    <div style={{flex:1,minWidth:0}}>
+                    {/* info — flex:1 com minWidth:0 garante truncate */}
+                    <div style={{flex:1, minWidth:120}}>
                       <div style={{fontSize:14,fontWeight:700,color:text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.client_name}</div>
-                      <div style={{fontSize:12,color:muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginTop:2}}>{a.service_name}</div>
+                      <div style={{display:"flex",alignItems:"center",gap:5,marginTop:3,flexWrap:"wrap"}}>
+                        <SIcon size={11} color={s.color}/>
+                        <span style={{fontSize:11,fontWeight:700,color:s.color}}>{s.label}</span>
+                        <span style={{fontSize:11,color:muted}}>· {a.service_name}</span>
+                      </div>
                     </div>
 
-                    {/* right */}
-                    <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:5,flexShrink:0}}>
+                    {/* price + action */}
+                    <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
                       <span style={{fontSize:14,fontWeight:800,color:grn}}>{fmt(a.price||0)}</span>
-                      <div style={{display:"flex",alignItems:"center",gap:4}}>
-                        <SIcon size={11} color={s.color}/>
-                        <span style={{fontSize:10,fontWeight:700,color:s.color}}>{s.label}</span>
-                      </div>
                       {a.status==="pending" && (
                         <button onClick={()=>setStatus(a.id,"confirmed")} style={{
                           background:`${grn}18`,border:`1px solid ${grn}35`,color:grn,
-                          borderRadius:8,padding:"4px 10px",fontSize:10,cursor:"pointer",
-                          fontWeight:700,fontFamily:"inherit",
+                          borderRadius:8,padding:"6px 12px",fontSize:11,cursor:"pointer",
+                          fontWeight:700,fontFamily:"inherit",whiteSpace:"nowrap",
                         }}>✓ Confirmar</button>
                       )}
                       {a.status==="confirmed" && (
                         <button onClick={()=>setStatus(a.id,"completed")} style={{
                           background:`${purp}18`,border:`1px solid ${purp}35`,color:purp,
-                          borderRadius:8,padding:"4px 10px",fontSize:10,cursor:"pointer",
-                          fontWeight:700,fontFamily:"inherit",
+                          borderRadius:8,padding:"6px 12px",fontSize:11,cursor:"pointer",
+                          fontWeight:700,fontFamily:"inherit",whiteSpace:"nowrap",
                         }}>✦ Concluir</button>
                       )}
                     </div>
@@ -380,7 +376,7 @@ export default function DashboardPage() {
           </div>
 
           {/* days grid */}
-          <div style={{padding:"16px",display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6}}>
+          <div style={{padding:"12px 16px",display:"grid",gridTemplateColumns:"repeat(7,minmax(40px,1fr))",gap:4,overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
             {weekDays.map(day => {
               const dayStr  = toISO(day);
               const isToday = dayStr === todayStr;

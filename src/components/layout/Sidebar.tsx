@@ -130,10 +130,13 @@ export function Sidebar({ profile }: { profile: any }) {
 
       {/* Mobile topbar */}
       <div className="manicure-topbar">
-        <div className="manicure-topbar-logo">
-          <Sparkles size={14} color="#a78bfa" />
+        <div className="manicure-topbar-logo" style={{ overflow: 'hidden', borderRadius: '50%' }}>
+          {(profile as any)?.avatar_url
+            ? <img src={(profile as any).avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+            : <Sparkles size={14} color="#a78bfa" />
+          }
         </div>
-        <span className="manicure-topbar-name">{studio?.name ?? "Meu Studio"}</span>
+        <span className="manicure-topbar-name">{studio?.name ?? displayName ?? "Meu Studio"}</span>
       </div>
 
       <nav className="manicure-bottom-nav md:hidden">
