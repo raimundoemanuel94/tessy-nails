@@ -2188,16 +2188,20 @@ nextjs-portal {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 56px;
-  z-index: 15;
-  background: rgba(8,8,18,0.92);
-  backdrop-filter: blur(20px);
+  /* iOS safe area */
+  padding-top: env(safe-area-inset-top, 0px);
+  height: calc(56px + env(safe-area-inset-top, 0px));
+  z-index: 100;
+  background: #080812;
   border-bottom: 1px solid rgba(255,255,255,0.07);
   align-items: center;
-  padding: 0 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 16px));
+  padding-right: max(16px, env(safe-area-inset-right, 16px));
   gap: 12px;
+  -webkit-overflow-scrolling: touch;
 }
 .manicure-topbar-logo {
-  width: 32px; height: 32px;
+  width: 34px; height: 34px;
   border-radius: 10px;
   background: rgba(124,92,191,0.25);
   border: 1px solid rgba(124,92,191,0.4);
@@ -2213,15 +2217,21 @@ nextjs-portal {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.manicure-bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+}
 
 @media (max-width: 768px) {
   .manicure-topbar { display: flex; }
-  .dash-main {
-    margin-left: 0 !important;
-    padding: 72px 14px 86px !important;
-  }
   .manicure-sidebar { display: none !important; }
   .manicure-bottom-nav { display: flex !important; }
+  .dash-main {
+    margin-left: 0 !important;
+    padding-top: calc(72px + env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-left: max(14px, env(safe-area-inset-left, 14px)) !important;
+    padding-right: max(14px, env(safe-area-inset-right, 14px)) !important;
+  }
 }
 
 /* ── Mobile completo — painel Tessy ── */
