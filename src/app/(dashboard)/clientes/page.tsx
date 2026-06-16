@@ -332,6 +332,20 @@ export default function ClientesPage() {
                   {stats?.next ? `${dateTime(stats.next.appointment_date)} - ${stats.next.service_name} - ${money(stats.next.price)}` : 'Nenhum marcado'}
                 </strong>
               </div>
+
+              <button
+                onClick={(e) => { e.stopPropagation(); openEdit(client) }}
+                style={{
+                  width: '100%', height: 34, borderRadius: 10,
+                  border: `1px solid ${C.purple}44`,
+                  background: `${C.purple}12`,
+                  color: C.purple, cursor: 'pointer',
+                  fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}
+              >
+                ✏️ Editar dados
+              </button>
             </article>
           )
         })}
