@@ -1344,7 +1344,7 @@ export default function AgendarClient({ studio, services, settings, professional
           <strong>{studio.name}</strong>
           {studio.address && mapsUrl ? (
             <a className="booking-brand-address" href={mapsUrl} target="_blank" rel="noreferrer">
-              Ver endereço
+              {studio.address ? `📍 ${studio.address}` : 'Ver endereço'}
             </a>
           ) : (
             <span>{studio.address || 'Agendamento online'}</span>
@@ -1420,12 +1420,12 @@ export default function AgendarClient({ studio, services, settings, professional
             </div>
 
             <a className="booking-client-access" href={`/cliente/agendar/consultar?slug=${encodeURIComponent(studio.slug)}`}>
-              <div className="booking-client-access-icon">📅</div>
+              <div className="booking-client-access-icon">💅</div>
               <div className="booking-client-access-body">
                 <span>Já tem agendamento?</span>
                 <strong>Ver meus agendamentos</strong>
               </div>
-              <div className="booking-client-access-arrow">→</div>
+              <div className="booking-client-access-arrow" style={{ background: 'var(--booking-brand)', color: '#fff' }}>→</div>
             </a>
 
             {/* SERVIÇOS */}
@@ -1459,9 +1459,9 @@ export default function AgendarClient({ studio, services, settings, professional
                       </div>
                     <div className="booking-svc-footer">
                       <div className="booking-svc-price">{money(service.price)}</div>
-                      <div className="booking-svc-btn">
+                      <button className="booking-svc-btn" style={{ background: 'var(--booking-brand)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                         Escolher
-                      </div>
+                      </button>
                     </div>
                   </button>
                   )
