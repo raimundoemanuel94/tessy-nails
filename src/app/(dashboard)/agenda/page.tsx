@@ -74,6 +74,9 @@ export default function AgendaPage() {
   const [offset, setOffset] = useState(0)
   const [selectedDate, setSelectedDate] = useState(ymd(new Date()))
   const [studioSlug, setStudioSlug] = useState('')
+  const [studioName, setStudioName] = useState('')
+  const [studioAvatar, setStudioAvatar] = useState('')
+  const [studioBrandColor, setStudioBrandColor] = useState('#7C5CBF')
   const [copied, setCopied] = useState(false)
   const [bannerOpen, setBannerOpen] = useState(false)
   const [bannerSlots, setBannerSlots] = useState<string[]>([])
@@ -86,8 +89,11 @@ export default function AgendaPage() {
       if (!user) { setLoading(false); return }
       const { data: profile } = await sb.from('profiles').select('studio_id').eq('id', user.id).single()
       if (!profile?.studio_id) { setLoading(false); return }
-      const { data: studioData } = await sb.from('studios').select('slug').eq('id', profile.studio_id).single()
+      const { data: studioData } = await sb.from('studios').select('slug, name, avatar_url, brand_color').eq('id', profile.studio_id).single()
       if (studioData?.slug) setStudioSlug(studioData.slug)
+      if (studioData?.name) setStudioName(studioData.name)
+      if (studioData?.avatar_url) setStudioAvatar(studioData.avatar_url)
+      if (studioData?.brand_color) setStudioBrandColor(studioData.brand_color)
       const { data: settingsData } = await sb.from('salon_settings').select('slot_duration, working_hours').eq('studio_id', profile.studio_id).single()
       if (settingsData) setSalonSettings(settingsData as any)
       const { data } = await sb
@@ -479,9 +485,15 @@ export default function AgendaPage() {
 
           {bannerOpen && (() => {
             const freeSlots = (() => {
-              const booked = selectedApts
+              // Build busy ranges considering full duration of each appointment
+              const busyRanges = selectedApts
                 .filter(a => !['cancelled', 'no_show'].includes(a.status))
-                .map(a => a.appointment_date.slice(11, 16))
+                .map(a => {
+                  const [hh, mm] = a.appointment_date.slice(11, 16).split(':').map(Number)
+                  const startMin = hh * 60 + mm
+                  const dur = a.duration_minutes || 30
+                  return { start: startMin, end: startMin + dur }
+                })
 
               // Use salon_settings working_hours if available, else default
               const weekdays = ['sun','mon','tue','wed','thu','fri','sat']
@@ -505,7 +517,14 @@ export default function AgendaPage() {
                 const mm = String(m % 60).padStart(2, '0')
                 all.push(`${hh}:${mm}`)
               }
-              return all.filter(s => !booked.includes(s))
+
+              // Filter: a slot is free only if it doesn't overlap any busy range
+              return all.filter(slot => {
+                const [sh, sm] = slot.split(':').map(Number)
+                const slotStart = sh * 60 + sm
+                const slotEnd = slotStart + slotDur
+                return !busyRanges.some(r => slotStart < r.end && slotEnd > r.start)
+              })
             })()
 
             const slugLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/agendar/${studioSlug}`
@@ -519,13 +538,177 @@ export default function AgendaPage() {
               `\n\n👉 Agende pelo link:\n${slugLink}`
 
             const handleShare = async () => {
-              if (!shareText) return
-              if (navigator.share) {
-                try { await navigator.share({ text: shareText }) } catch {}
-              } else {
-                await navigator.clipboard.writeText(shareText)
-                alert('Texto copiado!')
+              if (!bannerSlots.length) return
+
+              // Generate visual banner on canvas
+              const W = 1080, H = 1080
+              const canvas = document.createElement('canvas')
+              canvas.width = W; canvas.height = H
+              const ctx = canvas.getContext('2d')!
+
+              const brand = studioBrandColor || '#7C5CBF'
+              const brandR = parseInt(brand.slice(1,3),16)
+              const brandG = parseInt(brand.slice(3,5),16)
+              const brandB = parseInt(brand.slice(5,7),16)
+
+              // Background gradient
+              const bg = ctx.createLinearGradient(0, 0, 0, H)
+              bg.addColorStop(0, '#0d0d1a')
+              bg.addColorStop(1, '#1a1028')
+              ctx.fillStyle = bg
+              ctx.fillRect(0, 0, W, H)
+
+              // Subtle brand glow top-right
+              const glow = ctx.createRadialGradient(W, 0, 0, W, 0, 600)
+              glow.addColorStop(0, `rgba(${brandR},${brandG},${brandB},0.18)`)
+              glow.addColorStop(1, 'transparent')
+              ctx.fillStyle = glow
+              ctx.fillRect(0, 0, W, H)
+
+              // Top bar brand line
+              ctx.fillStyle = brand
+              ctx.fillRect(0, 0, W, 6)
+
+              // Draw avatar circle (async - load image if available)
+              const drawContent = async () => {
+                const avatarSize = 120
+                const avatarX = W/2
+                const avatarY = 200
+
+                if (studioAvatar) {
+                  try {
+                    const img = new Image()
+                    img.crossOrigin = 'anonymous'
+                    await new Promise((res, rej) => {
+                      img.onload = res; img.onerror = rej
+                      img.src = studioAvatar
+                    })
+                    // Circle clip for avatar
+                    ctx.save()
+                    ctx.beginPath()
+                    ctx.arc(avatarX, avatarY, avatarSize/2, 0, Math.PI*2)
+                    ctx.clip()
+                    ctx.drawImage(img, avatarX - avatarSize/2, avatarY - avatarSize/2, avatarSize, avatarSize)
+                    ctx.restore()
+                    // Avatar ring
+                    ctx.beginPath()
+                    ctx.arc(avatarX, avatarY, avatarSize/2 + 4, 0, Math.PI*2)
+                    ctx.strokeStyle = brand
+                    ctx.lineWidth = 3
+                    ctx.stroke()
+                  } catch {
+                    // fallback circle
+                    ctx.beginPath()
+                    ctx.arc(avatarX, avatarY, avatarSize/2, 0, Math.PI*2)
+                    ctx.fillStyle = brand
+                    ctx.fill()
+                    ctx.fillStyle = '#fff'
+                    ctx.font = 'bold 48px sans-serif'
+                    ctx.textAlign = 'center'
+                    ctx.textBaseline = 'middle'
+                    ctx.fillText('💅', avatarX, avatarY)
+                  }
+                } else {
+                  ctx.beginPath()
+                  ctx.arc(avatarX, avatarY, avatarSize/2, 0, Math.PI*2)
+                  ctx.fillStyle = brand
+                  ctx.fill()
+                }
+
+                // Studio name
+                ctx.fillStyle = '#ffffff'
+                ctx.font = 'bold 54px -apple-system, sans-serif'
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'top'
+                ctx.fillText(studioName || 'Studio', W/2, avatarY + avatarSize/2 + 24)
+
+                // "Vagas disponíveis" label
+                ctx.fillStyle = brand
+                ctx.font = 'bold 28px sans-serif'
+                ctx.fillText('💅 VAGAS DISPONÍVEIS', W/2, avatarY + avatarSize/2 + 96)
+
+                // Date
+                const dateStr = new Date(selectedDate + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+                ctx.fillStyle = 'rgba(255,255,255,0.7)'
+                ctx.font = '32px sans-serif'
+                ctx.fillText(dateStr.charAt(0).toUpperCase() + dateStr.slice(1), W/2, avatarY + avatarSize/2 + 142)
+
+                // Divider
+                ctx.fillStyle = `rgba(${brandR},${brandG},${brandB},0.3)`
+                ctx.fillRect(120, avatarY + avatarSize/2 + 190, W - 240, 1)
+
+                // Time slots
+                const slotsPerRow = 3
+                const slotW = 240, slotH = 72
+                const totalRows = Math.ceil(bannerSlots.length / slotsPerRow)
+                const startY = avatarY + avatarSize/2 + 220
+                const totalGridH = totalRows * (slotH + 16)
+                const gridOffsetY = startY
+
+                bannerSlots.forEach((slot, i) => {
+                  const row = Math.floor(i / slotsPerRow)
+                  const col = i % slotsPerRow
+                  const totalInRow = Math.min(slotsPerRow, bannerSlots.length - row * slotsPerRow)
+                  const rowOffsetX = (W - totalInRow * slotW - (totalInRow-1) * 16) / 2
+                  const x = rowOffsetX + col * (slotW + 16)
+                  const y = gridOffsetY + row * (slotH + 16)
+
+                  // Slot pill background
+                  ctx.fillStyle = `rgba(${brandR},${brandG},${brandB},0.15)`
+                  ctx.strokeStyle = `rgba(${brandR},${brandG},${brandB},0.5)`
+                  ctx.lineWidth = 1.5
+                  const r = 16
+                  ctx.beginPath()
+                  ctx.roundRect(x, y, slotW, slotH, r)
+                  ctx.fill()
+                  ctx.stroke()
+
+                  // Time text
+                  ctx.fillStyle = '#ffffff'
+                  ctx.font = 'bold 36px sans-serif'
+                  ctx.textAlign = 'center'
+                  ctx.textBaseline = 'middle'
+                  ctx.fillText(`🕐 ${slot}`, x + slotW/2, y + slotH/2)
+                })
+
+                // CTA at bottom
+                const ctaY = gridOffsetY + totalGridH + 60
+                ctx.fillStyle = brand
+                const ctaR = 20
+                ctx.beginPath()
+                ctx.roundRect(120, ctaY, W - 240, 80, ctaR)
+                ctx.fill()
+
+                ctx.fillStyle = '#ffffff'
+                ctx.font = 'bold 32px sans-serif'
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'middle'
+                ctx.fillText('👉 Agende pelo link na bio', W/2, ctaY + 40)
+
+                // Bottom URL
+                ctx.fillStyle = 'rgba(255,255,255,0.4)'
+                ctx.font = '22px monospace'
+                ctx.fillText(slugLink, W/2, H - 50)
+
+                // Share the canvas
+                canvas.toBlob(async (blob) => {
+                  if (!blob) return
+                  const file = new File([blob], 'vagas-banner.png', { type: 'image/png' })
+                  if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                    try {
+                      await navigator.share({ files: [file], text: shareText })
+                      return
+                    } catch {}
+                  }
+                  // Fallback: download
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url; a.download = 'vagas-banner.png'; a.click()
+                  URL.revokeObjectURL(url)
+                }, 'image/png')
               }
+
+              await drawContent()
             }
 
             return (
