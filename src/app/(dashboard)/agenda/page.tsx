@@ -558,22 +558,37 @@ export default function AgendaPage() {
               ctx.fillStyle = bg
               ctx.fillRect(0, 0, W, H)
 
+              // Decorative circles
+              ctx.save()
+              ctx.globalAlpha = 0.07
+              ctx.fillStyle = brand
+              ctx.beginPath(); ctx.arc(-80, H + 80, 400, 0, Math.PI*2); ctx.fill()
+              ctx.beginPath(); ctx.arc(W + 80, -80, 350, 0, Math.PI*2); ctx.fill()
+              ctx.globalAlpha = 0.04
+              ctx.beginPath(); ctx.arc(W/2, H/2, 500, 0, Math.PI*2); ctx.fill()
+              ctx.restore()
+
               // Subtle brand glow top-right
               const glow = ctx.createRadialGradient(W, 0, 0, W, 0, 600)
-              glow.addColorStop(0, `rgba(${brandR},${brandG},${brandB},0.18)`)
+              glow.addColorStop(0, `rgba(${brandR},${brandG},${brandB},0.15)`)
               glow.addColorStop(1, 'transparent')
               ctx.fillStyle = glow
               ctx.fillRect(0, 0, W, H)
 
               // Top bar brand line
               ctx.fillStyle = brand
-              ctx.fillRect(0, 0, W, 6)
+              ctx.fillRect(0, 0, W, 8)
+              // Bottom bar
+              ctx.fillRect(0, H - 8, W, 8)
 
               // Draw avatar circle (async - load image if available)
               const drawContent = async () => {
-                const avatarSize = 120
+                // Sort slots chronologically
+                const sortedSlots = [...bannerSlots].sort()
+
+                const avatarSize = 160
                 const avatarX = W/2
-                const avatarY = 200
+                const avatarY = 240
 
                 if (studioAvatar) {
                   try {
@@ -640,15 +655,15 @@ export default function AgendaPage() {
                 // Time slots
                 const slotsPerRow = 3
                 const slotW = 240, slotH = 72
-                const totalRows = Math.ceil(bannerSlots.length / slotsPerRow)
+                const totalRows = Math.ceil(sortedSlots.length / slotsPerRow)
                 const startY = avatarY + avatarSize/2 + 220
                 const totalGridH = totalRows * (slotH + 16)
                 const gridOffsetY = startY
 
-                bannerSlots.forEach((slot, i) => {
+                sortedSlots.forEach((slot, i) => {
                   const row = Math.floor(i / slotsPerRow)
                   const col = i % slotsPerRow
-                  const totalInRow = Math.min(slotsPerRow, bannerSlots.length - row * slotsPerRow)
+                  const totalInRow = Math.min(slotsPerRow, sortedSlots.length - row * slotsPerRow)
                   const rowOffsetX = (W - totalInRow * slotW - (totalInRow-1) * 16) / 2
                   const x = rowOffsetX + col * (slotW + 16)
                   const y = gridOffsetY + row * (slotH + 16)
@@ -673,17 +688,21 @@ export default function AgendaPage() {
 
                 // CTA at bottom
                 const ctaY = gridOffsetY + totalGridH + 60
+                ctx.save()
                 ctx.fillStyle = brand
+                ctx.globalAlpha = 1
                 const ctaR = 20
                 ctx.beginPath()
-                ctx.roundRect(120, ctaY, W - 240, 80, ctaR)
+                ctx.roundRect(120, ctaY, W - 240, 84, ctaR)
                 ctx.fill()
+                ctx.restore()
 
                 ctx.fillStyle = '#ffffff'
-                ctx.font = 'bold 32px sans-serif'
+                ctx.globalAlpha = 1
+                ctx.font = 'bold 34px sans-serif'
                 ctx.textAlign = 'center'
                 ctx.textBaseline = 'middle'
-                ctx.fillText('👉 Agende pelo link na bio', W/2, ctaY + 40)
+                ctx.fillText('👉 Agende pelo link na bio', W/2, ctaY + 42)
 
                 // Bottom URL
                 ctx.fillStyle = 'rgba(255,255,255,0.4)'
