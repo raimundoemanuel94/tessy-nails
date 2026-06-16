@@ -538,186 +538,234 @@ export default function AgendaPage() {
             const handleShare = async () => {
               if (!bannerSlots.length) return
 
-              // Story 1080x1920 — estilo feminino rosé igual ao da Tessy
               const W = 1080, H = 1920
               const canvas = document.createElement('canvas')
               canvas.width = W; canvas.height = H
               const ctx = canvas.getContext('2d')!
 
-              const brand = studioBrandColor || '#C97B6B'
-              const br = parseInt(brand.slice(1,3),16)
-              const bg2 = parseInt(brand.slice(3,5),16)
-              const bb = parseInt(brand.slice(5,7),16)
+              // ── CARREGAR FONTE PREMIUM ──────────────────────
+              try {
+                const font = new FontFace('Playfair', 'url(https://fonts.gstatic.com/s/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvUDQ.woff2)')
+                await font.load()
+                ;(document as any).fonts.add(font)
+              } catch { /* usa Georgia fallback */ }
 
-              // Cor base: rosé salmão da marca ou fallback quente
-              const isLight = (br*299 + bg2*587 + bb*114) / 1000 > 128
-              const bgBase = isLight ? brand : '#E8A898'
-
-              // ── FUNDO ROSÉ ────────────────────────────────────
-              const bgGrad = ctx.createLinearGradient(0, 0, W*0.6, H)
-              bgGrad.addColorStop(0, '#F5C5B0')
-              bgGrad.addColorStop(0.5, '#EDB8A0')
-              bgGrad.addColorStop(1, '#E8A898')
-              ctx.fillStyle = bgGrad
-              ctx.fillRect(0, 0, W, H)
-
-              // Textura de bolinhas sutis
-              ctx.save()
-              ctx.globalAlpha = 0.06
-              for (let x2 = 0; x2 < W; x2 += 60) {
-                for (let y2 = 0; y2 < H; y2 += 60) {
-                  ctx.beginPath()
-                  ctx.arc(x2, y2, 2, 0, Math.PI*2)
-                  ctx.fillStyle = '#8B3A2A'
-                  ctx.fill()
-                }
+              // ── CALCULAR TODOS OS SLOTS DO DIA ─────────────
+              const wh2 = salonSettings?.working_hours as any
+              const weekdays2 = ['sun','mon','tue','wed','thu','fri','sat']
+              const dayKey2 = weekdays2[new Date(selectedDate + 'T12:00').getDay()]
+              const dayConf2 = wh2?.[dayKey2]
+              const slotDur2 = salonSettings?.slot_duration || 30
+              let openMin2 = 9*60, closeMin2 = 18*60
+              if (dayConf2?.open && dayConf2?.close) {
+                const [oh,om] = dayConf2.open.split(':').map(Number)
+                const [ch,cm] = dayConf2.close.split(':').map(Number)
+                openMin2 = oh*60+om; closeMin2 = ch*60+cm
               }
-              ctx.restore()
-
-              // Círculo decorativo canto inferior esquerdo
-              ctx.save()
-              ctx.globalAlpha = 0.08
-              ctx.beginPath()
-              ctx.arc(-100, H + 100, 500, 0, Math.PI*2)
-              ctx.fillStyle = '#8B3A2A'
-              ctx.fill()
-              ctx.globalAlpha = 0.05
-              ctx.beginPath()
-              ctx.arc(W + 80, 200, 350, 0, Math.PI*2)
-              ctx.fill()
-              ctx.restore()
+              const allDaySlots: string[] = []
+              for (let m = openMin2; m + slotDur2 <= closeMin2; m += slotDur2) {
+                allDaySlots.push(String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0'))
+              }
+              // Slots livres = os que a Tessy selecionou no banner
+              const freeSet = new Set(bannerSlots)
 
               const drawContent = async () => {
-                const sortedSlots = [...bannerSlots].sort()
                 const dateObj = new Date(selectedDate + 'T12:00')
                 const weekday = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' })
-                const dayAbbr = weekday.slice(0,3).toUpperCase()
                 const dayFull = weekday.charAt(0).toUpperCase() + weekday.slice(1)
                 const dayNum = dateObj.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })
 
-                // ── AVATAR ────────────────────────────────────
-                const aSize = 180
-                const aX = W/2, aY = 260
+                // ── FUNDO ROSÉ ────────────────────────────────
+                const bgGrad = ctx.createLinearGradient(0, 0, W, H)
+                bgGrad.addColorStop(0, '#F7C9B5')
+                bgGrad.addColorStop(0.45, '#F0B89E')
+                bgGrad.addColorStop(1, '#E8A888')
+                ctx.fillStyle = bgGrad
+                ctx.fillRect(0, 0, W, H)
 
+                // Bolinhas textura
+                ctx.save(); ctx.globalAlpha = 0.045
+                for (let xi = 0; xi < W; xi += 55) for (let yi = 0; yi < H; yi += 55) {
+                  ctx.beginPath(); ctx.arc(xi, yi, 1.8, 0, Math.PI*2)
+                  ctx.fillStyle = '#6B2A18'; ctx.fill()
+                }
+                ctx.restore()
+
+                // Círculos decorativos cantos
+                ctx.save(); ctx.globalAlpha = 0.07; ctx.fillStyle = '#6B2A18'
+                ctx.beginPath(); ctx.arc(-80, H+80, 480, 0, Math.PI*2); ctx.fill()
+                ctx.beginPath(); ctx.arc(W+80, -80, 380, 0, Math.PI*2); ctx.fill()
+                ctx.restore()
+
+                // ── FOTO COMO CAPA SUPERIOR ───────────────────
+                const coverH = 780  // metade superior do story
                 if (studioAvatar) {
                   try {
                     const img = new Image()
                     img.crossOrigin = 'anonymous'
                     await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = studioAvatar })
+
+                    // Desenha foto full-width no topo
                     ctx.save()
-                    // Sombra suave
-                    ctx.shadowColor = 'rgba(100,40,20,0.25)'
-                    ctx.shadowBlur = 30
-                    ctx.beginPath(); ctx.arc(aX, aY, aSize/2 + 6, 0, Math.PI*2)
-                    ctx.fillStyle = '#fff'; ctx.fill()
-                    ctx.shadowBlur = 0
-                    ctx.beginPath(); ctx.arc(aX, aY, aSize/2, 0, Math.PI*2); ctx.clip()
-                    ctx.drawImage(img, aX-aSize/2, aY-aSize/2, aSize, aSize)
+                    ctx.beginPath(); ctx.rect(0, 0, W, coverH); ctx.clip()
+                    // Calcular escala pra cobrir
+                    const scale = Math.max(W/img.width, coverH/img.height)
+                    const dw = img.width * scale, dh = img.height * scale
+                    ctx.drawImage(img, (W-dw)/2, (coverH-dh)/2 - dh*0.05, dw, dh)
                     ctx.restore()
-                  } catch { /* sem avatar */ }
+
+                    // Overlay gradiente embaixo da foto pra transição suave
+                    const fadeGrad = ctx.createLinearGradient(0, coverH - 280, 0, coverH + 60)
+                    fadeGrad.addColorStop(0, 'rgba(247,201,181,0)')
+                    fadeGrad.addColorStop(0.6, 'rgba(247,201,181,0.85)')
+                    fadeGrad.addColorStop(1, 'rgba(247,201,181,1)')
+                    ctx.fillStyle = fadeGrad
+                    ctx.fillRect(0, coverH - 280, W, 340)
+
+                    // Overlay escuro suave no topo da foto
+                    const topFade = ctx.createLinearGradient(0, 0, 0, 200)
+                    topFade.addColorStop(0, 'rgba(80,20,5,0.35)')
+                    topFade.addColorStop(1, 'rgba(80,20,5,0)')
+                    ctx.fillStyle = topFade
+                    ctx.fillRect(0, 0, W, 200)
+
+                  } catch { /* sem foto */ }
                 }
 
-                // ── TÍTULO ────────────────────────────────────
-                let y = aY + aSize/2 + 60
-
-                // "HORÁRIOS" — grande, serifado
+                // ── NOME DO STUDIO sobre a foto ───────────────
                 ctx.save()
-                ctx.fillStyle = '#7A2E1A'
-                ctx.font = '900 148px Georgia, serif'
-                ctx.textAlign = 'center'
-                ctx.textBaseline = 'top'
-                ctx.letterSpacing = '8px'
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
+                ctx.fillStyle = '#fff'
+                ctx.font = '700 52px "Playfair", Georgia, serif'
+                ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 20
+                ctx.fillText(studioName || 'Studio', W/2, 48)
+                ctx.restore()
+
+                // ── SEÇÃO INFERIOR ────────────────────────────
+                let y = coverH + 40
+
+                // "HORÁRIOS" grande
+                ctx.save()
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
+                ctx.fillStyle = '#6B2A18'
+                ctx.font = '900 130px "Playfair", Georgia, serif'
                 ctx.fillText('HORÁRIOS', W/2, y)
                 ctx.restore()
-                y += 155
+                y += 140
 
-                // "disponíveis" — cursiva/itálica
+                // "disponíveis" itálica
                 ctx.save()
-                ctx.fillStyle = '#5A2010'
-                ctx.font = 'italic 700 72px Georgia, serif'
-                ctx.textAlign = 'center'
-                ctx.textBaseline = 'top'
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
+                ctx.fillStyle = '#8B3A28'
+                ctx.font = 'italic 600 68px "Playfair", Georgia, serif'
                 ctx.fillText('disponíveis', W/2, y)
                 ctx.restore()
-                y += 100
+                y += 86
 
-                // Nome do studio + dia
+                // Data
                 ctx.save()
-                ctx.fillStyle = 'rgba(90,32,16,0.6)'
-                ctx.font = '400 34px Georgia, serif'
-                ctx.textAlign = 'center'
-                ctx.textBaseline = 'top'
-                ctx.fillText(dayFull + ', ' + dayNum, W/2, y)
-                ctx.restore()
-                y += 70
-
-                // Linha separadora
-                ctx.save()
-                ctx.globalAlpha = 0.2
-                ctx.strokeStyle = '#7A2E1A'
-                ctx.lineWidth = 1
-                ctx.beginPath(); ctx.moveTo(120, y); ctx.lineTo(W-120, y); ctx.stroke()
-                ctx.restore()
-                y += 50
-
-                // ── SLOTS ─────────────────────────────────────
-                // Estilo: dia abreviado grande à esquerda + horários à direita
-                const slotFontSize = 96
-                const hourFontSize = 60
-                const rowH = 130
-                const pad = 80
-
-                sortedSlots.forEach((slot, i) => {
-                  const rowY = y + i * (rowH + 16)
-
-                  // Linha separadora entre slots
-                  if (i > 0) {
-                    ctx.save()
-                    ctx.globalAlpha = 0.12
-                    ctx.strokeStyle = '#7A2E1A'
-                    ctx.lineWidth = 1
-                    ctx.beginPath(); ctx.moveTo(pad, rowY - 8); ctx.lineTo(W-pad, rowY - 8); ctx.stroke()
-                    ctx.restore()
-                  }
-
-                  // Horário centralizado grande
-                  ctx.save()
-                  ctx.fillStyle = '#5A2010'
-                  ctx.font = `700 ${hourFontSize}px Georgia, serif`
-                  ctx.textAlign = 'center'
-                  ctx.textBaseline = 'middle'
-                  ctx.fillText(slot + 'h', W/2, rowY + rowH/2)
-                  ctx.restore()
-                })
-
-                y += sortedSlots.length * (rowH + 16) + 30
-
-                // Linha final
-                ctx.save()
-                ctx.globalAlpha = 0.2
-                ctx.strokeStyle = '#7A2E1A'
-                ctx.lineWidth = 1
-                ctx.beginPath(); ctx.moveTo(120, y); ctx.lineTo(W-120, y); ctx.stroke()
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
+                ctx.fillStyle = 'rgba(90,30,15,0.6)'
+                ctx.font = '400 36px "Playfair", Georgia, serif'
+                ctx.fillText(dayFull + ' · ' + dayNum, W/2, y)
                 ctx.restore()
                 y += 60
 
-                // ── @ DO STUDIO ───────────────────────────────
+                // Linha
+                ctx.save(); ctx.globalAlpha = 0.2; ctx.strokeStyle = '#6B2A18'; ctx.lineWidth = 1.5
+                ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(W-100, y); ctx.stroke()
+                ctx.restore()
+                y += 44
+
+                // ── SLOTS COM RISCADO ─────────────────────────
+                // Mostra TODOS os slots — livre em escuro, ocupado em riscado claro
+                const rowH = 100
+                const slotsToShow = allDaySlots.length > 0 ? allDaySlots : [...bannerSlots].sort()
+
+                // Agrupar em linhas de 3
+                const cols = 3
+                const slotW3 = 280, gap3 = 20
+                const totalCols = Math.min(cols, slotsToShow.length)
+
+                slotsToShow.forEach((slot, i) => {
+                  const isFree = freeSet.has(slot)
+                  const row = Math.floor(i / cols)
+                  const col = i % cols
+                  const rowCount = Math.min(cols, slotsToShow.length - row * cols)
+                  const rowWidth = rowCount * slotW3 + (rowCount - 1) * gap3
+                  const x = W/2 - rowWidth/2 + col * (slotW3 + gap3)
+                  const sy = y + row * (rowH + 14)
+
+                  if (isFree) {
+                    // Livre — pill sólido, texto escuro
+                    ctx.save()
+                    ctx.fillStyle = 'rgba(107,42,24,0.12)'
+                    ctx.strokeStyle = 'rgba(107,42,24,0.35)'
+                    ctx.lineWidth = 1.5
+                    ctx.beginPath(); ctx.roundRect(x, sy, slotW3, rowH, 18); ctx.fill(); ctx.stroke()
+                    ctx.restore()
+
+                    ctx.save()
+                    ctx.fillStyle = '#4A1C0A'
+                    ctx.font = '700 48px "Playfair", Georgia, serif'
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+                    ctx.fillText(slot + 'h', x + slotW3/2, sy + rowH/2)
+                    ctx.restore()
+                  } else {
+                    // Ocupado — pill apagado + texto riscado
+                    ctx.save()
+                    ctx.fillStyle = 'rgba(107,42,24,0.04)'
+                    ctx.strokeStyle = 'rgba(107,42,24,0.12)'
+                    ctx.lineWidth = 1
+                    ctx.beginPath(); ctx.roundRect(x, sy, slotW3, rowH, 18); ctx.fill(); ctx.stroke()
+                    ctx.restore()
+
+                    // Texto apagado
+                    ctx.save()
+                    ctx.globalAlpha = 0.35
+                    ctx.fillStyle = '#4A1C0A'
+                    ctx.font = '400 48px "Playfair", Georgia, serif'
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+                    ctx.fillText(slot + 'h', x + slotW3/2, sy + rowH/2)
+                    ctx.restore()
+
+                    // Risco horizontal
+                    ctx.save()
+                    ctx.globalAlpha = 0.5
+                    ctx.strokeStyle = '#6B2A18'
+                    ctx.lineWidth = 3
+                    const tw = ctx.measureText(slot + 'h').width * 0.8
+                    const cx = x + slotW3/2
+                    const cy = sy + rowH/2 + 2
+                    ctx.beginPath(); ctx.moveTo(cx - tw, cy); ctx.lineTo(cx + tw, cy); ctx.stroke()
+                    ctx.restore()
+                  }
+                })
+
+                const totalRows3 = Math.ceil(slotsToShow.length / cols)
+                y += totalRows3 * (rowH + 14) + 36
+
+                // Linha final
+                ctx.save(); ctx.globalAlpha = 0.2; ctx.strokeStyle = '#6B2A18'; ctx.lineWidth = 1.5
+                ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(W-100, y); ctx.stroke()
+                ctx.restore()
+                y += 44
+
+                // @ handle
                 ctx.save()
-                ctx.fillStyle = 'rgba(90,32,16,0.7)'
-                ctx.font = '700 36px Georgia, serif'
-                ctx.textAlign = 'center'
-                ctx.textBaseline = 'top'
-                const handle = studioName ? '@' + studioName.toLowerCase().replace(/\s/g,'_') : '@tessy_souza'
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
+                ctx.fillStyle = 'rgba(75,28,10,0.65)'
+                ctx.font = '600 34px "Playfair", Georgia, serif'
+                const handle = '@' + (studioName || 'tessysouza').toLowerCase().replace(/[^a-z0-9]/gi,'_')
                 ctx.fillText(handle, W/2, y)
                 ctx.restore()
-                y += 56
+                y += 50
 
-                // ── CTA ───────────────────────────────────────
+                // CTA
                 ctx.save()
-                ctx.fillStyle = '#7A2E1A'
-                ctx.font = 'italic 400 38px Georgia, serif'
-                ctx.textAlign = 'center'
-                ctx.textBaseline = 'top'
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
+                ctx.fillStyle = '#6B2A18'
+                ctx.font = 'italic 500 36px "Playfair", Georgia, serif'
                 ctx.fillText('Agende pelo link na bio 💅', W/2, y)
                 ctx.restore()
 
