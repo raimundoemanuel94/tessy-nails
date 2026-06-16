@@ -79,7 +79,8 @@ export default function AgendaPage() {
   const [studioBrandColor, setStudioBrandColor] = useState('#7C5CBF')
   const [copied, setCopied] = useState(false)
   const [bannerOpen, setBannerOpen] = useState(false)
-  const [bannerSlots, setBannerSlots] = useState<string[]>([])
+  const [weekSelection, setWeekSelection] = useState<Record<string, string[]>>({})
+  const [bannerWeekStart, setBannerWeekStart] = useState('')
   const [salonSettings, setSalonSettings] = useState<{ slot_duration: number; working_hours: Record<string, { is_open: boolean; open: string; close: string }> } | null>(null)
 
   useEffect(() => {
@@ -484,59 +485,85 @@ export default function AgendaPage() {
           </button>
 
           {bannerOpen && (() => {
-            const freeSlots = (() => {
-              // Build busy ranges considering full duration of each appointment
-              const busyRanges = selectedApts
-                .filter(a => !['cancelled', 'no_show'].includes(a.status))
-                .map(a => {
-                  const [hh, mm] = a.appointment_date.slice(11, 16).split(':').map(Number)
-                  const startMin = hh * 60 + mm
-                  const dur = a.duration_minutes || 30
-                  return { start: startMin, end: startMin + dur }
-                })
+            const slotDur = salonSettings?.slot_duration || 30
+            const wh = salonSettings?.working_hours as any
+            const weekdayKeys2 = ['sun','mon','tue','wed','thu','fri','sat']
+            const weekdayShort = ['DOM','SEG','TER','QUA','QUI','SEX','SÁB']
 
-              // Use salon_settings working_hours if available, else default
-              const weekdays = ['sun','mon','tue','wed','thu','fri','sat']
-              const dayKey = weekdays[new Date(selectedDate + 'T12:00').getDay()]
-              const wh = salonSettings?.working_hours as any
+            // Build the 6 days (mon..sat) of the week containing selectedDate
+            const base = new Date(selectedDate + 'T12:00')
+            const dow = base.getDay() === 0 ? 7 : base.getDay() // mon=1..sun=7
+            const monday = new Date(base); monday.setDate(base.getDate() - (dow - 1))
+
+            const weekDays: { dateStr: string; label: string; dayNum: number; allSlots: string[]; freeSlots: string[] }[] = []
+            for (let i = 0; i < 6; i++) { // mon..sat
+              const d = new Date(monday); d.setDate(monday.getDate() + i)
+              const dateStr = ymd(d)
+              const dayKey = weekdayKeys2[d.getDay()]
               const dayConfig = wh?.[dayKey]
-              const slotDur = salonSettings?.slot_duration || 30
 
               let openH = 9, openM = 0, closeH = 18, closeM = 0
-              if (dayConfig?.is_open && dayConfig.open && dayConfig.close) {
-                const [oh, om] = dayConfig.open.split(':').map(Number)
-                const [ch, cm] = dayConfig.close.split(':').map(Number)
-                openH = oh; openM = om; closeH = ch; closeM = cm
+              let isOpen = true
+              if (dayConfig) {
+                isOpen = !!dayConfig.is_open
+                if (dayConfig.open && dayConfig.close) {
+                  const [oh, om] = dayConfig.open.split(':').map(Number)
+                  const [ch, cm] = dayConfig.close.split(':').map(Number)
+                  openH = oh; openM = om; closeH = ch; closeM = cm
+                }
               }
 
-              const openMin = openH * 60 + openM
-              const closeMin = closeH * 60 + closeM
               const all: string[] = []
-              for (let m = openMin; m + slotDur <= closeMin; m += slotDur) {
-                const hh = String(Math.floor(m / 60)).padStart(2, '0')
-                const mm = String(m % 60).padStart(2, '0')
-                all.push(`${hh}:${mm}`)
+              if (isOpen) {
+                const openMin = openH*60+openM, closeMin = closeH*60+closeM
+                for (let m = openMin; m + slotDur <= closeMin; m += slotDur) {
+                  all.push(String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'))
+                }
               }
 
-              // Filter: a slot is free only if it doesn't overlap any busy range
-              return all.filter(slot => {
-                const [sh, sm] = slot.split(':').map(Number)
-                const slotStart = sh * 60 + sm
-                const slotEnd = slotStart + slotDur
-                return !busyRanges.some(r => slotStart < r.end && slotEnd > r.start)
+              // busy ranges for this day
+              const dayApts = apts.filter(a => a.appointment_date.slice(0,10) === dateStr && !['cancelled','no_show'].includes(a.status))
+              const busy = dayApts.map(a => {
+                const [hh,mm] = a.appointment_date.slice(11,16).split(':').map(Number)
+                const s = hh*60+mm
+                return { start: s, end: s + (a.duration_minutes || 30) }
               })
-            })()
+              const free = all.filter(slot => {
+                const [sh,sm] = slot.split(':').map(Number)
+                const ss = sh*60+sm, se = ss+slotDur
+                return !busy.some(r => ss < r.end && se > r.start)
+              })
+
+              weekDays.push({ dateStr, label: weekdayShort[d.getDay()], dayNum: d.getDate(), allSlots: all, freeSlots: free })
+            }
 
             const slugLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/agendar/${studioSlug}`
 
-            const toggle = (slot: string) =>
-              setBannerSlots(prev => prev.includes(slot) ? prev.filter(s => s !== slot) : [...prev, slot])
+            const toggleSlot = (dateStr: string, slot: string) => {
+              setWeekSelection(prev => {
+                const cur = prev[dateStr] || []
+                const next = cur.includes(slot) ? cur.filter(s => s !== slot) : [...cur, slot]
+                return { ...prev, [dateStr]: next }
+              })
+            }
 
-            // Share text — só o link
+            const selectAllDay = (dateStr: string, free: string[]) => {
+              setWeekSelection(prev => {
+                const cur = prev[dateStr] || []
+                const allSel = free.every(s => cur.includes(s))
+                return { ...prev, [dateStr]: allSel ? [] : [...free] }
+              })
+            }
+
+            const totalSelected = Object.values(weekSelection).reduce((sum, arr) => sum + arr.length, 0)
+
+            const monthNameOuter = monday.toLocaleDateString('pt-BR', { month: 'long' })
+            const rangeLabel = () => `${weekDays[0].dayNum} a ${weekDays[weekDays.length-1].dayNum} de ${monthNameOuter}`
+
             const shareText = slugLink
 
             const handleShare = async () => {
-              if (!bannerSlots.length) return
+              if (totalSelected === 0) return
 
               const W = 1080, H = 1920
               const canvas = document.createElement('canvas')
@@ -545,302 +572,227 @@ export default function AgendaPage() {
 
               const brand = studioBrandColor || '#7C5CBF'
               const br = parseInt(brand.slice(1,3),16)
-              const bg2 = parseInt(brand.slice(3,5),16)
-              const bb = parseInt(brand.slice(5,7),16)
+              const bgc = parseInt(brand.slice(3,5),16)
+              const bbc = parseInt(brand.slice(5,7),16)
 
-              const sortedSlots = [...bannerSlots].sort()
-              const dateObj = new Date(selectedDate + 'T12:00')
-              const weekday = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' })
-              const dayFull = weekday.charAt(0).toUpperCase() + weekday.slice(1)
-              const dayNum = dateObj.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })
+              const rangeLabelStr = rangeLabel()
 
               const draw = async () => {
-                // ── FUNDO ESCURO ───────────────────────────────
-                const bgGrad = ctx.createLinearGradient(0, 0, 0, H)
-                bgGrad.addColorStop(0, '#08060f')
-                bgGrad.addColorStop(0.5, '#110d1f')
-                bgGrad.addColorStop(1, '#0d0a1a')
-                ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, W, H)
+                // Fundo escuro
+                const bg = ctx.createLinearGradient(0,0,0,H)
+                bg.addColorStop(0,'#08060f'); bg.addColorStop(0.5,'#110d1f'); bg.addColorStop(1,'#0d0a1a')
+                ctx.fillStyle = bg; ctx.fillRect(0,0,W,H)
 
-                // Glow central
-                const gc = ctx.createRadialGradient(W/2, H*0.35, 0, W/2, H*0.35, 750)
-                gc.addColorStop(0, `rgba(${br},${bg2},${bb},0.2)`)
-                gc.addColorStop(1, 'transparent')
-                ctx.fillStyle = gc; ctx.fillRect(0, 0, W, H)
+                const gc = ctx.createRadialGradient(W/2,H*0.3,0,W/2,H*0.3,800)
+                gc.addColorStop(0,`rgba(${br},${bgc},${bbc},0.18)`); gc.addColorStop(1,'transparent')
+                ctx.fillStyle = gc; ctx.fillRect(0,0,W,H)
 
-                // Círculos decorativos
-                ctx.save(); ctx.globalAlpha = 0.08; ctx.fillStyle = brand
-                ctx.beginPath(); ctx.arc(W+140,-140, 500, 0, Math.PI*2); ctx.fill()
-                ctx.beginPath(); ctx.arc(-140, H+140, 460, 0, Math.PI*2); ctx.fill()
-                ctx.globalAlpha = 0.04
-                ctx.beginPath(); ctx.arc(W*0.85, H*0.55, 300, 0, Math.PI*2); ctx.fill()
+                ctx.save(); ctx.globalAlpha=0.08; ctx.fillStyle=brand
+                ctx.beginPath(); ctx.arc(W+140,-140,500,0,Math.PI*2); ctx.fill()
+                ctx.beginPath(); ctx.arc(-140,H+140,460,0,Math.PI*2); ctx.fill()
                 ctx.restore()
 
-                // Barras topo e base
-                const barGrad = ctx.createLinearGradient(0,0,W,0)
-                barGrad.addColorStop(0,'transparent')
-                barGrad.addColorStop(0.25, brand)
-                barGrad.addColorStop(0.75, brand)
-                barGrad.addColorStop(1,'transparent')
-                ctx.fillStyle = barGrad
-                ctx.fillRect(0, 0, W, 7)
-                ctx.fillRect(0, H-7, W, 7)
+                const barG = ctx.createLinearGradient(0,0,W,0)
+                barG.addColorStop(0,'transparent'); barG.addColorStop(0.25,brand); barG.addColorStop(0.75,brand); barG.addColorStop(1,'transparent')
+                ctx.fillStyle = barG; ctx.fillRect(0,0,W,7); ctx.fillRect(0,H-7,W,7)
 
-                // ── AVATAR ─────────────────────────────────────
-                const aR = 200  // raio
-                const aX = W/2, aY = 480
+                // Avatar
+                const aR = 145, aX = W/2, aY = 215
+                const ag = ctx.createRadialGradient(aX,aY,0,aX,aY,aR+50)
+                ag.addColorStop(0,`rgba(${br},${bgc},${bbc},0.3)`); ag.addColorStop(1,'transparent')
+                ctx.fillStyle = ag; ctx.fillRect(aX-aR-50,aY-aR-50,(aR+50)*2,(aR+50)*2)
+                ctx.beginPath(); ctx.arc(aX,aY,aR+5,0,Math.PI*2); ctx.strokeStyle=brand; ctx.lineWidth=4; ctx.stroke()
 
-                // Glow atrás
-                const ag = ctx.createRadialGradient(aX, aY, 0, aX, aY, aR+80)
-                ag.addColorStop(0, `rgba(${br},${bg2},${bb},0.3)`)
-                ag.addColorStop(1, 'transparent')
-                ctx.fillStyle = ag; ctx.fillRect(aX-aR-80, aY-aR-80, (aR+80)*2, (aR+80)*2)
-
-                // Anel externo
-                ctx.beginPath(); ctx.arc(aX, aY, aR+16, 0, Math.PI*2)
-                ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.2)`; ctx.lineWidth = 1; ctx.stroke()
-
-                // Anel da marca
-                ctx.beginPath(); ctx.arc(aX, aY, aR+6, 0, Math.PI*2)
-                ctx.strokeStyle = brand; ctx.lineWidth = 4; ctx.stroke()
-
-                // Foto
                 if (studioAvatar) {
                   try {
-                    const img = new Image(); img.crossOrigin = 'anonymous'
-                    await new Promise((res,rej) => { img.onload=res; img.onerror=rej; img.src=studioAvatar })
-                    ctx.save()
-                    ctx.beginPath(); ctx.arc(aX, aY, aR, 0, Math.PI*2); ctx.clip()
-                    const sc = Math.max((aR*2)/img.width, (aR*2)/img.height)
-                    const dw = img.width*sc, dh = img.height*sc
-                    ctx.drawImage(img, aX-dw/2, aY-dh/2 - dh*0.05, dw, dh)
-                    ctx.restore()
-                  } catch {
-                    ctx.beginPath(); ctx.arc(aX, aY, aR, 0, Math.PI*2)
-                    ctx.fillStyle = brand; ctx.fill()
-                  }
-                } else {
-                  ctx.beginPath(); ctx.arc(aX, aY, aR, 0, Math.PI*2)
-                  ctx.fillStyle = brand; ctx.fill()
-                }
+                    const img = new Image(); img.crossOrigin='anonymous'
+                    await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=studioAvatar})
+                    ctx.save(); ctx.beginPath(); ctx.arc(aX,aY,aR,0,Math.PI*2); ctx.clip()
+                    const sc = Math.max((aR*2)/img.width,(aR*2)/img.height)
+                    const dw=img.width*sc, dh=img.height*sc
+                    ctx.drawImage(img,aX-dw/2,aY-dh/2-dh*0.05,dw,dh); ctx.restore()
+                  } catch { ctx.beginPath(); ctx.arc(aX,aY,aR,0,Math.PI*2); ctx.fillStyle=brand; ctx.fill() }
+                } else { ctx.beginPath(); ctx.arc(aX,aY,aR,0,Math.PI*2); ctx.fillStyle=brand; ctx.fill() }
 
-                // Badge verde online
-                ctx.beginPath(); ctx.arc(aX + aR*0.7, aY + aR*0.7, 40, 0, Math.PI*2)
-                ctx.fillStyle = '#22c55e'; ctx.fill()
-                ctx.strokeStyle = '#08060f'; ctx.lineWidth = 8; ctx.stroke()
-
-                // ── TEXTOS ─────────────────────────────────────
-                let y = aY + aR + 60
+                let y = aY + aR + 46
 
                 // Nome
-                ctx.save()
-                ctx.fillStyle = '#ffffff'
-                ctx.font = '700 72px system-ui, sans-serif'
-                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-                ctx.fillText(studioName || 'Studio', W/2, y)
-                ctx.restore()
-                y += 88
+                ctx.fillStyle='#fff'; ctx.font='700 68px system-ui,sans-serif'
+                ctx.textAlign='center'; ctx.textBaseline='top'
+                ctx.fillText(studioName || 'Studio', W/2, y); y += 84
 
-                // Subtítulo
-                ctx.save()
-                ctx.fillStyle = 'rgba(255,255,255,0.38)'
-                ctx.font = '400 32px system-ui, sans-serif'
-                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-                ctx.fillText('manicure · sorriso mt', W/2, y)
-                ctx.restore()
-                y += 56
+                // Badge
+                const bW=580,bH=64,bX=W/2-bW/2
+                ctx.fillStyle=`rgba(${br},${bgc},${bbc},0.18)`; ctx.strokeStyle=`rgba(${br},${bgc},${bbc},0.5)`; ctx.lineWidth=1.5
+                ctx.beginPath(); ctx.roundRect(bX,y,bW,bH,32); ctx.fill(); ctx.stroke()
+                ctx.fillStyle=brand; ctx.font='700 27px system-ui,sans-serif'; ctx.textBaseline='middle'
+                ctx.fillText('💅  HORÁRIOS DA SEMANA', W/2, y+bH/2); y += bH + 20
 
-                // Badge vagas
-                const bW = 560, bH = 70, bX = W/2 - bW/2
-                ctx.save()
-                ctx.fillStyle = `rgba(${br},${bg2},${bb},0.18)`
-                ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.5)`
-                ctx.lineWidth = 1.5
-                ctx.beginPath(); ctx.roundRect(bX, y, bW, bH, 35); ctx.fill(); ctx.stroke()
-                ctx.fillStyle = brand
-                ctx.font = '700 28px system-ui, sans-serif'
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-                ctx.fillText('💅  VAGAS DISPONÍVEIS', W/2, y + bH/2)
-                ctx.restore()
-                y += bH + 28
+                // Range
+                ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='400 32px system-ui,sans-serif'; ctx.textBaseline='top'
+                ctx.fillText(rangeLabelStr, W/2, y); y += 50
 
-                // Data
-                ctx.save()
-                ctx.fillStyle = 'rgba(255,255,255,0.38)'
-                ctx.font = '400 34px system-ui, sans-serif'
-                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-                ctx.fillText(dayFull + ' · ' + dayNum, W/2, y)
-                ctx.restore()
-                y += 56
+                // Legenda
+                const legY = y + 8
+                ctx.textAlign='left'
+                ctx.fillStyle='#22c55e'; ctx.beginPath(); ctx.arc(W/2-150, legY+10, 9, 0, Math.PI*2); ctx.fill()
+                ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.font='400 24px system-ui,sans-serif'; ctx.textBaseline='middle'
+                ctx.fillText('Disponível', W/2-130, legY+10)
+                ctx.fillStyle='#555'; ctx.beginPath(); ctx.arc(W/2+30, legY+10, 9, 0, Math.PI*2); ctx.fill()
+                ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.fillText('Ocupado', W/2+50, legY+10)
+                ctx.textAlign='center'
+                y += 60
 
                 // Separador
-                const sepG = ctx.createLinearGradient(80,0,W-80,0)
-                sepG.addColorStop(0,'transparent')
-                sepG.addColorStop(0.3,`rgba(${br},${bg2},${bb},0.5)`)
-                sepG.addColorStop(0.7,`rgba(${br},${bg2},${bb},0.5)`)
-                sepG.addColorStop(1,'transparent')
-                ctx.fillStyle = sepG; ctx.fillRect(80, y, W-160, 1.5)
-                y += 44
+                const sepG = ctx.createLinearGradient(60,0,W-60,0)
+                sepG.addColorStop(0,'transparent'); sepG.addColorStop(0.3,`rgba(${br},${bgc},${bbc},0.5)`); sepG.addColorStop(0.7,`rgba(${br},${bgc},${bbc},0.5)`); sepG.addColorStop(1,'transparent')
+                ctx.fillStyle=sepG; ctx.fillRect(60,y,W-120,1.5); y += 30
 
-                // ── SLOTS ──────────────────────────────────────
-                const slotH = 120, slotGap = 18
-                const slotW2 = W - 160
+                // ── DIAS DA SEMANA ──
+                // Só mostra dias que têm pelo menos 1 horário selecionado OU livre
+                const daysToShow = weekDays.filter(d => (weekSelection[d.dateStr]?.length || 0) > 0)
+                const rowH = Math.min(185, (H - y - 300) / Math.max(daysToShow.length, 1))
 
-                sortedSlots.forEach((slot, i) => {
-                  const sy = y + i * (slotH + slotGap)
+                daysToShow.forEach((day, idx) => {
+                  const rowY = y + idx * rowH
+                  const sel = weekSelection[day.dateStr] || []
 
-                  // Card do slot
-                  ctx.save()
-                  ctx.fillStyle = `rgba(${br},${bg2},${bb},0.12)`
-                  ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.4)`
-                  ctx.lineWidth = 1.5
-                  ctx.beginPath(); ctx.roundRect(80, sy, slotW2, slotH, 24); ctx.fill(); ctx.stroke()
-                  ctx.restore()
+                  if (idx > 0) {
+                    ctx.save(); ctx.globalAlpha=0.1; ctx.strokeStyle='#fff'; ctx.lineWidth=1
+                    ctx.beginPath(); ctx.moveTo(70, rowY); ctx.lineTo(W-70, rowY); ctx.stroke(); ctx.restore()
+                  }
 
-                  // Linha vertical esquerda
-                  ctx.save()
-                  ctx.fillStyle = brand
-                  ctx.beginPath(); ctx.roundRect(80, sy+20, 5, slotH-40, 3); ctx.fill()
-                  ctx.restore()
+                  // Dia abreviado
+                  ctx.fillStyle=brand; ctx.font='800 66px Georgia,serif'
+                  ctx.textAlign='left'; ctx.textBaseline='middle'
+                  ctx.fillText(day.label, 75, rowY + rowH/2)
 
-                  // Horário
-                  ctx.save()
-                  ctx.fillStyle = '#ffffff'
-                  ctx.font = '700 62px system-ui, sans-serif'
-                  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-                  ctx.fillText(slot, W/2, sy + slotH/2)
-                  ctx.restore()
+                  // Horários do dia (mostra todos: selecionados=verde, resto=riscado)
+                  const showSlots = day.allSlots.length ? day.allSlots : sel
+                  const pillH = 72, pillGap = 16
+                  let px = 360
+                  const maxX = W - 75
+                  let py = rowY + rowH/2 - pillH/2
+
+                  // Wrap support: compute pill widths
+                  ctx.font='700 44px system-ui,sans-serif'
+                  let curX = 360
+                  let curY = rowY + rowH/2 - pillH/2
+                  const pillsInDay = showSlots.filter(s => sel.includes(s) || day.allSlots.includes(s))
+                  // limit to keep clean: show selected + a few occupied
+                  const slotsToRender = day.allSlots.length ? day.allSlots : sel
+
+                  slotsToRender.forEach((slot) => {
+                    const isFree = sel.includes(slot)
+                    const label = slot.slice(0,5) + 'h'
+                    const tw = ctx.measureText(label).width
+                    const pillW = tw + 48
+                    if (curX + pillW > maxX) { curX = 360; curY += pillH + pillGap }
+
+                    if (isFree) {
+                      ctx.fillStyle='rgba(34,197,94,0.18)'; ctx.strokeStyle='rgba(34,197,94,0.6)'; ctx.lineWidth=2.5
+                      ctx.beginPath(); ctx.roundRect(curX,curY,pillW,pillH,18); ctx.fill(); ctx.stroke()
+                      ctx.fillStyle='#86efac'; ctx.font='800 44px system-ui,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'
+                      ctx.fillText(label, curX+pillW/2, curY+pillH/2)
+                    } else {
+                      ctx.fillStyle='rgba(255,255,255,0.03)'; ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1
+                      ctx.beginPath(); ctx.roundRect(curX,curY,pillW,pillH,18); ctx.fill(); ctx.stroke()
+                      ctx.save(); ctx.globalAlpha=0.28; ctx.fillStyle='#fff'; ctx.font='400 44px system-ui,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'
+                      ctx.fillText(label, curX+pillW/2, curY+pillH/2); ctx.restore()
+                      // risco vermelho
+                      ctx.save(); ctx.globalAlpha=0.6; ctx.strokeStyle='#ff5555'; ctx.lineWidth=3.5
+                      ctx.beginPath(); ctx.moveTo(curX+8, curY+pillH/2); ctx.lineTo(curX+pillW-8, curY+pillH/2); ctx.stroke(); ctx.restore()
+                    }
+                    curX += pillW + pillGap
+                  })
+                  ctx.textAlign='center'
                 })
 
-                y += sortedSlots.length * (slotH + slotGap) + 50
+                y += daysToShow.length * rowH + 30
 
                 // Separador
-                ctx.fillStyle = sepG; ctx.fillRect(80, y, W-160, 1.5)
-                y += 44
+                ctx.fillStyle=sepG; ctx.fillRect(60,y,W-120,1.5); y += 36
 
-                // ── CTA ────────────────────────────────────────
-                ctx.save()
-                ctx.fillStyle = brand
-                ctx.beginPath(); ctx.roundRect(80, y, W-160, 100, 28); ctx.fill()
-                // Brilho
-                const shine = ctx.createLinearGradient(80, y, 80, y+100)
-                shine.addColorStop(0, 'rgba(255,255,255,0.18)')
-                shine.addColorStop(1, 'rgba(255,255,255,0)')
-                ctx.fillStyle = shine
-                ctx.beginPath(); ctx.roundRect(80, y, W-160, 100, 28); ctx.fill()
-                ctx.restore()
-
-                ctx.save()
-                ctx.fillStyle = '#ffffff'
-                ctx.font = '700 40px system-ui, sans-serif'
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-                ctx.fillText('Agende agora  →', W/2, y + 50)
-                ctx.restore()
-                y += 120
+                // CTA
+                ctx.fillStyle=brand
+                ctx.beginPath(); ctx.roundRect(70,y,W-140,98,28); ctx.fill()
+                const shine=ctx.createLinearGradient(70,y,70,y+98)
+                shine.addColorStop(0,'rgba(255,255,255,0.18)'); shine.addColorStop(1,'rgba(255,255,255,0)')
+                ctx.fillStyle=shine; ctx.beginPath(); ctx.roundRect(70,y,W-140,98,28); ctx.fill()
+                ctx.fillStyle='#fff'; ctx.font='700 40px system-ui,sans-serif'; ctx.textBaseline='middle'
+                ctx.fillText('Agende agora  →', W/2, y+49); y += 120
 
                 // URL
-                ctx.save()
-                ctx.fillStyle = 'rgba(255,255,255,0.22)'
-                ctx.font = '300 26px monospace'
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-                ctx.fillText(slugLink, W/2, H - 70)
-                ctx.restore()
+                ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.font='300 26px monospace'; ctx.textBaseline='middle'
+                ctx.fillText(slugLink, W/2, H-60)
 
-                // ── EXPORTAR ───────────────────────────────────
                 canvas.toBlob(async (blob) => {
                   if (!blob) return
-                  const file = new File([blob], 'vagas-tessy.png', { type: 'image/png' })
-                  if (navigator.share && navigator.canShare?.({ files: [file] })) {
-                    try { await navigator.share({ files: [file], text: slugLink }); return } catch {}
+                  const file = new File([blob],'horarios-semana.png',{type:'image/png'})
+                  if (navigator.share && navigator.canShare?.({files:[file]})) {
+                    try { await navigator.share({files:[file],text:slugLink}); return } catch {}
                   }
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a')
-                  a.href = url; a.download = 'vagas-tessy.png'; a.click()
-                  URL.revokeObjectURL(url)
-                }, 'image/png')
+                  const url=URL.createObjectURL(blob); const a=document.createElement('a')
+                  a.href=url; a.download='horarios-semana.png'; a.click(); URL.revokeObjectURL(url)
+                },'image/png')
               }
-
               await draw()
             }
+
             return (
               <div style={{ padding: '0 18px 18px', borderTop: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <p style={{ margin: '14px 0 4px', color: C.muted, fontSize: 12 }}>
-                  Dia: <strong style={{ color: C.text }}>{longDate(selectedDate)}</strong> · Selecione os horários livres para incluir no banner
+                <p style={{ margin: '14px 0 0', color: C.muted, fontSize: 12 }}>
+                  Semana de <strong style={{ color: C.text }}>{rangeLabel()}</strong> · Marque os horários livres de cada dia
                 </p>
 
-                {freeSlots.length === 0 ? (
-                  <p style={{ color: C.muted, fontSize: 13, textAlign: 'center', padding: '12px 0' }}>Nenhum horário livre neste dia.</p>
-                ) : (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {freeSlots.map(slot => {
-                      const active = bannerSlots.includes(slot)
-                      return (
-                        <button
-                          key={slot}
-                          onClick={() => toggle(slot)}
-                          style={{
-                            height: 36,
-                            padding: '0 14px',
-                            borderRadius: 10,
-                            border: `1px solid ${active ? C.pink : C.border2}`,
-                            background: active ? `${C.pink}22` : C.card2,
-                            color: active ? C.pink : C.muted,
-                            fontWeight: 850,
-                            fontSize: 13,
-                            cursor: 'pointer',
-                            fontFamily: 'inherit',
-                          }}
-                        >
-                          {slot}
-                        </button>
-                      )
-                    })}
-                  </div>
-                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {weekDays.map(day => {
+                    const sel = weekSelection[day.dateStr] || []
+                    const allSelected = day.freeSlots.length > 0 && day.freeSlots.every(s => sel.includes(s))
+                    return (
+                      <div key={day.dateStr} style={{ background: C.card2, border: `1px solid ${C.border2}`, borderRadius: 12, padding: '12px 14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: day.freeSlots.length ? 10 : 0 }}>
+                          <span style={{ color: C.text, fontSize: 14, fontWeight: 850 }}>
+                            {day.label} <span style={{ color: C.muted, fontWeight: 400 }}>· dia {day.dayNum}</span>
+                          </span>
+                          {day.freeSlots.length > 0 && (
+                            <button onClick={() => selectAllDay(day.dateStr, day.freeSlots)}
+                              style={{ background: 'transparent', border: 'none', color: C.pink, fontSize: 11, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>
+                              {allSelected ? 'limpar' : 'todos'}
+                            </button>
+                          )}
+                        </div>
+                        {day.freeSlots.length === 0 ? (
+                          <p style={{ margin: 0, color: C.muted, fontSize: 12, fontStyle: 'italic' }}>Sem horários livres</p>
+                        ) : (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                            {day.freeSlots.map(slot => {
+                              const active = sel.includes(slot)
+                              return (
+                                <button key={slot} onClick={() => toggleSlot(day.dateStr, slot)}
+                                  style={{
+                                    height: 32, padding: '0 12px', borderRadius: 8,
+                                    border: `1px solid ${active ? '#22c55e' : C.border2}`,
+                                    background: active ? 'rgba(34,197,94,0.15)' : 'transparent',
+                                    color: active ? '#22c55e' : C.muted,
+                                    fontWeight: 800, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                                  }}>
+                                  {slot}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
 
-                {bannerSlots.length > 0 && (
-                  <>
-                    <div style={{
-                      background: C.card2,
-                      border: `1px solid ${C.border2}`,
-                      borderRadius: 12,
-                      padding: '14px 16px',
-                    }}>
-                      <p style={{ margin: '0 0 8px', color: C.pink, fontSize: 11, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>
-                        Prévia do banner
-                      </p>
-                      <p style={{ margin: '0 0 6px', color: C.text, fontSize: 13, fontWeight: 850 }}>
-                        💅 Vagas disponíveis — {new Date(selectedDate + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
-                      </p>
-                      {bannerSlots.map(s => (
-                        <p key={s} style={{ margin: '2px 0', color: C.muted, fontSize: 13 }}>🕐 {s}</p>
-                      ))}
-                      <p style={{ margin: '8px 0 0', color: C.purple, fontSize: 12 }}>
-                        👉 {slugLink}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => void handleShare()}
-                      style={{
-                        height: 44,
-                        borderRadius: 12,
-                        border: 'none',
-                        background: C.pink,
-                        color: '#fff',
-                        fontWeight: 850,
-                        fontSize: 14,
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 8,
-                      }}
-                    >
-                      <Share2 size={15} /> Compartilhar banner
-                    </button>
-                  </>
+                {totalSelected > 0 && (
+                  <button onClick={() => void handleShare()}
+                    style={{ height: 48, borderRadius: 12, border: 'none', background: C.pink, color: '#fff', fontWeight: 850, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    <Share2 size={15} /> Compartilhar banner ({totalSelected} {totalSelected === 1 ? 'horário' : 'horários'})
+                  </button>
                 )}
               </div>
             )
