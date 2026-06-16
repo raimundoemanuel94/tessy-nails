@@ -543,233 +543,210 @@ export default function AgendaPage() {
               canvas.width = W; canvas.height = H
               const ctx = canvas.getContext('2d')!
 
-              // ── CARREGAR FONTE PREMIUM ──────────────────────
-              try {
-                const font = new FontFace('Playfair', 'url(https://fonts.gstatic.com/s/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvUDQ.woff2)')
-                await font.load()
-                ;(document as any).fonts.add(font)
-              } catch { /* usa Georgia fallback */ }
+              const brand = studioBrandColor || '#7C5CBF'
+              const br = parseInt(brand.slice(1,3),16)
+              const bg2 = parseInt(brand.slice(3,5),16)
+              const bb = parseInt(brand.slice(5,7),16)
 
-              // ── CALCULAR TODOS OS SLOTS DO DIA ─────────────
-              const wh2 = salonSettings?.working_hours as any
-              const weekdays2 = ['sun','mon','tue','wed','thu','fri','sat']
-              const dayKey2 = weekdays2[new Date(selectedDate + 'T12:00').getDay()]
-              const dayConf2 = wh2?.[dayKey2]
-              const slotDur2 = salonSettings?.slot_duration || 30
-              let openMin2 = 9*60, closeMin2 = 18*60
-              if (dayConf2?.open && dayConf2?.close) {
-                const [oh,om] = dayConf2.open.split(':').map(Number)
-                const [ch,cm] = dayConf2.close.split(':').map(Number)
-                openMin2 = oh*60+om; closeMin2 = ch*60+cm
-              }
-              const allDaySlots: string[] = []
-              for (let m = openMin2; m + slotDur2 <= closeMin2; m += slotDur2) {
-                allDaySlots.push(String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0'))
-              }
-              // Slots livres = os que a Tessy selecionou no banner
-              const freeSet = new Set(bannerSlots)
+              const sortedSlots = [...bannerSlots].sort()
+              const dateObj = new Date(selectedDate + 'T12:00')
+              const weekday = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' })
+              const dayFull = weekday.charAt(0).toUpperCase() + weekday.slice(1)
+              const dayNum = dateObj.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })
 
-              const drawContent = async () => {
-                const dateObj = new Date(selectedDate + 'T12:00')
-                const weekday = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' })
-                const dayFull = weekday.charAt(0).toUpperCase() + weekday.slice(1)
-                const dayNum = dateObj.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })
+              const draw = async () => {
+                // ── FUNDO ESCURO ───────────────────────────────
+                const bgGrad = ctx.createLinearGradient(0, 0, 0, H)
+                bgGrad.addColorStop(0, '#08060f')
+                bgGrad.addColorStop(0.5, '#110d1f')
+                bgGrad.addColorStop(1, '#0d0a1a')
+                ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, W, H)
 
-                // ── FUNDO ROSÉ ────────────────────────────────
-                const bgGrad = ctx.createLinearGradient(0, 0, W, H)
-                bgGrad.addColorStop(0, '#F7C9B5')
-                bgGrad.addColorStop(0.45, '#F0B89E')
-                bgGrad.addColorStop(1, '#E8A888')
-                ctx.fillStyle = bgGrad
-                ctx.fillRect(0, 0, W, H)
+                // Glow central
+                const gc = ctx.createRadialGradient(W/2, H*0.35, 0, W/2, H*0.35, 750)
+                gc.addColorStop(0, `rgba(${br},${bg2},${bb},0.2)`)
+                gc.addColorStop(1, 'transparent')
+                ctx.fillStyle = gc; ctx.fillRect(0, 0, W, H)
 
-                // Bolinhas textura
-                ctx.save(); ctx.globalAlpha = 0.045
-                for (let xi = 0; xi < W; xi += 55) for (let yi = 0; yi < H; yi += 55) {
-                  ctx.beginPath(); ctx.arc(xi, yi, 1.8, 0, Math.PI*2)
-                  ctx.fillStyle = '#6B2A18'; ctx.fill()
-                }
+                // Círculos decorativos
+                ctx.save(); ctx.globalAlpha = 0.08; ctx.fillStyle = brand
+                ctx.beginPath(); ctx.arc(W+140,-140, 500, 0, Math.PI*2); ctx.fill()
+                ctx.beginPath(); ctx.arc(-140, H+140, 460, 0, Math.PI*2); ctx.fill()
+                ctx.globalAlpha = 0.04
+                ctx.beginPath(); ctx.arc(W*0.85, H*0.55, 300, 0, Math.PI*2); ctx.fill()
                 ctx.restore()
 
-                // Círculos decorativos cantos
-                ctx.save(); ctx.globalAlpha = 0.07; ctx.fillStyle = '#6B2A18'
-                ctx.beginPath(); ctx.arc(-80, H+80, 480, 0, Math.PI*2); ctx.fill()
-                ctx.beginPath(); ctx.arc(W+80, -80, 380, 0, Math.PI*2); ctx.fill()
-                ctx.restore()
+                // Barras topo e base
+                const barGrad = ctx.createLinearGradient(0,0,W,0)
+                barGrad.addColorStop(0,'transparent')
+                barGrad.addColorStop(0.25, brand)
+                barGrad.addColorStop(0.75, brand)
+                barGrad.addColorStop(1,'transparent')
+                ctx.fillStyle = barGrad
+                ctx.fillRect(0, 0, W, 7)
+                ctx.fillRect(0, H-7, W, 7)
 
-                // ── FOTO COMO CAPA SUPERIOR ───────────────────
-                const coverH = 780  // metade superior do story
+                // ── AVATAR ─────────────────────────────────────
+                const aR = 200  // raio
+                const aX = W/2, aY = 480
+
+                // Glow atrás
+                const ag = ctx.createRadialGradient(aX, aY, 0, aX, aY, aR+80)
+                ag.addColorStop(0, `rgba(${br},${bg2},${bb},0.3)`)
+                ag.addColorStop(1, 'transparent')
+                ctx.fillStyle = ag; ctx.fillRect(aX-aR-80, aY-aR-80, (aR+80)*2, (aR+80)*2)
+
+                // Anel externo
+                ctx.beginPath(); ctx.arc(aX, aY, aR+16, 0, Math.PI*2)
+                ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.2)`; ctx.lineWidth = 1; ctx.stroke()
+
+                // Anel da marca
+                ctx.beginPath(); ctx.arc(aX, aY, aR+6, 0, Math.PI*2)
+                ctx.strokeStyle = brand; ctx.lineWidth = 4; ctx.stroke()
+
+                // Foto
                 if (studioAvatar) {
                   try {
-                    const img = new Image()
-                    img.crossOrigin = 'anonymous'
-                    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = studioAvatar })
-
-                    // Desenha foto full-width no topo
+                    const img = new Image(); img.crossOrigin = 'anonymous'
+                    await new Promise((res,rej) => { img.onload=res; img.onerror=rej; img.src=studioAvatar })
                     ctx.save()
-                    ctx.beginPath(); ctx.rect(0, 0, W, coverH); ctx.clip()
-                    // Calcular escala pra cobrir
-                    const scale = Math.max(W/img.width, coverH/img.height)
-                    const dw = img.width * scale, dh = img.height * scale
-                    ctx.drawImage(img, (W-dw)/2, (coverH-dh)/2 - dh*0.05, dw, dh)
+                    ctx.beginPath(); ctx.arc(aX, aY, aR, 0, Math.PI*2); ctx.clip()
+                    const sc = Math.max((aR*2)/img.width, (aR*2)/img.height)
+                    const dw = img.width*sc, dh = img.height*sc
+                    ctx.drawImage(img, aX-dw/2, aY-dh/2 - dh*0.05, dw, dh)
                     ctx.restore()
-
-                    // Overlay gradiente embaixo da foto pra transição suave
-                    const fadeGrad = ctx.createLinearGradient(0, coverH - 280, 0, coverH + 60)
-                    fadeGrad.addColorStop(0, 'rgba(247,201,181,0)')
-                    fadeGrad.addColorStop(0.6, 'rgba(247,201,181,0.85)')
-                    fadeGrad.addColorStop(1, 'rgba(247,201,181,1)')
-                    ctx.fillStyle = fadeGrad
-                    ctx.fillRect(0, coverH - 280, W, 340)
-
-                    // Overlay escuro suave no topo da foto
-                    const topFade = ctx.createLinearGradient(0, 0, 0, 200)
-                    topFade.addColorStop(0, 'rgba(80,20,5,0.35)')
-                    topFade.addColorStop(1, 'rgba(80,20,5,0)')
-                    ctx.fillStyle = topFade
-                    ctx.fillRect(0, 0, W, 200)
-
-                  } catch { /* sem foto */ }
+                  } catch {
+                    ctx.beginPath(); ctx.arc(aX, aY, aR, 0, Math.PI*2)
+                    ctx.fillStyle = brand; ctx.fill()
+                  }
+                } else {
+                  ctx.beginPath(); ctx.arc(aX, aY, aR, 0, Math.PI*2)
+                  ctx.fillStyle = brand; ctx.fill()
                 }
 
-                // ── NOME DO STUDIO sobre a foto ───────────────
-                ctx.save()
-                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-                ctx.fillStyle = '#fff'
-                ctx.font = '700 52px "Playfair", Georgia, serif'
-                ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 20
-                ctx.fillText(studioName || 'Studio', W/2, 48)
-                ctx.restore()
+                // Badge verde online
+                ctx.beginPath(); ctx.arc(aX + aR*0.7, aY + aR*0.7, 40, 0, Math.PI*2)
+                ctx.fillStyle = '#22c55e'; ctx.fill()
+                ctx.strokeStyle = '#08060f'; ctx.lineWidth = 8; ctx.stroke()
 
-                // ── SEÇÃO INFERIOR ────────────────────────────
-                let y = coverH + 40
+                // ── TEXTOS ─────────────────────────────────────
+                let y = aY + aR + 60
 
-                // "HORÁRIOS" grande
+                // Nome
                 ctx.save()
+                ctx.fillStyle = '#ffffff'
+                ctx.font = '700 72px system-ui, sans-serif'
                 ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-                ctx.fillStyle = '#6B2A18'
-                ctx.font = '900 130px "Playfair", Georgia, serif'
-                ctx.fillText('HORÁRIOS', W/2, y)
+                ctx.fillText(studioName || 'Studio', W/2, y)
                 ctx.restore()
-                y += 140
+                y += 88
 
-                // "disponíveis" itálica
+                // Subtítulo
                 ctx.save()
+                ctx.fillStyle = 'rgba(255,255,255,0.38)'
+                ctx.font = '400 32px system-ui, sans-serif'
                 ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-                ctx.fillStyle = '#8B3A28'
-                ctx.font = 'italic 600 68px "Playfair", Georgia, serif'
-                ctx.fillText('disponíveis', W/2, y)
+                ctx.fillText('manicure · sorriso mt', W/2, y)
                 ctx.restore()
-                y += 86
+                y += 56
+
+                // Badge vagas
+                const bW = 560, bH = 70, bX = W/2 - bW/2
+                ctx.save()
+                ctx.fillStyle = `rgba(${br},${bg2},${bb},0.18)`
+                ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.5)`
+                ctx.lineWidth = 1.5
+                ctx.beginPath(); ctx.roundRect(bX, y, bW, bH, 35); ctx.fill(); ctx.stroke()
+                ctx.fillStyle = brand
+                ctx.font = '700 28px system-ui, sans-serif'
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+                ctx.fillText('💅  VAGAS DISPONÍVEIS', W/2, y + bH/2)
+                ctx.restore()
+                y += bH + 28
 
                 // Data
                 ctx.save()
+                ctx.fillStyle = 'rgba(255,255,255,0.38)'
+                ctx.font = '400 34px system-ui, sans-serif'
                 ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-                ctx.fillStyle = 'rgba(90,30,15,0.6)'
-                ctx.font = '400 36px "Playfair", Georgia, serif'
                 ctx.fillText(dayFull + ' · ' + dayNum, W/2, y)
                 ctx.restore()
-                y += 60
+                y += 56
 
-                // Linha
-                ctx.save(); ctx.globalAlpha = 0.2; ctx.strokeStyle = '#6B2A18'; ctx.lineWidth = 1.5
-                ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(W-100, y); ctx.stroke()
-                ctx.restore()
+                // Separador
+                const sepG = ctx.createLinearGradient(80,0,W-80,0)
+                sepG.addColorStop(0,'transparent')
+                sepG.addColorStop(0.3,`rgba(${br},${bg2},${bb},0.5)`)
+                sepG.addColorStop(0.7,`rgba(${br},${bg2},${bb},0.5)`)
+                sepG.addColorStop(1,'transparent')
+                ctx.fillStyle = sepG; ctx.fillRect(80, y, W-160, 1.5)
                 y += 44
 
-                // ── SLOTS COM RISCADO ─────────────────────────
-                // Mostra TODOS os slots — livre em escuro, ocupado em riscado claro
-                const rowH = 100
-                const slotsToShow = allDaySlots.length > 0 ? allDaySlots : [...bannerSlots].sort()
+                // ── SLOTS ──────────────────────────────────────
+                const slotH = 120, slotGap = 18
+                const slotW2 = W - 160
 
-                // Agrupar em linhas de 3
-                const cols = 3
-                const slotW3 = 280, gap3 = 20
-                const totalCols = Math.min(cols, slotsToShow.length)
+                sortedSlots.forEach((slot, i) => {
+                  const sy = y + i * (slotH + slotGap)
 
-                slotsToShow.forEach((slot, i) => {
-                  const isFree = freeSet.has(slot)
-                  const row = Math.floor(i / cols)
-                  const col = i % cols
-                  const rowCount = Math.min(cols, slotsToShow.length - row * cols)
-                  const rowWidth = rowCount * slotW3 + (rowCount - 1) * gap3
-                  const x = W/2 - rowWidth/2 + col * (slotW3 + gap3)
-                  const sy = y + row * (rowH + 14)
+                  // Card do slot
+                  ctx.save()
+                  ctx.fillStyle = `rgba(${br},${bg2},${bb},0.12)`
+                  ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.4)`
+                  ctx.lineWidth = 1.5
+                  ctx.beginPath(); ctx.roundRect(80, sy, slotW2, slotH, 24); ctx.fill(); ctx.stroke()
+                  ctx.restore()
 
-                  if (isFree) {
-                    // Livre — pill sólido, texto escuro
-                    ctx.save()
-                    ctx.fillStyle = 'rgba(107,42,24,0.12)'
-                    ctx.strokeStyle = 'rgba(107,42,24,0.35)'
-                    ctx.lineWidth = 1.5
-                    ctx.beginPath(); ctx.roundRect(x, sy, slotW3, rowH, 18); ctx.fill(); ctx.stroke()
-                    ctx.restore()
+                  // Linha vertical esquerda
+                  ctx.save()
+                  ctx.fillStyle = brand
+                  ctx.beginPath(); ctx.roundRect(80, sy+20, 5, slotH-40, 3); ctx.fill()
+                  ctx.restore()
 
-                    ctx.save()
-                    ctx.fillStyle = '#4A1C0A'
-                    ctx.font = '700 48px "Playfair", Georgia, serif'
-                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-                    ctx.fillText(slot + 'h', x + slotW3/2, sy + rowH/2)
-                    ctx.restore()
-                  } else {
-                    // Ocupado — pill apagado + texto riscado
-                    ctx.save()
-                    ctx.fillStyle = 'rgba(107,42,24,0.04)'
-                    ctx.strokeStyle = 'rgba(107,42,24,0.12)'
-                    ctx.lineWidth = 1
-                    ctx.beginPath(); ctx.roundRect(x, sy, slotW3, rowH, 18); ctx.fill(); ctx.stroke()
-                    ctx.restore()
-
-                    // Texto apagado
-                    ctx.save()
-                    ctx.globalAlpha = 0.35
-                    ctx.fillStyle = '#4A1C0A'
-                    ctx.font = '400 48px "Playfair", Georgia, serif'
-                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-                    ctx.fillText(slot + 'h', x + slotW3/2, sy + rowH/2)
-                    ctx.restore()
-
-                    // Risco horizontal
-                    ctx.save()
-                    ctx.globalAlpha = 0.5
-                    ctx.strokeStyle = '#6B2A18'
-                    ctx.lineWidth = 3
-                    const tw = ctx.measureText(slot + 'h').width * 0.8
-                    const cx = x + slotW3/2
-                    const cy = sy + rowH/2 + 2
-                    ctx.beginPath(); ctx.moveTo(cx - tw, cy); ctx.lineTo(cx + tw, cy); ctx.stroke()
-                    ctx.restore()
-                  }
+                  // Horário
+                  ctx.save()
+                  ctx.fillStyle = '#ffffff'
+                  ctx.font = '700 62px system-ui, sans-serif'
+                  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+                  ctx.fillText(slot, W/2, sy + slotH/2)
+                  ctx.restore()
                 })
 
-                const totalRows3 = Math.ceil(slotsToShow.length / cols)
-                y += totalRows3 * (rowH + 14) + 36
+                y += sortedSlots.length * (slotH + slotGap) + 50
 
-                // Linha final
-                ctx.save(); ctx.globalAlpha = 0.2; ctx.strokeStyle = '#6B2A18'; ctx.lineWidth = 1.5
-                ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(W-100, y); ctx.stroke()
-                ctx.restore()
+                // Separador
+                ctx.fillStyle = sepG; ctx.fillRect(80, y, W-160, 1.5)
                 y += 44
 
-                // @ handle
+                // ── CTA ────────────────────────────────────────
                 ctx.save()
-                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-                ctx.fillStyle = 'rgba(75,28,10,0.65)'
-                ctx.font = '600 34px "Playfair", Georgia, serif'
-                const handle = '@' + (studioName || 'tessysouza').toLowerCase().replace(/[^a-z0-9]/gi,'_')
-                ctx.fillText(handle, W/2, y)
-                ctx.restore()
-                y += 50
-
-                // CTA
-                ctx.save()
-                ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-                ctx.fillStyle = '#6B2A18'
-                ctx.font = 'italic 500 36px "Playfair", Georgia, serif'
-                ctx.fillText('Agende pelo link na bio 💅', W/2, y)
+                ctx.fillStyle = brand
+                ctx.beginPath(); ctx.roundRect(80, y, W-160, 100, 28); ctx.fill()
+                // Brilho
+                const shine = ctx.createLinearGradient(80, y, 80, y+100)
+                shine.addColorStop(0, 'rgba(255,255,255,0.18)')
+                shine.addColorStop(1, 'rgba(255,255,255,0)')
+                ctx.fillStyle = shine
+                ctx.beginPath(); ctx.roundRect(80, y, W-160, 100, 28); ctx.fill()
                 ctx.restore()
 
-                // ── SHARE ─────────────────────────────────────
+                ctx.save()
+                ctx.fillStyle = '#ffffff'
+                ctx.font = '700 40px system-ui, sans-serif'
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+                ctx.fillText('Agende agora  →', W/2, y + 50)
+                ctx.restore()
+                y += 120
+
+                // URL
+                ctx.save()
+                ctx.fillStyle = 'rgba(255,255,255,0.22)'
+                ctx.font = '300 26px monospace'
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+                ctx.fillText(slugLink, W/2, H - 70)
+                ctx.restore()
+
+                // ── EXPORTAR ───────────────────────────────────
                 canvas.toBlob(async (blob) => {
                   if (!blob) return
                   const file = new File([blob], 'vagas-tessy.png', { type: 'image/png' })
@@ -783,9 +760,8 @@ export default function AgendaPage() {
                 }, 'image/png')
               }
 
-              await drawContent()
+              await draw()
             }
-
             return (
               <div style={{ padding: '0 18px 18px', borderTop: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <p style={{ margin: '14px 0 4px', color: C.muted, fontSize: 12 }}>
