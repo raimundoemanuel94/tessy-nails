@@ -23,7 +23,7 @@ const NAV = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/agenda", icon: Calendar, label: "Agenda" },
   { href: "/agendamentos", icon: CalendarDays, label: "Agendamentos" },
-  { href: "/disponibilidade", icon: CalendarClock, label: "Disponibilidade" },
+  { href: "/disponibilidade", icon: CalendarCheck2, label: "Disponibilidade" },
   { href: "/clientes", icon: Users, label: "Clientes" },
   { href: "/servicos", icon: Scissors, label: "Serviços" },
   { href: "/relatorios", icon: BarChart3, label: "Relatórios" },
