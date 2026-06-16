@@ -604,9 +604,24 @@ export default function AgendaPage() {
               const drawContent = async () => {
                 const sortedSlots = [...bannerSlots].sort()
 
-                // ── AVATAR ─────────────────────────────────────
+                // ── PRE-CALCULATE TOTAL HEIGHT TO CENTER ───────
                 const aSize = 220
-                const aX = W/2, aY = 380
+                const nameH = 90
+                const badgeH = 56
+                const dateH = 54
+                const sepH = 49
+                const cols = sortedSlots.length <= 2 ? sortedSlots.length : sortedSlots.length <= 4 ? 2 : 3
+                const gap = 20
+                const slotH2 = 110
+                const totalRows2 = Math.ceil(sortedSlots.length / cols)
+                const slotsH = totalRows2 * (slotH2 + gap) - gap
+                const ctaH2 = 96
+                const urlH = 60
+                const totalContentH = aSize + 52 + nameH + badgeH + 28 + dateH + sepH + slotsH + 64 + ctaH2 + 40 + urlH
+                const startY = Math.max(60, (H - totalContentH) / 2)
+
+                // ── AVATAR ─────────────────────────────────────
+                const aX = W/2, aY = startY + aSize/2
 
                 // Glow atrás do avatar
                 const aGlow = ctx.createRadialGradient(aX, aY, 0, aX, aY, aSize)
@@ -651,7 +666,7 @@ export default function AgendaPage() {
                 }
 
                 // ── TEXTOS DE CABEÇALHO ────────────────────────
-                let y = aY + aSize/2 + 52
+                let y = startY + aSize + 52
 
                 // Nome do studio
                 ctx.fillStyle = '#ffffff'
@@ -662,7 +677,7 @@ export default function AgendaPage() {
                 y += 90
 
                 // Badge "VAGAS DISPONÍVEIS"
-                const badgeW = 520, badgeH = 56
+                const badgeW = 520
                 const badgeX = W/2 - badgeW/2
                 ctx.fillStyle = `rgba(${br},${bg2},${bb},0.2)`
                 ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.6)`
@@ -693,12 +708,10 @@ export default function AgendaPage() {
                 y += 48
 
                 // ── SLOTS ──────────────────────────────────────
-                const cols = sortedSlots.length <= 2 ? sortedSlots.length : sortedSlots.length <= 4 ? 2 : 3
-                const gap = 20
                 const slotW = cols === 1 ? 500 : cols === 2 ? 380 : 290
-                const slotH = 110
-                const totalRows = Math.ceil(sortedSlots.length / cols)
-                const totalGridH = totalRows * (slotH + gap) - gap
+                const slotH = slotH2
+                const totalRows = totalRows2
+                const totalGridH = slotsH
 
                 sortedSlots.forEach((slot, i) => {
                   const row = Math.floor(i / cols)
@@ -728,28 +741,42 @@ export default function AgendaPage() {
                 y += totalGridH + 64
 
                 // ── CTA BUTTON ─────────────────────────────────
-                const ctaH = 96
+                const ctaH = ctaH2 // already defined above
+                ctx.save()
+                ctx.globalAlpha = 1
                 ctx.fillStyle = brand
+                ctx.shadowColor = 'transparent'
                 ctx.beginPath(); ctx.roundRect(80, y, W-160, ctaH, 28); ctx.fill()
+                ctx.restore()
 
                 // Brilho interno no CTA
+                ctx.save()
                 const ctaShine = ctx.createLinearGradient(80, y, 80, y+ctaH)
-                ctaShine.addColorStop(0, 'rgba(255,255,255,0.15)')
+                ctaShine.addColorStop(0, 'rgba(255,255,255,0.18)')
                 ctaShine.addColorStop(1, 'rgba(255,255,255,0)')
                 ctx.fillStyle = ctaShine
                 ctx.beginPath(); ctx.roundRect(80, y, W-160, ctaH, 28); ctx.fill()
+                ctx.restore()
 
+                ctx.save()
+                ctx.globalAlpha = 1
                 ctx.fillStyle = '#ffffff'
                 ctx.font = '700 38px system-ui, sans-serif'
                 ctx.textAlign = 'center'
                 ctx.textBaseline = 'middle'
                 ctx.fillText('Agende agora  →', W/2, y + ctaH/2)
+                ctx.restore()
                 y += ctaH + 40
 
                 // ── URL ────────────────────────────────────────
-                ctx.fillStyle = 'rgba(255,255,255,0.35)'
-                ctx.font = '300 26px monospace'
-                ctx.fillText(slugLink, W/2, H - 60)
+                ctx.save()
+                ctx.globalAlpha = 1
+                ctx.fillStyle = 'rgba(255,255,255,0.3)'
+                ctx.font = '300 24px monospace'
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'middle'
+                ctx.fillText(slugLink, W/2, H - 70)
+                ctx.restore()
 
                 // ── SHARE ──────────────────────────────────────
                 canvas.toBlob(async (blob) => {
