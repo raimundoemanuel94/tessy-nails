@@ -2181,3 +2181,45 @@ nextjs-portal {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Salon mobile topbar ── */
+.manicure-topbar {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  z-index: 15;
+  background: rgba(8,8,18,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+}
+.manicure-topbar-logo {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  background: rgba(124,92,191,0.25);
+  border: 1px solid rgba(124,92,191,0.4);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.manicure-topbar-name {
+  flex: 1; min-width: 0;
+  color: #f4f4f5;
+  font-size: 15px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .manicure-topbar { display: flex; }
+  .dash-main {
+    margin-left: 0 !important;
+    padding: 72px 14px 86px !important;
+  }
+  .manicure-sidebar { display: none !important; }
+  .manicure-bottom-nav { display: flex !important; }
+}

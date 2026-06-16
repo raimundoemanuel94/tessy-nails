@@ -268,7 +268,7 @@ export default function ClientesPage() {
         />
       </label>
 
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 12 }}>
         {filtered.slice(0, visibleCount).map((client, index) => {
           const accent = colors[index % colors.length]
           const stats = statsByClient.get(client.id)
@@ -286,7 +286,8 @@ export default function ClientesPage() {
                 cursor: 'pointer',
                 display: 'grid',
                 gap: 14,
-                minHeight: 208,
+                minWidth: 0,
+                overflow: 'hidden',
               }}
             >
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', minWidth: 0 }}>
@@ -304,7 +305,7 @@ export default function ClientesPage() {
                   {client.name.charAt(0).toUpperCase()}
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <strong style={{ display: 'block', color: C.text, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.name}</strong>
+                  <strong style={{ display: 'block', color: C.text, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{client.name}</strong>
                   <span style={{ display: 'block', color: C.muted, fontSize: 11, marginTop: 3 }}>{sourceLabel(client.source)}</span>
                 </div>
               </div>
@@ -393,7 +394,7 @@ export default function ClientesPage() {
             </div>
           </header>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12, padding: 18 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12, padding: 18 }}>
             <Detail label="Telefone" value={selected.phone || '-'} />
             <Detail label="Email" value={selected.email || '-'} />
             <Detail label="Aniversario" value={selected.birth_date ? dateOnly(`${selected.birth_date}T12:00:00`) : '-'} />

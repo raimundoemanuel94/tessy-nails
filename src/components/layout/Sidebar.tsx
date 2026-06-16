@@ -54,7 +54,7 @@ export function Sidebar({ profile }: { profile: any }) {
 
   const bottomItems = isSuperadmin
     ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 4)]
-    : NAV.slice(0, 5);
+    : [NAV[0], NAV[1], NAV[2], NAV[4], NAV[7]];
   const displayName = profile?.full_name ?? profile?.email?.split("@")[0] ?? "Usuário";
   const shortEmail = profile?.email ? (profile.email.length > 25 ? `${profile.email.slice(0, 22)}...` : profile.email) : "";
   const initial = (studio?.name ?? displayName ?? "N").charAt(0).toUpperCase();
@@ -127,6 +127,14 @@ export function Sidebar({ profile }: { profile: any }) {
           </footer>
         </div>
       </aside>
+
+      {/* Mobile topbar */}
+      <div className="manicure-topbar">
+        <div className="manicure-topbar-logo">
+          <Sparkles size={14} color="#a78bfa" />
+        </div>
+        <span className="manicure-topbar-name">{studio?.name ?? "Meu Studio"}</span>
+      </div>
 
       <nav className="manicure-bottom-nav md:hidden">
         {bottomItems.map(({ href, icon: Icon, label }) => {
