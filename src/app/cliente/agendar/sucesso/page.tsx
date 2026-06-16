@@ -107,6 +107,7 @@ function BookingSuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const appointmentId = useMemo(() => searchParams.get('appointmentId')?.trim() ?? '', [searchParams])
+  const slug = useMemo(() => searchParams.get('slug')?.trim() ?? '', [searchParams])
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -119,7 +120,7 @@ function BookingSuccessContent() {
     async function load() {
       if (!appointmentId) {
         if (!active) return
-        setError('O identificador do agendamento não foi informado.')
+        setError('Não foi possível carregar os detalhes do agendamento. Verifique pelo link abaixo.')
         setLoading(false)
         return
       }
@@ -164,7 +165,10 @@ function BookingSuccessContent() {
 
   const shortCode = appointment?.id ? appointment.id.slice(0, 8).toUpperCase() : '-'
   const bookingLink = studio?.slug ? `/agendar/${studio.slug}` : '/'
-  const consultLink = appointment?.id ? `/cliente/agendar/consultar?appointmentId=${encodeURIComponent(appointment.id)}` : '/cliente/agendar/consultar'
+  const studioSlug = slug || studio?.slug || ''
+  const consultLink = appointment?.id
+    ? `/cliente/agendar/consultar?appointmentId=${encodeURIComponent(appointment.id)}${studioSlug ? '&slug=' + encodeURIComponent(studioSlug) : ''}`
+    : studioSlug ? `/cliente/agendar/consultar?slug=${encodeURIComponent(studioSlug)}` : '/cliente/agendar/consultar'
   const whatsappNumber = (studio?.whatsapp || studio?.phone || '').replace(/\D/g, '')
   const whatsappMessage = appointment
     ? encodeURIComponent(

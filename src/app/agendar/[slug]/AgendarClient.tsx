@@ -140,6 +140,21 @@ export default function AgendarClient({ studio, services, settings, professional
   const [selectedTime, setSelectedTime] = useState('')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [phoneMasked, setPhoneMasked] = useState('')
+
+  function applyPhoneMask(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    let masked = digits
+    if (digits.length > 2)  masked = '(' + digits.slice(0,2) + ') ' + digits.slice(2)
+    if (digits.length > 7)  masked = '(' + digits.slice(0,2) + ') ' + digits.slice(2,7) + '-' + digits.slice(7)
+    return { masked, raw: digits }
+  }
+
+  function handlePhoneChange(value: string) {
+    const { masked, raw } = applyPhoneMask(value)
+    setPhoneMasked(masked)
+    setPhone(raw)
+  }
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [slots, setSlots] = useState<string[]>([])
@@ -153,13 +168,15 @@ export default function AgendarClient({ studio, services, settings, professional
   const mapsUrl = getMapsUrl(studio)
   const slotGroups = groupSlotsByPeriod(slots)
   const availableDates: string[] = []
+  const todayYmd = localYmd(new Date())
 
   for (let i = 0; i < advanceDays; i++) {
     const date = new Date()
     date.setHours(12, 0, 0, 0)
     date.setDate(date.getDate() + i)
+    const ymd = localYmd(date)
     const config = workingHours[weekdayKeys[date.getDay()]]
-    if (config?.is_open) availableDates.push(localYmd(date))
+    if (config?.is_open) availableDates.push(ymd)
   }
 
   async function fetchSlots(date: string, service: Service) {
@@ -188,7 +205,7 @@ export default function AgendarClient({ studio, services, settings, professional
   }
 
   async function submit() {
-    if (!selectedService || !selectedDate || !selectedTime || !name.trim() || !phone.trim()) return
+    if (!selectedService || !selectedDate || !selectedTime || !name.trim() || phone.length < 10) return
 
     setLoading(true)
     setBookingError('')
@@ -217,7 +234,7 @@ export default function AgendarClient({ studio, services, settings, professional
 
       setCreatedAppointment(appointment)
       setStep('done')
-      router.replace(`/cliente/agendar/sucesso?appointmentId=${encodeURIComponent(appointment.id)}`)
+      router.replace(`/cliente/agendar/sucesso?appointmentId=${encodeURIComponent(appointment.id)}&slug=${encodeURIComponent(studio.slug)}`)
 
       // Abre WhatsApp da Tessy com resumo do agendamento
       const tessyPhone = data?.studioPhone as string | undefined
@@ -1536,11 +1553,13 @@ export default function AgendarClient({ studio, services, settings, professional
                   {availableDates.slice(0, 28).map((date) => {
                     const parsed = new Date(date + 'T00:00')
                     const active = date === selectedDate
+                    const isPast = date < todayYmd
                     return (
                       <button
                         key={date}
-                        className={`booking-date ${active ? 'is-active' : ''}`}
+                        className={`booking-date ${active ? 'is-active' : ''} ${isPast ? 'is-past' : ''}`}
                         onClick={() => {
+                          if (isPast) return
                           setSelectedDate(date)
                           setSelectedTime('')
                           setSlots([])
@@ -1634,16 +1653,22 @@ export default function AgendarClient({ studio, services, settings, professional
                 </div>
                 <div className="booking-field">
                   <label>WhatsApp</label>
-                  <input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="66999990000" inputMode="tel" />
+                  <input
+                    value={phoneMasked}
+                    onChange={(event) => handlePhoneChange(event.target.value)}
+                    placeholder="(66) 99999-0000"
+                    inputMode="tel"
+                    maxLength={15}
+                  />
                   <p className="booking-field-help">
-                    Use DDD + numero, sem espacos. Exemplo: 66999990000.
+                    Digite o WhatsApp com DDD. Ex: (66) 99999-0000
                   </p>
                 </div>
                 <div className="booking-field">
                   <label>Observações (opcional)</label>
                   <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Alergias, preferências de esmalte..." />
                 </div>
-                <button className="booking-primary" onClick={submit} disabled={loading || !name.trim() || !phone.trim()}>
+                <button className="booking-primary" onClick={submit} disabled={loading || !name.trim() || phone.length < 10}>
                   {loading ? 'Confirmando...' : 'Confirmar horário'}
                 </button>
                 {bookingError && <div className="booking-error">{bookingError}</div>}

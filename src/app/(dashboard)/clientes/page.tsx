@@ -75,6 +75,8 @@ export default function ClientesPage() {
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState({ name: '', phone: '', email: '', birth_date: '', notes: '' })
   const [saving, setSaving] = useState(false)
+  const PAGE_SIZE = 30
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   useEffect(() => {
     const load = async () => {
@@ -138,6 +140,7 @@ export default function ClientesPage() {
   }, [appointments, clients])
 
   const filtered = useMemo(() => {
+    setVisibleCount(PAGE_SIZE)
     const term = query.trim().toLowerCase()
     return clients.filter((client) => {
       const stats = statsByClient.get(client.id)
@@ -228,7 +231,7 @@ export default function ClientesPage() {
       </label>
 
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
-        {filtered.map((client, index) => {
+        {filtered.slice(0, visibleCount).map((client, index) => {
           const accent = colors[index % colors.length]
           const stats = statsByClient.get(client.id)
           const active = selected?.id === client.id
@@ -294,6 +297,17 @@ export default function ClientesPage() {
             </article>
           )
         })}
+
+        {filtered.length > visibleCount && (
+          <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
+            <button
+              onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
+              style={{ padding: '10px 28px', borderRadius: 10, border: `1px solid ${C.border}`, background: C.card, color: C.muted, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              Carregar mais ({filtered.length - visibleCount} restantes)
+            </button>
+          </div>
+        )}
 
         {filtered.length === 0 && (
           <div style={{ gridColumn: '1 / -1', minHeight: 220, display: 'grid', placeItems: 'center', textAlign: 'center', color: C.muted, background: C.card, border: `1px solid ${C.border}`, borderRadius: 16 }}>

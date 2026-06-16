@@ -90,6 +90,7 @@ export default function AdminStudiosPage() {
   const [saving,     setSaving]     = useState(false);
   const [search,     setSearch]     = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [confirmToggle, setConfirmToggle] = useState<{ id: string; name: string; active: boolean } | null>(null);
   const [sortKey, setSortKey] = useState<string>("created");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [nome,       setNome]       = useState("");
@@ -483,7 +484,7 @@ export default function AdminStudiosPage() {
                       <Pencil size={11}/>
                     </Link>
                     <button
-                      onClick={() => toggleActive(s.id, s.is_active)}
+                      onClick={() => setConfirmToggle({ id: s.id, name: s.name, active: s.is_active })}
                       style={{
                         display: "flex", alignItems: "center", justifyContent: "center",
                         width: 28, height: 28, borderRadius: 6,
@@ -591,6 +592,34 @@ export default function AdminStudiosPage() {
                 background: "rgba(255,255,255,0.04)", border: `1px solid ${C.sep}`,
                 color: C.muted, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
               }}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm toggle modal */}
+      {confirmToggle && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}
+          onClick={() => setConfirmToggle(null)}>
+          <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: 28, maxWidth: 380, width: "calc(100% - 40px)" }}
+            onClick={e => e.stopPropagation()}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "#f4f4f5", margin: "0 0 8px" }}>
+              {confirmToggle.active ? "Desativar" : "Ativar"} studio?
+            </p>
+            <p style={{ fontSize: 13, color: "#a1a1aa", margin: "0 0 20px" }}>
+              {confirmToggle.active
+                ? `O studio "${confirmToggle.name}" ficará inacessível para novos agendamentos.`
+                : `O studio "${confirmToggle.name}" voltará a aceitar agendamentos.`}
+            </p>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button onClick={() => setConfirmToggle(null)}
+                style={{ padding: "8px 18px", borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#a1a1aa", cursor: "pointer", fontFamily: "inherit", fontSize: 13 }}>
+                Cancelar
+              </button>
+              <button onClick={() => void toggleActive(confirmToggle.id, confirmToggle.active)}
+                style={{ padding: "8px 18px", borderRadius: 8, background: confirmToggle.active ? "#dc2626" : "#16a34a", border: "none", color: "#fff", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700 }}>
+                {confirmToggle.active ? "Sim, desativar" : "Sim, ativar"}
+              </button>
             </div>
           </div>
         </div>

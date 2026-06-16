@@ -77,6 +77,7 @@ export default function AgendaPage() {
   const [copied, setCopied] = useState(false)
   const [bannerOpen, setBannerOpen] = useState(false)
   const [bannerSlots, setBannerSlots] = useState<string[]>([])
+  const [salonSettings, setSalonSettings] = useState<{ slot_duration: number; working_hours: Record<string, { is_open: boolean; open: string; close: string }> } | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -87,6 +88,8 @@ export default function AgendaPage() {
       if (!profile?.studio_id) { setLoading(false); return }
       const { data: studioData } = await sb.from('studios').select('slug').eq('id', profile.studio_id).single()
       if (studioData?.slug) setStudioSlug(studioData.slug)
+      const { data: settingsData } = await sb.from('salon_settings').select('slot_duration, working_hours').eq('studio_id', profile.studio_id).single()
+      if (settingsData) setSalonSettings(settingsData as any)
       const { data } = await sb
         .from('appointments')
         .select('*')
@@ -479,7 +482,29 @@ export default function AgendaPage() {
               const booked = selectedApts
                 .filter(a => !['cancelled', 'no_show'].includes(a.status))
                 .map(a => a.appointment_date.slice(11, 16))
-              const all = ['09:00','09:30','10:00','10:30','11:00','11:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30']
+
+              // Use salon_settings working_hours if available, else default
+              const weekdays = ['sun','mon','tue','wed','thu','fri','sat']
+              const dayKey = weekdays[new Date(selectedDate + 'T12:00').getDay()]
+              const wh = salonSettings?.working_hours as any
+              const dayConfig = wh?.[dayKey]
+              const slotDur = salonSettings?.slot_duration || 30
+
+              let openH = 9, openM = 0, closeH = 18, closeM = 0
+              if (dayConfig?.is_open && dayConfig.open && dayConfig.close) {
+                const [oh, om] = dayConfig.open.split(':').map(Number)
+                const [ch, cm] = dayConfig.close.split(':').map(Number)
+                openH = oh; openM = om; closeH = ch; closeM = cm
+              }
+
+              const openMin = openH * 60 + openM
+              const closeMin = closeH * 60 + closeM
+              const all: string[] = []
+              for (let m = openMin; m + slotDur <= closeMin; m += slotDur) {
+                const hh = String(Math.floor(m / 60)).padStart(2, '0')
+                const mm = String(m % 60).padStart(2, '0')
+                all.push(`${hh}:${mm}`)
+              }
               return all.filter(s => !booked.includes(s))
             })()
 

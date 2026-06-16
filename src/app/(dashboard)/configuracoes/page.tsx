@@ -39,6 +39,8 @@ export default function ConfiguracoesPage() {
   const [whatsapp, setWhatsapp]   = useState("");
   const [instagram, setInstagram] = useState("");
   const [brandColor, setBrandColor] = useState("#7C5CBF");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // Salon settings
   const [slotDuration, setSlotDuration] = useState(30);
@@ -73,6 +75,7 @@ export default function ConfiguracoesPage() {
         setWhatsapp(studio.whatsapp ?? "");
         setInstagram(studio.instagram ?? "");
         setBrandColor(studio.brand_color ?? "#7C5CBF");
+        setAvatarUrl(studio.avatar_url ?? "");
       }
 
       if (settings) {
@@ -118,6 +121,7 @@ export default function ConfiguracoesPage() {
       name, phone: phone || null, address: address || null,
       whatsapp: whatsapp || null, instagram: instagram || null,
       brand_color: brandColor,
+      avatar_url: avatarUrl || null,
       updated_at: new Date().toISOString(),
     }).eq("id", studioId);
     if (error) { toast.error(error.message); setSaving(false); return; }
@@ -144,6 +148,28 @@ export default function ConfiguracoesPage() {
     setSaving(false);
   }
 
+  async function uploadAvatar(file: File) {
+    if (!studioId) return;
+    if (!file.type.startsWith("image/")) { toast.error("Selecione uma imagem."); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Imagem muito grande. Máximo 5MB."); return; }
+    setUploadingPhoto(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `studios/${studioId}/avatar.${ext}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+      const urlWithBust = publicUrl + "?t=" + Date.now();
+      setAvatarUrl(urlWithBust);
+      await supabase.from("studios").update({ avatar_url: urlWithBust }).eq("id", studioId);
+      toast.success("Foto atualizada!");
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao enviar foto.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
+
   if (loading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200 }}>
@@ -168,6 +194,30 @@ export default function ConfiguracoesPage() {
           <Globe size={15} style={{ color: "var(--brand-light)" }} /> Dados do Studio
         </h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {/* Avatar upload */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "12px 0", borderBottom: "1px solid var(--border)", marginBottom: 4 }}>
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <div style={{ width: 72, height: 72, borderRadius: "50%", overflow: "hidden", background: "var(--surface2)", border: "2px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, color: "var(--muted)" }}>
+                {avatarUrl
+                  ? <img src={avatarUrl} alt="Foto" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  : "💅"}
+              </div>
+              {uploadingPhoto && (
+                <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Loader2 size={20} color="#fff" className="animate-spin" />
+                </div>
+              )}
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", margin: "0 0 4px" }}>Foto do studio</p>
+              <p style={{ fontSize: 12, color: "var(--muted)", margin: "0 0 8px" }}>Aparece no link público de agendamento. Máx 5MB.</p>
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 8, background: "var(--surface2)", border: "1px solid var(--border)", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "var(--text)" }}>
+                <Upload size={13} /> {uploadingPhoto ? "Enviando..." : "Trocar foto"}
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void uploadAvatar(f); e.target.value = ""; }} disabled={uploadingPhoto} />
+              </label>
+            </div>
+          </div>
+
           <div>
             <label style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: 6 }}>Nome do studio</label>
             <input className="input-base" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Tessy Nails" />

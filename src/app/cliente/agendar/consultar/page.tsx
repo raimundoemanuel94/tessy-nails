@@ -74,7 +74,7 @@ function ConsultarAgendamentoContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialId = useMemo(() => searchParams.get('appointmentId')?.trim() ?? '', [searchParams])
-  const slug = searchParams.get('slug')?.trim() || 'tessy-nails'
+  const slug = searchParams.get('slug')?.trim() || ''
 
   const [phone, setPhone] = useState('')
   const [code, setCode] = useState(initialId)
@@ -87,6 +87,10 @@ function ConsultarAgendamentoContent() {
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null)
 
   async function loadByPhone(nextPhone = phone) {
+    if (!slug) {
+      setError('Link inválido. Acesse a página de agendamento e clique em "Ver meus agendamentos".')
+      return
+    }
     const cleanPhone = normalizePhone(nextPhone)
     if (cleanPhone.length < 10) {
       setError('Informe o WhatsApp usado no agendamento.')
