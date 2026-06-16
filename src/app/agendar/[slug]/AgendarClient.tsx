@@ -1339,8 +1339,8 @@ export default function AgendarClient({ studio, services, settings, professional
     <main className="booking-shell">
       <style>{css}</style>
       <header className="booking-header">
-        <div className="booking-logo">
-          {studio.avatar_url ? <img src={studio.avatar_url} alt={studio.name} /> : studio.name.slice(0, 2).toUpperCase()}
+        <div className="booking-logo" style={{ borderRadius: '50%', overflow: 'hidden', width: 44, height: 44, flexShrink: 0 }}>
+          {studio.avatar_url ? <img src={studio.avatar_url} alt={studio.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} /> : studio.name.slice(0, 2).toUpperCase()}
         </div>
         <div className="booking-brand-copy">
           <strong>{professional ? professional.name : studio.name}</strong>
