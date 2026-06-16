@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
 
     const { data: settings, error: settingsError } = await supabase
       .from("salon_settings")
-      .select("slot_duration, working_hours")
+      .select("slot_duration, working_hours, blocked_dates")
       .eq("studio_id", studioId)
       .single();
 
@@ -76,7 +76,17 @@ export async function GET(req: NextRequest) {
     const dayKey = zonedWeekdayKey(dayRange.start, BOOKING_TIME_ZONE);
     const dayConfig = workingHours[dayKey];
 
-    if (!dayConfig?.is_open) {
+    // Check if this date is manually blocked
+    const blockedDates = ((settings as any)?.blocked_dates as string[]) ?? []
+    if (blockedDates.includes(dateStr)) {
+      return NextResponse.json({ slots: [], reason: "blocked", date: dateStr })
+    }
+
+    // Date-specific override takes priority over weekly config
+    const dateOverride = (workingHours as any)[dateStr]
+    const effectiveConfig = dateOverride || dayConfig
+
+    if (!effectiveConfig?.is_open) {
       return NextResponse.json({ slots: [], reason: "closed", date: dateStr });
     }
 
@@ -101,8 +111,8 @@ export async function GET(req: NextRequest) {
     }
 
     const duration = Number.isFinite(selectedDuration) && selectedDuration > 0 ? selectedDuration : slotDuration;
-    const openMin = toMin(dayConfig.open);
-    const closeMin = toMin(dayConfig.close);
+    const openMin = toMin(effectiveConfig.open);
+    const closeMin = toMin(effectiveConfig.close);
 
     const allSlots: string[] = [];
     for (let minute = openMin; minute + duration <= closeMin; minute += slotDuration) {

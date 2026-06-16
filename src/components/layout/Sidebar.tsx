@@ -23,6 +23,7 @@ const NAV = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/agenda", icon: Calendar, label: "Agenda" },
   { href: "/agendamentos", icon: CalendarDays, label: "Agendamentos" },
+  { href: "/disponibilidade", icon: CalendarClock, label: "Disponibilidade" },
   { href: "/clientes", icon: Users, label: "Clientes" },
   { href: "/servicos", icon: Scissors, label: "Serviços" },
   { href: "/relatorios", icon: BarChart3, label: "Relatórios" },
@@ -30,9 +31,9 @@ const NAV = [
 ];
 
 const SECTIONS = [
-  { label: "Atendimento", items: NAV.slice(0, 3) },
-  { label: "Gestão", items: NAV.slice(3, 5) },
-  { label: "Studio", items: NAV.slice(5) },
+  { label: "Atendimento", items: NAV.slice(0, 4) },
+  { label: "Gestão", items: NAV.slice(4, 6) },
+  { label: "Studio", items: NAV.slice(6) },
 ];
 
 export function Sidebar({ profile }: { profile: any }) {
