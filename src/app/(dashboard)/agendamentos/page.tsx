@@ -129,7 +129,7 @@ function AppointmentRow({
               color: C.amber,
               fontSize: 11,
               lineHeight: 1.45,
-              maxWidth: 680,
+              maxWidth: '100%',
             }}>
               {appointment.notes}
             </p>
@@ -320,7 +320,7 @@ export default function AgendamentosPage() {
       }}>
         <label style={{
           height: 42,
-          minWidth: 220,
+          minWidth: 0,
           background: C.card,
           border: `1px solid ${C.border2}`,
           borderRadius: 12,

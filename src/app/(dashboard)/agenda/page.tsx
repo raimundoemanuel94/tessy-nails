@@ -224,8 +224,8 @@ export default function AgendaPage() {
 
       {studioSlug && (
         <section style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) auto auto',
+          display: 'flex',
+          flexWrap: 'wrap',
           gap: 8,
           alignItems: 'center',
           padding: '12px 16px',
@@ -235,7 +235,7 @@ export default function AgendaPage() {
         }}>
           <div style={{ minWidth: 0 }}>
             <p style={{ margin: 0, color: C.purple, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Seu link de agendamento</p>
-            <p style={{ margin: '3px 0 0', color: C.muted, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bookingUrl}</p>
+            <p style={{ margin: '3px 0 0', color: C.muted, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{bookingUrl}</p>
           </div>
           <button onClick={copyLink} title="Copiar link" style={{ ...navButtonStyle, gap: 5, padding: '0 12px', minWidth: 'auto', color: copied ? C.green : C.purple, border: `1px solid ${copied ? C.green : C.purple}44` }}>
             <Copy size={13} />

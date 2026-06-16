@@ -123,7 +123,7 @@ export default function DisponibilidadePage() {
       {/* Dias padrão da semana */}
       <section style={{ background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, padding: 20 }}>
         <p style={{ margin: '0 0 14px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Dias de atendimento padrão</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 10 }}>
           {DAYS_KEYS.slice(1, 7).map((key, i) => {
             const config = workingHours[key] || { is_open: false, open: '09:00', close: '18:00' }
             return (
@@ -192,7 +192,7 @@ export default function DisponibilidadePage() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8 }}>
           {days.map(day => {
             // Prioridade: override de data específica > configuração da semana
             const dateOverride = workingHours[day.date]
