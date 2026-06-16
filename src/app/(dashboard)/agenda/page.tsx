@@ -532,116 +532,72 @@ export default function AgendaPage() {
             const toggle = (slot: string) =>
               setBannerSlots(prev => prev.includes(slot) ? prev.filter(s => s !== slot) : [...prev, slot])
 
-            // Share text — só o link, limpo
+            // Share text — só o link
             const shareText = slugLink
 
             const handleShare = async () => {
               if (!bannerSlots.length) return
 
-              // Story format 1080x1920 — premium
+              // Story 1080x1920 — estilo feminino rosé igual ao da Tessy
               const W = 1080, H = 1920
               const canvas = document.createElement('canvas')
               canvas.width = W; canvas.height = H
               const ctx = canvas.getContext('2d')!
 
-              const brand = studioBrandColor || '#7C5CBF'
+              const brand = studioBrandColor || '#C97B6B'
               const br = parseInt(brand.slice(1,3),16)
               const bg2 = parseInt(brand.slice(3,5),16)
               const bb = parseInt(brand.slice(5,7),16)
 
-              // ── FUNDO ──────────────────────────────────────────
-              const bgGrad = ctx.createLinearGradient(0, 0, 0, H)
-              bgGrad.addColorStop(0, '#08060f')
-              bgGrad.addColorStop(0.5, '#110d1f')
-              bgGrad.addColorStop(1, '#0d0a1a')
+              // Cor base: rosé salmão da marca ou fallback quente
+              const isLight = (br*299 + bg2*587 + bb*114) / 1000 > 128
+              const bgBase = isLight ? brand : '#E8A898'
+
+              // ── FUNDO ROSÉ ────────────────────────────────────
+              const bgGrad = ctx.createLinearGradient(0, 0, W*0.6, H)
+              bgGrad.addColorStop(0, '#F5C5B0')
+              bgGrad.addColorStop(0.5, '#EDB8A0')
+              bgGrad.addColorStop(1, '#E8A898')
               ctx.fillStyle = bgGrad
               ctx.fillRect(0, 0, W, H)
 
-              // Glow central grande
-              const glowC = ctx.createRadialGradient(W/2, H*0.38, 0, W/2, H*0.38, 700)
-              glowC.addColorStop(0, `rgba(${br},${bg2},${bb},0.22)`)
-              glowC.addColorStop(1, 'transparent')
-              ctx.fillStyle = glowC; ctx.fillRect(0, 0, W, H)
-
-              // Glow canto inferior esquerdo
-              const glowBL = ctx.createRadialGradient(0, H, 0, 0, H, 600)
-              glowBL.addColorStop(0, `rgba(${br},${bg2},${bb},0.12)`)
-              glowBL.addColorStop(1, 'transparent')
-              ctx.fillStyle = glowBL; ctx.fillRect(0, 0, W, H)
-
-              // Círculos decorativos
+              // Textura de bolinhas sutis
               ctx.save()
               ctx.globalAlpha = 0.06
-              ctx.fillStyle = brand
-              ctx.beginPath(); ctx.arc(W+120, -120, 500, 0, Math.PI*2); ctx.fill()
-              ctx.beginPath(); ctx.arc(-120, H+120, 450, 0, Math.PI*2); ctx.fill()
-              ctx.globalAlpha = 0.035
-              ctx.beginPath(); ctx.arc(W*0.85, H*0.55, 300, 0, Math.PI*2); ctx.fill()
-              ctx.restore()
-
-              // Linhas diagonais sutis
-              ctx.save()
-              ctx.globalAlpha = 0.03
-              ctx.strokeStyle = brand
-              ctx.lineWidth = 1
-              for (let i = -10; i < 30; i++) {
-                ctx.beginPath()
-                ctx.moveTo(i * 120 - H, 0)
-                ctx.lineTo(i * 120 - H + H, H)
-                ctx.stroke()
+              for (let x2 = 0; x2 < W; x2 += 60) {
+                for (let y2 = 0; y2 < H; y2 += 60) {
+                  ctx.beginPath()
+                  ctx.arc(x2, y2, 2, 0, Math.PI*2)
+                  ctx.fillStyle = '#8B3A2A'
+                  ctx.fill()
+                }
               }
               ctx.restore()
 
-              // Barra topo com gradiente
-              const topBar = ctx.createLinearGradient(0, 0, W, 0)
-              topBar.addColorStop(0, 'transparent')
-              topBar.addColorStop(0.2, brand)
-              topBar.addColorStop(0.8, brand)
-              topBar.addColorStop(1, 'transparent')
-              ctx.fillStyle = topBar; ctx.fillRect(0, 0, W, 6)
-              ctx.fillRect(0, H-6, W, 6)
+              // Círculo decorativo canto inferior esquerdo
+              ctx.save()
+              ctx.globalAlpha = 0.08
+              ctx.beginPath()
+              ctx.arc(-100, H + 100, 500, 0, Math.PI*2)
+              ctx.fillStyle = '#8B3A2A'
+              ctx.fill()
+              ctx.globalAlpha = 0.05
+              ctx.beginPath()
+              ctx.arc(W + 80, 200, 350, 0, Math.PI*2)
+              ctx.fill()
+              ctx.restore()
 
               const drawContent = async () => {
                 const sortedSlots = [...bannerSlots].sort()
+                const dateObj = new Date(selectedDate + 'T12:00')
+                const weekday = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' })
+                const dayAbbr = weekday.slice(0,3).toUpperCase()
+                const dayFull = weekday.charAt(0).toUpperCase() + weekday.slice(1)
+                const dayNum = dateObj.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })
 
-                // ── PRE-CALCULATE TOTAL HEIGHT TO CENTER ───────
-                const aSize = 220
-                const nameH = 90
-                const badgeH = 56
-                const dateH = 54
-                const sepH = 49
-                const cols = sortedSlots.length <= 2 ? sortedSlots.length : sortedSlots.length <= 4 ? 2 : 3
-                const gap = 20
-                const slotH2 = 110
-                const totalRows2 = Math.ceil(sortedSlots.length / cols)
-                const slotsH = totalRows2 * (slotH2 + gap) - gap
-                const ctaH2 = 96
-                const urlH = 60
-                const totalContentH = aSize + 52 + nameH + badgeH + 28 + dateH + sepH + slotsH + 64 + ctaH2 + 40 + urlH
-                const startY = Math.max(60, (H - totalContentH) / 2)
-
-                // ── AVATAR ─────────────────────────────────────
-                const aX = W/2, aY = startY + aSize/2
-
-                // Glow atrás do avatar
-                const aGlow = ctx.createRadialGradient(aX, aY, 0, aX, aY, aSize)
-                aGlow.addColorStop(0, `rgba(${br},${bg2},${bb},0.35)`)
-                aGlow.addColorStop(1, 'transparent')
-                ctx.fillStyle = aGlow; ctx.fillRect(aX-aSize, aY-aSize, aSize*2, aSize*2)
-
-                // Anel externo pulsante
-                ctx.beginPath()
-                ctx.arc(aX, aY, aSize/2 + 14, 0, Math.PI*2)
-                ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.25)`
-                ctx.lineWidth = 1
-                ctx.stroke()
-
-                // Anel interno da marca
-                ctx.beginPath()
-                ctx.arc(aX, aY, aSize/2 + 5, 0, Math.PI*2)
-                ctx.strokeStyle = brand
-                ctx.lineWidth = 3
-                ctx.stroke()
+                // ── AVATAR ────────────────────────────────────
+                const aSize = 180
+                const aX = W/2, aY = 260
 
                 if (studioAvatar) {
                   try {
@@ -649,136 +605,123 @@ export default function AgendaPage() {
                     img.crossOrigin = 'anonymous'
                     await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = studioAvatar })
                     ctx.save()
-                    ctx.beginPath()
-                    ctx.arc(aX, aY, aSize/2, 0, Math.PI*2)
-                    ctx.clip()
-                    ctx.drawImage(img, aX - aSize/2, aY - aSize/2, aSize, aSize)
+                    // Sombra suave
+                    ctx.shadowColor = 'rgba(100,40,20,0.25)'
+                    ctx.shadowBlur = 30
+                    ctx.beginPath(); ctx.arc(aX, aY, aSize/2 + 6, 0, Math.PI*2)
+                    ctx.fillStyle = '#fff'; ctx.fill()
+                    ctx.shadowBlur = 0
+                    ctx.beginPath(); ctx.arc(aX, aY, aSize/2, 0, Math.PI*2); ctx.clip()
+                    ctx.drawImage(img, aX-aSize/2, aY-aSize/2, aSize, aSize)
                     ctx.restore()
-                  } catch {
-                    ctx.beginPath()
-                    ctx.arc(aX, aY, aSize/2, 0, Math.PI*2)
-                    ctx.fillStyle = brand; ctx.fill()
-                  }
-                } else {
-                  ctx.beginPath()
-                  ctx.arc(aX, aY, aSize/2, 0, Math.PI*2)
-                  ctx.fillStyle = brand; ctx.fill()
+                  } catch { /* sem avatar */ }
                 }
 
-                // ── TEXTOS DE CABEÇALHO ────────────────────────
-                let y = startY + aSize + 52
+                // ── TÍTULO ────────────────────────────────────
+                let y = aY + aSize/2 + 60
 
-                // Nome do studio
-                ctx.fillStyle = '#ffffff'
-                ctx.font = '700 72px system-ui, sans-serif'
+                // "HORÁRIOS" — grande, serifado
+                ctx.save()
+                ctx.fillStyle = '#7A2E1A'
+                ctx.font = '900 148px Georgia, serif'
                 ctx.textAlign = 'center'
                 ctx.textBaseline = 'top'
-                ctx.fillText(studioName || 'Studio', W/2, y)
-                y += 90
+                ctx.letterSpacing = '8px'
+                ctx.fillText('HORÁRIOS', W/2, y)
+                ctx.restore()
+                y += 155
 
-                // Badge "VAGAS DISPONÍVEIS"
-                const badgeW = 520
-                const badgeX = W/2 - badgeW/2
-                ctx.fillStyle = `rgba(${br},${bg2},${bb},0.2)`
-                ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.6)`
-                ctx.lineWidth = 1.5
-                ctx.beginPath(); ctx.roundRect(badgeX, y, badgeW, badgeH, 28); ctx.fill(); ctx.stroke()
-                ctx.fillStyle = brand
-                ctx.font = '700 26px system-ui, sans-serif'
+                // "disponíveis" — cursiva/itálica
+                ctx.save()
+                ctx.fillStyle = '#5A2010'
+                ctx.font = 'italic 700 72px Georgia, serif'
                 ctx.textAlign = 'center'
-                ctx.textBaseline = 'middle'
-                ctx.fillText('💅  VAGAS DISPONÍVEIS', W/2, y + badgeH/2)
-                y += badgeH + 28
-
-                // Data
-                const dateStr = new Date(selectedDate + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
-                ctx.fillStyle = 'rgba(255,255,255,0.6)'
-                ctx.font = '400 34px system-ui, sans-serif'
                 ctx.textBaseline = 'top'
-                ctx.fillText(dateStr.charAt(0).toUpperCase() + dateStr.slice(1), W/2, y)
-                y += 54
+                ctx.fillText('disponíveis', W/2, y)
+                ctx.restore()
+                y += 100
+
+                // Nome do studio + dia
+                ctx.save()
+                ctx.fillStyle = 'rgba(90,32,16,0.6)'
+                ctx.font = '400 34px Georgia, serif'
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'top'
+                ctx.fillText(dayFull + ', ' + dayNum, W/2, y)
+                ctx.restore()
+                y += 70
 
                 // Linha separadora
-                const sepGrad = ctx.createLinearGradient(80, 0, W-80, 0)
-                sepGrad.addColorStop(0, 'transparent')
-                sepGrad.addColorStop(0.3, `rgba(${br},${bg2},${bb},0.5)`)
-                sepGrad.addColorStop(0.7, `rgba(${br},${bg2},${bb},0.5)`)
-                sepGrad.addColorStop(1, 'transparent')
-                ctx.fillStyle = sepGrad; ctx.fillRect(80, y, W-160, 1)
-                y += 48
+                ctx.save()
+                ctx.globalAlpha = 0.2
+                ctx.strokeStyle = '#7A2E1A'
+                ctx.lineWidth = 1
+                ctx.beginPath(); ctx.moveTo(120, y); ctx.lineTo(W-120, y); ctx.stroke()
+                ctx.restore()
+                y += 50
 
-                // ── SLOTS ──────────────────────────────────────
-                const slotW = cols === 1 ? 500 : cols === 2 ? 380 : 290
-                const slotH = slotH2
-                const totalRows = totalRows2
-                const totalGridH = slotsH
+                // ── SLOTS ─────────────────────────────────────
+                // Estilo: dia abreviado grande à esquerda + horários à direita
+                const slotFontSize = 96
+                const hourFontSize = 60
+                const rowH = 130
+                const pad = 80
 
                 sortedSlots.forEach((slot, i) => {
-                  const row = Math.floor(i / cols)
-                  const col = i % cols
-                  const rowCount = Math.min(cols, sortedSlots.length - row * cols)
-                  const rowW = rowCount * slotW + (rowCount-1) * gap
-                  const x = W/2 - rowW/2 + col * (slotW + gap)
-                  const sy = y + row * (slotH + gap)
+                  const rowY = y + i * (rowH + 16)
 
-                  // Slot card
-                  ctx.fillStyle = `rgba(${br},${bg2},${bb},0.12)`
-                  ctx.strokeStyle = `rgba(${br},${bg2},${bb},0.45)`
-                  ctx.lineWidth = 1.5
-                  ctx.beginPath(); ctx.roundRect(x, sy, slotW, slotH, 22); ctx.fill(); ctx.stroke()
+                  // Linha separadora entre slots
+                  if (i > 0) {
+                    ctx.save()
+                    ctx.globalAlpha = 0.12
+                    ctx.strokeStyle = '#7A2E1A'
+                    ctx.lineWidth = 1
+                    ctx.beginPath(); ctx.moveTo(pad, rowY - 8); ctx.lineTo(W-pad, rowY - 8); ctx.stroke()
+                    ctx.restore()
+                  }
 
-                  // Linha vertical esquerda colorida
-                  ctx.fillStyle = brand
-                  ctx.beginPath(); ctx.roundRect(x, sy + 18, 4, slotH - 36, 2); ctx.fill()
-
-                  // Hora
-                  ctx.fillStyle = '#ffffff'
-                  ctx.font = '700 52px system-ui, sans-serif'
+                  // Horário centralizado grande
+                  ctx.save()
+                  ctx.fillStyle = '#5A2010'
+                  ctx.font = `700 ${hourFontSize}px Georgia, serif`
                   ctx.textAlign = 'center'
                   ctx.textBaseline = 'middle'
-                  ctx.fillText(slot, x + slotW/2, sy + slotH/2)
+                  ctx.fillText(slot + 'h', W/2, rowY + rowH/2)
+                  ctx.restore()
                 })
-                y += totalGridH + 64
 
-                // ── CTA BUTTON ─────────────────────────────────
-                const ctaH = ctaH2 // already defined above
+                y += sortedSlots.length * (rowH + 16) + 30
+
+                // Linha final
                 ctx.save()
-                ctx.globalAlpha = 1
-                ctx.fillStyle = brand
-                ctx.shadowColor = 'transparent'
-                ctx.beginPath(); ctx.roundRect(80, y, W-160, ctaH, 28); ctx.fill()
+                ctx.globalAlpha = 0.2
+                ctx.strokeStyle = '#7A2E1A'
+                ctx.lineWidth = 1
+                ctx.beginPath(); ctx.moveTo(120, y); ctx.lineTo(W-120, y); ctx.stroke()
                 ctx.restore()
+                y += 60
 
-                // Brilho interno no CTA
+                // ── @ DO STUDIO ───────────────────────────────
                 ctx.save()
-                const ctaShine = ctx.createLinearGradient(80, y, 80, y+ctaH)
-                ctaShine.addColorStop(0, 'rgba(255,255,255,0.18)')
-                ctaShine.addColorStop(1, 'rgba(255,255,255,0)')
-                ctx.fillStyle = ctaShine
-                ctx.beginPath(); ctx.roundRect(80, y, W-160, ctaH, 28); ctx.fill()
-                ctx.restore()
-
-                ctx.save()
-                ctx.globalAlpha = 1
-                ctx.fillStyle = '#ffffff'
-                ctx.font = '700 38px system-ui, sans-serif'
+                ctx.fillStyle = 'rgba(90,32,16,0.7)'
+                ctx.font = '700 36px Georgia, serif'
                 ctx.textAlign = 'center'
-                ctx.textBaseline = 'middle'
-                ctx.fillText('Agende agora  →', W/2, y + ctaH/2)
+                ctx.textBaseline = 'top'
+                const handle = studioName ? '@' + studioName.toLowerCase().replace(/\s/g,'_') : '@tessy_souza'
+                ctx.fillText(handle, W/2, y)
                 ctx.restore()
-                y += ctaH + 40
+                y += 56
 
-                // ── URL ────────────────────────────────────────
+                // ── CTA ───────────────────────────────────────
                 ctx.save()
-                ctx.globalAlpha = 1
-                ctx.fillStyle = 'rgba(255,255,255,0.3)'
-                ctx.font = '300 24px monospace'
+                ctx.fillStyle = '#7A2E1A'
+                ctx.font = 'italic 400 38px Georgia, serif'
                 ctx.textAlign = 'center'
-                ctx.textBaseline = 'middle'
-                ctx.fillText(slugLink, W/2, H - 70)
+                ctx.textBaseline = 'top'
+                ctx.fillText('Agende pelo link na bio 💅', W/2, y)
                 ctx.restore()
 
-                // ── SHARE ──────────────────────────────────────
+                // ── SHARE ─────────────────────────────────────
                 canvas.toBlob(async (blob) => {
                   if (!blob) return
                   const file = new File([blob], 'vagas-tessy.png', { type: 'image/png' })
