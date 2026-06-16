@@ -75,6 +75,8 @@ export default function ClientesPage() {
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState({ name: '', phone: '', email: '', birth_date: '', notes: '' })
   const [saving, setSaving] = useState(false)
+  const [editModal, setEditModal] = useState(false)
+  const [editForm, setEditForm] = useState({ name: '', phone: '', email: '', birth_date: '', notes: '' })
   const PAGE_SIZE = 30
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
@@ -180,6 +182,42 @@ export default function ClientesPage() {
     setSaving(false)
     setModal(false)
     setForm({ name: '', phone: '', email: '', birth_date: '', notes: '' })
+  }
+
+  const openEdit = (client: Client) => {
+    setEditForm({
+      name: client.name || '',
+      phone: client.phone || '',
+      email: client.email || '',
+      birth_date: client.birth_date || '',
+      notes: client.notes || '',
+    })
+    setEditModal(true)
+  }
+
+  const saveEdit = async () => {
+    if (!selected || !editForm.name.trim()) return
+    setSaving(true)
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('clients')
+      .update({
+        name: editForm.name.trim(),
+        phone: editForm.phone || null,
+        email: editForm.email || null,
+        birth_date: editForm.birth_date || null,
+        notes: editForm.notes || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', selected.id)
+      .select()
+      .single()
+    if (data) {
+      setClients(prev => prev.map(c => c.id === data.id ? data : c))
+      setSelected(data)
+    }
+    setSaving(false)
+    setEditModal(false)
   }
 
   if (loading) return <div style={{ display: 'grid', placeItems: 'center', minHeight: '60vh', color: C.muted }}>Carregando clientes...</div>
@@ -335,7 +373,10 @@ export default function ClientesPage() {
               <h2 style={{ margin: 0, color: C.text, fontSize: 20 }}>{selected.name}</h2>
               <p style={{ margin: '6px 0 0', color: C.muted, fontSize: 12 }}>{sourceLabel(selected.source)}</p>
             </div>
-            <button onClick={() => setSelected(null)} style={iconButton}>x</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => openEdit(selected)} style={{ ...iconButton, background: `${C.purple}22`, color: C.purple, border: `1px solid ${C.purple}44`, padding: '0 14px', fontSize: 12, fontWeight: 700, borderRadius: 8, height: 32 }}>✏️ Editar</button>
+              <button onClick={() => setSelected(null)} style={iconButton}>x</button>
+            </div>
           </header>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12, padding: 18 }}>
@@ -356,6 +397,33 @@ export default function ClientesPage() {
             </div>
           )}
         </section>
+      )}
+
+      {editModal && selected && (
+        <div onClick={(e) => e.target === e.currentTarget && setEditModal(false)} style={{
+          position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.62)',
+          display: 'grid', placeItems: 'center', padding: 18,
+        }}>
+          <div style={{
+            width: '100%', maxWidth: 520, borderRadius: 18, background: C.card,
+            border: `1px solid ${C.border2}`, boxShadow: '0 26px 90px rgba(0,0,0,0.42)',
+            padding: 18, display: 'grid', gap: 14,
+          }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <strong style={{ color: C.text, fontSize: 16 }}>Editar — {selected.name}</strong>
+              <button onClick={() => setEditModal(false)} style={iconButton}>x</button>
+            </header>
+            <Field label="Nome completo" value={editForm.name} onChange={(v) => setEditForm(f => ({ ...f, name: v }))} placeholder="Ex: Maria Silva" />
+            <Field label="Telefone / WhatsApp" value={editForm.phone} onChange={(v) => setEditForm(f => ({ ...f, phone: v }))} placeholder="(66) 99999-0000" />
+            <Field label="Email opcional" value={editForm.email} onChange={(v) => setEditForm(f => ({ ...f, email: v }))} type="email" />
+            <Field label="Data de aniversario" value={editForm.birth_date} onChange={(v) => setEditForm(f => ({ ...f, birth_date: v }))} type="date" />
+            <Field label="Observacoes" value={editForm.notes} onChange={(v) => setEditForm(f => ({ ...f, notes: v }))} placeholder="Alergias, preferencias..." />
+            <footer style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 4 }}>
+              <button style={secondaryButton} onClick={() => setEditModal(false)}>Cancelar</button>
+              <button style={primaryButton} onClick={saveEdit} disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</button>
+            </footer>
+          </div>
+        </div>
       )}
 
       {modal && (
