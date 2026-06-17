@@ -6,9 +6,11 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(_req: Request, { params }: RouteContext) {
+export async function GET(req: Request, { params }: RouteContext) {
   try {
     const { id } = await params;
+    const { searchParams } = new URL(req.url)
+    const phone = searchParams.get("phone") || ""
     if (!id) {
       return NextResponse.json({ error: "appointmentId é obrigatório" }, { status: 400 });
     }
@@ -23,6 +25,18 @@ export async function GET(_req: Request, { params }: RouteContext) {
 
     if (appointmentError || !appointment) {
       return NextResponse.json({ error: "Agendamento não encontrado" }, { status: 404 });
+    }
+
+    // Require phone verification for public access
+    if (phone) {
+      const { data: client } = await supabase
+        .from("clients")
+        .select("phone")
+        .eq("id", appointment.client_id)
+        .maybeSingle()
+      if (!phonesMatch(client?.phone, phone)) {
+        return NextResponse.json({ error: "WhatsApp não confere com este agendamento." }, { status: 403 })
+      }
     }
 
     const { data: studio, error: studioError } = await supabase

@@ -77,7 +77,7 @@ export default function SetupPage() {
     }
 
     await supabase.from("profiles").update({ studio_id: studio.id }).eq("id", user.id);
-    await supabase.from("salon_settings").insert({
+    await supabase.from("salon_settings").upsert({
         studio_id: studio.id,
         slot_duration: 30,
         advance_days: 30,

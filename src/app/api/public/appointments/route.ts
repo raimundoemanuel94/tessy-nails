@@ -141,14 +141,44 @@ export async function POST(req: Request) {
 
   const { data: settings } = await supabase
     .from("salon_settings")
-    .select("auto_confirm")
+    .select("auto_confirm, working_hours, blocked_dates, slot_duration")
     .eq("studio_id", studio.id)
     .single();
 
-  let status = "pending";
+  // Validate: blocked date
+  const blockedDates = (settings?.blocked_dates as string[]) ?? []
+  if (blockedDates.includes(localDate)) return bad("Esta data não está disponível para agendamentos.", 400)
+
+  // Validate: working hours
+  const wh = (settings?.working_hours as Record<string, { is_open: boolean; open: string; close: string }>) ?? {}
+  const dateOverride = wh[localDate]
+  const dayOfWeek = ["sun","mon","tue","wed","thu","fri","sat"][when.getDay()]
+  const dayConf = dateOverride || wh[dayOfWeek]
+  if (!dayConf?.is_open) return bad("O salão não atende neste dia.", 400)
+
+  // Validate: slot is valid (must align with slot grid)
+  const slotDur = Number(settings?.slot_duration ?? 30)
+  const openMin = Number(dayConf.open.split(":")[0]) * 60 + Number(dayConf.open.split(":")[1])
+  const closeMin = Number(dayConf.close.split(":")[0]) * 60 + Number(dayConf.close.split(":")[1])
+  const aptLocalMin = when.getUTCHours() * 60 + when.getUTCMinutes() // slot is in local time via localDateTimeToUtc
+  // Re-derive local minute from input string
+  const [, timePart] = appointmentInput.split("T")
+  if (!timePart) return bad("appointmentDate deve ser formato YYYY-MM-DDTHH:MM", 400)
+  const [hh, mm] = timePart.split(":").map(Number)
+  const slotMin = hh * 60 + mm
+  if (slotMin < openMin || slotMin + durationMinutes > closeMin) return bad("Horário fora do expediente.", 400)
+  const validSlots: number[] = []
+  for (let m = openMin; m + durationMinutes <= closeMin; m += slotDur) validSlots.push(m)
+  if (!validSlots.includes(slotMin)) return bad("Horário inválido. Escolha um horário disponível.", 400)
+
+  // Validate: phone
+  const normalizedClientPhone = normalizePhone(clientPhone)
+  if (!normalizedClientPhone || normalizedClientPhone.length < 10) return bad("Telefone inválido. Informe DDD + número.", 400)
+
+  let status = settings?.auto_confirm ? "confirmed" : "pending";
 
   let clientId: string | null = null;
-  const phone = normalizePhone(clientPhone);
+  const phone = normalizedClientPhone
 
   if (phone) {
     const { data: existingClients } = await supabase

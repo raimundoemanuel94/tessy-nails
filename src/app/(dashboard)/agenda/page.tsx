@@ -139,8 +139,9 @@ export default function AgendaPage() {
 
   const changeStatus = async (id: string, status: string) => {
     const sb = createClient()
-    await sb.from('appointments').update({ status }).eq('id', id)
-    setApts(prev => prev.map(item => item.id === id ? { ...item, status } : item))
+    const { error } = await sb.from('appointments').update({ status }).eq('id', id)
+    if (!error) setApts(prev => prev.map(item => item.id === id ? { ...item, status } : item))
+    else console.error('Erro ao atualizar status:', error.message)
   }
 
   const confirmWithWhatsapp = async (id: string) => {

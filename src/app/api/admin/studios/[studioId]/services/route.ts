@@ -19,8 +19,8 @@ export async function POST(request: Request, { params }: { params: { studioId: s
   const durationMinutes = Number(body.durationMinutes);
   const bufferMinutes = Number(body.bufferMinutes ?? 0);
 
-  if (!name || !Number.isFinite(price) || !Number.isFinite(durationMinutes)) {
-    return NextResponse.json({ error: "Campos obrigatórios inválidos" }, { status: 400 });
+  if (!name || !Number.isFinite(price) || price < 0 || !Number.isFinite(durationMinutes) || durationMinutes <= 0 || bufferMinutes < 0) {
+    return NextResponse.json({ error: "Campos inválidos: preço deve ser >= 0, duração > 0" }, { status: 400 });
   }
 
   const { data: service, error } = await admin
