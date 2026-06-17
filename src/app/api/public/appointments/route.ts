@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { BOOKING_TIME_ZONE, localDateTimeToUtc, zonedDateString, zonedDayRange } from "@/lib/time";
+import { BOOKING_TIME_ZONE, localDateTimeToUtc, zonedDateString, zonedDayRange, zonedWeekdayKey } from "@/lib/time";
 import { normalizePhone } from "@/lib/booking/client-access";
 
 type AppointmentBody = {
@@ -152,7 +152,7 @@ export async function POST(req: Request) {
   // Validate: working hours
   const wh = (settings?.working_hours as Record<string, { is_open: boolean; open: string; close: string }>) ?? {}
   const dateOverride = wh[localDate]
-  const dayOfWeek = ["sun","mon","tue","wed","thu","fri","sat"][when.getDay()]
+  const dayOfWeek = zonedWeekdayKey(when, BOOKING_TIME_ZONE) // returns "monday","tuesday" etc
   const dayConf = dateOverride || wh[dayOfWeek]
   if (!dayConf?.is_open) return bad("O salão não atende neste dia.", 400)
 

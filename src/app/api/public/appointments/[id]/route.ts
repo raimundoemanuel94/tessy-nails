@@ -27,16 +27,17 @@ export async function GET(req: Request, { params }: RouteContext) {
       return NextResponse.json({ error: "Agendamento não encontrado" }, { status: 404 });
     }
 
-    // Require phone verification for public access
-    if (phone) {
-      const { data: client } = await supabase
-        .from("clients")
-        .select("phone")
-        .eq("id", appointment.client_id)
-        .maybeSingle()
-      if (!phonesMatch(client?.phone, phone)) {
-        return NextResponse.json({ error: "WhatsApp não confere com este agendamento." }, { status: 403 })
-      }
+    // Phone is required to access appointment data publicly
+    if (!phone) {
+      return NextResponse.json({ error: "Informe o WhatsApp para consultar o agendamento." }, { status: 403 })
+    }
+    const { data: client } = await supabase
+      .from("clients")
+      .select("phone")
+      .eq("id", appointment.client_id)
+      .maybeSingle()
+    if (!phonesMatch(client?.phone, phone)) {
+      return NextResponse.json({ error: "WhatsApp não confere com este agendamento." }, { status: 403 })
     }
 
     const { data: studio, error: studioError } = await supabase

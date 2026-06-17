@@ -95,8 +95,20 @@ export async function PUT(request: Request, { params }: { params: { studioId: st
 
   const payload: Record<string, unknown> = {};
 
-  if (typeof body.name === "string") payload.name = body.name.trim();
-  if (typeof body.slug === "string") payload.slug = body.slug.trim();
+  if (typeof body.name === "string") {
+    const name = body.name.trim()
+    if (!name) return NextResponse.json({ error: "Nome não pode ser vazio" }, { status: 400 })
+    payload.name = name
+  }
+  if (typeof body.slug === "string") {
+    const slug = body.slug.trim().toLowerCase()
+    if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
+      return NextResponse.json({ error: "Slug inválido: use apenas letras minúsculas, números e hífens" }, { status: 400 })
+    }
+    const { data: conflict } = await admin.from("studios").select("id").eq("slug", slug).neq("id", studioId).maybeSingle()
+    if (conflict) return NextResponse.json({ error: "Este slug já está em uso por outro studio" }, { status: 409 })
+    payload.slug = slug
+  }
   if (typeof body.plan === "string") payload.plan = body.plan.trim();
   if (typeof body.isActive === "boolean") payload.is_active = body.isActive;
 

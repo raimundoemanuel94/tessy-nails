@@ -47,14 +47,27 @@ export default function DisponibilidadePage() {
     load()
   }, [])
 
-  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2500) }
+  const [toastType, setToastType] = useState<'ok'|'err'>('ok')
+  function showToast(msg: string, type: 'ok'|'err' = 'ok') { setToast(msg); setToastType(type); setTimeout(() => setToast(''), 2500) }
 
   async function persist(updates: Record<string, any>) {
     setSaving(true)
     const sb = createClient()
-    await sb.from('salon_settings').update({ ...updates, updated_at: new Date().toISOString() }).eq('studio_id', studioId)
+    const { error } = await sb.from('salon_settings').update({ ...updates, updated_at: new Date().toISOString() }).eq('studio_id', studioId)
     setSaving(false)
+    if (error) {
+      showToast('Erro ao salvar. Tente novamente.')
+      console.error('persist error:', error.message)
+      // Re-fetch to revert local state
+      const { data } = await sb.from('salon_settings').select('working_hours, blocked_dates').eq('studio_id', studioId).single()
+      if (data) {
+        setWorkingHours((data.working_hours as Record<string, { is_open: boolean; open: string; close: string }>) || {})
+        setBlockedDates(data.blocked_dates || [])
+      }
+      return false
+    }
     showToast('Salvo!')
+    return true
   }
 
   async function toggleWeekDay(key: string) {
@@ -106,8 +119,8 @@ export default function DisponibilidadePage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 900 }}>
 
       {toast && (
-        <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 100, background: C.green, color: '#fff', padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 700, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
-          ✓ {toast}
+        <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 100, background: toastType === 'err' ? C.red : C.green, color: '#fff', padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 700, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
+          {toastType === 'err' ? '✕' : '✓'} {toast}
         </div>
       )}
 

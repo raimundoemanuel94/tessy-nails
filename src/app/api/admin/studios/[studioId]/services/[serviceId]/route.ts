@@ -16,10 +16,25 @@ export async function PUT(request: Request, { params }: { params: { studioId: st
 
   const payload: Record<string, unknown> = {};
 
-  if (typeof body.name === "string") payload.name = body.name.trim();
-  if (body.price !== undefined) payload.price = Number(body.price);
-  if (body.durationMinutes !== undefined) payload.duration_minutes = Number(body.durationMinutes);
-  if (body.bufferMinutes !== undefined) payload.buffer_minutes = Number(body.bufferMinutes);
+  if (typeof body.name === "string") {
+    if (!body.name.trim()) return NextResponse.json({ error: "Nome não pode ser vazio" }, { status: 400 })
+    payload.name = body.name.trim()
+  }
+  if (body.price !== undefined) {
+    const p = Number(body.price)
+    if (!Number.isFinite(p) || p < 0) return NextResponse.json({ error: "Preço deve ser >= 0" }, { status: 400 })
+    payload.price = p
+  }
+  if (body.durationMinutes !== undefined) {
+    const d = Number(body.durationMinutes)
+    if (!Number.isFinite(d) || d <= 0) return NextResponse.json({ error: "Duração deve ser > 0" }, { status: 400 })
+    payload.duration_minutes = d
+  }
+  if (body.bufferMinutes !== undefined) {
+    const b = Number(body.bufferMinutes)
+    if (!Number.isFinite(b) || b < 0) return NextResponse.json({ error: "Buffer deve ser >= 0" }, { status: 400 })
+    payload.buffer_minutes = b
+  }
   if (typeof body.isActive === "boolean") payload.is_active = body.isActive;
 
   if (Object.keys(payload).length === 0) {
