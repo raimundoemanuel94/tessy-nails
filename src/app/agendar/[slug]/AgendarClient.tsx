@@ -783,53 +783,53 @@ export default function AgendarClient({ studio, services, settings, professional
     /* ─── HERO PREMIUM COVER ─── */
     .booking-hero {
       text-align: center;
-      padding: 0;
+      padding: 36px 20px 24px;
       background: #ffffff;
       margin-bottom: 0;
     }
-    .booking-hero-cover {
-      position: relative;
-      width: 100%;
-      height: 240px;
-      overflow: hidden;
-      background: var(--booking-brand);
+    .booking-hero-cover { display: none; }
+    .booking-hero-cover-overlay { display: none; }
+    .booking-hero-cover-text { display: none; }
+    .booking-hero-avatar-wrap {
+      display: block;
+      margin-bottom: 16px;
     }
-    .booking-hero-cover img {
+    .booking-hero-avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 3px solid var(--booking-brand);
+      box-shadow: 0 4px 20px rgba(0,0,0,.10);
+      background: var(--booking-brand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .booking-hero-avatar img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 20%;
+      object-position: center top;
     }
-    .booking-hero-cover-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.55) 100%);
-    }
-    .booking-hero-cover-text {
-      position: absolute;
-      bottom: 20px;
-      left: 0; right: 0;
-      text-align: center;
-      color: #fff;
-    }
+    .booking-hero-badge { display: none; }
     .booking-hero-name {
-      font-size: 28px;
+      font-size: 22px;
       font-weight: 800;
-      color: #ffffff;
+      color: #1a1a1a;
       letter-spacing: -.01em;
       margin: 0;
-      text-shadow: 0 2px 12px rgba(0,0,0,.3);
     }
     .booking-hero-role {
       font-size: 13px;
-      color: rgba(255,255,255,.85);
+      color: #777;
       margin: 4px 0 0;
-      font-weight: 500;
+      font-weight: 400;
     }
-    .booking-hero-badge {
-      display: none;
-    }
-    .booking-hero-avatar-wrap { display: none; }
     .booking-hero-rating {
       display: inline-flex;
       align-items: center;
@@ -1338,8 +1338,8 @@ export default function AgendarClient({ studio, services, settings, professional
     <main className="booking-shell">
       <style>{css}</style>
       <header className="booking-header">
-        <div className="booking-logo" style={{ borderRadius: '50%', overflow: 'hidden', width: 44, height: 44, flexShrink: 0 }}>
-          {studio.avatar_url ? <img src={studio.avatar_url} alt={studio.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} /> : studio.name.slice(0, 2).toUpperCase()}
+        <div className="booking-logo" style={{ borderRadius: '50%', overflow: 'hidden', width: 40, height: 40, flexShrink: 0, background: 'var(--booking-brand)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>
+          {studio.name.slice(0, 2).toUpperCase()}
         </div>
         <div className="booking-brand-copy">
           <strong>{professional ? professional.name : studio.name}</strong>
@@ -1372,23 +1372,18 @@ export default function AgendarClient({ studio, services, settings, professional
       <section className="booking-main-hero">
         {step === 'service' && (
           <>
-            {/* HERO — cover premium */}
+            {/* HERO — avatar central limpo */}
             <div className="booking-hero">
-              <div className="booking-hero-cover">
-                {(professional?.avatar_url || studio.avatar_url) && (
-                  <img
-                    src={professional?.avatar_url || studio.avatar_url || ''}
-                    alt={professional ? professional.name : studio.name}
-                  />
-                )}
-                <div className="booking-hero-cover-overlay" />
-                <div className="booking-hero-cover-text">
-                  <h1 className="booking-hero-name">{professional ? professional.name : studio.name}</h1>
-                  <p className="booking-hero-role">
-                    {professional ? 'Manicure em Sorriso - MT' : 'Agendamento online premium'}
-                  </p>
+              <div className="booking-hero-avatar-wrap">
+                <div className="booking-hero-avatar">
+                  {(professional?.avatar_url || studio.avatar_url)
+                    ? <img src={professional?.avatar_url || studio.avatar_url || ''} alt={professional ? professional.name : studio.name} />
+                    : <span>{(professional ? professional.name : studio.name).slice(0, 2).toUpperCase()}</span>
+                  }
                 </div>
               </div>
+              <h1 className="booking-hero-name">{professional ? professional.name : studio.name}</h1>
+              <p className="booking-hero-role">{professional ? 'Manicure em Sorriso - MT' : 'Agendamento online premium'}</p>
 
               <div className="booking-hero-info">
                 {studio.address && mapsUrl && (
@@ -1432,7 +1427,7 @@ export default function AgendarClient({ studio, services, settings, professional
                 services.map((service, idx) => {
                   const featured = isFeaturedService(service, idx)
                   return (
-                    <button
+                    <div
                       key={service.id}
                       className={`booking-svc-card ${featured ? 'is-featured' : ''}`}
                       onClick={() => {
@@ -1445,6 +1440,15 @@ export default function AgendarClient({ studio, services, settings, professional
                         setCreatedAppointment(null)
                         setStep('date')
                       }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && (() => {
+                        setSelectedService(service)
+                        setSelectedDate('')
+                        setSelectedTime('')
+                        setSlots([])
+                        setStep('date')
+                      })()}
                     >
                       {featured && <div className="booking-svc-badge">Mais escolhido</div>}
                       <div className="booking-svc-name">{service.name}</div>
@@ -1452,13 +1456,13 @@ export default function AgendarClient({ studio, services, settings, professional
                         Atendimento de {service.duration_minutes} min
                         {service.category && ` · ${service.category}`}
                       </div>
-                    <div className="booking-svc-footer">
-                      <div className="booking-svc-price">{money(service.price)}</div>
-                      <button className="booking-svc-btn" style={{ background: 'var(--booking-brand)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-                        Escolher
-                      </button>
+                      <div className="booking-svc-footer">
+                        <div className="booking-svc-price">{money(service.price)}</div>
+                        <div className="booking-svc-btn" style={{ background: 'var(--booking-brand)', color: '#fff', borderRadius: '999px', padding: '9px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
+                          Escolher
+                        </div>
+                      </div>
                     </div>
-                  </button>
                   )
                 })
               )}
