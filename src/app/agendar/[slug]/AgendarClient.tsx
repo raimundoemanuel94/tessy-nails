@@ -989,14 +989,14 @@ export default function AgendarClient({ studio, services, settings, professional
       gap: 8px;
       height: 50px;
       border-radius: 14px;
-      background: var(--booking-brand);
-      color: #fff;
+      background: var(--booking-brand) !important;
+      color: #fff !important;
       text-decoration: none;
       font-size: 15px;
       font-weight: 700;
       white-space: nowrap;
       transition: opacity .15s, transform .1s;
-      box-shadow: 0 4px 16px rgba(var(--booking-rgb), .3);
+      box-shadow: 0 4px 16px rgba(var(--booking-rgb), .25);
     }
     .booking-hero-cta:hover { opacity: .92; }
     .booking-hero-cta:active { transform: scale(.98); }
@@ -1181,16 +1181,17 @@ export default function AgendarClient({ studio, services, settings, professional
     .booking-svc-btn {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 9px 18px;
+      justify-content: center;
+      padding: 10px 20px;
       border-radius: 999px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       border: none;
       background: var(--booking-brand) !important;
       color: #ffffff !important;
       transition: opacity .15s;
+      flex-shrink: 0;
     }
     .booking-svc-btn:hover { opacity: .9; }
     .booking-svc-card.is-featured .booking-svc-btn:hover { opacity: .92; background: var(--booking-brand); }
