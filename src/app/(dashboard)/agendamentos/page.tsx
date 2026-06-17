@@ -1,7 +1,7 @@
 'use client'
 
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
-import { CalendarDays, Check, CheckCircle2, Clock, MessageSquare, Search, Sparkles, XCircle } from 'lucide-react'
+import { CalendarDays, Check, CheckCircle2, Clock, MessageSquare, Plus, Search, Sparkles, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Appointment } from '@/types/database'
 
@@ -194,6 +194,12 @@ export default function AgendamentosPage() {
   const [filter, setFilter] = useState('todos')
   const [q, setQ] = useState('')
   const [studioPhone, setStudioPhone] = useState('')
+  const [studioId, setStudioId] = useState('')
+  const [services, setServices] = useState<{ id: string; name: string; price: number; duration_minutes: number }[]>([])
+  const [clients, setClients] = useState<{ id: string; name: string; phone: string | null }[]>([])
+  const [newModal, setNewModal] = useState(false)
+  const [newForm, setNewForm] = useState({ clientName: '', clientId: '', serviceId: '', date: '', time: '', price: '', notes: '', isPackage: false })
+  const [savingNew, setSavingNew] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -204,12 +210,15 @@ export default function AgendamentosPage() {
       if (!profile?.studio_id) { setLoading(false); return }
       const { data: studioData } = await sb.from('studios').select('whatsapp, phone').eq('id', profile.studio_id).single()
       if (studioData) setStudioPhone(studioData.whatsapp || studioData.phone || '')
-      const { data } = await sb
-        .from('appointments')
-        .select('*')
-        .eq('studio_id', profile.studio_id)
-        .order('appointment_date', { ascending: true })
+      setStudioId(profile.studio_id)
+      const [{ data }, { data: svcData }, { data: cliData }] = await Promise.all([
+        sb.from('appointments').select('*').eq('studio_id', profile.studio_id).order('appointment_date', { ascending: true }),
+        sb.from('services').select('id, name, price, duration_minutes').eq('studio_id', profile.studio_id).eq('is_active', true).order('name'),
+        sb.from('clients').select('id, name, phone').eq('studio_id', profile.studio_id).eq('is_active', true).order('name'),
+      ])
       setApts(data || [])
+      setServices(svcData || [])
+      setClients(cliData || [])
       setLoading(false)
     }
     void load()
@@ -280,6 +289,67 @@ export default function AgendamentosPage() {
     const msg = `Olá ${nome}! 😔 Infelizmente não consigo te atender ${quando} às ${hora}. Por favor, entre em contato para remarcar. 💅`
     const number = clientPhone.replace(/\D/g, '')
     window.open('https://wa.me/55' + number + '?text=' + encodeURIComponent(msg), '_blank')
+  }
+
+    const createAppointment = async () => {
+    if (!newForm.clientName.trim() || !newForm.serviceId || !newForm.date || !newForm.time) return
+    setSavingNew(true)
+    const sb = createClient()
+    const service = services.find(s => s.id === newForm.serviceId)
+    const client = clients.find(c => c.id === newForm.clientId)
+    const appointmentDate = `${newForm.date}T${newForm.time}:00`
+    const price = newForm.isPackage ? 0 : (parseFloat(newForm.price) || service?.price || 0)
+
+    // Check conflict
+    const { data: conflicts } = await sb
+      .from('appointments')
+      .select('id, appointment_date, duration_minutes')
+      .eq('studio_id', studioId)
+      .eq('appointment_date::date', newForm.date)
+      .not('status', 'in', '("cancelled","no_show")')
+
+    const newStart = new Date(appointmentDate).getTime()
+    const newEnd = newStart + (service?.duration_minutes || 60) * 60000
+    const hasConflict = (conflicts || []).some(apt => {
+      const start = new Date(apt.appointment_date).getTime()
+      const end = start + apt.duration_minutes * 60000
+      return newStart < end && newEnd > start
+    })
+
+    if (hasConflict) {
+      alert('Conflito de horário! Já existe um agendamento nesse horário.')
+      setSavingNew(false)
+      return
+    }
+
+    let clientId = newForm.clientId
+    if (!clientId && newForm.clientName.trim()) {
+      const { data: newClient } = await sb.from('clients').insert({
+        studio_id: studioId, name: newForm.clientName.trim(), source: 'manual'
+      }).select('id').single()
+      if (newClient) { clientId = newClient.id; setClients(prev => [...prev, { id: newClient.id, name: newForm.clientName.trim(), phone: null }]) }
+    }
+
+    const { data: apt } = await sb.from('appointments').insert({
+      studio_id: studioId,
+      client_id: clientId || null,
+      client_name: client?.name || newForm.clientName.trim(),
+      service_id: newForm.serviceId,
+      service_name: service?.name || '',
+      appointment_date: appointmentDate,
+      duration_minutes: service?.duration_minutes || 60,
+      price,
+      status: 'confirmed',
+      source: 'manual',
+      notes: newForm.notes || null,
+    }).select('*').single()
+
+    if (apt) {
+      setApts(prev => [...prev, apt as Appointment].sort((a, b) => a.appointment_date.localeCompare(b.appointment_date)))
+      setNewModal(false)
+      setNewForm({ clientName: '', clientId: '', serviceId: '', date: '', time: '', price: '', notes: '', isPackage: false })
+    }
+    setSavingNew(false)
   }
 
     const searched = useMemo(() => {
@@ -419,6 +489,102 @@ export default function AgendamentosPage() {
           section[style*="repeat(5"] { grid-template-columns: 1fr !important; }
         }
       `}</style>
+
+      {/* Modal novo agendamento */}
+      {newModal && (
+        <div onClick={e => e.target === e.currentTarget && setNewModal(false)} style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', padding: 16 }}>
+          <div style={{ width: '100%', maxWidth: 480, borderRadius: 20, background: C.card, border: `1px solid ${C.border2}`, padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <strong style={{ color: C.text, fontSize: 16 }}>Novo agendamento</strong>
+              <button onClick={() => setNewModal(false)} style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${C.border2}`, background: 'transparent', color: C.muted, cursor: 'pointer', fontFamily: 'inherit', fontSize: 16 }}>×</button>
+            </div>
+
+            {/* Cliente */}
+            <div>
+              <label style={{ display: 'block', color: C.muted, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Cliente</label>
+              <input
+                list="clients-list"
+                value={newForm.clientName}
+                onChange={e => {
+                  const name = e.target.value
+                  const found = clients.find(c => c.name === name)
+                  setNewForm(f => ({ ...f, clientName: name, clientId: found?.id || '' }))
+                }}
+                placeholder="Nome da cliente..."
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border2}`, background: C.card2, color: C.text, fontFamily: 'inherit', fontSize: 14, boxSizing: 'border-box' as const }}
+              />
+              <datalist id="clients-list">
+                {clients.map(c => <option key={c.id} value={c.name} />)}
+              </datalist>
+            </div>
+
+            {/* Serviço */}
+            <div>
+              <label style={{ display: 'block', color: C.muted, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Serviço</label>
+              <select
+                value={newForm.serviceId}
+                onChange={e => {
+                  const svc = services.find(s => s.id === e.target.value)
+                  setNewForm(f => ({ ...f, serviceId: e.target.value, price: svc?.price?.toString() || '' }))
+                }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border2}`, background: C.card2, color: C.text, fontFamily: 'inherit', fontSize: 14, boxSizing: 'border-box' as const }}
+              >
+                <option value="">Escolher serviço...</option>
+                {services.map(s => <option key={s.id} value={s.id}>{s.name} — R$ {s.price.toFixed(2).replace('.', ',')}</option>)}
+              </select>
+            </div>
+
+            {/* Data e Hora */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={{ display: 'block', color: C.muted, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Data</label>
+                <input type="date" value={newForm.date} onChange={e => setNewForm(f => ({ ...f, date: e.target.value }))}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border2}`, background: C.card2, color: C.text, fontFamily: 'inherit', fontSize: 14, boxSizing: 'border-box' as const }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', color: C.muted, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Horário</label>
+                <input type="time" value={newForm.time} onChange={e => setNewForm(f => ({ ...f, time: e.target.value }))}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border2}`, background: C.card2, color: C.text, fontFamily: 'inherit', fontSize: 14, boxSizing: 'border-box' as const }} />
+              </div>
+            </div>
+
+            {/* Pacote mensal toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: C.card2, border: `1px solid ${C.border}` }}>
+              <input type="checkbox" id="isPackage" checked={newForm.isPackage} onChange={e => setNewForm(f => ({ ...f, isPackage: e.target.checked }))}
+                style={{ width: 16, height: 16, cursor: 'pointer', accentColor: C.purple }} />
+              <label htmlFor="isPackage" style={{ color: C.text, fontSize: 13, cursor: 'pointer' }}>
+                Cliente de pacote mensal <span style={{ color: C.muted, fontSize: 11 }}>(não cobra por sessão)</span>
+              </label>
+            </div>
+
+            {/* Preço — só mostra se não for pacote */}
+            {!newForm.isPackage && (
+              <div>
+                <label style={{ display: 'block', color: C.muted, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Valor (R$)</label>
+                <input type="number" value={newForm.price} onChange={e => setNewForm(f => ({ ...f, price: e.target.value }))}
+                  placeholder="0,00" min="0" step="0.01"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border2}`, background: C.card2, color: C.text, fontFamily: 'inherit', fontSize: 14, boxSizing: 'border-box' as const }} />
+              </div>
+            )}
+
+            {/* Observações */}
+            <div>
+              <label style={{ display: 'block', color: C.muted, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Observações</label>
+              <input value={newForm.notes} onChange={e => setNewForm(f => ({ ...f, notes: e.target.value }))}
+                placeholder="Alergias, preferências..."
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border2}`, background: C.card2, color: C.text, fontFamily: 'inherit', fontSize: 14, boxSizing: 'border-box' as const }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setNewModal(false)} style={{ padding: '10px 20px', borderRadius: 10, border: `1px solid ${C.border2}`, background: 'transparent', color: C.muted, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>Cancelar</button>
+              <button onClick={() => void createAppointment()} disabled={savingNew || !newForm.clientName || !newForm.serviceId || !newForm.date || !newForm.time}
+                style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: C.purple, color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, opacity: savingNew ? 0.7 : 1 }}>
+                {savingNew ? 'Salvando...' : 'Criar agendamento'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

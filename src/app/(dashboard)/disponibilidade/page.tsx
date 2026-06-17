@@ -39,8 +39,8 @@ export default function DisponibilidadePage() {
         .eq('studio_id', profile.studio_id)
         .single()
       if (settings) {
-        setWorkingHours((settings.working_hours as any) || {})
-        setBlockedDates((settings as any).blocked_dates || [])
+        setWorkingHours((settings.working_hours as Record<string, { is_open: boolean; open: string; close: string }>) || {})
+        setBlockedDates(settings.blocked_dates || [])
       }
       setLoading(false)
     }

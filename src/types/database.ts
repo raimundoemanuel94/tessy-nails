@@ -14,9 +14,9 @@ export interface Database {
         Update: { name?: string; slug?: string; owner_id?: string | null; phone?: string | null; address?: string | null; avatar_url?: string | null; plan?: string; is_active?: boolean; trial_ends_at?: string | null; brand_color?: string | null; whatsapp?: string | null; instagram?: string | null; subscription_status?: string | null; next_billing_date?: string | null; mrr?: number | null };
       };
       salon_settings: {
-        Row: { studio_id: string; slot_duration: number; advance_days: number; cancel_hours: number; auto_confirm: boolean; working_hours: Json; updated_at: string };
-        Insert: { studio_id: string; slot_duration?: number; advance_days?: number; cancel_hours?: number; auto_confirm?: boolean; working_hours?: Json };
-        Update: { slot_duration?: number; advance_days?: number; cancel_hours?: number; auto_confirm?: boolean; working_hours?: Json };
+        Row: { studio_id: string; slot_duration: number; advance_days: number; cancel_hours: number; auto_confirm: boolean; working_hours: Json; blocked_dates: string[]; updated_at: string };
+        Insert: { studio_id: string; slot_duration?: number; advance_days?: number; cancel_hours?: number; auto_confirm?: boolean; working_hours?: Json; blocked_dates?: string[] };
+        Update: { slot_duration?: number; advance_days?: number; cancel_hours?: number; auto_confirm?: boolean; working_hours?: Json; blocked_dates?: string[] };
       };
       services: {
         Row: { id: string; studio_id: string; name: string; description: string | null; price: number; duration_minutes: number; buffer_minutes: number; category: string | null; is_active: boolean; created_at: string; updated_at: string };
@@ -48,4 +48,5 @@ export type Service     = Database["public"]["Tables"]["services"]["Row"];
 export type Client      = Database["public"]["Tables"]["clients"]["Row"];
 export type Appointment = Database["public"]["Tables"]["appointments"]["Row"];
 export type SalonSettings = Database["public"]["Tables"]["salon_settings"]["Row"];
+export type WorkingHours = Record<string, { is_open: boolean; open: string; close: string }>;
 export type PlanPrice = Database["public"]["Tables"]["plan_prices"]["Row"];

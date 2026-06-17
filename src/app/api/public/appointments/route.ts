@@ -20,7 +20,33 @@ type AppointmentBody = {
   notes?: string;
 };
 
+// Simple in-memory rate limit: max 3 agendamentos por IP em 10 minutos
+const rateLimitMap = new Map<string, { count: number; firstAt: number }>()
+const RATE_LIMIT = 3
+const RATE_WINDOW_MS = 10 * 60 * 1000
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+  if (!entry || now - entry.firstAt > RATE_WINDOW_MS) {
+    rateLimitMap.set(ip, { count: 1, firstAt: now })
+    return true
+  }
+  if (entry.count >= RATE_LIMIT) return false
+  entry.count++
+  return true
+}
+
 export async function POST(req: Request) {
+  // Rate limit por IP
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json(
+      { error: 'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.' },
+      { status: 429 }
+    )
+  }
+
   let body: AppointmentBody;
 
   try {

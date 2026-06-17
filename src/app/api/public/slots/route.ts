@@ -77,13 +77,13 @@ export async function GET(req: NextRequest) {
     const dayConfig = workingHours[dayKey];
 
     // Check if this date is manually blocked
-    const blockedDates = ((settings as any)?.blocked_dates as string[]) ?? []
+    const blockedDates = (settings.blocked_dates as string[]) ?? []
     if (blockedDates.includes(dateStr)) {
       return NextResponse.json({ slots: [], reason: "blocked", date: dateStr })
     }
 
     // Date-specific override takes priority over weekly config
-    const dateOverride = (workingHours as any)[dateStr]
+    const dateOverride = (workingHours as Record<string, { is_open: boolean; open: string; close: string }>)[dateStr]
     const effectiveConfig = dateOverride || dayConfig
 
     if (!effectiveConfig?.is_open) {

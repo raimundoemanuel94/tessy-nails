@@ -96,7 +96,7 @@ export default function AgendaPage() {
       if (studioData?.avatar_url) setStudioAvatar(studioData.avatar_url)
       if (studioData?.brand_color) setStudioBrandColor(studioData.brand_color)
       const { data: settingsData } = await sb.from('salon_settings').select('slot_duration, working_hours').eq('studio_id', profile.studio_id).single()
-      if (settingsData) setSalonSettings(settingsData as any)
+      if (settingsData) setSalonSettings(settingsData)
       const { data } = await sb
         .from('appointments')
         .select('*')

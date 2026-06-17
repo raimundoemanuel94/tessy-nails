@@ -80,6 +80,8 @@ export default function RelatoriosPage() {
 
   const PERIOD_LABELS: Record<string, string> = { week: 'Esta semana', month: 'Este mês', last_month: 'Mês passado', '3months': 'Últimos 3 meses', all: 'Tudo' }
   const completed = filteredByPeriod.filter((appointment) => appointment.status === 'completed')
+  const pending = filteredByPeriod.filter((a) => a.status === 'pending' || a.status === 'confirmed')
+  const pendingRevenue = pending.reduce((sum, a) => sum + (a.price || 0), 0)
   const revenue = completed.reduce((sum, appointment) => sum + appointment.price, 0)
   const ticket = completed.length ? revenue / completed.length : 0
   const completionRate = filteredByPeriod.length ? Math.round((completed.length / filteredByPeriod.length) * 100) : 0

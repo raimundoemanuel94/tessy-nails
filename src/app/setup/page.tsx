@@ -77,7 +77,23 @@ export default function SetupPage() {
     }
 
     await supabase.from("profiles").update({ studio_id: studio.id }).eq("id", user.id);
-    await supabase.from("salon_settings").insert({ studio_id: studio.id });
+    await supabase.from("salon_settings").insert({
+        studio_id: studio.id,
+        slot_duration: 30,
+        advance_days: 30,
+        cancel_hours: 2,
+        auto_confirm: false,
+        blocked_dates: [],
+        working_hours: {
+          mon: { is_open: true,  open: "09:00", close: "18:00" },
+          tue: { is_open: true,  open: "09:00", close: "18:00" },
+          wed: { is_open: true,  open: "09:00", close: "18:00" },
+          thu: { is_open: true,  open: "09:00", close: "18:00" },
+          fri: { is_open: true,  open: "09:00", close: "18:00" },
+          sat: { is_open: true,  open: "08:00", close: "13:00" },
+          sun: { is_open: false, open: "09:00", close: "18:00" },
+        },
+      });
 
     const selectedSvcs = services.filter(s => s.selected).map(s => ({
       studio_id: studio.id, name: s.name, price: s.price, duration_minutes: s.duration_minutes,

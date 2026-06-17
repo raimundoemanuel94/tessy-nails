@@ -33,15 +33,13 @@ export async function middleware(request: NextRequest) {
                        request.nextUrl.pathname === "/" ||
                        isAuthCallback;
   const isApiPublic = request.nextUrl.pathname.startsWith("/api/public");
-  const isApiLegacyPublic = request.nextUrl.pathname.startsWith("/api/studios") ||
-                            request.nextUrl.pathname.startsWith("/api/slots");
   const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
 
-  if (!user && isApiRoute && !isApiPublic && !isApiLegacyPublic) {
+  if (!user && isApiRoute && !isApiPublic) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!user && !isAuthPage && !isPublicPage && !isApiPublic && !isApiLegacyPublic) {
+  if (!user && !isAuthPage && !isPublicPage && !isApiPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
