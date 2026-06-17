@@ -826,10 +826,10 @@ export default function AgendarClient({ studio, services, settings, professional
       border-radius: 50%;
       margin: 0 auto;
       overflow: hidden;
-      border: 3px solid var(--booking-brand);
+      border: 3px solid var(--booking-brand) !important;
       box-shadow:
-        0 0 0 6px rgba(var(--booking-rgb), .10),
-        0 12px 40px rgba(0,0,0,.12);
+        0 0 0 7px rgba(var(--booking-rgb), .12),
+        0 16px 48px rgba(0,0,0,.14);
       background: var(--booking-brand);
       display: flex;
       align-items: center;
@@ -919,36 +919,45 @@ export default function AgendarClient({ studio, services, settings, professional
       text-decoration: none;
     }
     .booking-hero-info a:hover { color: var(--booking-brand); }
-    .booking-hero-whatsapp {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      max-width: 310px;
-      margin: 20px auto 0;
-      padding: 12px 18px;
-      background: #22c55e;
-      color: #fff;
-      border: none;
-      border-radius: 999px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      transition: opacity .15s;
-    }
-    .booking-hero-whatsapp:hover { opacity: .92; }
     .booking-hero-actions {
-      width: min(100%, 400px);
-      margin: 0 auto 0;
+      width: min(100% - 40px, 380px);
+      margin: 0 auto;
       display: flex;
       align-items: center;
       gap: 8px;
     }
     .booking-hero-cta {
       flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      border-radius: 12px;
+      background: var(--booking-brand);
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: opacity .15s, transform .1s;
     }
+    .booking-hero-cta:hover { opacity: .9; }
+    .booking-hero-cta:active { transform: scale(.98); }
+    .booking-hero-whatsapp {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: #f4f4f5;
+      border: 0.5px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      text-decoration: none;
+      transition: background .15s, transform .1s;
+    }
+    .booking-hero-whatsapp:hover { background: #ebebec; }
+    .booking-hero-whatsapp:active { transform: scale(0.95); }
     .booking-hero-icon-btn {
       width: 46px;
       height: 46px;
@@ -964,23 +973,6 @@ export default function AgendarClient({ studio, services, settings, professional
     }
     .booking-hero-icon-btn:hover { background: #ebebec; }
     .booking-hero-icon-btn:active { transform: scale(0.95); }
-    .booking-hero-cta,
-    .booking-hero-whatsapp {
-      max-width: none;
-      margin: 0;
-    }
-    .booking-hero-cta {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 46px;
-      border-radius: 999px;
-      background: #1a1a1a;
-      color: #fff;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 700;
-    }
     .booking-client-access {
       margin: 16px 20px 20px;
       border: 0.5px solid #e8e8e8;
