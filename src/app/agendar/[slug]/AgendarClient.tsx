@@ -285,7 +285,7 @@ export default function AgendarClient({ studio, services, settings, professional
       --booking-rgb: ${rgb};
       min-height: 100vh;
       color: #1a1a1a;
-      background: #f7f7f8;
+      background: #fdf4f7;
       font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
       padding-bottom: 60px;
     }
@@ -780,97 +780,108 @@ export default function AgendarClient({ studio, services, settings, professional
       font-size: 14px;
       font-weight: 600;
     }
-    /* ─── HERO PREMIUM ─── */
+    /* ─── HERO ROSÉ PREMIUM ─── */
     .booking-hero {
       text-align: center;
-      padding: 40px 24px 28px;
-      background: #ffffff;
+      padding: 0 0 24px;
+      background: transparent;
     }
     .booking-hero-cover { display: none; }
     .booking-hero-cover-overlay { display: none; }
     .booking-hero-cover-text { display: none; }
+    .booking-hero-badge-pill { display: none; }
+    .booking-hero-badge-dot { display: none; }
+    .booking-hero-badge-text { display: none; }
+    .booking-hero-badge { display: none; }
 
-    /* Badge "agendamento online" */
-    .booking-hero-badge-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(var(--booking-rgb), .08);
-      border: 1px solid rgba(var(--booking-rgb), .2);
-      border-radius: 999px;
-      padding: 5px 14px;
-      margin-bottom: 22px;
+    /* Fundo gradiente rosé atrás do avatar */
+    .booking-hero-bg {
+      background: linear-gradient(180deg, #fce4ef 0%, #fdf4f7 100%);
+      padding: 36px 24px 48px;
+      position: relative;
+      overflow: hidden;
     }
-    .booking-hero-badge-dot {
-      width: 7px; height: 7px;
+    .booking-hero-bg::before {
+      content: '';
+      position: absolute;
+      top: -30px; right: -40px;
+      width: 180px; height: 180px;
       border-radius: 50%;
-      background: var(--booking-brand);
+      background: rgba(255,255,255,.25);
     }
-    .booking-hero-badge-text {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--booking-brand);
-      letter-spacing: .1em;
-      text-transform: uppercase;
+    .booking-hero-bg::after {
+      content: '';
+      position: absolute;
+      bottom: 10px; left: -50px;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.18);
     }
 
     /* Avatar */
     .booking-hero-avatar-wrap {
       display: block;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       position: relative;
+      z-index: 1;
     }
     .booking-hero-avatar {
-      width: 104px;
-      height: 104px;
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
       margin: 0 auto;
       overflow: hidden;
-      border: 3px solid var(--booking-brand) !important;
-      box-shadow:
-        0 0 0 7px rgba(var(--booking-rgb), .12),
-        0 16px 48px rgba(0,0,0,.14);
-      background: var(--booking-brand);
+      border: 4px solid #fff !important;
+      box-shadow: 0 8px 32px rgba(220,80,120,.20);
+      background: #e8a0b8;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #fff;
-      font-size: 32px;
+      font-size: 36px;
       font-weight: 700;
     }
     .booking-hero-avatar img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 15%;
-      image-rendering: crisp-edges;
+      object-position: center 10%;
     }
     .booking-hero-avatar-online {
       position: absolute;
-      bottom: 3px;
-      right: calc(50% - 52px + 6px);
+      bottom: 6px;
+      right: calc(50% - 60px + 8px);
       width: 18px; height: 18px;
       border-radius: 50%;
       background: #22c55e;
       border: 2.5px solid #fff;
       box-shadow: 0 1px 4px rgba(0,0,0,.15);
+      z-index: 2;
     }
-
-    .booking-hero-badge { display: none; }
 
     .booking-hero-name {
-      font-size: clamp(20px, 5vw, 26px);
+      font-size: clamp(26px, 6vw, 34px);
       font-weight: 800;
-      color: #111;
-      letter-spacing: -.03em;
-      margin: 0 0 3px;
-      line-height: 1.1;
+      color: #1a0a12;
+      letter-spacing: -.04em;
+      margin: 0 0 4px;
+      line-height: 1.05;
+      position: relative;
+      z-index: 1;
+    }
+    .booking-hero-name em {
+      font-style: italic;
+      font-weight: 400;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: var(--booking-brand);
     }
     .booking-hero-role {
-      font-size: 12px;
-      color: #999;
-      margin: 0 0 16px;
+      font-size: 13px;
+      color: #8b5a6e;
+      margin: 0;
       font-weight: 400;
+      position: relative;
+      z-index: 1;
     }
     .booking-hero-rating {
       display: inline-flex;
@@ -884,118 +895,170 @@ export default function AgendarClient({ studio, services, settings, professional
       font-weight: 500;
       color: #854d0e;
     }
-    .booking-hero-info {
+    /* Online pill + info pills */
+    .booking-hero-pills {
       display: flex;
       justify-content: center;
       gap: 6px;
-      margin: 0 0 20px;
-      font-size: 11px;
-      color: #666;
       flex-wrap: wrap;
-      padding: 0 8px;
+      padding: 0 16px;
+      margin: 14px 0 0;
     }
-    .booking-hero-info span,
-    .booking-hero-info a {
+    .booking-hero-pill {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      height: 30px;
-      padding: 0 12px;
+      height: 28px;
+      padding: 0 11px;
       border-radius: 999px;
-      background: #f4f4f5;
-      border: 0.5px solid #e8e8e8;
-      color: #555;
-      text-decoration: none;
+      background: #fff;
+      border: 1px solid #f0d0dc;
+      color: #8b5a6e;
+      font-size: 11px;
       font-weight: 500;
       white-space: nowrap;
-      max-width: calc(100vw - 60px);
-      overflow: hidden;
-      text-overflow: ellipsis;
+    }
+    .booking-hero-pill-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      flex-shrink: 0;
+    }
+    .booking-hero-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: #fff;
+      border-top: 0.5px solid #f5e6eb;
+      cursor: pointer;
+      text-decoration: none;
+      color: #555;
+      font-size: 12px;
+    }
+    .booking-hero-info span,
+    .booking-hero-info a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: #fff;
+      border-top: 0.5px solid #f5e6eb;
+      text-decoration: none;
+      color: #555;
+      font-size: 12px;
+      width: 100%;
+    }
+    .booking-hero-info-addr {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: #fff;
+      border-top: 0.5px solid #f5e6eb;
+      border-bottom: 0.5px solid #f5e6eb;
+      text-decoration: none;
+      color: #444;
+      font-size: 12px;
+      font-weight: 500;
       transition: background .15s;
     }
-    .booking-hero-info a:hover { background: #ebebec; }
+    .booking-hero-info-addr:hover { background: #fff9fb; }
+    .booking-hero-info-addr::after {
+      content: '›';
+      margin-left: auto;
+      font-size: 16px;
+      color: #ccc;
+    }
     .booking-hero-info a {
       color: #666;
       text-decoration: none;
     }
     .booking-hero-info a:hover { color: var(--booking-brand); }
     .booking-hero-actions {
-      width: min(100% - 40px, 380px);
-      margin: 0 auto;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      padding: 16px 20px 0;
     }
     .booking-hero-cta {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 46px;
-      border-radius: 12px;
+      gap: 8px;
+      height: 50px;
+      border-radius: 14px;
       background: var(--booking-brand);
       color: #fff;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: opacity .15s, transform .1s;
+      box-shadow: 0 4px 16px rgba(var(--booking-rgb), .3);
+    }
+    .booking-hero-cta:hover { opacity: .92; }
+    .booking-hero-cta:active { transform: scale(.98); }
+    .booking-hero-whatsapp {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 50px;
+      padding: 0 16px;
+      border-radius: 14px;
+      background: #fff;
+      border: 1.5px solid #25D366;
+      color: #25D366;
       text-decoration: none;
       font-size: 14px;
       font-weight: 700;
       white-space: nowrap;
-      transition: opacity .15s, transform .1s;
-    }
-    .booking-hero-cta:hover { opacity: .9; }
-    .booking-hero-cta:active { transform: scale(.98); }
-    .booking-hero-whatsapp {
-      width: 46px;
-      height: 46px;
-      border-radius: 12px;
-      background: #f4f4f5;
-      border: 0.5px solid #e8e8e8;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      text-decoration: none;
       transition: background .15s, transform .1s;
     }
-    .booking-hero-whatsapp:hover { background: #ebebec; }
-    .booking-hero-whatsapp:active { transform: scale(0.95); }
+    .booking-hero-whatsapp:hover { background: #f0fff4; }
+    .booking-hero-whatsapp:active { transform: scale(0.98); }
     .booking-hero-icon-btn {
-      width: 46px;
-      height: 46px;
-      border-radius: 12px;
-      background: #f4f4f5;
-      border: 0.5px solid #e8e8e8;
+      width: 50px; height: 50px;
+      border-radius: 14px;
+      background: #fff;
+      border: 1px solid #f0d0dc;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
       text-decoration: none;
-      transition: background .15s, transform .1s;
+      transition: background .15s;
     }
-    .booking-hero-icon-btn:hover { background: #ebebec; }
-    .booking-hero-icon-btn:active { transform: scale(0.95); }
+    .booking-hero-icon-btn:hover { background: #fff5f8; }
     .booking-client-access {
-      margin: 16px 20px 20px;
-      border: 0.5px solid #e8e8e8;
-      background: #fafafa;
+      margin: 14px 20px 0;
+      border: 1px solid #f0d8e2;
+      background: #fff;
       border-radius: 14px;
       padding: 14px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
       text-decoration: none;
-      color: #1a1a1a;
+      color: #1a0a12;
       transition: background .15s, transform .12s;
     }
-    .booking-client-access:hover {
-      background: #f4f4f5;
-      transform: translateY(-1px);
-    }
+    .booking-client-access:hover { background: #fff5f8; transform: translateY(-1px); }
     .booking-client-access:active { transform: scale(.99); }
-    .booking-client-access-icon { display: none; }
-    .booking-client-access-body {
-      flex: 1;
-      min-width: 0;
+    .booking-client-access-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: #fce4ef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
     }
+    .booking-client-access-body { flex: 1; min-width: 0; }
     .booking-client-access span {
       display: block;
       color: var(--booking-brand);
@@ -1009,12 +1072,11 @@ export default function AgendarClient({ studio, services, settings, professional
       display: block;
       font-size: 14px;
       font-weight: 700;
-      color: #111;
+      color: #1a0a12;
     }
     .booking-client-access-arrow {
       flex: 0 0 auto;
-      width: 30px;
-      height: 30px;
+      width: 30px; height: 30px;
       border-radius: 50%;
       background: var(--booking-brand);
       color: #fff !important;
@@ -1391,12 +1453,15 @@ export default function AgendarClient({ studio, services, settings, professional
     <main className="booking-shell">
       <style>{css}</style>
       <header className="booking-header">
-        <div className="booking-logo" style={{ borderRadius: '50%', overflow: 'hidden', width: 40, height: 40, flexShrink: 0, background: 'var(--booking-brand)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>
-          {studio.name.slice(0, 2).toUpperCase()}
+        <div className="booking-logo" style={{ borderRadius: '50%', overflow: 'hidden', width: 40, height: 40, flexShrink: 0, border: '2px solid var(--booking-brand)', background: '#fce4ef', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: 'var(--booking-brand)' }}>
+          {studio.avatar_url
+            ? <img src={studio.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} alt="" />
+            : studio.name.slice(0, 2).toUpperCase()
+          }
         </div>
         <div className="booking-brand-copy">
           <strong>{professional ? professional.name : studio.name}</strong>
-          <span>● agendamento online</span>
+          <span style={{ color: '#22c55e', fontWeight: 600 }}>● Online agora</span>
         </div>
         <div className="booking-header-actions">
           {step !== 'service' && step !== 'done' && (
@@ -1416,8 +1481,8 @@ export default function AgendarClient({ studio, services, settings, professional
               {studio.instagram}
             </a>
           )}
-          <a className="booking-header-action" href={`/cliente/agendar/consultar?slug=${encodeURIComponent(studio.slug)}`} title="Meus agendamentos" style={{ borderRadius: 20, paddingLeft: 14, paddingRight: 14, fontWeight: 600, fontSize: 12, border: '1px solid #e5e5e5' }}>
-            Meus agendamentos
+          <a className="booking-header-action" href={`/cliente/agendar/consultar?slug=${encodeURIComponent(studio.slug)}`} title="Meus agendamentos" style={{ borderRadius: 20, paddingLeft: 14, paddingRight: 14, fontWeight: 600, fontSize: 12, border: '1px solid var(--booking-brand)', color: 'var(--booking-brand)', background: '#fff' }}>
+            📅 Meus agendamentos
           </a>
         </div>
       </header>
@@ -1425,71 +1490,66 @@ export default function AgendarClient({ studio, services, settings, professional
       <section className="booking-main-hero">
         {step === 'service' && (
           <>
-            {/* HERO — premium clean */}
+            {/* HERO — rosé premium */}
             <div className="booking-hero">
-              {/* Badge */}
-              <div className="booking-hero-badge-pill">
-                <div className="booking-hero-badge-dot" />
-                <span className="booking-hero-badge-text">Agendamento online</span>
-              </div>
-
-              {/* Avatar */}
-              <div className="booking-hero-avatar-wrap">
-                <div className="booking-hero-avatar">
-                  {(professional?.avatar_url || studio.avatar_url)
-                    ? <img
-                        src={professional?.avatar_url || studio.avatar_url || ''}
-                        alt={professional ? professional.name : studio.name}
-                      />
-                    : <span>{(professional ? professional.name : studio.name).slice(0, 2).toUpperCase()}</span>
-                  }
+              {/* Fundo gradiente rosé com avatar */}
+              <div className="booking-hero-bg">
+                <div className="booking-hero-avatar-wrap">
+                  <div className="booking-hero-avatar">
+                    {(professional?.avatar_url || studio.avatar_url)
+                      ? <img src={professional?.avatar_url || studio.avatar_url || ''} alt={professional ? professional.name : studio.name} />
+                      : <span>{(professional ? professional.name : studio.name).slice(0, 2).toUpperCase()}</span>
+                    }
+                  </div>
+                  <div className="booking-hero-avatar-online" />
                 </div>
-                <div className="booking-hero-avatar-online" />
+
+                {/* Nome com tipografia mista */}
+                <h1 className="booking-hero-name">
+                  {(() => {
+                    const name = professional ? professional.name : studio.name
+                    const parts = name.trim().split(' ')
+                    if (parts.length === 1) return name
+                    const first = parts[0]
+                    const rest = parts.slice(1).join(' ')
+                    return <>{first}<em> {rest}</em></>
+                  })()}
+                </h1>
+                <p className="booking-hero-role">Manicure especialista em gel ♡</p>
+
+                {/* Pills de status */}
+                <div className="booking-hero-pills">
+                  <span className="booking-hero-pill">
+                    <span className="booking-hero-pill-dot" />
+                    Online agora
+                  </span>
+                  <span className="booking-hero-pill">📅 Seg – Sáb</span>
+                  <span className="booking-hero-pill">📍 Sorriso – MT</span>
+                </div>
               </div>
 
-              <h1 className="booking-hero-name">{professional ? professional.name : studio.name}</h1>
-              <p className="booking-hero-role">{professional ? 'Manicure · Sorriso, MT' : 'Manicure · Sorriso, MT'}</p>
+              {/* Endereço clicável */}
+              {studio.address && (
+                <a className="booking-hero-info-addr" href={mapsUrl || '#'} target={mapsUrl ? '_blank' : undefined} rel="noreferrer">
+                  <span>📍</span>
+                  <span style={{ flex: 1 }}>{studio.address}</span>
+                </a>
+              )}
 
-              <div className="booking-hero-info">
-                {studio.address && mapsUrl
-                  ? <a href={mapsUrl} target="_blank" rel="noreferrer">📍 {studio.address}</a>
-                  : studio.address
-                    ? <span>📍 {studio.address}</span>
-                    : null
-                }
-                <span>🕐 Seg – Sáb</span>
-              </div>
-
+              {/* Botões */}
               <div className="booking-hero-actions">
-                <a className="booking-hero-cta" href="#servicos">Agendar agora</a>
-
-                {studio.instagram && (
-                  <a
-                    className="booking-hero-icon-btn"
-                    href={`https://instagram.com/${studio.instagram.replace('@','')}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Instagram"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-                    </svg>
-                  </a>
-                )}
-
+                <a className="booking-hero-cta" href="#servicos">
+                  📅 Agendar agora
+                </a>
                 {(studio.whatsapp || studio.phone) && (
                   <a
                     className="booking-hero-whatsapp"
                     href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '').replace(/^55/, '')}`}
                     target="_blank"
                     rel="noreferrer"
-                    aria-label="WhatsApp"
                   >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
-                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                    WhatsApp
                   </a>
                 )}
               </div>
@@ -1506,7 +1566,7 @@ export default function AgendarClient({ studio, services, settings, professional
 
             {/* SERVIÇOS */}
             <div className="booking-section" id="servicos">
-              <div className="booking-section-title">Escolha seu atendimento</div>
+              <div className="booking-section-title">💅 Escolha seu atendimento</div>
               {services.length === 0 ? (
                 <div className="booking-state">Nenhum serviço disponível no momento.</div>
               ) : (
