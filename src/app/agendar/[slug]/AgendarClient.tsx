@@ -1088,17 +1088,20 @@ export default function AgendarClient({ studio, services, settings, professional
 
     /* ─── SEÇÃO GENÉRICA ─── */
     .booking-section {
-      padding: 22px 20px;
-      border-top: 1px solid rgba(0,0,0,.06);
+      padding: 24px 20px;
+      border-top: 1px solid #f5edf0;
       background: #ffffff;
     }
     .booking-section-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: #555;
-      margin: 0 0 14px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--booking-brand);
+      margin: 0 0 16px;
       text-transform: uppercase;
-      letter-spacing: .08em;
+      letter-spacing: .14em;
+      display: flex;
+      align-items: center;
+      gap: 7px;
     }
 
     /* ─── GALERIA ─── */
@@ -1124,121 +1127,164 @@ export default function AgendarClient({ studio, services, settings, professional
       border-radius: 10px;
     }
 
-    /* ─── SERVIÇO CARD GRANDE ─── */
+    /* ─── SERVIÇO CARD PREMIUM ─── */
     .booking-svc-card {
-      border: 1px solid rgba(0,0,0,.07);
-      border-radius: 10px;
-      padding: 18px;
+      border: 1px solid #f0e8ed;
+      border-radius: 16px;
+      padding: 0;
       background: #ffffff;
       cursor: pointer;
       text-align: left;
-      transition: border-color .15s, background .15s, transform .15s, box-shadow .15s;
+      transition: border-color .2s, transform .15s, box-shadow .2s;
       width: 100%;
       display: block;
-      margin-bottom: 12px;
-      box-shadow: 0 10px 30px rgba(20,20,20,.04);
+      margin-bottom: 10px;
+      box-shadow: 0 2px 12px rgba(194,24,91,.04);
+      overflow: hidden;
     }
-    .booking-svc-card:hover { border-color: rgba(var(--booking-rgb), .35); background: #ffffff; transform: translateY(-1px); box-shadow: 0 16px 38px rgba(20,20,20,.08); }
+    .booking-svc-card:hover {
+      border-color: rgba(var(--booking-rgb), .4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(194,24,91,.10);
+    }
+    .booking-svc-card:active { transform: scale(.99); }
     .booking-svc-card.is-featured {
-      border-width: 2px;
+      border-width: 1.5px;
       border-color: var(--booking-brand);
-      box-shadow: 0 18px 44px rgba(var(--booking-rgb), .14);
+      box-shadow: 0 6px 24px rgba(var(--booking-rgb), .12);
+    }
+    .booking-svc-card-inner {
+      padding: 16px 18px;
     }
     .booking-svc-badge {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 3px 9px;
-      background: rgba(var(--booking-rgb), .12);
+      gap: 5px;
+      padding: 3px 10px;
+      background: rgba(var(--booking-rgb), .10);
       color: var(--booking-brand);
       border-radius: 999px;
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 10.5px;
+      font-weight: 700;
       margin-bottom: 10px;
+      letter-spacing: .02em;
     }
     .booking-svc-name {
-      font-size: 16px;
-      font-weight: 650;
-      color: #1a1a1a;
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a0a12;
       margin: 0;
+      letter-spacing: -.01em;
+      line-height: 1.3;
     }
     .booking-svc-meta {
-      font-size: 12.5px;
-      color: #888;
+      font-size: 12px;
+      color: #b08a9a;
       margin: 3px 0 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .booking-svc-meta::before {
+      content: '⏱';
+      font-size: 11px;
     }
     .booking-svc-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #faf0f4;
     }
     .booking-svc-price {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 800;
       color: var(--booking-brand);
+      letter-spacing: -.02em;
+    }
+    .booking-svc-price-label {
+      font-size: 11px;
+      color: #c0a0b0;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 1px;
     }
     .booking-svc-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 10px 20px;
-      border-radius: 999px;
+      padding: 10px 22px;
+      border-radius: 12px;
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       border: none;
       background: var(--booking-brand) !important;
       color: #ffffff !important;
-      transition: opacity .15s;
+      transition: opacity .15s, transform .1s;
       flex-shrink: 0;
+      letter-spacing: .01em;
     }
     .booking-svc-btn:hover { opacity: .9; }
-    .booking-svc-card.is-featured .booking-svc-btn:hover { opacity: .92; background: var(--booking-brand); }
+    .booking-svc-btn:active { transform: scale(.97); }
 
     /* ─── HORÁRIO ─── */
     .booking-hours {
-      font-size: 13.5px;
-      color: #555;
+      font-size: 13px;
+      color: #666;
+      display: grid;
+      gap: 2px;
     }
     .booking-hours-row {
       display: flex;
       justify-content: space-between;
-      padding: 6px 0;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #fafafa;
+      border: 0.5px solid #f0e8ed;
     }
+    .booking-hours-row span { font-weight: 500; color: #888; font-size: 12.5px; }
     .booking-hours-row strong {
-      color: #1a1a1a;
-      font-weight: 600;
+      color: #1a0a12;
+      font-weight: 700;
+      font-size: 12.5px;
     }
+    .booking-hours-row.closed { opacity: .5; }
     .booking-hours-row.closed strong { color: #999; font-weight: 500; }
 
     /* ─── COMO FUNCIONA ─── */
     .booking-howto {
-      background: #fafafa;
+      background: #fff9fb;
     }
     .booking-howto-step {
       display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      margin-bottom: 12px;
+      gap: 14px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #fff;
+      border: 0.5px solid #f0e8ed;
+      margin-bottom: 8px;
     }
     .booking-howto-step:last-child { margin-bottom: 0; }
     .booking-howto-num {
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       background: var(--booking-brand);
       color: #fff;
       display: grid;
       place-items: center;
-      font-size: 12.5px;
-      font-weight: 600;
+      font-size: 12px;
+      font-weight: 800;
       flex-shrink: 0;
     }
     .booking-howto-text {
       font-size: 13.5px;
-      color: #555;
-      padding-top: 2px;
+      font-weight: 600;
+      color: #2d0a1a;
     }
 
     /* ─── RESUMO STICKY DURANTE FLUXO ─── */
@@ -1349,10 +1395,10 @@ export default function AgendarClient({ studio, services, settings, professional
 
     /* ─── RODAPÉ ─── */
     .booking-footer {
-      border-top: 1px solid #eeeeee;
-      background: #fafafa;
-      padding: 28px 20px 32px;
-      margin-top: 8px;
+      border-top: 1px solid #f0e8ed;
+      background: #fdf5f8;
+      padding: 28px 20px 40px;
+      margin-top: 4px;
     }
     .booking-footer-content {
       max-width: 720px;
@@ -1360,26 +1406,34 @@ export default function AgendarClient({ studio, services, settings, professional
       text-align: center;
     }
     .booking-footer-brand {
-      font-size: 15px;
-      font-weight: 600;
-      color: #1a1a1a;
-      margin-bottom: 10px;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--booking-brand);
+      margin-bottom: 12px;
+      letter-spacing: -.02em;
+      font-family: Georgia, serif;
+      font-style: italic;
     }
     .booking-footer-line {
-      font-size: 13px;
-      color: #666;
-      margin: 4px 0;
+      font-size: 12.5px;
+      color: #8b6070;
+      margin: 6px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
     .booking-footer-line a {
       color: var(--booking-brand);
       text-decoration: none;
+      font-weight: 500;
     }
     .booking-footer-policy {
-      font-size: 11.5px;
-      color: #999;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid #eeeeee;
+      font-size: 11px;
+      color: #c0a0b0;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #f0e0e8;
     }
 
     /* ─── BOTÃO FLUTUANTE WHATSAPP ─── */
@@ -1621,23 +1675,23 @@ export default function AgendarClient({ studio, services, settings, professional
                         setStep('date')
                       })()}
                     >
-                      {featured && <div className="booking-svc-badge">⭐ Mais escolhido</div>}
-                      {service.name.toLowerCase().includes('pacote') && (
-                        <div className="booking-svc-badge" style={{ background: 'rgba(194,24,91,.12)', color: '#C2185B', marginBottom: 8 }}>
-                          💅 Pacote mensal
+                      <div className="booking-svc-card-inner">
+                        {featured && <div className="booking-svc-badge">⭐ Mais escolhido</div>}
+                        {!featured && service.name.toLowerCase().includes('pacote') && (
+                          <div className="booking-svc-badge">💅 Pacote mensal</div>
+                        )}
+                        <div className="booking-svc-name">{service.name}</div>
+                        <div className="booking-svc-meta">
+                          {service.duration_minutes >= 60
+                            ? `${Math.floor(service.duration_minutes / 60)}h${service.duration_minutes % 60 > 0 ? ` ${service.duration_minutes % 60}min` : ''}`
+                            : `${service.duration_minutes} min`}
                         </div>
-                      )}
-                      <div className="booking-svc-name">{service.name}</div>
-                      <div className="booking-svc-meta">
-                        {service.duration_minutes >= 60
-                          ? `${Math.floor(service.duration_minutes / 60)}h${service.duration_minutes % 60 > 0 ? ` ${service.duration_minutes % 60}min` : ''}`
-                          : `${service.duration_minutes} min`}
-                        {service.category && ` · ${service.category}`}
-                      </div>
-                      <div className="booking-svc-footer">
-                        <div className="booking-svc-price">{money(service.price)}</div>
-                        <div className="booking-svc-btn" style={{ background: 'var(--booking-brand)', color: '#fff', borderRadius: '999px', padding: '9px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
-                          Escolher
+                        <div className="booking-svc-footer">
+                          <div>
+                            <span className="booking-svc-price-label">a partir de</span>
+                            <div className="booking-svc-price">{money(service.price)}</div>
+                          </div>
+                          <div className="booking-svc-btn">Escolher</div>
                         </div>
                       </div>
                     </div>
