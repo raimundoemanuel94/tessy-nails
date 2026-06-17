@@ -1175,8 +1175,8 @@ export default function AgendarClient({ studio, services, settings, professional
     }
     .booking-svc-price {
       font-size: 18px;
-      font-weight: 700;
-      color: #1a1a1a;
+      font-weight: 800;
+      color: var(--booking-brand);
     }
     .booking-svc-btn {
       display: inline-flex;
@@ -1621,10 +1621,17 @@ export default function AgendarClient({ studio, services, settings, professional
                         setStep('date')
                       })()}
                     >
-                      {featured && <div className="booking-svc-badge">Mais escolhido</div>}
+                      {featured && <div className="booking-svc-badge">⭐ Mais escolhido</div>}
+                      {service.name.toLowerCase().includes('pacote') && (
+                        <div className="booking-svc-badge" style={{ background: 'rgba(194,24,91,.12)', color: '#C2185B', marginBottom: 8 }}>
+                          💅 Pacote mensal
+                        </div>
+                      )}
                       <div className="booking-svc-name">{service.name}</div>
                       <div className="booking-svc-meta">
-                        Atendimento de {service.duration_minutes} min
+                        {service.duration_minutes >= 60
+                          ? `${Math.floor(service.duration_minutes / 60)}h${service.duration_minutes % 60 > 0 ? ` ${service.duration_minutes % 60}min` : ''}`
+                          : `${service.duration_minutes} min`}
                         {service.category && ` · ${service.category}`}
                       </div>
                       <div className="booking-svc-footer">
