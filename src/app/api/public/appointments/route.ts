@@ -80,7 +80,7 @@ export async function POST(req: Request) {
 
   const { data: studio, error: studioError } = await studioQuery.single();
   if (studioError || !studio || !studio.is_active) return bad("Studio indisponível", 404);
-  const studioPhone = (studio as any).whatsapp || (studio as any).phone || null;
+  const studioPhone = (studio as { whatsapp?: string | null; phone?: string | null }).whatsapp || (studio as { whatsapp?: string | null; phone?: string | null }).phone || null;
 
   const { data: service, error: serviceError } = await supabase
     .from("services")

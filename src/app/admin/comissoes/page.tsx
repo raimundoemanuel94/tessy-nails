@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { BadgeDollarSign, CalendarCheck, Scissors, UserRound } from "lucide-react";
 import {
   AdminActionButton,

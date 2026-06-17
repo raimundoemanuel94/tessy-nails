@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { redirect } from "next/navigation";
 import { ArrowRight, CreditCard, DollarSign, Layers, ShieldAlert, TrendingDown, TrendingUp, Users } from "lucide-react";
 import {
