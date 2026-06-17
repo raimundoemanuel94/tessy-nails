@@ -1567,7 +1567,7 @@ export default function AgendarClient({ studio, services, settings, professional
                     return <>{first}<em> {rest}</em></>
                   })()}
                 </h1>
-                <p className="booking-hero-role">Unhas que transformam o seu dia ✨</p>
+                <p className="booking-hero-role">Manicure e pedicure</p>
 
                 {/* Pills de status */}
                 <div className="booking-hero-pills">
