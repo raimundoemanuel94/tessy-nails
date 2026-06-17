@@ -285,7 +285,7 @@ export default function AgendarClient({ studio, services, settings, professional
       --booking-rgb: ${rgb};
       min-height: 100vh;
       color: #1a1a1a;
-      background: #fdf4f7;
+      background: #fafafa;
       font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
       padding-bottom: 60px;
     }
@@ -796,7 +796,7 @@ export default function AgendarClient({ studio, services, settings, professional
 
     /* Fundo gradiente rosé atrás do avatar */
     .booking-hero-bg {
-      background: linear-gradient(180deg, #fce4ef 0%, #fdf4f7 100%);
+      background: linear-gradient(180deg, #fdf0f4 0%, #fefbfc 100%);
       padding: 36px 24px 48px;
       position: relative;
       overflow: hidden;
@@ -912,7 +912,7 @@ export default function AgendarClient({ studio, services, settings, professional
       padding: 0 11px;
       border-radius: 999px;
       background: #fff;
-      border: 1px solid #f0d0dc;
+      border: 1px solid #eedce4;
       color: #8b5a6e;
       font-size: 11px;
       font-weight: 500;
@@ -1024,7 +1024,7 @@ export default function AgendarClient({ studio, services, settings, professional
       width: 50px; height: 50px;
       border-radius: 14px;
       background: #fff;
-      border: 1px solid #f0d0dc;
+      border: 1px solid #eedce4;
       display: flex;
       align-items: center;
       justify-content: center;
