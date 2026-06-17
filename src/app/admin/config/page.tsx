@@ -1,5 +1,4 @@
 /* eslint-disable */
-// @ts-nocheck
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ConfigClient } from "./ConfigClient";

@@ -1,5 +1,4 @@
 /* eslint-disable */
-// @ts-nocheck
 import Link from "next/link";
 import { CalendarDays, CheckCircle2, Clock, XCircle } from "lucide-react";
 import {

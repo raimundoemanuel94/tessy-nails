@@ -142,7 +142,6 @@ export default function ClientesPage() {
   }, [appointments, clients])
 
   const filtered = useMemo(() => {
-    setVisibleCount(PAGE_SIZE)
     const term = query.trim().toLowerCase()
     return clients.filter((client) => {
       const stats = statsByClient.get(client.id)

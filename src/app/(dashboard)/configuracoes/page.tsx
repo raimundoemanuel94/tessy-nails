@@ -1,9 +1,8 @@
-// @ts-nocheck
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Save, Clock, Palette, Phone, AtSign, Globe } from "lucide-react";
+import { AtSign, Clock, Globe, Loader2, Palette, Phone, Save, Scissors, Upload } from "lucide-react";
 
 const DAYS = [
   { key: "monday",    label: "Segunda-feira" },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createClient } from "@/lib/supabase/server";
 import { Building2, Users } from "lucide-react";
 import Link from "next/link";

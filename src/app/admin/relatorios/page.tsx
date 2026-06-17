@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createClient } from "@/lib/supabase/server";
 import { TrendingUp, Building2, Users, CalendarDays, CheckCircle, Clock, XCircle } from "lucide-react";
 

@@ -80,7 +80,6 @@ export default function AgendaPage() {
   const [copied, setCopied] = useState(false)
   const [bannerOpen, setBannerOpen] = useState(false)
   const [weekSelection, setWeekSelection] = useState<Record<string, string[]>>({})
-  const [bannerWeekStart, setBannerWeekStart] = useState('')
   const [salonSettings, setSalonSettings] = useState<{ slot_duration: number; working_hours: Record<string, { is_open: boolean; open: string; close: string }> } | null>(null)
 
   useEffect(() => {
@@ -560,8 +559,6 @@ export default function AgendaPage() {
 
             const monthNameOuter = monday.toLocaleDateString('pt-BR', { month: 'long' })
             const rangeLabel = () => `${weekDays[0].dayNum} a ${weekDays[weekDays.length-1].dayNum} de ${monthNameOuter}`
-
-            const shareText = slugLink
 
             const handleShare = async () => {
               if (totalSelected === 0) return

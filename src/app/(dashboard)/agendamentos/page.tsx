@@ -1,7 +1,7 @@
 'use client'
 
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
-import { CalendarDays, Check, CheckCircle2, Clock, MessageSquare, Plus, Search, Sparkles, XCircle } from 'lucide-react'
+import { CalendarDays, Check, CheckCircle2, Clock, Search, Sparkles, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Appointment } from '@/types/database'
 
@@ -193,7 +193,6 @@ export default function AgendamentosPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('todos')
   const [q, setQ] = useState('')
-  const [studioPhone, setStudioPhone] = useState('')
   const [studioId, setStudioId] = useState('')
   const [services, setServices] = useState<{ id: string; name: string; price: number; duration_minutes: number }[]>([])
   const [clients, setClients] = useState<{ id: string; name: string; phone: string | null }[]>([])
@@ -209,7 +208,6 @@ export default function AgendamentosPage() {
       const { data: profile } = await sb.from('profiles').select('studio_id').eq('id', user.id).single()
       if (!profile?.studio_id) { setLoading(false); return }
       const { data: studioData } = await sb.from('studios').select('whatsapp, phone').eq('id', profile.studio_id).single()
-      if (studioData) setStudioPhone(studioData.whatsapp || studioData.phone || '')
       setStudioId(profile.studio_id)
       const [{ data }, { data: svcData }, { data: cliData }] = await Promise.all([
         sb.from('appointments').select('*').eq('studio_id', profile.studio_id).order('appointment_date', { ascending: true }),

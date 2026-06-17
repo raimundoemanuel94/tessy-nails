@@ -1,5 +1,4 @@
 /* eslint-disable */
-// @ts-nocheck
 import { Bell, Cake, MessageCircle, RotateCcw, Send, Sparkles } from "lucide-react";
 import {
   AdminActionButton,

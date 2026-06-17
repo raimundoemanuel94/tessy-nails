@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 import { DollarSign, TrendingUp, BarChart3 } from "lucide-react";
 

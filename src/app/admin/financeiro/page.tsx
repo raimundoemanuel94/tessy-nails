@@ -1,5 +1,4 @@
 /* eslint-disable */
-// @ts-nocheck
 import { redirect } from "next/navigation";
 import { ArrowRight, CreditCard, DollarSign, Layers, ShieldAlert, TrendingDown, TrendingUp, Users } from "lucide-react";
 import {

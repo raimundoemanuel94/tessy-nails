@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createAdminClient } from '@/lib/supabase/admin'
 import AgendarClient from '../AgendarClient'
 import { notFound } from 'next/navigation'

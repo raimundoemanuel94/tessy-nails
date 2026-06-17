@@ -1,4 +1,3 @@
-// @ts-nocheck
 import Link from "next/link";
 
 export function AdminPlaceholder({ title, description, icon = "🚧", backHref = "/admin", backLabel = "Voltar à Visão Geral" }: {

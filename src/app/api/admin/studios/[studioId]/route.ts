@@ -1,5 +1,4 @@
 /* eslint-disable */
-// @ts-nocheck
 import { NextResponse } from "next/server";
 import { mapServiceRow, mapSettingsRow, mapStudioRow, requireSuperadmin } from "../../_shared";
 

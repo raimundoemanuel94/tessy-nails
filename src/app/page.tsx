@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getPostAuthRedirectPath } from "@/lib/auth/post-auth-redirect";
