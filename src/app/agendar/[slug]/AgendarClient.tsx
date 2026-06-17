@@ -53,7 +53,7 @@ type CreatedAppointment = {
   studio_id?: string
 }
 
-const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']
 const weekdayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 
 const money = (value: number) => `R$ ${Number(value || 0).toFixed(2).replace('.', ',')}`
@@ -98,21 +98,47 @@ function dateLabel(value: string) {
   today.setHours(0, 0, 0, 0)
   const diffDays = Math.round((date.getTime() - today.getTime()) / 86400000)
   if (diffDays === 0) return 'Hoje'
-  if (diffDays === 1) return 'Amanhã'
+  if (diffDays === 1) return 'Amanha'
   return weekdays[date.getDay()]
 }
 
 function groupSlotsByPeriod(values: string[]) {
   return [
-    { label: 'Manhã', slots: values.filter((time) => Number(time.slice(0, 2)) < 12) },
+    { label: 'Manha', slots: values.filter((time) => Number(time.slice(0, 2)) < 12) },
     { label: 'Tarde', slots: values.filter((time) => Number(time.slice(0, 2)) >= 12 && Number(time.slice(0, 2)) < 18) },
     { label: 'Noite', slots: values.filter((time) => Number(time.slice(0, 2)) >= 18) },
   ].filter((group) => group.slots.length > 0)
 }
 
-function isFeaturedService(service: Service, index: number) {
+function isFeaturedService(service: Service, _index: number) {
   const name = service.name.toLowerCase()
-  return name.includes('manicure em gel') || (index === 0 && name.includes('manicure'))
+  return name.includes('manicure em gel') || name.includes('manicure + pedicure')
+}
+
+function serviceBadge(service: Service, featured: boolean) {
+  const name = service.name.toLowerCase()
+  if (name.includes('pacote')) return 'Pacote mensal'
+  if (name.includes('manicure + pedicure') || name.includes('+ pé') || name.includes('+ pe')) return 'Combo'
+  if (featured) return 'Mais escolhido'
+  if (name.includes('pedicure')) return 'Pedicure'
+  if (name.includes('spa')) return 'Cuidado especial'
+  if (name.includes('cuticulagem') || name.includes('cutilagem') || name.includes('nail art')) return 'Adicional'
+  return ''
+}
+
+function serviceRank(service: Service) {
+  const name = service.name.toLowerCase()
+  if (name.includes('manicure em gel')) return 1
+  if (name.includes('manicure simples')) return 2
+  if (name.includes('manicure + pedicure')) return 3
+  if (name.includes('pacote')) return 4
+  if (name.includes('pedicure')) return 5
+  if (name.includes('esmaltação') || name.includes('esmaltacao')) return 6
+  if (name.includes('spa')) return 7
+  if (name.includes('cuticulagem') || name.includes('cutilagem') || name.includes('nail art')) return 8
+  if (name.includes('postiça') || name.includes('postica')) return 9
+  if (name.includes('alongamento')) return 10
+  return 9
 }
 
 function StepBar({ step }: { step: string }) {
@@ -193,10 +219,10 @@ export default function AgendarClient({ studio, services, settings, professional
       const response = await fetch(`/api/public/slots?${params.toString()}`)
       const data = await response.json().catch(() => null)
 
-      if (!response.ok) throw new Error(data?.error || 'Erro ao carregar horários.')
+      if (!response.ok) throw new Error(data?.error || 'Erro ao carregar horarios.')
       setSlots(Array.isArray(data?.slots) ? data.slots : [])
     } catch (error) {
-      setSlotError(error instanceof Error ? error.message : 'Erro ao carregar horários.')
+      setSlotError(error instanceof Error ? error.message : 'Erro ao carregar horarios.')
       setSlots([])
     } finally {
       setLoadingSlots(false)
@@ -226,10 +252,10 @@ export default function AgendarClient({ studio, services, settings, professional
       })
       const data = await response.json().catch(() => null)
 
-      if (!response.ok) throw new Error(data?.error || 'Não foi possível confirmar o agendamento.')
+      if (!response.ok) throw new Error(data?.error || 'Nao foi possivel confirmar o agendamento.')
 
       const appointment = data?.appointment as CreatedAppointment | undefined
-      if (!appointment?.id) throw new Error('A confirmação não retornou os dados do agendamento.')
+      if (!appointment?.id) throw new Error('A confirmacao nao retornou os dados do agendamento.')
 
       setCreatedAppointment(appointment)
       setStep('done')
@@ -241,15 +267,15 @@ export default function AgendarClient({ studio, services, settings, professional
         const aptDate = new Date(`${selectedDate}T${selectedTime}:00`)
         const hoje = new Date(); hoje.setHours(0,0,0,0)
         const diffDays = Math.round((new Date(aptDate.getFullYear(), aptDate.getMonth(), aptDate.getDate()).getTime() - hoje.getTime()) / 86400000)
-        const quando = diffDays === 0 ? 'hoje' : diffDays === 1 ? 'amanhã' : aptDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+        const quando = diffDays === 0 ? 'hoje' : diffDays === 1 ? 'amanha' : aptDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
         const hora = aptDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
         const clienteNome = name.trim().split(' ')[0]
-        const msg = `💅 *Nova reserva!*\n\n👤 *${name.trim()}*\n✂️ ${selectedService?.name}\n📅 ${quando} às ${hora}\n📱 ${phone.trim()}\n\nResponda *CONFIRMAR* ou *RECUSAR*`
+        const msg = `*Nova reserva!*\n\nCliente: *${name.trim()}*\nServico: ${selectedService?.name}\nQuando: ${quando} as ${hora}\nWhatsApp: ${phone.trim()}\n\nResponda *CONFIRMAR* ou *RECUSAR*`
         const number = tessyPhone.replace(/\D/g, '')
         window.open('https://wa.me/55' + number + '?text=' + encodeURIComponent(msg), '_blank')
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Não foi possível confirmar o agendamento.'
+      const message = error instanceof Error ? error.message : 'Nao foi possivel confirmar o agendamento.'
       setBookingError(message)
       toast.error(message)
     } finally {
@@ -260,7 +286,7 @@ export default function AgendarClient({ studio, services, settings, professional
   function whatsappLink() {
     const number = (studio.whatsapp || studio.phone || '').replace(/\D/g, '')
     const message = encodeURIComponent(
-      `Olá! Agendei ${selectedService?.name} para ${selectedDate.split('-').reverse().join('/')} às ${selectedTime}. Meu nome é ${name}.`,
+      `Ola! Agendei ${selectedService?.name} para ${selectedDate.split('-').reverse().join('/')} as ${selectedTime}. Meu nome e ${name}.`,
     )
     return `https://wa.me/55${number}?text=${message}`
   }
@@ -279,10 +305,31 @@ export default function AgendarClient({ studio, services, settings, professional
     setCreatedAppointment(null)
   }
 
+  const sortedServices = [...services].sort((a, b) => serviceRank(a) - serviceRank(b) || a.name.localeCompare(b.name))
+  const packageServices = sortedServices.filter((service) => service.name.toLowerCase().includes('pacote'))
+  const mainServices = sortedServices.filter((service) => {
+    const name = service.name.toLowerCase()
+    return !name.includes('pacote') && (
+      name.includes('manicure em gel') ||
+      name.includes('manicure simples') ||
+      name.includes('manicure + pedicure') ||
+      name.includes('pedicure')
+    )
+  })
+  const otherServices = sortedServices.filter((service) => !packageServices.includes(service) && !mainServices.includes(service))
+  const serviceGroups = [
+    { title: 'Atendimentos principais', note: '', items: mainServices },
+    { title: 'Pacotes', note: 'Opcoes pensadas para quem faz manutencao com frequencia.', items: packageServices },
+    { title: 'Outros cuidados', note: '', items: otherServices },
+  ].filter((group) => group.items.length > 0)
+
   const css = `
     .booking-shell {
       --booking-brand: ${brand};
       --booking-rgb: ${rgb};
+      --booking-action: #b94f78;
+      --booking-action-dark: #9f3f64;
+      --booking-action-soft: #fbedf3;
       min-height: 100vh;
       color: #1a1a1a;
       background: #fafafa;
@@ -705,13 +752,14 @@ export default function AgendarClient({ studio, services, settings, professional
       border: 0;
       border-radius: 12px;
       color: #fff;
-      background: var(--booking-brand);
+      background: linear-gradient(135deg, var(--booking-action), var(--booking-action-dark));
+      box-shadow: 0 10px 24px rgba(185,79,120,.18);
       cursor: pointer;
       font-size: 14.5px;
       font-weight: 600;
       transition: opacity .15s;
     }
-    .booking-primary:hover { opacity: .92; }
+    .booking-primary:hover { filter: brightness(.98); }
     .booking-primary:disabled { cursor: default; opacity: .45; }
     .booking-error {
       border-radius: 10px;
@@ -780,7 +828,7 @@ export default function AgendarClient({ studio, services, settings, professional
       font-size: 14px;
       font-weight: 600;
     }
-    /* ─── HERO ROSÉ PREMIUM ─── */
+    /* â”€â”€â”€ HERO ROSÃ‰ PREMIUM â”€â”€â”€ */
     .booking-hero {
       text-align: center;
       padding: 0 0 24px;
@@ -794,7 +842,7 @@ export default function AgendarClient({ studio, services, settings, professional
     .booking-hero-badge-text { display: none; }
     .booking-hero-badge { display: none; }
 
-    /* Fundo gradiente rosé atrás do avatar */
+    /* Fundo gradiente rosÃ© atrÃ¡s do avatar */
     .booking-hero-bg {
       background: linear-gradient(180deg, #fdf0f4 0%, #fefbfc 100%);
       padding: 36px 24px 48px;
@@ -965,7 +1013,7 @@ export default function AgendarClient({ studio, services, settings, professional
     }
     .booking-hero-info-addr:hover { background: #fff9fb; }
     .booking-hero-info-addr::after {
-      content: '›';
+      content: '>';
       margin-left: auto;
       font-size: 16px;
       color: #ccc;
@@ -989,16 +1037,19 @@ export default function AgendarClient({ studio, services, settings, professional
       gap: 8px;
       height: 50px;
       border-radius: 14px;
-      background: var(--booking-brand) !important;
+      background: linear-gradient(135deg, var(--booking-action), var(--booking-action-dark)) !important;
       color: #fff !important;
       text-decoration: none;
       font-size: 15px;
       font-weight: 700;
       white-space: nowrap;
-      transition: opacity .15s, transform .1s;
-      box-shadow: 0 4px 16px rgba(var(--booking-rgb), .25);
+      transition: filter .15s, transform .1s, box-shadow .15s;
+      box-shadow: 0 10px 24px rgba(185,79,120,.20);
     }
-    .booking-hero-cta:hover { opacity: .92; }
+    .booking-hero-cta:hover {
+      filter: brightness(.98);
+      box-shadow: 0 8px 20px rgba(185,79,120,.18);
+    }
     .booking-hero-cta:active { transform: scale(.98); }
     .booking-hero-whatsapp {
       flex: 0 0 auto;
@@ -1086,7 +1137,7 @@ export default function AgendarClient({ studio, services, settings, professional
       font-weight: 700;
     }
 
-    /* ─── SEÇÃO GENÉRICA ─── */
+    /* â”€â”€â”€ SEÃ‡ÃƒO GENÃ‰RICA â”€â”€â”€ */
     .booking-section {
       padding: 24px 20px;
       border-top: 1px solid #f5edf0;
@@ -1104,7 +1155,7 @@ export default function AgendarClient({ studio, services, settings, professional
       gap: 7px;
     }
 
-    /* ─── GALERIA ─── */
+    /* â”€â”€â”€ GALERIA â”€â”€â”€ */
     .booking-gallery {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -1127,7 +1178,7 @@ export default function AgendarClient({ studio, services, settings, professional
       border-radius: 10px;
     }
 
-    /* ─── SERVIÇO CARD PREMIUM ─── */
+    /* â”€â”€â”€ SERVIÃ‡O CARD PREMIUM â”€â”€â”€ */
     .booking-svc-card {
       border: 1px solid #f0e8ed;
       border-radius: 16px;
@@ -1152,6 +1203,36 @@ export default function AgendarClient({ studio, services, settings, professional
       border-width: 1.5px;
       border-color: var(--booking-brand);
       box-shadow: 0 6px 24px rgba(var(--booking-rgb), .12);
+    }
+    .booking-svc-card.is-package {
+      border-color: #f2d6e3;
+      background: linear-gradient(180deg, #fff 0%, #fff7fb 100%);
+    }
+    .booking-service-group + .booking-service-group {
+      margin-top: 18px;
+    }
+    .booking-service-group-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 4px 0 10px;
+      color: #9f3f64;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    .booking-service-group-title::after {
+      content: '';
+      height: 1px;
+      flex: 1;
+      background: #f3e0e8;
+    }
+    .booking-service-group-note {
+      margin: -4px 0 12px;
+      color: #9a7b88;
+      font-size: 12px;
+      line-height: 1.45;
     }
     .booking-svc-card-inner {
       padding: 16px 18px;
@@ -1217,16 +1298,21 @@ export default function AgendarClient({ studio, services, settings, professional
       font-weight: 700;
       cursor: pointer;
       border: none;
-      background: var(--booking-brand) !important;
-      color: #ffffff !important;
-      transition: opacity .15s, transform .1s;
+      background: var(--booking-action-soft) !important;
+      border: 1px solid rgba(185,79,120,.22);
+      color: var(--booking-action-dark) !important;
+      transition: background .15s, transform .1s, border-color .15s;
       flex-shrink: 0;
       letter-spacing: .01em;
     }
-    .booking-svc-btn:hover { opacity: .9; }
+    .booking-svc-card:hover .booking-svc-btn {
+      background: linear-gradient(135deg, var(--booking-action), var(--booking-action-dark)) !important;
+      border-color: transparent;
+      color: #ffffff !important;
+    }
     .booking-svc-btn:active { transform: scale(.97); }
 
-    /* ─── HORÁRIO ─── */
+    /* â”€â”€â”€ HORÃRIO â”€â”€â”€ */
     .booking-hours {
       font-size: 13px;
       color: #666;
@@ -1251,7 +1337,7 @@ export default function AgendarClient({ studio, services, settings, professional
     .booking-hours-row.closed { opacity: .5; }
     .booking-hours-row.closed strong { color: #999; font-weight: 500; }
 
-    /* ─── COMO FUNCIONA ─── */
+    /* â”€â”€â”€ COMO FUNCIONA â”€â”€â”€ */
     .booking-howto {
       background: #fff9fb;
     }
@@ -1284,7 +1370,7 @@ export default function AgendarClient({ studio, services, settings, professional
       color: #2d0a1a;
     }
 
-    /* ─── RESUMO STICKY DURANTE FLUXO ─── */
+    /* â”€â”€â”€ RESUMO STICKY DURANTE FLUXO â”€â”€â”€ */
     .booking-summary-sticky {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -1346,7 +1432,7 @@ export default function AgendarClient({ studio, services, settings, professional
       margin-top: -4px;
     }
 
-    /* ─── INDICADOR DE PASSO ─── */
+    /* â”€â”€â”€ INDICADOR DE PASSO â”€â”€â”€ */
     .booking-step-indicator {
       margin-bottom: 18px;
     }
@@ -1359,7 +1445,7 @@ export default function AgendarClient({ studio, services, settings, professional
       letter-spacing: .03em;
     }
 
-    /* ─── TELA DE CONFIRMAÇÃO ─── */
+    /* â”€â”€â”€ TELA DE CONFIRMAÃ‡ÃƒO â”€â”€â”€ */
     .booking-done-actions {
       display: flex;
       flex-direction: column;
@@ -1390,7 +1476,7 @@ export default function AgendarClient({ studio, services, settings, professional
       line-height: 1.5;
     }
 
-    /* ─── RODAPÉ ─── */
+    /* â”€â”€â”€ RODAPÃ‰ â”€â”€â”€ */
     .booking-footer {
       border-top: 1px solid #f0e8ed;
       background: #fdf5f8;
@@ -1433,7 +1519,7 @@ export default function AgendarClient({ studio, services, settings, professional
       border-top: 1px solid #f0e0e8;
     }
 
-    /* ─── BOTÃO FLUTUANTE WHATSAPP ─── */
+    /* â”€â”€â”€ BOTÃƒO FLUTUANTE WHATSAPP â”€â”€â”€ */
     .booking-fab {
       position: fixed;
       bottom: 20px;
@@ -1451,7 +1537,7 @@ export default function AgendarClient({ studio, services, settings, professional
       font-size: 24px;
     }
 
-    /* ─── LAYOUT: hero ocupa largura, conteúdo abaixo centralizado ─── */
+    /* â”€â”€â”€ LAYOUT: hero ocupa largura, conteÃºdo abaixo centralizado â”€â”€â”€ */
     .booking-main-hero {
       width: 100%;
       max-width: 720px;
@@ -1513,7 +1599,7 @@ export default function AgendarClient({ studio, services, settings, professional
         </div>
         <div className="booking-brand-copy">
           <strong>{professional ? professional.name : studio.name}</strong>
-          <span style={{ color: '#22c55e', fontWeight: 600 }}>● Online agora</span>
+          <span style={{ color: '#22c55e', fontWeight: 600 }}>Online agora</span>
         </div>
         <div className="booking-header-actions">
           {step !== 'service' && step !== 'done' && (
@@ -1525,7 +1611,7 @@ export default function AgendarClient({ studio, services, settings, professional
                 else if (step === 'info') setStep('time')
               }}
             >
-              ← Voltar
+              Voltar
             </button>
           )}
           {studio.instagram && (
@@ -1534,7 +1620,7 @@ export default function AgendarClient({ studio, services, settings, professional
             </a>
           )}
           <a className="booking-header-action" href={`/cliente/agendar/consultar?slug=${encodeURIComponent(studio.slug)}`} title="Meus agendamentos" style={{ borderRadius: 20, paddingLeft: 14, paddingRight: 14, fontWeight: 600, fontSize: 12, border: '1px solid var(--booking-brand)', color: 'var(--booking-brand)', background: '#fff' }}>
-            📅 Meus agendamentos
+            Meus agendamentos
           </a>
         </div>
       </header>
@@ -1542,9 +1628,9 @@ export default function AgendarClient({ studio, services, settings, professional
       <section className="booking-main-hero">
         {step === 'service' && (
           <>
-            {/* HERO — rosé premium */}
+            {/* HERO â€” rosÃ© premium */}
             <div className="booking-hero">
-              {/* Fundo gradiente rosé com avatar */}
+              {/* Fundo gradiente rosÃ© com avatar */}
               <div className="booking-hero-bg">
                 <div className="booking-hero-avatar-wrap">
                   <div className="booking-hero-avatar">
@@ -1575,27 +1661,27 @@ export default function AgendarClient({ studio, services, settings, professional
                     <span className="booking-hero-pill-dot" />
                     Online agora
                   </span>
-                  <span className="booking-hero-pill">📅 Seg – Sáb</span>
-                  <span className="booking-hero-pill">📍 Sorriso – MT</span>
+                  <span className="booking-hero-pill">Seg - Sab</span>
+                  <span className="booking-hero-pill">Sorriso - MT</span>
                 </div>
               </div>
 
-              {/* Endereço clicável */}
+              {/* EndereÃ§o clicÃ¡vel */}
               {studio.address && (
                 <a className="booking-hero-info-addr" href={mapsUrl || '#'} target={mapsUrl ? '_blank' : undefined} rel="noreferrer">
-                  <span>📍</span>
+                  <span>Local</span>
                   <span style={{ flex: 1 }}>{studio.address}</span>
                 </a>
               )}
 
-              {/* Botões */}
+              {/* BotÃµes */}
               <div className="booking-hero-actions">
-                {/* Botão Agendar — principal */}
+                {/* BotÃ£o Agendar â€” principal */}
                 <a className="booking-hero-cta" href="#servicos">
-                  📅 Agendar agora
+                  Agendar agora
                 </a>
 
-                {/* Instagram — ícone */}
+                {/* Instagram â€” Ã­cone */}
                 {studio.instagram && (
                   <a
                     className="booking-hero-icon-btn"
@@ -1613,7 +1699,7 @@ export default function AgendarClient({ studio, services, settings, professional
                   </a>
                 )}
 
-                {/* WhatsApp — ícone */}
+                {/* WhatsApp â€” Ã­cone */}
                 {(studio.whatsapp || studio.phone) && (
                   <a
                     className="booking-hero-icon-btn"
@@ -1632,80 +1718,94 @@ export default function AgendarClient({ studio, services, settings, professional
             </div>
 
             <a className="booking-client-access" href={`/cliente/agendar/consultar?slug=${encodeURIComponent(studio.slug)}`}>
-              <div className="booking-client-access-icon">💅</div>
+              <div className="booking-client-access-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="17" rx="3" />
+                  <path d="M8 2v4M16 2v4M3 10h18" />
+                </svg>
+              </div>
               <div className="booking-client-access-body">
-                <span>Já tem agendamento?</span>
+                <span>Ja tem agendamento?</span>
                 <strong>Ver meus agendamentos</strong>
               </div>
-              <div className="booking-client-access-arrow" style={{ background: 'var(--booking-brand)', color: '#fff' }}>→</div>
+              <div className="booking-client-access-arrow" style={{ background: 'var(--booking-brand)', color: '#fff' }} aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M13 5l7 7-7 7" />
+                </svg>
+              </div>
             </a>
 
-            {/* SERVIÇOS */}
+            {/* SERVIÃ‡OS */}
             <div className="booking-section" id="servicos">
-              <div className="booking-section-title">💅 Escolha seu atendimento</div>
+              <div className="booking-section-title">Escolha seu atendimento</div>
               {services.length === 0 ? (
-                <div className="booking-state">Nenhum serviço disponível no momento.</div>
+                <div className="booking-state">Nenhum servico disponivel no momento.</div>
               ) : (
-                services.map((service, idx) => {
-                  const featured = isFeaturedService(service, idx)
-                  return (
-                    <div
-                      key={service.id}
-                      className={`booking-svc-card ${featured ? 'is-featured' : ''}`}
-                      onClick={() => {
-                        setSelectedService(service)
-                        setSelectedDate('')
-                        setSelectedTime('')
-                        setSlots([])
-                        setSlotError('')
-                        setBookingError('')
-                        setCreatedAppointment(null)
-                        setStep('date')
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => e.key === 'Enter' && (() => {
-                        setSelectedService(service)
-                        setSelectedDate('')
-                        setSelectedTime('')
-                        setSlots([])
-                        setStep('date')
-                      })()}
-                    >
-                      <div className="booking-svc-card-inner">
-                        {featured && <div className="booking-svc-badge">⭐ Mais escolhido</div>}
-                        {!featured && service.name.toLowerCase().includes('pacote') && (
-                          <div className="booking-svc-badge">💅 Pacote mensal</div>
-                        )}
-                        <div className="booking-svc-name">{service.name}</div>
+                serviceGroups.map((group) => (
+                  <div className="booking-service-group" key={group.title}>
+                    <div className="booking-service-group-title">{group.title}</div>
+                    {group.note && <p className="booking-service-group-note">{group.note}</p>}
+                    {group.items.map((service, idx) => {
+                      const featured = isFeaturedService(service, idx)
+                      const isPackage = service.name.toLowerCase().includes('pacote')
+                      const badge = serviceBadge(service, featured)
+                      return (
+                        <div
+                          key={service.id}
+                          className={`booking-svc-card ${featured ? 'is-featured' : ''} ${isPackage ? 'is-package' : ''}`}
+                          onClick={() => {
+                            setSelectedService(service)
+                            setSelectedDate('')
+                            setSelectedTime('')
+                            setSlots([])
+                            setSlotError('')
+                            setBookingError('')
+                            setCreatedAppointment(null)
+                            setStep('date')
+                          }}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => e.key === 'Enter' && (() => {
+                            setSelectedService(service)
+                            setSelectedDate('')
+                            setSelectedTime('')
+                            setSlots([])
+                            setStep('date')
+                          })()}
+                        >
+                          <div className="booking-svc-card-inner">
+                            {badge && <div className="booking-svc-badge">{badge}</div>}
+                            <div className="booking-svc-name">{service.name}</div>
 
-                        <div className="booking-svc-footer">
-                          <div>
-                            <span className="booking-svc-price-label">a partir de</span>
-                            <div className="booking-svc-price">{money(service.price)}</div>
+                            <div className="booking-svc-footer">
+                              <div>
+                                <span className="booking-svc-price-label">{isPackage ? 'Valor do pacote' : 'Valor'}</span>
+                                <div className="booking-svc-price">{money(service.price)}</div>
+                              </div>
+                              <div className="booking-svc-btn">Escolher</div>
+                            </div>
                           </div>
-                          <div className="booking-svc-btn">Escolher</div>
                         </div>
-                      </div>
-                    </div>
-                  )
-                })
+                      )
+                    })}
+                  </div>
+                ))
               )}
             </div>
 
-            {/* HORÁRIO DE FUNCIONAMENTO */}
+            {/* HORÃRIO DE FUNCIONAMENTO */}
             {settings?.working_hours && (
               <div className="booking-section">
-                <div className="booking-section-title">Horário de funcionamento</div>
+                <div className="booking-section-title">Horario de funcionamento</div>
                 <div className="booking-hours">
                   {weekdayKeys.map((key, i) => {
                     const cfg = settings.working_hours[key]
                     const open = cfg?.is_open
                     return (
                       <div key={key} className={`booking-hours-row${!open ? ' closed' : ''}`}>
-                        <span>{['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][i]}</span>
+                        <span>{['Domingo','Segunda','Terca','Quarta','Quinta','Sexta','Sabado'][i]}</span>
                         <strong>
-                          {open ? `${cfg.open || '09:00'} – ${cfg.close || '18:00'}` : 'Fechado'}
+                          {open ? `${cfg.open || '09:00'} - ${cfg.close || '18:00'}` : 'Fechado'}
                         </strong>
                       </div>
                     )
@@ -1719,11 +1819,11 @@ export default function AgendarClient({ studio, services, settings, professional
               <div className="booking-section-title">Como funciona</div>
               <div className="booking-howto-step">
                 <div className="booking-howto-num">1</div>
-                <div className="booking-howto-text">Escolha o serviço</div>
+                <div className="booking-howto-text">Escolha o servico</div>
               </div>
               <div className="booking-howto-step">
                 <div className="booking-howto-num">2</div>
-                <div className="booking-howto-text">Selecione data e horário</div>
+                <div className="booking-howto-text">Selecione data e horario</div>
               </div>
               <div className="booking-howto-step">
                 <div className="booking-howto-num">3</div>
@@ -1736,15 +1836,15 @@ export default function AgendarClient({ studio, services, settings, professional
         {/* Outros steps (date, time, info, done) usam layout simples sem hero */}
         {step !== 'service' && (
           <div className="booking-flow" style={{ padding: '20px 20px 40px', maxWidth: 540, margin: '0 auto' }}>
-            {/* Resumo sempre visível durante o fluxo */}
+            {/* Resumo sempre visÃ­vel durante o fluxo */}
             {step !== 'done' && selectedService && (
               <div className="booking-summary-sticky">
                 <div className="booking-summary-label">Sua reserva</div>
                 <div className="booking-summary-sticky-info">
                   <div className="booking-summary-sticky-name">{selectedService.name}</div>
                   <div className="booking-summary-sticky-meta">
-                    {selectedService.duration_minutes} min · {money(selectedService.price)}
-                    {professional && ` · com ${professional.name}`}
+                    {selectedService.duration_minutes} min - {money(selectedService.price)}
+                    {professional && ` - com ${professional.name}`}
                   </div>
                 </div>
                 {selectedDate && selectedTime && (
@@ -1768,9 +1868,9 @@ export default function AgendarClient({ studio, services, settings, professional
               <>
                 <div className="booking-step-head">
                   <div className="booking-title">
-                    <span>Serviço escolhido</span>
+                    <span>Servico escolhido</span>
                     <h2>Escolha a melhor data</h2>
-                    <p>{selectedService.name} · {money(selectedService.price)}</p>
+                    <p>{selectedService.name} - {money(selectedService.price)}</p>
                   </div>
                 </div>
                 <div className="booking-date-grid">
@@ -1806,12 +1906,12 @@ export default function AgendarClient({ studio, services, settings, professional
                 <div className="booking-step-head">
                   <div className="booking-title">
                     <span>{formatDate(selectedDate)}</span>
-                    <h2>Escolha o horário</h2>
-                    <p>{selectedService.name} · {selectedService.duration_minutes} min</p>
+                    <h2>Escolha o horario</h2>
+                    <p>{selectedService.name} - {selectedService.duration_minutes} min</p>
                   </div>
                 </div>
                 {loadingSlots ? (
-                  <div className="booking-state">Carregando horários...</div>
+                  <div className="booking-state">Carregando horarios...</div>
                 ) : slotError ? (
                   <div className="booking-state">
                     <div>
@@ -1822,7 +1922,7 @@ export default function AgendarClient({ studio, services, settings, professional
                 ) : slots.length === 0 ? (
                   <div className="booking-state">
                     <div>
-                      <p>Sem horários disponíveis neste dia.</p>
+                      <p>Sem horarios disponiveis neste dia.</p>
                       <button className="booking-back" onClick={() => setStep('date')}>Escolher outro dia</button>
                     </div>
                   </div>
@@ -1856,20 +1956,20 @@ export default function AgendarClient({ studio, services, settings, professional
               <>
                 <div className="booking-step-head">
                   <div className="booking-title">
-                    <span>Último passo</span>
+                    <span>Ultimo passo</span>
                     <h2>Seus dados</h2>
-                    <p>Confirme nome e WhatsApp para reservar seu horário.</p>
+                    <p>Confirme nome e WhatsApp para reservar seu horario.</p>
                   </div>
                 </div>
                 <div className="booking-summary">
                   <span className="booking-summary-mark">{selectedService.name.slice(0, 1).toUpperCase()}</span>
                   <div>
                     <strong>{selectedService.name}</strong>
-                    <p>{formatDate(selectedDate)} às {selectedTime} · {money(selectedService.price)}</p>
+                    <p>{formatDate(selectedDate)} as {selectedTime} - {money(selectedService.price)}</p>
                   </div>
                 </div>
                 <p className="booking-trust-note">
-                  Atendimento com hora marcada. Cancelamento com até {settings?.cancel_hours || 24}h de antecedência.
+                  Atendimento com hora marcada. Cancelamento com ate {settings?.cancel_hours || 24}h de antecedencia.
                 </p>
                 <div className="booking-field">
                   <label>Nome completo</label>
@@ -1889,11 +1989,11 @@ export default function AgendarClient({ studio, services, settings, professional
                   </p>
                 </div>
                 <div className="booking-field">
-                  <label>Observações (opcional)</label>
-                  <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Alergias, preferências de esmalte..." />
+                  <label>Observacoes (opcional)</label>
+                  <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Alergias, preferencias de esmalte..." />
                 </div>
                 <button className="booking-primary" onClick={submit} disabled={loading || !name.trim() || phone.length < 10}>
-                  {loading ? 'Confirmando...' : 'Confirmar horário'}
+                  {loading ? 'Confirmando...' : 'Confirmar horario'}
                 </button>
                 {bookingError && <div className="booking-error">{bookingError}</div>}
               </>
@@ -1908,27 +2008,27 @@ export default function AgendarClient({ studio, services, settings, professional
                       ? <img src={studio.avatar_url} alt={studio.name} />
                       : (professional?.name || studio.name).slice(0, 1).toUpperCase()}
                 </div>
-                <div className="booking-check">✓</div>
+                <div className="booking-check">OK</div>
                 <div className="booking-title">
-                  <span>Horário reservado</span>
+                  <span>Horario reservado</span>
                   <h1>Tudo certo, {(createdAppointment?.client_name || name).split(' ')[0]}!</h1>
                   <p>
-                    Te esperamos {createdAppointment ? formatDateTime(createdAppointment.appointment_date) : `dia ${selectedDate} às ${selectedTime}`}
+                    Te esperamos {createdAppointment ? formatDateTime(createdAppointment.appointment_date) : `dia ${selectedDate} as ${selectedTime}`}
                     {studio.address && `, em ${studio.address}`}.
                   </p>
                 </div>
                 <div className="booking-confirm-card">
-                  <div><span>Serviço</span><strong>{createdAppointment?.service_name || selectedService?.name}</strong></div>
+                  <div><span>Servico</span><strong>{createdAppointment?.service_name || selectedService?.name}</strong></div>
                   {professional && <div><span>Com</span><strong>{professional.name}</strong></div>}
                   <div><span>Quando</span><strong>{createdAppointment ? formatDateTime(createdAppointment.appointment_date) : `${selectedDate} ${selectedTime}`}</strong></div>
                   <div><span>Valor</span><strong>{money((createdAppointment?.price ?? selectedService?.price) || 0)}</strong></div>
                 </div>
 
-                {/* Ações pós-agendamento */}
+                {/* AÃ§Ãµes pÃ³s-agendamento */}
                 <div className="booking-done-actions">
                   {studio.whatsapp && (
                     <a className="booking-whatsapp" href={whatsappLink()} target="_blank" rel="noreferrer">
-                      💬 Confirmar no WhatsApp
+                      Confirmar no WhatsApp
                     </a>
                   )}
                   <a
@@ -1937,11 +2037,11 @@ export default function AgendarClient({ studio, services, settings, professional
                     target="_blank"
                     rel="noreferrer"
                   >
-                    📅 Adicionar ao Google Agenda
+                    Adicionar ao Google Agenda
                   </a>
                   {mapsUrl && (
                     <a className="booking-map-link" href={mapsUrl} target="_blank" rel="noreferrer">
-                      📍 Ver endereço no mapa
+                      Ver endereco no mapa
                     </a>
                   )}
                 </div>
@@ -1949,38 +2049,40 @@ export default function AgendarClient({ studio, services, settings, professional
                 <button className="booking-back" onClick={reset}>Fazer outro agendamento</button>
 
                 <p className="booking-policy">
-                  Precisa cancelar? Avise pelo WhatsApp com pelo menos {settings?.cancel_hours || 24}h de antecedência.
+                  Precisa cancelar? Avise pelo WhatsApp com pelo menos {settings?.cancel_hours || 24}h de antecedencia.
                 </p>
               </div>
             )}
           </div>
         )}
 
-        {/* FAB do WhatsApp — só na tela inicial */}
+        {/* FAB do WhatsApp â€” sÃ³ na tela inicial */}
         {step === 'service' && (studio.whatsapp || studio.phone) && (
           <a
             className="booking-fab"
-            href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '')}`}
+            href={`https://wa.me/55${(studio.whatsapp || studio.phone || '').replace(/\D/g, '').replace(/^55/, '')}`}
             target="_blank"
             rel="noreferrer"
             aria-label="WhatsApp"
           >
-            💬
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884" />
+            </svg>
           </a>
         )}
       </section>
 
-      {/* Rodapé com info do salão */}
+      {/* RodapÃ© com info do salÃ£o */}
       {step === 'service' && (
         <footer className="booking-footer">
           <div className="booking-footer-content">
             <div className="booking-footer-brand">{studio.name}</div>
             {studio.address && mapsUrl && (
               <div className="booking-footer-line">
-                <a href={mapsUrl} target="_blank" rel="noreferrer">📍 {studio.address}</a>
+                <a href={mapsUrl} target="_blank" rel="noreferrer">{studio.address}</a>
               </div>
             )}
-            {(studio.phone || studio.whatsapp) && <div className="booking-footer-line">📞 {studio.phone || studio.whatsapp}</div>}
+            {(studio.phone || studio.whatsapp) && <div className="booking-footer-line">{studio.phone || studio.whatsapp}</div>}
             {studio.instagram && (
               <div className="booking-footer-line">
                 <a href={`https://instagram.com/${studio.instagram.replace('@', '')}`} target="_blank" rel="noreferrer">
@@ -1989,7 +2091,7 @@ export default function AgendarClient({ studio, services, settings, professional
               </div>
             )}
             <div className="booking-footer-policy">
-              Cancele com {settings?.cancel_hours || 24}h de antecedência.
+              Cancele com {settings?.cancel_hours || 24}h de antecedencia.
             </div>
           </div>
         </footer>
