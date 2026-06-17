@@ -1185,10 +1185,7 @@ export default function AgendarClient({ studio, services, settings, professional
       align-items: center;
       gap: 5px;
     }
-    .booking-svc-meta::before {
-      content: '⏱';
-      font-size: 11px;
-    }
+
     .booking-svc-footer {
       display: flex;
       align-items: center;
@@ -1681,11 +1678,7 @@ export default function AgendarClient({ studio, services, settings, professional
                           <div className="booking-svc-badge">💅 Pacote mensal</div>
                         )}
                         <div className="booking-svc-name">{service.name}</div>
-                        <div className="booking-svc-meta">
-                          {service.duration_minutes >= 60
-                            ? `${Math.floor(service.duration_minutes / 60)}h${service.duration_minutes % 60 > 0 ? ` ${service.duration_minutes % 60}min` : ''}`
-                            : `${service.duration_minutes} min`}
-                        </div>
+
                         <div className="booking-svc-footer">
                           <div>
                             <span className="booking-svc-price-label">a partir de</span>
