@@ -351,7 +351,7 @@ export default function AgendamentosPage() {
     setSavingNew(false)
   }
 
-    const periodFiltered = useMemo(() => {
+  const periodFiltered = useMemo(() => {
     const now = new Date(); now.setHours(0,0,0,0)
     const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1)
     const weekEnd = new Date(now); weekEnd.setDate(now.getDate() + 7)
@@ -363,10 +363,10 @@ export default function AgendamentosPage() {
 
   const searched = useMemo(() => {
     const term = q.trim().toLowerCase()
-    return apts
+    return periodFiltered
       .filter(item => filter === 'todos' || item.status === filter)
       .filter(item => !term || `${item.client_name} ${item.service_name} ${item.notes || ''}`.toLowerCase().includes(term))
-  }, [apts, filter, q])
+  }, [periodFiltered, filter, q])
 
   const today = todayKey()
   const upcoming = searched.filter(item => dateKey(item.appointment_date) >= today && !['completed', 'cancelled', 'no_show'].includes(item.status))
