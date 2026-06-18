@@ -195,13 +195,13 @@ export default function DashboardPage() {
           label="Hoje"          value={loading?"—":todayApts.length}
           sub={`${pendingAll.length} pendente${pendingAll.length!==1?"s":""}`}/>
         <KpiCard loading={loading} icon={DollarSign} color={grn}  gradient={grn}
-          label="Faturamento mês" value={loading?"—":fmt(mRevenue)}
+          label="Faturamento" value={loading?"—":fmt(mRevenue)}
           sub="agendamentos concluídos"/>
         <KpiCard loading={loading} icon={Users}      color={pink} gradient={pink}
-          label="Clientes mês"  value={loading?"—":uniqueM}
+          label="Clientes/mês"  value={loading?"—":uniqueM}
           sub={`${monthApts.length} atendimento${monthApts.length!==1?"s":""}`}/>
         <KpiCard loading={loading} icon={TrendingUp} color={amb}  gradient={amb}
-          label="Total geral"   value={loading?"—":apts.length}
+          label="Total"   value={loading?"—":apts.length}
           sub={`${monthApts.length} este mês`}/>
       </div>
 

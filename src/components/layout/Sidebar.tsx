@@ -53,7 +53,13 @@ export function Sidebar({ profile }: { profile: any }) {
 
   const bottomItems = isSuperadmin
     ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 4)]
-    : [NAV[0], NAV[1], NAV[2], NAV[4], NAV[7]];
+    : [
+        { href: "/dashboard",      icon: NAV[0].icon, label: "Início" },
+        { href: "/agenda",         icon: NAV[1].icon, label: "Agenda" },
+        { href: "/agendamentos",   icon: NAV[2].icon, label: "Horários" },
+        { href: "/disponibilidade",icon: NAV[3].icon, label: "Vagas" },
+        { href: "/clientes",       icon: NAV[4].icon, label: "Clientes" },
+      ];
   const displayName = profile?.full_name ?? profile?.email?.split("@")[0] ?? "Usuário";
   const shortEmail = profile?.email ? (profile.email.length > 25 ? `${profile.email.slice(0, 22)}...` : profile.email) : "";
   const initial = (studio?.name ?? displayName ?? "N").charAt(0).toUpperCase();
@@ -135,7 +141,7 @@ export function Sidebar({ profile }: { profile: any }) {
             : <Sparkles size={14} color="#a78bfa" />
           }
         </div>
-        <span className="manicure-topbar-name">{studio?.name ?? displayName ?? "Meu Studio"}</span>
+        <span className="manicure-topbar-name">{studio?.name || (displayName !== (profile?.email ?? "") ? displayName : "Meu Studio")}</span>
         <button
           type="button"
           onClick={signOut}

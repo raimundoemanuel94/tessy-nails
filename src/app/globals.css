@@ -592,17 +592,21 @@ button:active, a:active, [role="button"]:active {
 .manicure-bottom-nav a {
   flex: 1;
   min-width: 0;
-  min-height: 58px;
+  min-height: 54px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   text-decoration: none;
   color: #8d86a8;
-  font-size: 10px;
-  font-weight: 760;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  white-space: nowrap;
+  overflow: hidden;
   transition: color .15s, background .15s;
+  padding: 0 2px;
 }
 .manicure-bottom-nav a.is-active {
   color: var(--brand-light);
