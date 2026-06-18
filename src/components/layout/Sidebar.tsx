@@ -49,17 +49,18 @@ export function Sidebar({ profile }: { profile: any }) {
     if (typeof window === 'undefined') return false
     return localStorage.getItem('sidebar-collapsed') === 'true'
   })
+  // Sync collapsed state to body data attribute (for CSS targeting)
+  useEffect(() => {
+    document.body.setAttribute('data-sidebar', collapsed ? 'collapsed' : 'expanded')
+  }, [collapsed])
+
   const toggleCollapsed = () => setCollapsed(v => {
     const next = !v
     localStorage.setItem('sidebar-collapsed', String(next))
-    document.body.setAttribute('data-sidebar', next ? 'collapsed' : 'expanded')
     return next
   })
 
-  // Set initial data attribute
-  if (typeof window !== 'undefined') {
-    document.body.setAttribute('data-sidebar', collapsed ? 'collapsed' : 'expanded')
-  }
+
   const studio = profile?.studios;
 
   async function signOut() {
