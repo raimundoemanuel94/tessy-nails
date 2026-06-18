@@ -2158,13 +2158,21 @@ nextjs-portal {
 /* Salon sidebar v2 */
 .dash-main { margin-left: 252px; }
 .manicure-sidebar {
-  width: 252px;
+  width: 240px;
   z-index: 20;
   background:
     linear-gradient(180deg, rgba(167,139,250,0.07), transparent 210px),
     #080812;
   border-right: 1px solid rgba(255,255,255,0.085);
   box-shadow: 18px 0 52px rgba(0,0,0,0.18);
+  transition: width .25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.manicure-sidebar.is-collapsed {
+  width: 64px;
+}
+body[data-sidebar="collapsed"] .dash-main {
+  margin-left: 64px;
 }
 .manicure-sidebar-shell {
   height: 100%;
