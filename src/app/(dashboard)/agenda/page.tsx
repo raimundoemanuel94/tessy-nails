@@ -487,7 +487,7 @@ export default function AgendaPage() {
           {bannerOpen && (() => {
             const slotDur = salonSettings?.slot_duration || 30
             const wh = salonSettings?.working_hours as any
-            const weekdayKeys2 = ['sun','mon','tue','wed','thu','fri','sat']
+            const weekdayKeys2 = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
             const weekdayShort = ['DOM','SEG','TER','QUA','QUI','SEX','SÁB']
 
             // Build the 6 days (mon..sat) of the week containing selectedDate

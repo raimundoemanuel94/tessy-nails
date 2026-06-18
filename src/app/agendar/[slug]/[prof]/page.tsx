@@ -27,7 +27,7 @@ export default async function AgendarComProfissionalPage({
       .order('name'),
     sb
       .from('salon_settings')
-      .select('slot_duration, advance_days, cancel_hours, auto_confirm, working_hours')
+      .select('slot_duration, advance_days, cancel_hours, auto_confirm, working_hours, blocked_dates')
       .eq('studio_id', studio.id)
       .single(),
     sb

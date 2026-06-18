@@ -5,7 +5,6 @@ import {
   isSameZonedDate,
   zonedDayRange,
   zonedMinutes,
-  zonedWeekdayKey,
 } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
@@ -73,21 +72,19 @@ export async function GET(req: NextRequest) {
     const dayRange = zonedDayRange(dateStr, BOOKING_TIME_ZONE);
     const workingHours =
       (settings?.working_hours as Record<string, { open: string; close: string; is_open: boolean }>) ?? {};
-    const dayKey = zonedWeekdayKey(dayRange.start, BOOKING_TIME_ZONE);
-    const dayConfig = workingHours[dayKey];
-
     // Check if this date is manually blocked
     const blockedDates = (settings.blocked_dates as string[]) ?? []
     if (blockedDates.includes(dateStr)) {
       return NextResponse.json({ slots: [], reason: "blocked", date: dateStr })
     }
 
-    // Date-specific override takes priority over weekly config
+    // Public booking only opens dates manually released by the studio.
+    // Weekly working hours are just defaults for the salon to copy from.
     const dateOverride = (workingHours as Record<string, { is_open: boolean; open: string; close: string }>)[dateStr]
-    const effectiveConfig = dateOverride || dayConfig
+    const effectiveConfig = dateOverride
 
     if (!effectiveConfig?.is_open) {
-      return NextResponse.json({ slots: [], reason: "closed", date: dateStr });
+      return NextResponse.json({ slots: [], reason: "not_released", date: dateStr });
     }
 
     const slotDuration = Number(settings?.slot_duration ?? 30);

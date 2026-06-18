@@ -9,7 +9,7 @@ const C = {
   purple: '#7C5CBF', green: '#22c55e', red: '#ef4444', yellow: '#f59e0b',
 }
 
-const DAYS_KEYS = ['sun','mon','tue','wed','thu','fri','sat']
+const DAYS_KEYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
 const DAYS_FULL = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado']
 const DAYS_SHORT = ['DOM','SEG','TER','QUA','QUI','SEX','SÁB']
 
@@ -212,7 +212,8 @@ export default function DisponibilidadePage() {
             const weekConfig = workingHours[day.dayKey] || { is_open: false, open: '09:00', close: '18:00' }
             const config = dateOverride || weekConfig
             const isBlocked = blockedDates.includes(day.date)
-            const isOpen = config.is_open && !isBlocked
+            const isReleased = !!dateOverride?.is_open
+            const isOpen = isReleased && !isBlocked
             const hasOverride = !!dateOverride
 
             return (
@@ -237,7 +238,7 @@ export default function DisponibilidadePage() {
 
                 {isOpen && <span style={{ color: C.purple, fontSize: 10, fontWeight: 700 }}>{config.open}–{config.close}</span>}
                 {isBlocked && <span style={{ color: C.red, fontSize: 10, fontWeight: 700 }}>Bloqueado</span>}
-                {!isOpen && !isBlocked && <span style={{ color: C.muted, fontSize: 10 }}>Fechado</span>}
+                {!isOpen && !isBlocked && <span style={{ color: C.muted, fontSize: 10 }}>Não liberado</span>}
 
                 {!day.isPast && (
                   <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
@@ -246,7 +247,7 @@ export default function DisponibilidadePage() {
                       {isBlocked ? <Unlock size={11} color={C.red} /> : <Lock size={11} color={C.muted} />}
                     </button>
                     <button onClick={() => setEditDay({ date: day.date, label: `${day.label} ${day.dayNum}/${day.month}`, open: config.open || '09:00', close: config.close || '18:00' })}
-                      title="Ajustar horário deste dia"
+                      title="Liberar ou ajustar horário deste dia"
                       style={{ flex: 1, height: 26, borderRadius: 7, border: `1px solid ${C.border}`, background: 'transparent', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
                       <Clock size={11} color={C.muted} />
                     </button>

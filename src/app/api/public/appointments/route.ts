@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { BOOKING_TIME_ZONE, localDateTimeToUtc, zonedDateString, zonedDayRange, zonedWeekdayKey } from "@/lib/time";
+import { BOOKING_TIME_ZONE, localDateTimeToUtc, zonedDateString, zonedDayRange } from "@/lib/time";
 import { normalizePhone } from "@/lib/booking/client-access";
 
 type AppointmentBody = {
@@ -149,12 +149,10 @@ export async function POST(req: Request) {
   const blockedDates = (settings?.blocked_dates as string[]) ?? []
   if (blockedDates.includes(localDate)) return bad("Esta data não está disponível para agendamentos.", 400)
 
-  // Validate: working hours
+  // Public booking only accepts dates manually released by the studio.
   const wh = (settings?.working_hours as Record<string, { is_open: boolean; open: string; close: string }>) ?? {}
-  const dateOverride = wh[localDate]
-  const dayOfWeek = zonedWeekdayKey(when, BOOKING_TIME_ZONE) // returns "monday","tuesday" etc
-  const dayConf = dateOverride || wh[dayOfWeek]
-  if (!dayConf?.is_open) return bad("O salão não atende neste dia.", 400)
+  const dayConf = wh[localDate]
+  if (!dayConf?.is_open) return bad("Esse dia ainda não foi liberado para agendamento.", 400)
 
   // Validate: slot is valid (must align with slot grid)
   const slotDur = Number(settings?.slot_duration ?? 30)
