@@ -141,6 +141,19 @@ export default function ServicosPage() {
     )
   }
 
+  const [catFilter, setCatFilter] = useState<string>('all')
+
+  const catOf = (name: string): string => {
+    const n = name.toLowerCase()
+    if (n.includes('pacote')) return 'pacote'
+    if (n.includes('pedicure') || n.includes('pé') || n.includes('pe') || n.includes('spa')) return 'pes'
+    if (n.includes('gel') || n.includes('postiça') || n.includes('postica') || n.includes('alongamento')) return 'gel'
+    return 'maos'
+  }
+
+  const CAT_LABELS: Record<string, string> = { all: 'Todos', maos: 'Mãos', pes: 'Pés', gel: 'Gel / Postiça', pacote: 'Pacotes' }
+
+  const filteredSvcs = catFilter === 'all' ? services : services.filter(s => catOf(s.name) === catFilter)
   const activeCount = services.filter((service) => service.is_active).length
 
   return (
@@ -154,8 +167,21 @@ export default function ServicosPage() {
         <button className="studio-primary-action" onClick={openNew}>Novo serviço</button>
       </header>
 
+      {/* Filtros por categoria */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {Object.entries(CAT_LABELS).map(([key, label]) => (
+          <button key={key} onClick={() => setCatFilter(key)} style={{
+            padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+            border: catFilter === key ? 'none' : `1px solid ${C.border2}`,
+            background: catFilter === key ? C.purple : C.card2,
+            color: catFilter === key ? '#fff' : C.muted,
+            fontFamily: 'inherit', transition: 'all .15s',
+          }}>{label}</button>
+        ))}
+      </div>
+
       <section className="studio-service-grid">
-        {services.map((service) => {
+        {filteredSvcs.map((service) => {
           const accent = colorByName(service.name)
 
           return (

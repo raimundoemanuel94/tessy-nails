@@ -351,7 +351,17 @@ export default function AgendamentosPage() {
     setSavingNew(false)
   }
 
-    const searched = useMemo(() => {
+    const periodFiltered = useMemo(() => {
+    const now = new Date(); now.setHours(0,0,0,0)
+    const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1)
+    const weekEnd = new Date(now); weekEnd.setDate(now.getDate() + 7)
+    if (periodFilter === 'today') return apts.filter(a => { const d = new Date(a.appointment_date); d.setHours(0,0,0,0); return d.getTime() === now.getTime() })
+    if (periodFilter === 'tomorrow') return apts.filter(a => { const d = new Date(a.appointment_date); d.setHours(0,0,0,0); return d.getTime() === tomorrow.getTime() })
+    if (periodFilter === 'week') return apts.filter(a => { const d = new Date(a.appointment_date); return d >= now && d <= weekEnd })
+    return apts
+  }, [apts, periodFilter])
+
+  const searched = useMemo(() => {
     const term = q.trim().toLowerCase()
     return apts
       .filter(item => filter === 'todos' || item.status === filter)
