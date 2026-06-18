@@ -136,6 +136,23 @@ export function Sidebar({ profile }: { profile: any }) {
           }
         </div>
         <span className="manicure-topbar-name">{studio?.name ?? displayName ?? "Meu Studio"}</span>
+        <button
+          type="button"
+          onClick={signOut}
+          title="Sair da conta"
+          style={{
+            marginLeft: 'auto',
+            flexShrink: 0,
+            width: 34, height: 34,
+            borderRadius: 10,
+            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'rgba(255,255,255,0.04)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+          }}
+        >
+          <LogOut size={14} color="#6b6b9a" />
+        </button>
       </div>
 
       <nav className="manicure-bottom-nav md:hidden">
