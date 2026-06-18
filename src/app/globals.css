@@ -396,6 +396,28 @@ button:active, a:active, [role="button"]:active {
     #090812;
   border-right: 1px solid rgba(255,255,255,0.08);
   box-shadow: 18px 0 48px rgba(0,0,0,0.18);
+  transition: width .25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.manicure-sidebar.is-collapsed {
+  width: 64px;
+}
+.manicure-sidebar.is-collapsed .manicure-nav-section p { display: none; }
+.manicure-sidebar.is-collapsed .manicure-nav-link {
+  padding: 0;
+  justify-content: center;
+  border-radius: 12px;
+}
+.manicure-sidebar.is-collapsed .manicure-admin-shortcut a {
+  justify-content: center;
+  padding: 0;
+}
+.manicure-sidebar.is-collapsed .manicure-sidebar-footer {
+  align-items: center;
+}
+.manicure-sidebar.is-collapsed .manicure-footer-actions {
+  flex-direction: column;
+  gap: 4px;
 }
 .manicure-sidebar-brand {
   min-height: 74px;

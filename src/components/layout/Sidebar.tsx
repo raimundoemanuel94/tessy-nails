@@ -12,6 +12,7 @@ import {
   ChevronRight,
   LayoutDashboard,
   LogOut,
+  PanelLeft,
   Pencil,
   Scissors,
   Settings,
@@ -44,6 +45,15 @@ export function Sidebar({ profile }: { profile: any }) {
   const [activeDrawer, setActiveDrawer] = useState<string | null>(null)
   const openDrawer = (key: string) => setActiveDrawer(key)
   const closeDrawer = () => setActiveDrawer(null)
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem('sidebar-collapsed') === 'true'
+  })
+  const toggleCollapsed = () => setCollapsed(v => {
+    const next = !v
+    localStorage.setItem('sidebar-collapsed', String(next))
+    return next
+  })
   const studio = profile?.studios;
 
   async function signOut() {
@@ -71,19 +81,35 @@ export function Sidebar({ profile }: { profile: any }) {
 
   return (
     <>
-      <aside className="manicure-sidebar hidden md:flex">
+      <aside className={`manicure-sidebar hidden md:flex${collapsed ? " is-collapsed" : ""}`}>
         <div className="manicure-sidebar-shell">
           <div className="manicure-sidebar-brand">
             <div className={`manicure-logo ${isSuperadmin ? "is-admin" : ""}`}>
               {isSuperadmin ? <Shield size={16} /> : <Sparkles size={16} />}
             </div>
-            <div className="manicure-brand-copy">
-              <div>
-                <strong>{studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio")}</strong>
-                <span>{isSuperadmin ? "Superadmin" : "Agenda e operação"}</span>
+            {!collapsed && (
+              <div className="manicure-brand-copy">
+                <div>
+                  <strong>{studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio")}</strong>
+                  <span>{isSuperadmin ? "Superadmin" : "Agenda e operação"}</span>
+                </div>
+                <small>{isSuperadmin ? "Admin" : studio?.plan ?? "Pro"}</small>
               </div>
-              <small>{isSuperadmin ? "Admin" : studio?.plan ?? "Pro"}</small>
-            </div>
+            )}
+            <button
+              onClick={toggleCollapsed}
+              title={collapsed ? "Expandir menu" : "Recolher menu"}
+              style={{
+                marginLeft: 'auto', flexShrink: 0,
+                width: 28, height: 28, borderRadius: 8,
+                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.04)',
+                cursor: 'pointer', display: 'grid', placeItems: 'center',
+                color: '#6b648a', transition: 'background .15s',
+              }}
+            >
+              <PanelLeft size={14} style={{ transform: collapsed ? 'rotate(180deg)' : 'none', transition: 'transform .25s ease' }} />
+            </button>
           </div>
 
           {isSuperadmin && (
@@ -99,15 +125,15 @@ export function Sidebar({ profile }: { profile: any }) {
           <nav className="manicure-nav">
             {SECTIONS.map((section) => (
               <div key={section.label} className="manicure-nav-section">
-                <p>{section.label}</p>
+                {!collapsed && <p>{section.label}</p>}
                 <div>
                   {section.items.map(({ href, icon: Icon, label }) => {
                     const active = isActive(href);
                     return (
-                      <Link key={href} href={href} className={`manicure-nav-link ${active ? "is-active" : ""}`}>
+                      <Link key={href} href={href} className={`manicure-nav-link ${active ? "is-active" : ""}`} title={collapsed ? label : undefined}>
                         <Icon size={15} />
-                        <span>{label}</span>
-                        {active && <ChevronRight size={13} />}
+                        {!collapsed && <span>{label}</span>}
+                        {!collapsed && active && <ChevronRight size={13} />}
                       </Link>
                     );
                   })}
@@ -121,10 +147,12 @@ export function Sidebar({ profile }: { profile: any }) {
               <div className="manicure-avatar">
                 <span>{initial}</span>
               </div>
-              <div className="manicure-account-copy">
-                <strong>{displayName}</strong>
-                <span>{shortEmail}</span>
-              </div>
+              {!collapsed && (
+                <div className="manicure-account-copy">
+                  <strong>{displayName}</strong>
+                  <span>{shortEmail}</span>
+                </div>
+              )}
               <div className="manicure-footer-actions">
                 <Link href="/configuracoes" title="Editar perfil" aria-label="Editar perfil">
                   <Pencil size={14} />
