@@ -38,6 +38,11 @@ export default function DisponibilidadePage() {
 
   // Modal state
   const [shareSlot, setShareSlot] = useState<{ date: string; time: string; link: string } | null>(null)
+  const [studioSlug, setStudioSlug] = useState('tessy-nails')
+  const [studioName, setStudioName] = useState('')
+  const [studioAvatar, setStudioAvatar] = useState('')
+  const [studioBrandColor, setStudioBrandColor] = useState('#7C5CBF')
+  const [generatingBanner, setGeneratingBanner] = useState(false)
   const [shareTime, setShareTime] = useState('09:00')
   const [shareDate, setShareDate] = useState('')
 
@@ -57,6 +62,17 @@ export default function DisponibilidadePage() {
       const { data: profile } = await sb.from('profiles').select('studio_id').eq('id', user.id).single()
       if (!profile?.studio_id) return
       setStudioId(profile.studio_id)
+      // Load studio info for banner
+      const { data: studio } = await sb.from('studios')
+        .select('slug, name, avatar_url, brand_color')
+        .eq('id', profile.studio_id).single()
+      if (studio) {
+        setStudioSlug(studio.slug || 'tessy-nails')
+        setStudioName(studio.name || '')
+        setStudioAvatar(studio.avatar_url || '')
+        setStudioBrandColor(studio.brand_color || '#7C5CBF')
+      }
+
       const { data: settings } = await sb.from('salon_settings')
         .select('working_hours, blocked_dates')
         .eq('studio_id', profile.studio_id)
@@ -73,6 +89,127 @@ export default function DisponibilidadePage() {
   function showToast(msg: string, type: 'ok'|'err' = 'ok') {
     setToast(msg); setToastType(type)
     setTimeout(() => setToast(''), 2500)
+  }
+
+  async function generateAndShareBanner(date: string, time: string, link: string) {
+    setGeneratingBanner(true)
+    const W = 1080, H = 1920
+    const canvas = document.createElement('canvas')
+    canvas.width = W; canvas.height = H
+    const ctx = canvas.getContext('2d')!
+
+    const brand = studioBrandColor || '#7C5CBF'
+    const br = parseInt(brand.slice(1,3),16)
+    const bg = parseInt(brand.slice(3,5),16)
+    const bb = parseInt(brand.slice(5,7),16)
+
+    const dateObj = new Date(date + 'T12:00')
+    const weekday = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' })
+    const dateLabel = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
+
+    // Background
+    const bgGrad = ctx.createLinearGradient(0,0,0,H)
+    bgGrad.addColorStop(0,'#08060f'); bgGrad.addColorStop(0.5,'#110d1f'); bgGrad.addColorStop(1,'#0d0a1a')
+    ctx.fillStyle = bgGrad; ctx.fillRect(0,0,W,H)
+
+    // Glow
+    const gc = ctx.createRadialGradient(W/2,H*0.3,0,W/2,H*0.3,800)
+    gc.addColorStop(0,`rgba(${br},${bg},${bb},0.18)`); gc.addColorStop(1,'transparent')
+    ctx.fillStyle = gc; ctx.fillRect(0,0,W,H)
+
+    // Orbs
+    ctx.save(); ctx.globalAlpha=0.08; ctx.fillStyle=brand
+    ctx.beginPath(); ctx.arc(W+140,-140,500,0,Math.PI*2); ctx.fill()
+    ctx.beginPath(); ctx.arc(-140,H+140,460,0,Math.PI*2); ctx.fill()
+    ctx.restore()
+
+    // Top/bottom bars
+    const barG = ctx.createLinearGradient(0,0,W,0)
+    barG.addColorStop(0,'transparent'); barG.addColorStop(0.25,brand); barG.addColorStop(0.75,brand); barG.addColorStop(1,'transparent')
+    ctx.fillStyle = barG; ctx.fillRect(0,0,W,7); ctx.fillRect(0,H-7,W,7)
+
+    // Avatar
+    const aR = 145, aX = W/2, aY = 220
+    const ag = ctx.createRadialGradient(aX,aY,0,aX,aY,aR+50)
+    ag.addColorStop(0,`rgba(${br},${bg},${bb},0.3)`); ag.addColorStop(1,'transparent')
+    ctx.fillStyle = ag; ctx.fillRect(aX-aR-50,aY-aR-50,(aR+50)*2,(aR+50)*2)
+    ctx.beginPath(); ctx.arc(aX,aY,aR+5,0,Math.PI*2); ctx.strokeStyle=brand; ctx.lineWidth=4; ctx.stroke()
+
+    if (studioAvatar) {
+      try {
+        const img = new Image(); img.crossOrigin='anonymous'
+        await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=studioAvatar})
+        ctx.save(); ctx.beginPath(); ctx.arc(aX,aY,aR,0,Math.PI*2); ctx.clip()
+        const sc = Math.max((aR*2)/img.width,(aR*2)/img.height)
+        const dw=img.width*sc, dh=img.height*sc
+        ctx.drawImage(img,aX-dw/2,aY-dh/2-dh*0.05,dw,dh); ctx.restore()
+      } catch {
+        ctx.beginPath(); ctx.arc(aX,aY,aR,0,Math.PI*2); ctx.fillStyle=brand; ctx.fill()
+      }
+    } else {
+      ctx.beginPath(); ctx.arc(aX,aY,aR,0,Math.PI*2); ctx.fillStyle=brand; ctx.fill()
+    }
+
+    let y = aY + aR + 50
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top'
+
+    // Nome
+    ctx.fillStyle = '#fff'; ctx.font = '700 68px system-ui,sans-serif'
+    ctx.fillText(studioName || 'Studio', W/2, y); y += 84
+
+    // Badge "HORÁRIO DISPONÍVEL"
+    const bW=680, bH=72, bX=W/2-bW/2
+    ctx.fillStyle=`rgba(${br},${bg},${bb},0.18)`; ctx.strokeStyle=`rgba(${br},${bg},${bb},0.5)`; ctx.lineWidth=1.5
+    ctx.beginPath(); ctx.roundRect(bX,y,bW,bH,36); ctx.fill(); ctx.stroke()
+    ctx.fillStyle=brand; ctx.font='700 30px system-ui,sans-serif'; ctx.textBaseline='middle'
+    ctx.fillText('💅  HORÁRIO DISPONÍVEL', W/2, y+bH/2); y += bH + 48
+
+    // Separador
+    const sepG = ctx.createLinearGradient(60,0,W-60,0)
+    sepG.addColorStop(0,'transparent'); sepG.addColorStop(0.3,`rgba(${br},${bg},${bb},0.5)`); sepG.addColorStop(0.7,`rgba(${br},${bg},${bb},0.5)`); sepG.addColorStop(1,'transparent')
+    ctx.fillStyle=sepG; ctx.fillRect(60,y,W-120,1.5); y += 60
+
+    // Horário BIG
+    ctx.fillStyle='#fff'; ctx.font='900 200px system-ui,sans-serif'; ctx.textBaseline='top'
+    ctx.fillText(time, W/2, y); y += 220
+
+    // Data
+    ctx.fillStyle=brand; ctx.font='700 52px system-ui,sans-serif'
+    const weekCap = weekday.charAt(0).toUpperCase() + weekday.slice(1)
+    ctx.fillText(weekCap + ', ' + dateLabel, W/2, y); y += 80
+
+    // Separador
+    ctx.fillStyle=sepG; ctx.fillRect(60,y,W-120,1.5); y += 60
+
+    // Urgência
+    ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='400 38px system-ui,sans-serif'
+    ctx.fillText('Vagas limitadas — agende agora! 🔥', W/2, y); y += 80
+
+    // CTA botão
+    ctx.fillStyle=brand
+    ctx.beginPath(); ctx.roundRect(70,y,W-140,110,32); ctx.fill()
+    const shine = ctx.createLinearGradient(70,y,70,y+110)
+    shine.addColorStop(0,'rgba(255,255,255,0.18)'); shine.addColorStop(1,'rgba(255,255,255,0)')
+    ctx.fillStyle=shine; ctx.beginPath(); ctx.roundRect(70,y,W-140,110,32); ctx.fill()
+    ctx.fillStyle='#fff'; ctx.font='700 44px system-ui,sans-serif'; ctx.textBaseline='middle'
+    ctx.fillText('Agendar agora  →', W/2, y+55); y += 130
+
+    // URL
+    ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.font='300 26px monospace'; ctx.textBaseline='middle'
+    ctx.fillText(link, W/2, H-60)
+
+    // Download
+    canvas.toBlob(async (blob) => {
+      if (!blob) { setGeneratingBanner(false); return }
+      const file = new File([blob], 'horario-avulso.png', { type: 'image/png' })
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        try { await navigator.share({ files: [file], text: link }); setGeneratingBanner(false); return } catch {}
+      }
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a'); a.href=url; a.download='horario-avulso.png'; a.click()
+      URL.revokeObjectURL(url)
+      setGeneratingBanner(false)
+    }, 'image/png')
   }
 
   async function persist(updates: Record<string, unknown>) {
@@ -394,10 +531,11 @@ export default function DisponibilidadePage() {
                       style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 0', borderRadius: 9, border: `1px solid ${C.purple}40`, background: `${C.purple}18`, color: C.purple, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}>
                       <Copy size={13} /> Copiar link
                     </button>
-                    <a href={link} target="_blank" rel="noreferrer"
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 14px', borderRadius: 9, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, textDecoration: 'none', fontSize: 12, fontWeight: 700 }}>
-                      <ExternalLink size={13} /> Testar
-                    </a>
+                    <button onClick={() => void generateAndShareBanner(shareDate, shareTime, link)}
+                      disabled={generatingBanner}
+                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 0', borderRadius: 9, border: 'none', background: C.purple, color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', opacity: generatingBanner ? 0.7 : 1 }}>
+                      {generatingBanner ? '⏳ Gerando...' : '📲 Gerar banner Story'}
+                    </button>
                   </div>
                 </div>
               )
