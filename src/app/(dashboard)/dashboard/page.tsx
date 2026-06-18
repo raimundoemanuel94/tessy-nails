@@ -315,18 +315,18 @@ export default function DashboardPage() {
                       <div style={{fontSize:9,color:muted,marginTop:3,whiteSpace:"nowrap"}}>{a.duration_minutes}min</div>
                     </div>
 
-                    {/* info — flex:1 com minWidth:0 garante truncate */}
-                    <div style={{flex:1, minWidth:120}}>
-                      <div style={{fontSize:14,fontWeight:700,color:text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.client_name}</div>
+                    {/* info */}
+                    <div style={{flex:1, minWidth:0, overflow:'hidden'}}>
+                      <div style={{fontSize:14,fontWeight:700,color:text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:'100%'}}>{a.client_name}</div>
                       <div style={{display:"flex",alignItems:"center",gap:5,marginTop:3,flexWrap:"wrap"}}>
                         <SIcon size={11} color={s.color}/>
                         <span style={{fontSize:11,fontWeight:700,color:s.color}}>{s.label}</span>
-                        <span style={{fontSize:11,color:muted}}>· {a.service_name}</span>
+                        <span style={{fontSize:11,color:muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:120}}>· {a.service_name}</span>
                       </div>
                     </div>
 
                     {/* price + action */}
-                    <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0,flexWrap:'wrap',justifyContent:'flex-end'}}>
                       <span style={{fontSize:14,fontWeight:800,color:grn}}>{fmt(a.price||0)}</span>
                       {a.status==="pending" && (
                         <button onClick={()=>setStatus(a.id,"confirmed")} style={{

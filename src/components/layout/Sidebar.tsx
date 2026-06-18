@@ -141,7 +141,13 @@ export function Sidebar({ profile }: { profile: any }) {
             : <Sparkles size={14} color="#a78bfa" />
           }
         </div>
-        <span className="manicure-topbar-name">{studio?.name || (displayName !== (profile?.email ?? "") ? displayName : "Meu Studio")}</span>
+        <span className="manicure-topbar-name">
+          {studio?.name
+            ? studio.name
+            : profile?.full_name
+              ? profile.full_name.split(' ')[0]
+              : 'Meu Studio'}
+        </span>
         <button
           type="button"
           onClick={signOut}
