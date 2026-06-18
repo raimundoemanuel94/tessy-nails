@@ -1,6 +1,6 @@
 'use client'
 import { createClient } from '@/lib/supabase/client'
-import { Check, ChevronLeft, ChevronRight, Clock, Lock, Unlock, X } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Clock, Lock, Plus, Trash2, Unlock, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 const C = {
@@ -9,22 +9,41 @@ const C = {
   purple: '#7C5CBF', green: '#22c55e', red: '#ef4444', yellow: '#f59e0b',
 }
 
-const DAYS_KEYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
-const DAYS_FULL = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado']
+const DAYS_KEYS  = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
+const DAYS_FULL  = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado']
 const DAYS_SHORT = ['DOM','SEG','TER','QUA','QUI','SEX','SÁB']
+
+type Interval = { open: string; close: string }
+type DayConfig = { is_open: boolean; open: string; close: string; intervals?: Interval[] }
+type WorkingHours = Record<string, DayConfig>
 
 function ymd(d: Date) { return d.toISOString().slice(0, 10) }
 function addDays(d: Date, n: number) { const r = new Date(d); r.setDate(r.getDate() + n); return r }
+
+// Gera lista de slots visíveis a partir da config
+function intervalsOf(cfg: DayConfig): Interval[] {
+  if (cfg.intervals && cfg.intervals.length > 0) return cfg.intervals
+  return [{ open: cfg.open || '09:00', close: cfg.close || '18:00' }]
+}
 
 export default function DisponibilidadePage() {
   const [studioId, setStudioId] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
+  const [toastType, setToastType] = useState<'ok'|'err'>('ok')
   const [weekOffset, setWeekOffset] = useState(0)
-  const [workingHours, setWorkingHours] = useState<Record<string, { is_open: boolean; open: string; close: string }>>({})
+  const [workingHours, setWorkingHours] = useState<WorkingHours>({})
   const [blockedDates, setBlockedDates] = useState<string[]>([])
-  const [editDay, setEditDay] = useState<{ date: string; label: string; open: string; close: string } | null>(null)
+
+  // Modal state
+  const [editDay, setEditDay] = useState<{
+    date: string
+    label: string
+    intervals: Interval[]
+    isWeekKey: boolean   // true = editando padrão da semana, false = override de data específica
+    weekKey?: string
+  } | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -39,7 +58,7 @@ export default function DisponibilidadePage() {
         .eq('studio_id', profile.studio_id)
         .single()
       if (settings) {
-        setWorkingHours((settings.working_hours as Record<string, { is_open: boolean; open: string; close: string }>) || {})
+        setWorkingHours((settings.working_hours as WorkingHours) || {})
         setBlockedDates(settings.blocked_dates || [])
       }
       setLoading(false)
@@ -47,21 +66,23 @@ export default function DisponibilidadePage() {
     load()
   }, [])
 
-  const [toastType, setToastType] = useState<'ok'|'err'>('ok')
-  function showToast(msg: string, type: 'ok'|'err' = 'ok') { setToast(msg); setToastType(type); setTimeout(() => setToast(''), 2500) }
+  function showToast(msg: string, type: 'ok'|'err' = 'ok') {
+    setToast(msg); setToastType(type)
+    setTimeout(() => setToast(''), 2500)
+  }
 
-  async function persist(updates: Record<string, any>) {
+  async function persist(updates: Record<string, unknown>) {
     setSaving(true)
     const sb = createClient()
-    const { error } = await sb.from('salon_settings').update({ ...updates, updated_at: new Date().toISOString() }).eq('studio_id', studioId)
+    const { error } = await sb.from('salon_settings')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('studio_id', studioId)
     setSaving(false)
     if (error) {
-      showToast('Erro ao salvar. Tente novamente.')
-      console.error('persist error:', error.message)
-      // Re-fetch to revert local state
+      showToast('Erro ao salvar.', 'err')
       const { data } = await sb.from('salon_settings').select('working_hours, blocked_dates').eq('studio_id', studioId).single()
       if (data) {
-        setWorkingHours((data.working_hours as Record<string, { is_open: boolean; open: string; close: string }>) || {})
+        setWorkingHours((data.working_hours as WorkingHours) || {})
         setBlockedDates(data.blocked_dates || [])
       }
       return false
@@ -78,22 +99,58 @@ export default function DisponibilidadePage() {
   }
 
   async function toggleBlockDate(date: string) {
-    const next = blockedDates.includes(date) ? blockedDates.filter(d => d !== date) : [...blockedDates, date]
+    const next = blockedDates.includes(date)
+      ? blockedDates.filter(d => d !== date)
+      : [...blockedDates, date]
     setBlockedDates(next)
     await persist({ blocked_dates: next })
   }
 
+  function openEditDay(date: string, label: string, dayKey: string) {
+    const dateOverride = workingHours[date]
+    const weekConfig   = workingHours[dayKey] || { is_open: false, open: '09:00', close: '18:00' }
+    const base         = dateOverride || weekConfig
+    setEditDay({
+      date,
+      label,
+      intervals: intervalsOf(base),
+      isWeekKey: false,
+      weekKey: dayKey,
+    })
+  }
+
+  function openEditWeekDay(key: string, label: string) {
+    const cfg = workingHours[key] || { is_open: true, open: '09:00', close: '18:00' }
+    setEditDay({
+      date: key,
+      label,
+      intervals: intervalsOf(cfg),
+      isWeekKey: true,
+    })
+  }
+
   async function saveEditDay() {
     if (!editDay) return
-    const cur = workingHours[editDay.date] || {}
-    const next = { ...workingHours, [editDay.date]: { ...cur, is_open: true, open: editDay.open, close: editDay.close } }
+    const intervals = editDay.intervals.filter(iv => iv.open && iv.close)
+    if (intervals.length === 0) return
+
+    // Simplified: use first interval as open/close for backwards compat + store all in intervals
+    const first = intervals[0]
+    const update: DayConfig = {
+      is_open: true,
+      open: first.open,
+      close: intervals[intervals.length - 1].close,
+      intervals,
+    }
+    const next = { ...workingHours, [editDay.date]: update }
     setWorkingHours(next)
     await persist({ working_hours: next })
     setEditDay(null)
   }
 
+  // Calendar grid
   const today = new Date(); today.setHours(12, 0, 0, 0)
-  const dow = today.getDay() === 0 ? 7 : today.getDay()
+  const dow    = today.getDay() === 0 ? 7 : today.getDay()
   const monday = addDays(today, -(dow - 1) + weekOffset * 14)
 
   const days = []
@@ -104,6 +161,7 @@ export default function DisponibilidadePage() {
     days.push({
       date, dayKey: DAYS_KEYS[d.getDay()],
       label: DAYS_SHORT[d.getDay()],
+      fullLabel: `${DAYS_SHORT[d.getDay()]} ${d.getDate()}/${d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}`,
       dayNum: d.getDate(),
       month: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''),
       isToday: date === ymd(today),
@@ -128,45 +186,73 @@ export default function DisponibilidadePage() {
         <div>
           <p style={{ margin: '0 0 6px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>Controle</p>
           <h1 style={{ margin: 0, color: C.text, fontSize: 24, fontWeight: 900 }}>Disponibilidade</h1>
-          <p style={{ color: C.muted, fontSize: 12, margin: '5px 0 0' }}>Controle quais dias e horários aparecem para as clientes agendarem.</p>
+          <p style={{ color: C.muted, fontSize: 12, margin: '5px 0 0' }}>Defina os dias e horários disponíveis para agendamento.</p>
         </div>
         {saving && <span style={{ color: C.muted, fontSize: 12 }}>Salvando...</span>}
       </header>
 
-      {/* Dias padrão da semana */}
+      {/* ── Padrão semanal ── */}
       <section style={{ background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, padding: 20 }}>
-        <p style={{ margin: '0 0 14px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Dias de atendimento padrão</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 10 }}>
+        <p style={{ margin: '0 0 14px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
+          Horários padrão por dia da semana
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 10 }}>
           {DAYS_KEYS.slice(1, 7).map((key, i) => {
-            const config = workingHours[key] || { is_open: false, open: '09:00', close: '18:00' }
+            const cfg       = workingHours[key] || { is_open: false, open: '09:00', close: '18:00' }
+            const ivs       = intervalsOf(cfg)
+            const label     = DAYS_FULL[i + 1]
             return (
-              <button key={key} onClick={() => toggleWeekDay(key)} style={{
-                padding: '14px 8px', borderRadius: 14,
-                border: `1.5px solid ${config.is_open ? C.purple : C.border}`,
-                background: config.is_open ? `${C.purple}18` : C.card2,
-                cursor: 'pointer', fontFamily: 'inherit',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                transition: 'all .15s',
+              <div key={key} style={{
+                borderRadius: 14,
+                border: `1.5px solid ${cfg.is_open ? C.purple : C.border}`,
+                background: cfg.is_open ? `${C.purple}12` : C.card2,
+                padding: '12px 10px',
+                display: 'flex', flexDirection: 'column', gap: 6,
               }}>
-                <div style={{ width: 30, height: 30, borderRadius: '50%', background: config.is_open ? C.purple : 'rgba(255,255,255,0.06)', display: 'grid', placeItems: 'center' }}>
-                  {config.is_open ? <Check size={15} color="#fff" /> : <X size={13} color={C.muted} />}
+                {/* toggle on/off */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ color: cfg.is_open ? C.text : C.muted, fontSize: 12, fontWeight: 700 }}>{label.slice(0,3)}</span>
+                  <button onClick={() => toggleWeekDay(key)} style={{
+                    width: 26, height: 26, borderRadius: '50%',
+                    background: cfg.is_open ? C.purple : 'rgba(255,255,255,0.06)',
+                    border: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center',
+                  }}>
+                    {cfg.is_open ? <Check size={13} color="#fff" /> : <X size={11} color={C.muted} />}
+                  </button>
                 </div>
-                <span style={{ color: config.is_open ? C.text : C.muted, fontSize: 12, fontWeight: 700 }}>{DAYS_FULL[i + 1].slice(0,3)}</span>
-                {config.is_open && (
-                  <span style={{ color: C.muted, fontSize: 10 }}>{config.open}–{config.close}</span>
+
+                {/* intervals */}
+                {cfg.is_open && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {ivs.map((iv, idx) => (
+                      <span key={idx} style={{ color: C.purple, fontSize: 10, fontWeight: 600 }}>
+                        {iv.open} – {iv.close}
+                      </span>
+                    ))}
+                  </div>
                 )}
-              </button>
+                {!cfg.is_open && (
+                  <span style={{ color: C.muted, fontSize: 10 }}>Fechado</span>
+                )}
+
+                {/* edit button */}
+                <button onClick={() => openEditWeekDay(key, label)} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                  padding: '5px 0', borderRadius: 8,
+                  border: `1px solid ${C.border}`, background: 'transparent',
+                  cursor: 'pointer', color: C.muted, fontSize: 10, fontFamily: 'inherit',
+                }}>
+                  <Clock size={10} /> Horários
+                </button>
+              </div>
             )
           })}
         </div>
-        <p style={{ margin: '12px 0 0', color: C.muted, fontSize: 11 }}>
-          * Horários de abertura/fechamento em <strong style={{ color: C.text }}>Configurações → Horários</strong>
-        </p>
       </section>
 
-      {/* Grade 2 semanas */}
+      {/* ── Grade 2 semanas ── */}
       <section style={{ background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, padding: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
             <p style={{ margin: '0 0 4px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Próximas 2 semanas</p>
             <p style={{ margin: 0, color: C.muted, fontSize: 12 }}>{rangeLabel}</p>
@@ -184,45 +270,36 @@ export default function DisponibilidadePage() {
         </div>
 
         {/* Legenda */}
-        <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 14, marginBottom: 14, flexWrap: 'wrap' }}>
           {[
-            { color: C.purple, label: 'Aberto' },
+            { color: C.purple, label: 'Override ativo' },
             { color: C.red, label: 'Bloqueado' },
-            { color: 'rgba(255,255,255,0.06)', label: 'Fechado' },
+            { color: 'rgba(255,255,255,0.06)', label: 'Padrão / Fechado' },
           ].map(({ color, label }) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 10, height: 10, borderRadius: 3, background: color, border: `1px solid ${color}` }} />
+              <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />
               <span style={{ color: C.muted, fontSize: 11 }}>{label}</span>
             </div>
           ))}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Lock size={10} color={C.muted} />
-            <span style={{ color: C.muted, fontSize: 11 }}>= bloquear dia</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Clock size={10} color={C.muted} />
-            <span style={{ color: C.muted, fontSize: 11 }}>= ajustar horário</span>
-          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8 }}>
           {days.map(day => {
-            // Prioridade: override de data específica > configuração da semana
             const dateOverride = workingHours[day.date]
-            const weekConfig = workingHours[day.dayKey] || { is_open: false, open: '09:00', close: '18:00' }
-            const config = dateOverride || weekConfig
-            const isBlocked = blockedDates.includes(day.date)
-            const isReleased = !!dateOverride?.is_open
-            const isOpen = isReleased && !isBlocked
-            const hasOverride = !!dateOverride
+            const weekConfig   = workingHours[day.dayKey] || { is_open: false, open: '09:00', close: '18:00' }
+            const config       = dateOverride || weekConfig
+            const isBlocked    = blockedDates.includes(day.date)
+            const hasOverride  = !!dateOverride
+            const isOpen       = (hasOverride ? dateOverride!.is_open : weekConfig.is_open) && !isBlocked
+            const ivs          = intervalsOf(config)
 
             return (
               <div key={day.date} style={{
                 borderRadius: 12,
-                border: `1.5px solid ${isBlocked ? `${C.red}55` : isOpen ? `${C.purple}55` : C.border}`,
-                background: day.isToday ? `${C.purple}20` : isBlocked ? `${C.red}10` : isOpen ? `${C.purple}10` : C.card2,
-                padding: '12px 10px',
-                display: 'flex', flexDirection: 'column', gap: 5,
+                border: `1.5px solid ${isBlocked ? `${C.red}55` : hasOverride ? `${C.purple}70` : C.border}`,
+                background: day.isToday ? `${C.purple}20` : isBlocked ? `${C.red}10` : hasOverride ? `${C.purple}12` : C.card2,
+                padding: '10px 8px',
+                display: 'flex', flexDirection: 'column', gap: 4,
                 opacity: day.isPast ? 0.4 : 1,
                 outline: day.isToday ? `2px solid ${C.purple}88` : 'none',
                 outlineOffset: 2,
@@ -230,26 +307,31 @@ export default function DisponibilidadePage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ color: C.muted, fontSize: 10, fontWeight: 700 }}>{day.label}</span>
                   {day.isToday && <span style={{ background: C.purple, color: '#fff', fontSize: 8, fontWeight: 700, padding: '2px 5px', borderRadius: 999 }}>HOJE</span>}
-                  {hasOverride && !day.isToday && <span style={{ color: C.yellow, fontSize: 8, fontWeight: 700 }}>✦</span>}
+                  {hasOverride && !day.isToday && <span style={{ color: C.yellow, fontSize: 9 }}>✦</span>}
                 </div>
 
                 <span style={{ color: isBlocked ? C.red : isOpen ? C.text : C.muted, fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{day.dayNum}</span>
                 <span style={{ color: C.muted, fontSize: 10 }}>{day.month}</span>
 
-                {isOpen && <span style={{ color: C.purple, fontSize: 10, fontWeight: 700 }}>{config.open}–{config.close}</span>}
+                {/* Intervals */}
+                {isOpen && ivs.map((iv, idx) => (
+                  <span key={idx} style={{ color: C.purple, fontSize: 9, fontWeight: 700 }}>{iv.open}–{iv.close}</span>
+                ))}
                 {isBlocked && <span style={{ color: C.red, fontSize: 10, fontWeight: 700 }}>Bloqueado</span>}
-                {!isOpen && !isBlocked && <span style={{ color: C.muted, fontSize: 10 }}>Não liberado</span>}
+                {!isOpen && !isBlocked && <span style={{ color: C.muted, fontSize: 10 }}>
+                  {weekConfig.is_open ? 'Padrão' : 'Fechado'}
+                </span>}
 
                 {!day.isPast && (
-                  <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+                  <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>
                     <button onClick={() => toggleBlockDate(day.date)} title={isBlocked ? 'Desbloquear' : 'Bloquear dia'}
-                      style={{ flex: 1, height: 26, borderRadius: 7, border: `1px solid ${isBlocked ? C.red : C.border}`, background: isBlocked ? `${C.red}22` : 'transparent', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
-                      {isBlocked ? <Unlock size={11} color={C.red} /> : <Lock size={11} color={C.muted} />}
+                      style={{ flex: 1, height: 24, borderRadius: 7, border: `1px solid ${isBlocked ? C.red : C.border}`, background: isBlocked ? `${C.red}22` : 'transparent', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+                      {isBlocked ? <Unlock size={10} color={C.red} /> : <Lock size={10} color={C.muted} />}
                     </button>
-                    <button onClick={() => setEditDay({ date: day.date, label: `${day.label} ${day.dayNum}/${day.month}`, open: config.open || '09:00', close: config.close || '18:00' })}
-                      title="Liberar ou ajustar horário deste dia"
-                      style={{ flex: 1, height: 26, borderRadius: 7, border: `1px solid ${C.border}`, background: 'transparent', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
-                      <Clock size={11} color={C.muted} />
+                    <button onClick={() => openEditDay(day.date, day.fullLabel, day.dayKey)}
+                      title="Definir horários específicos para este dia"
+                      style={{ flex: 1, height: 24, borderRadius: 7, border: `1px solid ${hasOverride ? C.purple : C.border}`, background: hasOverride ? `${C.purple}18` : 'transparent', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+                      <Clock size={10} color={hasOverride ? C.purple : C.muted} />
                     </button>
                   </div>
                 )}
@@ -259,30 +341,97 @@ export default function DisponibilidadePage() {
         </div>
       </section>
 
-      {/* Modal horário específico */}
+      {/* ── Modal de intervalos de horário ── */}
       {editDay && (
         <div onClick={e => e.target === e.currentTarget && setEditDay(null)}
-          style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.65)', display: 'grid', placeItems: 'center', padding: 18 }}>
-          <div style={{ width: '100%', maxWidth: 380, borderRadius: 18, background: C.card, border: `1px solid ${C.border2}`, padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', padding: 18 }}>
+          <div style={{ width: '100%', maxWidth: 420, borderRadius: 20, background: C.card, border: `1px solid ${C.border2}`, padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+            {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <strong style={{ color: C.text, fontSize: 15 }}>Horário — {editDay.label}</strong>
-              <button onClick={() => setEditDay(null)} style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', cursor: 'pointer', color: C.muted, fontFamily: 'inherit' }}>×</button>
+              <div>
+                <strong style={{ color: C.text, fontSize: 16 }}>
+                  {editDay.isWeekKey ? `Padrão — ${editDay.label}` : `Override — ${editDay.label}`}
+                </strong>
+                <p style={{ margin: '3px 0 0', color: C.muted, fontSize: 11 }}>
+                  {editDay.isWeekKey
+                    ? 'Horários padrão para todas as semanas'
+                    : 'Sobrepõe o padrão apenas neste dia'}
+                </p>
+              </div>
+              <button onClick={() => setEditDay(null)} style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', cursor: 'pointer', color: C.muted, fontFamily: 'inherit', fontSize: 16 }}>×</button>
             </div>
-            <p style={{ margin: 0, color: C.muted, fontSize: 12 }}>Define um horário específico pra esse dia, sobrepõe o padrão da semana.</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              {(['open','close'] as const).map((field, fi) => (
-                <div key={field}>
-                  <label style={{ color: C.muted, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', display: 'block', marginBottom: 6 }}>{fi === 0 ? 'Abre' : 'Fecha'}</label>
-                  <input type="time" value={editDay[field]}
-                    onChange={e => setEditDay(d => d ? { ...d, [field]: e.target.value } : d)}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border2}`, background: C.card2, color: C.text, fontFamily: 'inherit', fontSize: 14, boxSizing: 'border-box' }} />
+
+            {/* Intervals */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ color: C.muted, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                  Intervalos de atendimento
+                </span>
+                <button
+                  onClick={() => setEditDay(d => d ? { ...d, intervals: [...d.intervals, { open: '09:00', close: '12:00' }] } : d)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: `1px solid ${C.purple}40`, background: `${C.purple}12`, color: C.purple, cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit' }}>
+                  <Plus size={11} /> Adicionar horário
+                </button>
+              </div>
+
+              {editDay.intervals.map((iv, idx) => (
+                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 10, alignItems: 'end' }}>
+                  <div>
+                    <label style={{ color: C.muted, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', display: 'block', marginBottom: 5 }}>
+                      Início {editDay.intervals.length > 1 ? `#${idx + 1}` : ''}
+                    </label>
+                    <input type="time" value={iv.open}
+                      onChange={e => setEditDay(d => {
+                        if (!d) return d
+                        const ivs = [...d.intervals]
+                        ivs[idx] = { ...ivs[idx], open: e.target.value }
+                        return { ...d, intervals: ivs }
+                      })}
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border2}`, background: C.card2, color: C.text, fontFamily: 'inherit', fontSize: 14, boxSizing: 'border-box' as const }} />
+                  </div>
+                  <div>
+                    <label style={{ color: C.muted, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', display: 'block', marginBottom: 5 }}>Fim</label>
+                    <input type="time" value={iv.close}
+                      onChange={e => setEditDay(d => {
+                        if (!d) return d
+                        const ivs = [...d.intervals]
+                        ivs[idx] = { ...ivs[idx], close: e.target.value }
+                        return { ...d, intervals: ivs }
+                      })}
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border2}`, background: C.card2, color: C.text, fontFamily: 'inherit', fontSize: 14, boxSizing: 'border-box' as const }} />
+                  </div>
+                  {editDay.intervals.length > 1 && (
+                    <button onClick={() => setEditDay(d => d ? { ...d, intervals: d.intervals.filter((_, i) => i !== idx) } : d)}
+                      style={{ width: 36, height: 42, borderRadius: 10, border: `1px solid ${C.red}30`, background: `${C.red}10`, cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+                      <Trash2 size={13} color={C.red} />
+                    </button>
+                  )}
                 </div>
               ))}
+
+              {/* Preview */}
+              {editDay.intervals.length > 0 && (
+                <div style={{ padding: '10px 14px', borderRadius: 10, background: `${C.purple}10`, border: `1px solid ${C.purple}25` }}>
+                  <p style={{ margin: '0 0 4px', fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em' }}>Preview</p>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {editDay.intervals.map((iv, idx) => (
+                      <span key={idx} style={{ fontSize: 13, fontWeight: 700, color: C.purple }}>
+                        {iv.open} → {iv.close}
+                        {idx < editDay.intervals.length - 1 && <span style={{ color: C.muted, marginLeft: 8 }}>·</span>}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button onClick={() => setEditDay(null)} style={{ padding: '9px 18px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>Cancelar</button>
+              <button onClick={() => setEditDay(null)} style={{ padding: '10px 20px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>
+                Cancelar
+              </button>
               <button onClick={saveEditDay} disabled={saving}
-                style={{ padding: '9px 18px', borderRadius: 10, border: 'none', background: C.purple, color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: C.purple, color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, opacity: saving ? 0.7 : 1 }}>
                 {saving ? 'Salvando...' : 'Salvar'}
               </button>
             </div>
