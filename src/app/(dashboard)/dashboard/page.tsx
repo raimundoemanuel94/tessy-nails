@@ -164,18 +164,29 @@ export default function DashboardPage() {
             {now.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
           </p>
         </div>
-        {!loading && pendingAll.length > 0 && (
-          <div style={{
-            display:"flex",alignItems:"center",gap:8,
-            background:`${amb}12`,border:`1px solid ${amb}30`,
-            borderRadius:12,padding:"10px 16px",
+        <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+          {!loading && pendingAll.length > 0 && (
+            <div style={{
+              display:"flex",alignItems:"center",gap:8,
+              background:`${amb}12`,border:`1px solid ${amb}30`,
+              borderRadius:12,padding:"10px 16px",
+            }}>
+              <div style={{width:7,height:7,borderRadius:"50%",background:amb,animation:"blink 1.4s ease-in-out infinite"}}/>
+              <span style={{fontSize:13,color:amb,fontWeight:700}}>
+                {pendingAll.length} pendente{pendingAll.length!==1?"s":""}
+              </span>
+            </div>
+          )}
+          <Link href="/agendamentos" style={{
+            display:"inline-flex",alignItems:"center",gap:6,
+            padding:"10px 16px",borderRadius:12,
+            background:`${purp}18`,border:`1px solid ${purp}30`,
+            color:purp,textDecoration:"none",fontSize:12,fontWeight:800,
+            whiteSpace:"nowrap",
           }}>
-            <div style={{width:7,height:7,borderRadius:"50%",background:amb,animation:"blink 1.4s ease-in-out infinite"}}/>
-            <span style={{fontSize:13,color:amb,fontWeight:700}}>
-              {pendingAll.length} pendente{pendingAll.length!==1?"s":""} aguardando
-            </span>
-          </div>
-        )}
+            + Novo agendamento
+          </Link>
+        </div>
       </div>
 
       {/* ── KPI GRID ────────────────────────────────────────────────────────── */}

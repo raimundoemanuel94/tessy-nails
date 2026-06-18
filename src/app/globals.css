@@ -2547,3 +2547,45 @@ nextjs-portal {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   TRANSIÇÕES DE PÁGINA E SCROLL
+   ═══════════════════════════════════════════════════════ */
+
+/* Scrollbar customizada — dark elegante */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(167,139,250,.25); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(167,139,250,.45); }
+
+/* Animação de entrada das páginas do painel */
+.studio-page {
+  animation: pageIn .2s ease-out;
+}
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Cards com hover suave */
+.studio-service-card,
+.studio-report-kpi,
+.studio-report-panel {
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease !important;
+}
+.studio-service-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,.25) !important;
+}
+
+/* Botões do painel — feedback tátil */
+.studio-primary-action,
+button.studio-primary-action {
+  transition: opacity .15s, transform .1s !important;
+}
+.studio-primary-action:active { transform: scale(.97) !important; }
+
+/* Filter pills — transição de cor */
+.studio-filter-pill {
+  transition: background .15s, color .15s, border-color .15s;
+}
