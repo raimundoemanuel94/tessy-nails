@@ -168,7 +168,7 @@ export default function ServicosPage() {
       </header>
 
       {/* Filtros por categoria */}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', width: '100%' }}>
         {Object.entries(CAT_LABELS).map(([key, label]) => (
           <button key={key} onClick={() => setCatFilter(key)} style={{
             padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 700, cursor: 'pointer',

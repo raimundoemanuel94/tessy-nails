@@ -323,19 +323,18 @@ export default function DisponibilidadePage() {
         </div>
       )}
 
-      <header style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-        <div>
-          <p style={{ margin: '0 0 6px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>Controle</p>
-          <h1 style={{ margin: 0, color: C.text, fontSize: 24, fontWeight: 900 }}>Disponibilidade</h1>
-          <p style={{ color: C.muted, fontSize: 12, margin: '5px 0 0' }}>Defina os dias e horários disponíveis para agendamento.</p>
+      <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <p style={{ margin: '0 0 4px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>Controle</p>
+          <h1 style={{ margin: 0, color: C.text, fontSize: 22, fontWeight: 900 }}>Disponibilidade</h1>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          {saving && <span style={{ color: C.muted, fontSize: 12 }}>Salvando...</span>}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+          {saving && <span style={{ color: C.muted, fontSize: 11 }}>Salvando...</span>}
           <button
             onClick={() => { setShareDate(ymd(today)); setShareSlot(null) }}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 10, border: `1px solid ${C.purple}40`, background: `${C.purple}15`, color: C.purple, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: `1px solid ${C.purple}40`, background: `${C.purple}15`, color: C.purple, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}
           >
-            📤 Gerar link avulso
+            📤 Link avulso
           </button>
         </div>
       </header>
@@ -345,7 +344,7 @@ export default function DisponibilidadePage() {
         <p style={{ margin: '0 0 14px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
           Horários padrão por dia da semana
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 10 }}>
           {DAYS_KEYS.slice(1, 7).map((key, i) => {
             const cfg       = workingHours[key] || { is_open: false, open: '09:00', close: '18:00' }
             const ivs       = intervalsOf(cfg)
@@ -432,7 +431,7 @@ export default function DisponibilidadePage() {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(82px, 1fr))', gap: 8 }}>
           {days.map(day => {
             const dateOverride = workingHours[day.date]
             const weekConfig   = workingHours[day.dayKey] || { is_open: false, open: '09:00', close: '18:00' }
@@ -494,7 +493,7 @@ export default function DisponibilidadePage() {
       {shareDate !== '' && shareSlot === null && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', padding: 18 }}
           onClick={e => e.target === e.currentTarget && setShareDate('')}>
-          <div style={{ width: '100%', maxWidth: 400, borderRadius: 20, background: C.card, border: `1px solid ${C.border2}`, padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div style={{ width: '100%', maxWidth: 400, borderRadius: 20, background: C.card, border: `1px solid ${C.border2}`, padding: 'clamp(14px, 4vw, 24px)', display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <strong style={{ color: C.text, fontSize: 16 }}>📤 Link de horário avulso</strong>
@@ -552,7 +551,7 @@ export default function DisponibilidadePage() {
       {editDay && (
         <div onClick={e => e.target === e.currentTarget && setEditDay(null)}
           style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', padding: 18 }}>
-          <div style={{ width: '100%', maxWidth: 420, borderRadius: 20, background: C.card, border: `1px solid ${C.border2}`, padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div style={{ width: '100%', maxWidth: 420, borderRadius: 20, background: C.card, border: `1px solid ${C.border2}`, padding: 'clamp(14px, 4vw, 24px)', display: 'flex', flexDirection: 'column', gap: 18 }}>
 
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -583,7 +582,7 @@ export default function DisponibilidadePage() {
               </div>
 
               {editDay.intervals.map((iv, idx) => (
-                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 10, alignItems: 'end' }}>
+                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8, alignItems: 'end', minWidth: 0 }}>
                   <div>
                     <label style={{ color: C.muted, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', display: 'block', marginBottom: 5 }}>
                       Início {editDay.intervals.length > 1 ? `#${idx + 1}` : ''}

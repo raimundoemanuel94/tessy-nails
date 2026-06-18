@@ -2589,3 +2589,119 @@ button.studio-primary-action {
 .studio-filter-pill {
   transition: background .15s, color .15s, border-color .15s;
 }
+
+/* ═══════════════════════════════════════════════════════
+   CORREÇÕES MOBILE CIRÚRGICAS — painel salão
+   ═══════════════════════════════════════════════════════ */
+
+/* Dashboard: 2 colunas → 1 coluna no mobile */
+@media (max-width: 768px) {
+  .dash-two-col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* KPI cards: no mínimo 2 por linha */
+  .dash-main [style*="repeat(auto-fill, minmax(140px"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Textos que estouram */
+  .dash-main * {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Botões que saem da tela */
+  .dash-main button, .dash-main a {
+    max-width: 100%;
+    white-space: normal !important;
+  }
+
+  /* Exceção: badges e pills — mantém nowrap */
+  .dash-main [style*="borderRadius: 999"],
+  .dash-main [style*="borderRadius:999"],
+  .dash-main [style*="border-radius: 999px"] {
+    white-space: nowrap !important;
+  }
+
+  /* Modais — full width com padding seguro */
+  .dash-main [style*="maxWidth: 480"],
+  .dash-main [style*="maxWidth: 520"],
+  .dash-main [style*="maxWidth: 420"],
+  .dash-main [style*="maxWidth: 400"],
+  .dash-main [style*="maxWidth: 380"] {
+    max-width: calc(100vw - 28px) !important;
+    padding: 16px !important;
+  }
+
+  /* Calendário semanal — scroll horizontal */
+  .dash-main [style*="repeat(7,"] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Próximo horário card — empilha */
+  .dash-main [style*="auto minmax(0,1fr) auto"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Agendamentos: filtros em coluna */
+  .dash-main [style*="minmax(220px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Disponibilidade: grid de dias menor */
+  .dash-main [style*="minmax(110px"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .dash-main [style*="minmax(100px"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .dash-main [style*="minmax(82px"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .dash-main [style*="minmax(90px"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* Relatorios: grid 2+ colunas → 1 */
+  .dash-main [style*="gridTemplateColumns: '1fr 1fr'"],
+  .dash-main [style*='gridTemplateColumns: "1fr 1fr"'] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Headers de página — coluna */
+  .dash-main header[style*="justify-content: space-between"],
+  .dash-main header[style*="justifyContent:"space-between""],
+  .dash-main header[style*="justifyContent: "space-between""] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  /* Clientes: cards sem overflow */
+  .dash-main article {
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+}
+
+/* Extra pequeno: 420px */
+@media (max-width: 420px) {
+  .dash-main {
+    padding-left: max(10px, env(safe-area-inset-left, 10px)) !important;
+    padding-right: max(10px, env(safe-area-inset-right, 10px)) !important;
+  }
+
+  /* KPI: 1 por linha em telas muito pequenas */
+  .dash-main [style*="repeat(auto-fill, minmax(140px"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Disponibilidade: 2 por linha */
+  .dash-main [style*="minmax(82px"],
+  .dash-main [style*="minmax(90px"],
+  .dash-main [style*="minmax(100px"],
+  .dash-main [style*="minmax(110px"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}

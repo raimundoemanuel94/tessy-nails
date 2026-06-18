@@ -393,8 +393,8 @@ export default function AgendamentosPage() {
       </header>
 
       <section style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(220px, 1fr) repeat(5, auto)',
+        display: 'flex',
+        flexWrap: 'wrap',
         gap: 8,
         alignItems: 'center',
       }}>

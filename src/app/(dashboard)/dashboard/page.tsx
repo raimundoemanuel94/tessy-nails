@@ -148,7 +148,7 @@ export default function DashboardPage() {
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:24,maxWidth:1400}}>
+    <div style={{display:"flex",flexDirection:"column",gap:20,maxWidth:1400,minWidth:0,overflow:"hidden"}}>
 
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -190,7 +190,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── KPI GRID ────────────────────────────────────────────────────────── */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:12}}>
         <KpiCard loading={loading} icon={Calendar}   color={purp} gradient={purp}
           label="Hoje"          value={loading?"—":todayApts.length}
           sub={`${pendingAll.length} pendente${pendingAll.length!==1?"s":""}`}/>
@@ -208,7 +208,7 @@ export default function DashboardPage() {
       {/* ── CONTENT GRID ────────────────────────────────────────────────────── */}
       {!loading && nextApt && (
         <div style={{
-          display:"grid",gridTemplateColumns:"auto minmax(0,1fr) auto",gap:16,
+          display:"flex",flexWrap:"wrap",gap:14,
           alignItems:"center",padding:"16px 18px",borderRadius:18,
           background:`linear-gradient(135deg, ${grn}14, rgba(167,139,250,0.06))`,
           border:`1px solid ${grn}30`,
@@ -252,7 +252,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1.6fr",gap:18,alignItems:"start"}}>
+      <div className="dash-two-col" style={{display:"grid",gridTemplateColumns:"1fr 1.6fr",gap:18,alignItems:"start"}}>
 
         {/* AGENDA DO DIA */}
         <div style={{
