@@ -1,10 +1,10 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import type React from 'react'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { CheckCircle2, Search, XCircle } from 'lucide-react'
+import { CalendarDays, CheckCircle2, Clock3, Search, XCircle } from 'lucide-react'
 import { BOOKING_TIME_ZONE } from '@/lib/time'
 
 type Appointment = {
@@ -44,11 +44,37 @@ function formatDateTime(value: string) {
   }).format(new Date(value))
 }
 
+function formatAppointmentDay(value: string) {
+  return new Intl.DateTimeFormat('pt-BR', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    timeZone: BOOKING_TIME_ZONE,
+  }).format(new Date(value)).replace('.', '')
+}
+
+function formatAppointmentTime(value: string) {
+  return new Intl.DateTimeFormat('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: BOOKING_TIME_ZONE,
+  }).format(new Date(value))
+}
+
+function formatPhoneDisplay(value: string) {
+  const digits = normalizePhone(value)
+  if (digits.length < 10) return value
+  const ddd = digits.slice(0, 2)
+  const first = digits.length === 11 ? digits.slice(2, 7) : digits.slice(2, 6)
+  const last = digits.length === 11 ? digits.slice(7, 11) : digits.slice(6, 10)
+  return `(${ddd}) ${first}-${last}`
+}
+
 function formatStatus(status: string) {
   const map: Record<string, string> = {
     confirmed: 'Confirmado',
-    pending: 'Aguardando confirmação',
-    completed: 'Concluído',
+    pending: 'Aguardando confirmacao',
+    completed: 'Concluido',
     cancelled: 'Cancelado',
     canceled: 'Cancelado',
     no_show: 'Falta registrada',
@@ -88,7 +114,7 @@ function ConsultarAgendamentoContent() {
 
   async function loadByPhone(nextPhone = phone) {
     if (!slug) {
-      setError('Link inválido. Acesse a página de agendamento e clique em "Ver meus agendamentos".')
+      setError('Link invalido. Acesse a pagina de agendamento e clique em "Ver meus agendamentos".')
       return
     }
     const cleanPhone = normalizePhone(nextPhone)
@@ -107,15 +133,15 @@ function ConsultarAgendamentoContent() {
         cache: 'no-store',
       })
       const data = await response.json().catch(() => null)
-      if (!response.ok) throw new Error(data?.error || 'Não foi possível consultar seus agendamentos.')
+      if (!response.ok) throw new Error(data?.error || 'Nao foi possivel consultar seus agendamentos.')
 
       setStudio(data?.studio ?? null)
       setAppointments(Array.isArray(data?.appointments) ? data.appointments : [])
       router.replace(`/cliente/agendar/consultar?slug=${encodeURIComponent(slug)}&phone=${encodeURIComponent(cleanPhone)}`, { scroll: false })
-      if (!data?.appointments?.length) setMessage('Nenhum agendamento encontrado para este WhatsApp.')
+      if (!data?.appointments?.length) setMessage('Nenhum horario encontrado.')
     } catch (err) {
       setAppointments([])
-      setError(err instanceof Error ? err.message : 'Não foi possível consultar seus agendamentos.')
+      setError(err instanceof Error ? err.message : 'Nao foi possivel consultar seus agendamentos.')
     } finally {
       setLoading(false)
     }
@@ -124,21 +150,28 @@ function ConsultarAgendamentoContent() {
   async function loadByCode(id: string) {
     const appointmentId = id.trim().replace(/^#/, '')
     if (!appointmentId) return
+    const cleanPhone = normalizePhone(phone)
+    if (cleanPhone.length < 10) {
+      setAppointments([])
+      setMessage('')
+      setError('Informe o WhatsApp usado no agendamento antes de consultar pelo codigo.')
+      return
+    }
 
     setLoading(true)
     setError('')
     setMessage('')
 
     try {
-      const response = await fetch(`/api/public/appointments/${encodeURIComponent(appointmentId)}`, { cache: 'no-store' })
+      const response = await fetch(`/api/public/appointments/${encodeURIComponent(appointmentId)}?phone=${encodeURIComponent(cleanPhone)}`, { cache: 'no-store' })
       const data = await response.json().catch(() => null)
-      if (!response.ok) throw new Error(data?.error || 'Não encontramos esse agendamento.')
+      if (!response.ok) throw new Error(data?.error || 'Nao encontramos esse agendamento.')
 
       setStudio(data?.studio ?? null)
       setAppointments(data?.appointment ? [data.appointment] : [])
     } catch (err) {
       setAppointments([])
-      setError(err instanceof Error ? err.message : 'Não foi possível consultar o agendamento.')
+      setError(err instanceof Error ? err.message : 'Nao foi possivel consultar o agendamento.')
     } finally {
       setLoading(false)
     }
@@ -162,13 +195,13 @@ function ConsultarAgendamentoContent() {
         body: JSON.stringify({ action, phone: cleanPhone }),
       })
       const data = await response.json().catch(() => null)
-      if (!response.ok) throw new Error(data?.error || 'Não foi possível atualizar o agendamento.')
+      if (!response.ok) throw new Error(data?.error || 'Nao foi possivel atualizar o agendamento.')
 
       setAppointments((current) => current.map((item) => item.id === appointmentId ? { ...item, status: data.appointment.status } : item))
-      setMessage(action === 'confirm' ? 'Presença confirmada com sucesso.' : 'Agendamento cancelado com sucesso.')
+      setMessage(action === 'confirm' ? 'Presenca confirmada com sucesso.' : 'Agendamento cancelado com sucesso.')
       if (action === 'cancel') setCancelTarget(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Não foi possível atualizar o agendamento.')
+      setError(err instanceof Error ? err.message : 'Nao foi possivel atualizar o agendamento.')
     } finally {
       setActionLoading('')
     }
@@ -185,19 +218,23 @@ function ConsultarAgendamentoContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialId])
 
-  const brand = studio?.brand_color || '#7C5CBF'
+  const brand = studio?.brand_color || '#c71562'
   const bookingLink = studio?.slug ? `/agendar/${studio.slug}` : `/agendar/${slug}`
   const whatsappNumber = (studio?.whatsapp || studio?.phone || '').replace(/\D/g, '')
   const upcomingAppointments = appointments.filter((appointment) => !isHistoryAppointment(appointment))
   const historyAppointments = appointments.filter(isHistoryAppointment)
   const hasAppointments = appointments.length > 0
+  const cleanPhone = normalizePhone(phone)
+  const hasPhone = cleanPhone.length >= 10
+  const emptyMessage = message && !hasAppointments ? message : ''
+  const successMessage = message && (hasAppointments || message !== emptyMessage) ? message : ''
 
   return (
     <main className="client-page" style={{ '--client-brand': brand } as React.CSSProperties}>
       <style>{`
         .client-page {
           min-height: 100vh;
-          background: linear-gradient(180deg, rgba(124,92,191,.10), #fff 260px);
+          background: linear-gradient(180deg, rgba(185,79,120,.10), #fff 260px);
           color: #1a1a1a;
           display: grid;
           place-items: center;
@@ -231,6 +268,102 @@ function ConsultarAgendamentoContent() {
           cursor: pointer;
           font-weight: 800;
           color: #555;
+        }
+        .client-hero {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+        .client-title {
+          margin: 4px 0 0;
+          font-size: 28px;
+          line-height: 1.1;
+        }
+        .client-current-phone {
+          margin: -7px 0 0;
+          padding: 10px 12px;
+          border-radius: 14px;
+          border: 1px solid rgba(185,79,120,.14);
+          background: rgba(185,79,120,.055);
+          color: #7f3b58;
+          font-size: 12.5px;
+          line-height: 1.35;
+        }
+        .client-current-phone strong {
+          color: #361522;
+        }
+        .client-empty {
+          border-radius: 16px;
+          padding: 16px;
+          border: 1px solid rgba(185,79,120,.14);
+          background: linear-gradient(180deg, #fff 0%, rgba(185,79,120,.045) 100%);
+          display: grid;
+          gap: 5px;
+        }
+        .client-empty strong {
+          color: #30111d;
+          font-size: 15px;
+        }
+        .client-empty span {
+          color: #7d6871;
+          font-size: 13px;
+          line-height: 1.45;
+        }
+        .client-card {
+          border-radius: 18px;
+          padding: 16px;
+          border: 1px solid rgba(185,79,120,.16);
+          background: linear-gradient(180deg, #fff 0%, #fff9fb 100%);
+          display: grid;
+          gap: 14px;
+          box-shadow: 0 14px 34px rgba(74,24,45,.07);
+        }
+        .client-card-head {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 14px;
+          align-items: start;
+        }
+        .client-card-date {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          color: #9f3f64;
+          font-size: 12px;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: .08em;
+        }
+        .client-card-title {
+          margin: 7px 0 0;
+          font-size: 20px;
+          line-height: 1.14;
+          color: #1c0b12;
+        }
+        .client-card-meta {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+        }
+        .client-meta-box {
+          border-radius: 14px;
+          padding: 10px;
+          background: #fff;
+          border: 1px solid rgba(0,0,0,.06);
+          display: grid;
+          gap: 3px;
+        }
+        .client-meta-box span {
+          color: #8b727d;
+          font-size: 10.5px;
+          font-weight: 850;
+          text-transform: uppercase;
+          letter-spacing: .08em;
+        }
+        .client-meta-box strong {
+          color: #241019;
+          font-size: 13px;
+          line-height: 1.25;
         }
         .client-actions, .client-footer {
           display: flex;
@@ -281,6 +414,10 @@ function ConsultarAgendamentoContent() {
         @media (max-width: 520px) {
           .client-page { padding: 14px; place-items: start center; }
           .client-shell { padding: 20px; border-radius: 16px; gap: 16px; }
+          .client-hero { align-items: flex-start; }
+          .client-title { font-size: 25px; }
+          .client-card-head { grid-template-columns: 1fr; gap: 10px; }
+          .client-card-meta { grid-template-columns: 1fr; }
           .client-form, .client-code-form { grid-template-columns: 1fr; }
           .client-form button, .client-code-form button { width: 100%; }
           .client-actions, .client-footer { display: grid; grid-template-columns: 1fr; }
@@ -292,7 +429,7 @@ function ConsultarAgendamentoContent() {
       <section className="client-shell">
         <nav style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
           <Link href={bookingLink} style={navButton()}>
-            ← Voltar para agenda
+            Voltar para agenda
           </Link>
           <span style={{
             minHeight: 34,
@@ -305,11 +442,11 @@ function ConsultarAgendamentoContent() {
             fontSize: 12,
             fontWeight: 900,
           }}>
-            Consulta por WhatsApp
+            Acesso da cliente
           </span>
         </nav>
 
-        <header style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <header className="client-hero">
           <div style={{
             width: 50,
             height: 50,
@@ -324,16 +461,22 @@ function ConsultarAgendamentoContent() {
           </div>
           <div>
             <p style={{ margin: 0, color: brand, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>
-              Área da cliente
+              Area da cliente
             </p>
-            <h1 style={{ margin: '4px 0 0', fontSize: 28, lineHeight: 1.1 }}>
+            <h1 className="client-title">
               Meus agendamentos
             </h1>
             <p style={{ margin: '7px 0 0', color: '#777', fontSize: 13, lineHeight: 1.45 }}>
-              Entre com o WhatsApp usado no agendamento para confirmar, cancelar ou consultar seus horários.
+              Entre com o WhatsApp usado no agendamento para consultar, confirmar ou cancelar seus horarios.
             </p>
           </div>
         </header>
+
+        {hasPhone && (
+          <div className="client-current-phone">
+            Consultando agendamentos de <strong>{formatPhoneDisplay(cleanPhone)}</strong>
+          </div>
+        )}
 
         <form
           onSubmit={(event) => {
@@ -350,15 +493,23 @@ function ConsultarAgendamentoContent() {
             style={inputStyle(48)}
           />
           <button disabled={loading} style={primaryButton(brand, loading)}>
-            {loading ? 'Buscando...' : 'Entrar'}
+            {loading ? 'Buscando...' : 'Consultar agendamentos'}
           </button>
         </form>
         <p style={{ margin: '-8px 0 0', color: '#777', fontSize: 12, lineHeight: 1.45 }}>
-          Digite DDD + número, sem espaços, pontos ou parênteses. Exemplo: <strong style={{ color: '#444' }}>66999990000</strong>.
+          Digite DDD + numero, sem espacos, pontos ou parenteses. Exemplo: <strong style={{ color: '#444' }}>66999990000</strong>.
         </p>
 
-        <details className="client-code-box">
-          <summary>Tenho apenas o código do agendamento</summary>
+        <details
+          className="client-code-box"
+          onToggle={(event) => {
+            if (event.currentTarget.open && appointments.length === 0) {
+              setError('')
+              setMessage('')
+            }
+          }}
+        >
+          <summary>Tenho um codigo de agendamento</summary>
           <form
             onSubmit={(event) => {
               event.preventDefault()
@@ -370,7 +521,7 @@ function ConsultarAgendamentoContent() {
             <input
               value={code}
               onChange={(event) => setCode(event.target.value)}
-              placeholder="Código completo"
+              placeholder="Codigo completo"
               style={inputStyle(44)}
             />
             <button disabled={loading} style={secondaryButton()}>
@@ -378,12 +529,18 @@ function ConsultarAgendamentoContent() {
             </button>
           </form>
           <p style={{ margin: '9px 0 0', lineHeight: 1.45 }}>
-            Para alterar ou cancelar, informe também o mesmo WhatsApp usado no agendamento.
+            Para alterar ou cancelar, informe tambem o mesmo WhatsApp usado no agendamento.
           </p>
         </details>
 
         {error && <Notice tone="danger">{error}</Notice>}
-        {message && <Notice tone="success">{message}</Notice>}
+        {emptyMessage && (
+          <div className="client-empty">
+            <strong>{emptyMessage}</strong>
+            <span>Confira se o WhatsApp esta correto ou faca um novo agendamento.</span>
+          </div>
+        )}
+        {successMessage && <Notice tone="success">{successMessage}</Notice>}
 
         {hasAppointments && (
           <Notice tone="neutral">
@@ -392,7 +549,7 @@ function ConsultarAgendamentoContent() {
         )}
 
         {upcomingAppointments.length > 0 && (
-          <AppointmentSection title="Próximos agendamentos" count={upcomingAppointments.length}>
+          <AppointmentSection title="Proximos agendamentos" count={upcomingAppointments.length}>
             {upcomingAppointments.map((appointment) => (
               <AppointmentCard
                 key={appointment.id}
@@ -407,7 +564,7 @@ function ConsultarAgendamentoContent() {
         )}
 
         {historyAppointments.length > 0 && (
-          <AppointmentSection title="Histórico" count={historyAppointments.length}>
+          <AppointmentSection title="Historico" count={historyAppointments.length}>
             {historyAppointments.map((appointment) => (
               <AppointmentCard
                 key={appointment.id}
@@ -427,12 +584,12 @@ function ConsultarAgendamentoContent() {
           </Link>
           {whatsappNumber && (
             <a
-              href={`https://wa.me/55${whatsappNumber}?text=${encodeURIComponent('Olá! Quero falar sobre meu agendamento.')}`}
+              href={`https://wa.me/55${whatsappNumber}?text=${encodeURIComponent('Ola! Quero falar sobre meu agendamento.')}`}
               target="_blank"
               rel="noreferrer"
               style={footerButton(brand, false)}
             >
-              Falar no WhatsApp
+              Preciso de ajuda
             </a>
           )}
         </footer>
@@ -443,14 +600,14 @@ function ConsultarAgendamentoContent() {
           <div className="client-modal">
             <div>
               <p style={{ margin: 0, color: '#b91c1c', fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>
-                Cancelar horário
+                Cancelar horario
               </p>
               <h2 id="cancel-title" style={{ margin: '5px 0 0', fontSize: 22, lineHeight: 1.15 }}>
                 Tem certeza que deseja cancelar?
               </h2>
             </div>
             <p style={{ margin: 0, color: '#666', fontSize: 14, lineHeight: 1.55 }}>
-              {cancelTarget.service_name} em {formatDateTime(cancelTarget.appointment_date)} será removido da sua agenda.
+              {cancelTarget.service_name} em {formatDateTime(cancelTarget.appointment_date)} sera removido da sua agenda.
             </p>
             <div className="client-actions">
               <button
@@ -480,7 +637,7 @@ function AppointmentSection({ title, count, children }: { title: string; count: 
     <section className="client-appointment-section">
       <div className="client-section-title">
         <h2>{title}</h2>
-        <span>{count} {count === 1 ? 'horário' : 'horários'}</span>
+        <span>{count} {count === 1 ? 'horario' : 'horarios'}</span>
       </div>
       {children}
     </section>
@@ -503,27 +660,38 @@ function AppointmentCard({
   const changeable = canClientChange(appointment.status)
 
   return (
-    <article style={{
-      borderRadius: 16,
-      padding: 18,
-      border: '1px solid rgba(0,0,0,0.08)',
-      background: '#fff',
-      display: 'grid',
-      gap: 12,
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+    <article className="client-card">
+      <div className="client-card-head">
         <div>
           <p style={{ margin: 0, color: '#777', fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
             {studioName}
           </p>
-          <h3 style={{ margin: '5px 0 0', fontSize: 20 }}>{appointment.service_name}</h3>
+          <h3 className="client-card-title">{appointment.service_name}</h3>
         </div>
         <StatusBadge status={appointment.status} />
       </div>
 
-      <Info label="Data e horário" value={formatDateTime(appointment.appointment_date)} />
-      <Info label="Cliente" value={appointment.client_name} />
-      <Info label="Valor" value={formatCurrency(appointment.price)} />
+      <div className="client-card-date">
+        <CalendarDays size={15} />
+        <span>{formatAppointmentDay(appointment.appointment_date)}</span>
+        <Clock3 size={15} />
+        <span>{formatAppointmentTime(appointment.appointment_date)}</span>
+      </div>
+
+      <div className="client-card-meta">
+        <div className="client-meta-box">
+          <span>Cliente</span>
+          <strong>{appointment.client_name}</strong>
+        </div>
+        <div className="client-meta-box">
+          <span>Tempo estimado</span>
+          <strong>{appointment.duration_minutes ? `${appointment.duration_minutes} min aprox.` : 'Varia por atendimento'}</strong>
+        </div>
+        <div className="client-meta-box">
+          <span>Valor</span>
+          <strong>{formatCurrency(appointment.price)}</strong>
+        </div>
+      </div>
 
       {changeable && (
         <div className="client-actions">
@@ -532,7 +700,7 @@ function AppointmentCard({
             disabled={Boolean(actionLoading)}
             style={actionStyle('#16a34a', actionLoading === `${appointment.id}:confirm`)}
           >
-            <CheckCircle2 size={16} /> Confirmar presença
+            <CheckCircle2 size={16} /> Confirmar presenca
           </button>
           <button
             onClick={onCancel}
@@ -559,15 +727,6 @@ function StatusBadge({ status }: { status: string }) {
     <span style={{ borderRadius: 999, padding: '7px 10px', background: `${color}14`, color, fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>
       {formatStatus(status)}
     </span>
-  )
-}
-
-function Info({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 14 }}>
-      <span style={{ color: '#777' }}>{label}</span>
-      <strong style={{ textAlign: 'right' }}>{value}</strong>
-    </div>
   )
 }
 
