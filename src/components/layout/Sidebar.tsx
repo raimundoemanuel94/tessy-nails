@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { MobileDrawer } from "@/components/layout/MobileDrawer";
 import {
   BarChart3,
   Calendar,
@@ -39,6 +41,9 @@ export function Sidebar({ profile }: { profile: any }) {
   const pathname = usePathname();
   const router = useRouter();
   const isSuperadmin = profile?.role === "superadmin";
+  const [activeDrawer, setActiveDrawer] = useState<string | null>(null)
+  const openDrawer = (key: string) => setActiveDrawer(key)
+  const closeDrawer = () => setActiveDrawer(null)
   const studio = profile?.studios;
 
   async function signOut() {
@@ -167,17 +172,73 @@ export function Sidebar({ profile }: { profile: any }) {
         </button>
       </div>
 
+      {/* Bottom nav — drawer mode */}
       <nav className="manicure-bottom-nav md:hidden">
-        {bottomItems.map(({ href, icon: Icon, label }) => {
-          const active = href === "/admin" ? pathname.startsWith("/admin") : isActive(href);
-          return (
-            <Link key={href} href={href} className={active ? "is-active" : ""}>
+        {[
+          { key: 'inicio',    icon: LayoutDashboard, label: 'Início',    href: '/dashboard' },
+          { key: 'agenda',    icon: Calendar,        label: 'Agenda',    href: null },
+          { key: 'clientes',  icon: Users,           label: 'Clientes',  href: null },
+          { key: 'vagas',     icon: CalendarDays,    label: 'Vagas',     href: null },
+        ].map(({ key, icon: Icon, label, href }) => {
+          const active = href ? isActive(href) : activeDrawer === key
+          return href ? (
+            <Link key={key} href={href} className={active ? 'is-active' : ''} onClick={closeDrawer}>
               <Icon size={20} />
-              <span>{label.split(" ")[0]}</span>
+              <span>{label}</span>
             </Link>
-          );
+          ) : (
+            <button key={key} className={active ? 'is-active' : ''} onClick={() => openDrawer(key)}
+              style={{ flex: 1, minWidth: 0, minHeight: 54, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', color: active ? '#a78bfa' : '#8d86a8', fontSize: 9, fontWeight: 700, fontFamily: 'inherit', letterSpacing: '.01em', whiteSpace: 'nowrap', padding: '0 2px' }}>
+              <Icon size={20} />
+              <span>{label}</span>
+            </button>
+          )
         })}
       </nav>
+
+      {/* Drawers */}
+      <MobileDrawer open={activeDrawer === 'agenda'} onClose={closeDrawer} title="Agenda">
+        <div style={{ padding: 16 }}>
+          <a href="/agenda" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(124,92,191,0.08)', border: '1px solid rgba(124,92,191,0.2)', marginBottom: 10, textDecoration: 'none' }}>
+            <Calendar size={20} color="#a78bfa" />
+            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Agenda da semana</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Calendário + banner de vagas</div></div>
+          </a>
+          <a href="/agendamentos" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 10, textDecoration: 'none' }}>
+            <CalendarDays size={20} color="#a78bfa" />
+            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Agendamentos</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Lista completa + confirmar + concluir</div></div>
+          </a>
+          <a href="/relatorios" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', textDecoration: 'none' }}>
+            <BarChart3 size={20} color="#a78bfa" />
+            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Relatórios</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Faturamento e métricas</div></div>
+          </a>
+        </div>
+      </MobileDrawer>
+
+      <MobileDrawer open={activeDrawer === 'clientes'} onClose={closeDrawer} title="Clientes">
+        <div style={{ padding: 16 }}>
+          <a href="/clientes" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(244,114,182,0.08)', border: '1px solid rgba(244,114,182,0.2)', marginBottom: 10, textDecoration: 'none' }}>
+            <Users size={20} color="#f472b6" />
+            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Meus clientes</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Histórico, WhatsApp e stats</div></div>
+          </a>
+          <a href="/servicos" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', textDecoration: 'none' }}>
+            <Scissors size={20} color="#f472b6" />
+            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Serviços</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Preços e catálogo</div></div>
+          </a>
+        </div>
+      </MobileDrawer>
+
+      <MobileDrawer open={activeDrawer === 'vagas'} onClose={closeDrawer} title="Disponibilidade">
+        <div style={{ padding: 16 }}>
+          <a href="/disponibilidade" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)', marginBottom: 10, textDecoration: 'none' }}>
+            <CalendarDays size={20} color="#34d399" />
+            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Disponibilidade</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Dias e horários disponíveis</div></div>
+          </a>
+          <a href="/configuracoes" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', textDecoration: 'none' }}>
+            <Settings size={20} color="#34d399" />
+            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Configurações</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Studio, horários e perfil</div></div>
+          </a>
+        </div>
+      </MobileDrawer>
     </>
   );
 }

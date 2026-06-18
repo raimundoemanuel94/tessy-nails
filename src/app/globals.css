@@ -2709,3 +2709,59 @@ button.studio-primary-action {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE DRAWER — chique e suave
+   ═══════════════════════════════════════════════════════ */
+
+/* Botão ativo no bottom nav */
+.manicure-bottom-nav button.is-active {
+  color: #a78bfa !important;
+  background: rgba(124,92,191,0.08);
+}
+.manicure-bottom-nav button:active {
+  transform: scale(0.92);
+  transition: transform .1s ease;
+}
+
+/* Drawer — scroll interno */
+.drawer-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Drawer item */
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.03);
+}
+.drawer-item:active { transform: scale(0.98); }
+.drawer-item-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.drawer-item-text { min-width: 0; }
+.drawer-item-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f0f0ff;
+  display: block;
+}
+.drawer-item-sub {
+  font-size: 12px;
+  color: #8d86a8;
+  margin-top: 2px;
+  display: block;
+}
