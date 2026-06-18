@@ -1,6 +1,6 @@
 'use client'
 import { createClient } from '@/lib/supabase/client'
-import { Check, ChevronLeft, ChevronRight, Clock, Lock, Plus, Trash2, Unlock, X } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Clock, Copy, ExternalLink, Lock, Plus, Trash2, Unlock, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 const C = {
@@ -37,6 +37,10 @@ export default function DisponibilidadePage() {
   const [blockedDates, setBlockedDates] = useState<string[]>([])
 
   // Modal state
+  const [shareSlot, setShareSlot] = useState<{ date: string; time: string; link: string } | null>(null)
+  const [shareTime, setShareTime] = useState('09:00')
+  const [shareDate, setShareDate] = useState('')
+
   const [editDay, setEditDay] = useState<{
     date: string
     label: string
@@ -188,7 +192,15 @@ export default function DisponibilidadePage() {
           <h1 style={{ margin: 0, color: C.text, fontSize: 24, fontWeight: 900 }}>Disponibilidade</h1>
           <p style={{ color: C.muted, fontSize: 12, margin: '5px 0 0' }}>Defina os dias e horários disponíveis para agendamento.</p>
         </div>
-        {saving && <span style={{ color: C.muted, fontSize: 12 }}>Salvando...</span>}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          {saving && <span style={{ color: C.muted, fontSize: 12 }}>Salvando...</span>}
+          <button
+            onClick={() => { setShareDate(ymd(today)); setShareSlot(null) }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 10, border: `1px solid ${C.purple}40`, background: `${C.purple}15`, color: C.purple, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}
+          >
+            📤 Gerar link avulso
+          </button>
+        </div>
       </header>
 
       {/* ── Padrão semanal ── */}
@@ -340,6 +352,63 @@ export default function DisponibilidadePage() {
           })}
         </div>
       </section>
+
+      {/* ── Modal link avulso ── */}
+      {shareDate !== '' && shareSlot === null && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.7)', display: 'grid', placeItems: 'center', padding: 18 }}
+          onClick={e => e.target === e.currentTarget && setShareDate('')}>
+          <div style={{ width: '100%', maxWidth: 400, borderRadius: 20, background: C.card, border: `1px solid ${C.border2}`, padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <strong style={{ color: C.text, fontSize: 16 }}>📤 Link de horário avulso</strong>
+                <p style={{ margin: '3px 0 0', color: C.muted, fontSize: 11 }}>Gera um link com data e hora pré-definidos para compartilhar no Status</p>
+              </div>
+              <button onClick={() => setShareDate('')} style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', cursor: 'pointer', color: C.muted, fontFamily: 'inherit', fontSize: 16 }}>×</button>
+            </div>
+
+            <div style={{ display: 'grid', gap: 12 }}>
+              <div>
+                <label style={{ color: C.muted, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', display: 'block', marginBottom: 6 }}>Data</label>
+                <input type="date" value={shareDate} min={ymd(today)}
+                  onChange={e => setShareDate(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border2}`, background: C.card2, color: C.text, fontFamily: 'inherit', fontSize: 14, boxSizing: 'border-box' as const }} />
+              </div>
+              <div>
+                <label style={{ color: C.muted, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', display: 'block', marginBottom: 6 }}>Horário disponível</label>
+                <input type="time" value={shareTime}
+                  onChange={e => setShareTime(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border2}`, background: C.card2, color: C.text, fontFamily: 'inherit', fontSize: 14, boxSizing: 'border-box' as const }} />
+              </div>
+            </div>
+
+            {/* Preview do link */}
+            {shareDate && shareTime && (() => {
+              const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tessy-nails.vercel.app'
+              const link = `${origin}/agendar/tessy-nails?date=${shareDate}&time=${shareTime}`
+              return (
+                <div style={{ padding: '12px 14px', borderRadius: 12, background: `${C.purple}10`, border: `1px solid ${C.purple}25` }}>
+                  <p style={{ margin: '0 0 6px', fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em' }}>Link gerado</p>
+                  <p style={{ margin: '0 0 10px', fontSize: 11, color: C.text, wordBreak: 'break-all', lineHeight: 1.5 }}>{link}</p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => { navigator.clipboard.writeText(link); showToast('Link copiado!') }}
+                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 0', borderRadius: 9, border: `1px solid ${C.purple}40`, background: `${C.purple}18`, color: C.purple, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}>
+                      <Copy size={13} /> Copiar link
+                    </button>
+                    <a href={link} target="_blank" rel="noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 14px', borderRadius: 9, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, textDecoration: 'none', fontSize: 12, fontWeight: 700 }}>
+                      <ExternalLink size={13} /> Testar
+                    </a>
+                  </div>
+                </div>
+              )
+            })()}
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setShareDate('')} style={{ padding: '10px 20px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>Fechar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Modal de intervalos de horário ── */}
       {editDay && (
