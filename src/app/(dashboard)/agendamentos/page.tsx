@@ -199,6 +199,7 @@ export default function AgendamentosPage() {
   const [newModal, setNewModal] = useState(false)
   const [newForm, setNewForm] = useState({ clientName: '', clientId: '', serviceId: '', date: '', time: '', price: '', notes: '', isPackage: false })
   const [savingNew, setSavingNew] = useState(false)
+  const [periodFilter, setPeriodFilter] = useState<'all'|'today'|'tomorrow'|'week'>('all')
 
   useEffect(() => {
     const load = async () => {
