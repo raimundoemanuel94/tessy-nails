@@ -124,6 +124,48 @@ export default function RelatoriosPage() {
         <Kpi label="Taxa conclusão" value={`${completionRate}%`} sub="conversão geral" color={C.amber} />
       </section>
 
+      {/* Insights em linguagem humana */}
+      {completed.length > 0 && (
+        <section style={{ margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {topServices[0] && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 12, background: 'rgba(52,211,153,.08)', border: '1px solid rgba(52,211,153,.2)' }}>
+              <span style={{ fontSize: 22 }}>💅</span>
+              <div>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.green }}>Seu serviço mais popular</p>
+                <p style={{ margin: 0, fontSize: 12, color: '#ccc' }}><strong style={{ color: '#fff' }}>{topServices[0][0]}</strong> foi realizado {topServices[0][1]}x {PERIOD_LABELS[period].toLowerCase()}</p>
+              </div>
+            </div>
+          )}
+          {ticket > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 12, background: 'rgba(167,139,250,.08)', border: '1px solid rgba(167,139,250,.2)' }}>
+              <span style={{ fontSize: 22 }}>💰</span>
+              <div>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.purple }}>Ticket médio</p>
+                <p style={{ margin: 0, fontSize: 12, color: '#ccc' }}>Cada atendimento gera em média <strong style={{ color: '#fff' }}>{money(ticket)}</strong> para o seu studio</p>
+              </div>
+            </div>
+          )}
+          {completionRate < 70 && filteredByPeriod.length > 3 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 12, background: 'rgba(251,191,36,.08)', border: '1px solid rgba(251,191,36,.2)' }}>
+              <span style={{ fontSize: 22 }}>⚠️</span>
+              <div>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.amber }}>Atenção aos cancelamentos</p>
+                <p style={{ margin: 0, fontSize: 12, color: '#ccc' }}>Só <strong style={{ color: '#fff' }}>{completionRate}%</strong> dos agendamentos foram concluídos — confirme com antecedência</p>
+              </div>
+            </div>
+          )}
+          {pendingRevenue > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 12, background: 'rgba(244,114,182,.08)', border: '1px solid rgba(244,114,182,.2)' }}>
+              <span style={{ fontSize: 22 }}>📅</span>
+              <div>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.pink }}>Receita prevista</p>
+                <p style={{ margin: 0, fontSize: 12, color: '#ccc' }}><strong style={{ color: '#fff' }}>{money(pendingRevenue)}</strong> em agendamentos confirmados/pendentes</p>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       <section className="studio-report-panels">
         <article className="studio-report-panel">
           <header>
