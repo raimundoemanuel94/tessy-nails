@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   BarChart3,
@@ -10,6 +11,7 @@ import {
   ChevronRight,
   LayoutDashboard,
   LogOut,
+  Palette,
   Pencil,
   Scissors,
   Settings,
@@ -40,6 +42,21 @@ export function Sidebar({ profile }: { profile: any }) {
   const router = useRouter();
   const isSuperadmin = profile?.role === "superadmin";
   const studio = profile?.studios;
+  const [theme, setTheme] = useState<"dark" | "rose">("dark");
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("salon-theme");
+    const initial = stored === "rose" ? "rose" : "dark";
+    setTheme(initial);
+    document.documentElement.dataset.salonTheme = initial;
+  }, []);
+
+  function toggleTheme() {
+    const next = theme === "rose" ? "dark" : "rose";
+    setTheme(next);
+    window.localStorage.setItem("salon-theme", next);
+    document.documentElement.dataset.salonTheme = next;
+  }
 
   async function signOut() {
     await createClient().auth.signOut();
@@ -55,9 +72,10 @@ export function Sidebar({ profile }: { profile: any }) {
   const bottomItems = isSuperadmin
     ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 4)]
     : [NAV[0], NAV[1], NAV[2], NAV[3], NAV[7]];
-  const displayName = profile?.full_name ?? profile?.email?.split("@")[0] ?? "Usuário";
+  const displayName = profile?.name ?? profile?.full_name ?? profile?.email?.split("@")[0] ?? "Usuário";
   const shortEmail = profile?.email ? (profile.email.length > 25 ? `${profile.email.slice(0, 22)}...` : profile.email) : "";
-  const initial = (studio?.name ?? displayName ?? "N").charAt(0).toUpperCase();
+  const studioName = studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio");
+  const initial = (studioName ?? displayName ?? "N").charAt(0).toUpperCase();
 
   return (
     <>
@@ -69,7 +87,7 @@ export function Sidebar({ profile }: { profile: any }) {
             </div>
             <div className="manicure-brand-copy">
               <div>
-                <strong>{studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio")}</strong>
+                <strong>{studioName}</strong>
                 <span>{isSuperadmin ? "Superadmin" : "Agenda e operação"}</span>
               </div>
               <small>{isSuperadmin ? "Admin" : studio?.plan ?? "Pro"}</small>
@@ -116,6 +134,9 @@ export function Sidebar({ profile }: { profile: any }) {
                 <span>{shortEmail}</span>
               </div>
               <div className="manicure-footer-actions">
+                <button type="button" onClick={toggleTheme} title="Alternar tema" aria-label="Alternar tema">
+                  <Palette size={14} />
+                </button>
                 <Link href="/configuracoes" title="Editar perfil" aria-label="Editar perfil">
                   <Pencil size={14} />
                 </Link>
@@ -128,15 +149,18 @@ export function Sidebar({ profile }: { profile: any }) {
         </div>
       </aside>
 
-      {/* Mobile topbar */}
       <div className="manicure-topbar">
-        <div className="manicure-topbar-logo" style={{ overflow: 'hidden', borderRadius: '50%' }}>
-          {(profile as any)?.avatar_url
-            ? <img src={(profile as any).avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-            : <Sparkles size={14} color="#a78bfa" />
-          }
+        <div className="manicure-topbar-logo" style={{ overflow: "hidden", borderRadius: "50%" }}>
+          {studio?.avatar_url ? (
+            <img src={studio.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" />
+          ) : (
+            <Sparkles size={14} color="#a78bfa" />
+          )}
         </div>
-        <span className="manicure-topbar-name">{studio?.name ?? displayName ?? "Meu Studio"}</span>
+        <span className="manicure-topbar-name">{studioName}</span>
+        <button type="button" className="salon-theme-toggle" onClick={toggleTheme} aria-label="Alternar tema">
+          {theme === "rose" ? "Dark" : "Rose"}
+        </button>
       </div>
 
       <nav className="manicure-bottom-nav md:hidden">

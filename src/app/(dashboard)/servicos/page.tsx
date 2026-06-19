@@ -5,17 +5,10 @@ import { createClient } from '@/lib/supabase/client'
 import type { Service } from '@/types/database'
 
 const C = {
-  bg: '#080812',
-  card: '#10101f',
-  card2: '#17172a',
-  border: '#1c1c36',
-  border2: '#26264a',
   purple: '#a78bfa',
   pink: '#f472b6',
   green: '#34d399',
   red: '#f87171',
-  text: '#e8e8f8',
-  muted: '#6b6b9a',
 }
 
 const colors = ['#a78bfa', '#f472b6', '#818cf8', '#c084fc', '#a5b4fc', '#f9a8d4', '#fbbf24', '#34d399']
@@ -56,6 +49,7 @@ export default function ServicosPage() {
   const [edit, setEdit] = useState<Service | null>(null)
   const [form, setForm] = useState({ name: '', price: '', duration_minutes: '60', category: '', description: '' })
   const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -72,17 +66,19 @@ export default function ServicosPage() {
       setLoading(false)
     }
 
-    load()
+    void load()
   }, [])
 
   const openNew = () => {
     setEdit(null)
+    setMessage(null)
     setForm({ name: '', price: '', duration_minutes: '60', category: '', description: '' })
     setModal(true)
   }
 
   const openEdit = (service: Service) => {
     setEdit(service)
+    setMessage(null)
     setForm({
       name: service.name,
       price: String(service.price),
@@ -94,43 +90,80 @@ export default function ServicosPage() {
   }
 
   const save = async () => {
-    if (!form.name.trim() || !studioId) return
+    if (!studioId) return
+
+    const name = form.name.trim()
+    const servicePrice = Number(form.price)
+    const duration = Number(form.duration_minutes)
+
+    if (!name) {
+      setMessage({ type: 'err', text: 'Informe o nome do servico.' })
+      return
+    }
+    if (!Number.isFinite(servicePrice) || servicePrice < 0) {
+      setMessage({ type: 'err', text: 'Informe um preco valido.' })
+      return
+    }
+    if (!Number.isFinite(duration) || duration <= 0) {
+      setMessage({ type: 'err', text: 'Informe uma duracao maior que zero.' })
+      return
+    }
 
     setSaving(true)
     const supabase = createClient()
     const payload = {
-      name: form.name,
-      price: Number(form.price) || 0,
-      duration_minutes: Number(form.duration_minutes) || 60,
-      category: form.category || null,
-      description: form.description || null,
+      name,
+      price: servicePrice,
+      duration_minutes: duration,
+      category: form.category.trim() || null,
+      description: form.description.trim() || null,
       studio_id: studioId,
     }
 
     if (edit) {
-      const { data } = await supabase.from('services').update(payload).eq('id', edit.id).select().single()
+      const { data, error } = await supabase.from('services').update(payload).eq('id', edit.id).select().single()
+      if (error) {
+        setSaving(false)
+        setMessage({ type: 'err', text: 'Erro ao salvar servico.' })
+        return
+      }
       if (data) setServices((current) => current.map((service) => service.id === edit.id ? data : service))
     } else {
-      const { data } = await supabase.from('services').insert(payload).select().single()
+      const { data, error } = await supabase.from('services').insert(payload).select().single()
+      if (error) {
+        setSaving(false)
+        setMessage({ type: 'err', text: 'Erro ao criar servico.' })
+        return
+      }
       if (data) setServices((current) => [...current, data])
     }
 
     setSaving(false)
     setModal(false)
+    setMessage({ type: 'ok', text: 'Servico salvo.' })
   }
 
   const toggle = async (service: Service) => {
     const supabase = createClient()
-    await supabase.from('services').update({ is_active: !service.is_active }).eq('id', service.id)
+    const { error } = await supabase.from('services').update({ is_active: !service.is_active }).eq('id', service.id)
+    if (error) {
+      setMessage({ type: 'err', text: 'Erro ao atualizar servico.' })
+      return
+    }
     setServices((current) => current.map((item) => item.id === service.id ? { ...item, is_active: !item.is_active } : item))
   }
 
-  const remove = async (id: string) => {
-    if (!confirm('Excluir este serviço?')) return
+  const deactivate = async (service: Service) => {
+    if (!confirm('Desativar este servico? Ele some do agendamento, mas o historico fica preservado.')) return
 
     const supabase = createClient()
-    await supabase.from('services').delete().eq('id', id)
-    setServices((current) => current.filter((service) => service.id !== id))
+    const { error } = await supabase.from('services').update({ is_active: false }).eq('id', service.id)
+    if (error) {
+      setMessage({ type: 'err', text: 'Erro ao desativar servico.' })
+      return
+    }
+    setServices((current) => current.map((item) => item.id === service.id ? { ...item, is_active: false } : item))
+    setMessage({ type: 'ok', text: 'Servico desativado.' })
   }
 
   if (loading) {
@@ -147,12 +180,26 @@ export default function ServicosPage() {
     <div className="studio-page">
       <header className="studio-page-header">
         <div>
-          <span className="studio-eyebrow">Catálogo</span>
-          <h1>Serviços</h1>
-          <p>{activeCount} ativos · {services.length - activeCount} inativos</p>
+          <span className="studio-eyebrow">Catalogo</span>
+          <h1>Servicos</h1>
+          <p>{activeCount} ativos - {services.length - activeCount} inativos</p>
         </div>
-        <button className="studio-primary-action" onClick={openNew}>Novo serviço</button>
+        <button className="studio-primary-action" onClick={openNew}>Novo servico</button>
       </header>
+
+      {message && (
+        <div style={{
+          border: `1px solid ${message.type === 'err' ? C.red : C.green}55`,
+          background: `${message.type === 'err' ? C.red : C.green}16`,
+          color: message.type === 'err' ? C.red : C.green,
+          borderRadius: 12,
+          padding: '10px 14px',
+          fontSize: 13,
+          fontWeight: 800,
+        }}>
+          {message.text}
+        </div>
+      )}
 
       <section className="studio-service-grid">
         {services.map((service) => {
@@ -169,7 +216,7 @@ export default function ServicosPage() {
                   </div>
                   <div className="studio-card-actions">
                     <button onClick={() => openEdit(service)}>Editar</button>
-                    <button className="danger" onClick={() => remove(service.id)}>Excluir</button>
+                    <button className="danger" onClick={() => deactivate(service)}>Desativar</button>
                   </div>
                 </div>
 
@@ -194,8 +241,8 @@ export default function ServicosPage() {
 
         {services.length === 0 && (
           <div className="studio-empty">
-            <strong>Nenhum serviço cadastrado</strong>
-            <span>Crie o primeiro item do catálogo para liberar agendamentos online.</span>
+            <strong>Nenhum servico cadastrado</strong>
+            <span>Crie o primeiro item do catalogo para liberar agendamentos online.</span>
           </div>
         )}
       </section>
@@ -204,22 +251,22 @@ export default function ServicosPage() {
         <div className="studio-modal-backdrop" onClick={(event) => event.target === event.currentTarget && setModal(false)}>
           <div className="studio-modal">
             <header>
-              <strong>{edit ? 'Editar serviço' : 'Novo serviço'}</strong>
-              <button onClick={() => setModal(false)}>×</button>
+              <strong>{edit ? 'Editar servico' : 'Novo servico'}</strong>
+              <button onClick={() => setModal(false)}>x</button>
             </header>
 
-            <Field label="Nome do serviço" value={form.name} onChange={(value) => setForm((current) => ({ ...current, name: value }))} placeholder="Ex: Manicure em gel" />
+            <Field label="Nome do servico" value={form.name} onChange={(value) => setForm((current) => ({ ...current, name: value }))} placeholder="Ex: Manicure em gel" />
             <div className="studio-form-grid">
-              <Field label="Preço (R$)" value={form.price} onChange={(value) => setForm((current) => ({ ...current, price: value }))} type="number" />
-              <Field label="Duração (min)" value={form.duration_minutes} onChange={(value) => setForm((current) => ({ ...current, duration_minutes: value }))} type="number" />
+              <Field label="Preco (R$)" value={form.price} onChange={(value) => setForm((current) => ({ ...current, price: value }))} type="number" />
+              <Field label="Duracao (min)" value={form.duration_minutes} onChange={(value) => setForm((current) => ({ ...current, duration_minutes: value }))} type="number" />
             </div>
             <Field label="Categoria" value={form.category} onChange={(value) => setForm((current) => ({ ...current, category: value }))} placeholder="Manicure, Pedicure, Gel..." />
-            <Field label="Descrição (opcional)" value={form.description} onChange={(value) => setForm((current) => ({ ...current, description: value }))} />
+            <Field label="Descricao (opcional)" value={form.description} onChange={(value) => setForm((current) => ({ ...current, description: value }))} />
 
             <footer>
               <button className="studio-secondary-action" onClick={() => setModal(false)}>Cancelar</button>
               <button className="studio-primary-action" onClick={save} disabled={saving}>
-                {saving ? 'Salvando...' : edit ? 'Salvar' : 'Criar serviço'}
+                {saving ? 'Salvando...' : edit ? 'Salvar' : 'Criar servico'}
               </button>
             </footer>
           </div>

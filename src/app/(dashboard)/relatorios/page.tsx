@@ -16,7 +16,7 @@ const C = {
 const statusMap: Record<string, { label: string; color: string }> = {
   confirmed: { label: 'confirmado', color: C.green },
   pending: { label: 'pendente', color: C.amber },
-  completed: { label: 'concluído', color: C.purple },
+  completed: { label: 'concluido', color: C.purple },
   cancelled: { label: 'cancelado', color: C.red },
 }
 
@@ -52,7 +52,7 @@ export default function RelatoriosPage() {
       setLoading(false)
     }
 
-    load()
+    void load()
   }, [])
 
   const filteredByPeriod = appointments.filter((apt) => {
@@ -60,7 +60,9 @@ export default function RelatoriosPage() {
     const d = new Date(apt.appointment_date)
     const now = new Date()
     if (period === 'week') {
-      const start = new Date(now); start.setDate(now.getDate() - now.getDay()); start.setHours(0,0,0,0)
+      const start = new Date(now)
+      start.setDate(now.getDate() - now.getDay())
+      start.setHours(0, 0, 0, 0)
       return d >= start
     }
     if (period === 'month') {
@@ -72,16 +74,15 @@ export default function RelatoriosPage() {
       return d >= lm && d <= lmEnd
     }
     if (period === '3months') {
-      const start = new Date(now); start.setMonth(now.getMonth() - 3); start.setHours(0,0,0,0)
+      const start = new Date(now)
+      start.setMonth(now.getMonth() - 3)
+      start.setHours(0, 0, 0, 0)
       return d >= start
     }
     return true
   })
 
-  const PERIOD_LABELS: Record<string, string> = { week: 'Esta semana', month: 'Este mês', last_month: 'Mês passado', '3months': 'Últimos 3 meses', all: 'Tudo' }
   const completed = filteredByPeriod.filter((appointment) => appointment.status === 'completed')
-  const pending = filteredByPeriod.filter((a) => a.status === 'pending' || a.status === 'confirmed')
-  const pendingRevenue = pending.reduce((sum, a) => sum + (a.price || 0), 0)
   const revenue = completed.reduce((sum, appointment) => sum + appointment.price, 0)
   const ticket = completed.length ? revenue / completed.length : 0
   const completionRate = filteredByPeriod.length ? Math.round((completed.length / filteredByPeriod.length) * 100) : 0
@@ -99,35 +100,40 @@ export default function RelatoriosPage() {
       <header className="studio-page-header">
         <div>
           <span className="studio-eyebrow">Performance</span>
-          <h1>Relatórios</h1>
-          <p>Métricas do seu studio com base nos agendamentos registrados.</p>
+          <h1>Relatorios</h1>
+          <p>Metricas do seu studio com base nos agendamentos registrados.</p>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {(['week','month','last_month','3months','all'] as const).map(p => (
+          {(['week', 'month', 'last_month', '3months', 'all'] as const).map(p => (
             <button key={p} onClick={() => setPeriod(p)} style={{
-              padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+              padding: '6px 14px',
+              borderRadius: 999,
+              fontSize: 12,
+              fontWeight: 700,
               border: period === p ? 'none' : '1px solid rgba(255,255,255,0.1)',
               background: period === p ? '#7c3aed' : 'rgba(255,255,255,0.04)',
               color: period === p ? '#fff' : '#8f89aa',
-              cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'all .15s',
             }}>
-              {({ week: 'Semana', month: 'Mês', last_month: 'Mês ant.', '3months': '3 meses', all: 'Tudo' } as any)[p]}
+              {({ week: 'Semana', month: 'Mes', last_month: 'Mes ant.', '3months': '3 meses', all: 'Tudo' } as Record<typeof p, string>)[p]}
             </button>
           ))}
         </div>
       </header>
 
       <section className="studio-report-grid">
-        <Kpi label="Receita total" value={money(revenue)} sub={`${completed.length} concluídos`} color={C.green} />
-        <Kpi label="Concluídos" value={completed.length} sub={`${appointments.length} agendamentos`} color={C.purple} />
-        <Kpi label="Ticket médio" value={money(ticket)} sub="por atendimento" color={C.pink} />
-        <Kpi label="Taxa conclusão" value={`${completionRate}%`} sub="conversão geral" color={C.amber} />
+        <Kpi label="Receita total" value={money(revenue)} sub={`${completed.length} concluidos`} color={C.green} />
+        <Kpi label="Concluidos" value={completed.length} sub={`${filteredByPeriod.length} agendamentos`} color={C.purple} />
+        <Kpi label="Ticket medio" value={money(ticket)} sub="por atendimento" color={C.pink} />
+        <Kpi label="Taxa conclusao" value={`${completionRate}%`} sub="conversao geral" color={C.amber} />
       </section>
 
       <section className="studio-report-panels">
         <article className="studio-report-panel">
           <header>
-            <strong>Serviços mais realizados</strong>
+            <strong>Servicos mais realizados</strong>
             <span>Top 5</span>
           </header>
           {topServices.length === 0 ? (
@@ -147,11 +153,11 @@ export default function RelatoriosPage() {
         <article className="studio-report-panel">
           <header>
             <strong>Por status</strong>
-            <span>{appointments.length} total</span>
+            <span>{filteredByPeriod.length} no periodo</span>
           </header>
           {Object.entries(statusMap).map(([key, status]) => {
-            const count = appointments.filter((appointment) => appointment.status === key).length
-            const percent = appointments.length ? Math.round((count / appointments.length) * 100) : 0
+            const count = filteredByPeriod.filter((appointment) => appointment.status === key).length
+            const percent = filteredByPeriod.length ? Math.round((count / filteredByPeriod.length) * 100) : 0
 
             return (
               <div className="studio-status-row" key={key} style={{ borderColor: `${status.color}33` }}>

@@ -217,8 +217,8 @@ export default function AgendaPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1180 }}>
-      <header style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+    <div className="agenda-page" style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1180 }}>
+      <header className="agenda-header" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <p style={{ margin: '0 0 6px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>
             Atendimento
@@ -241,7 +241,7 @@ export default function AgendaPage() {
         </div>
       </header>
 
-      <section style={{
+      <section className="agenda-kpis" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
         gap: 10,
@@ -259,23 +259,23 @@ export default function AgendaPage() {
         <div style={{ background: selectedDateReleased ? `${C.green}10` : `${C.purple}10`, border: `1px solid ${selectedDateReleased ? `${C.green}35` : `${C.purple}35`}`, borderRadius: 16, padding: 14, display: 'grid', gap: 8 }}>
           <div>
             <p style={{ margin: 0, color: selectedDateReleased ? C.green : C.purple, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Status de vagas</p>
-            <strong style={{ display: 'block', marginTop: 5, color: C.text, fontSize: 14 }}>{selectedDateReleased ? 'Dia liberado' : 'Dia nao liberado'}</strong>
+            <strong style={{ display: 'block', marginTop: 5, color: C.text, fontSize: 14 }}>{selectedDateReleased ? 'Dia liberado' : 'Dia não liberado'}</strong>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <a href="/disponibilidade" style={{ ...navButtonStyle, minWidth: 'auto', height: 34, padding: '0 11px', color: C.purple, textDecoration: 'none' }}>
-              Gerar vagas
+              Liberar vagas
             </a>
             <a href="/vitrine" style={{ ...navButtonStyle, minWidth: 'auto', height: 34, padding: '0 11px', color: C.green, textDecoration: 'none' }}>
-              Vitrine do Dia
+              Postar status
             </a>
             <button onClick={() => setBannerOpen(true)} style={{ ...navButtonStyle, minWidth: 'auto', height: 34, padding: '0 11px', color: C.pink }}>
-              Banner
+              Banner semanal
             </button>
           </div>
         </div>
       </section>
 
-      <section style={{
+      <section className="agenda-tracking" style={{
         background: C.card,
         border: `1px solid ${C.border}`,
         borderRadius: 16,
@@ -467,7 +467,7 @@ export default function AgendaPage() {
       </section>
 
       {studioSlug && (
-        <section style={{
+        <section className="agenda-link" style={{
           display: 'flex',
           flexWrap: 'wrap',
           gap: 8,
@@ -493,7 +493,7 @@ export default function AgendaPage() {
       )}
 
       {nextApt && (
-        <section style={{
+        <section className="agenda-next" style={{
           display: 'grid',
           gridTemplateColumns: 'auto minmax(0, 1fr) auto',
           gap: 14,
@@ -517,7 +517,7 @@ export default function AgendaPage() {
           </div>
           <div style={{ minWidth: 0 }}>
             <p style={{ margin: 0, color: C.green, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
-              Proximo horario
+              Próximo horário
             </p>
             <h2 style={{ margin: '4px 0 0', color: C.text, fontSize: 16, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {nextApt.client_name || 'Cliente'} - {nextApt.service_name}
@@ -543,7 +543,7 @@ export default function AgendaPage() {
         </section>
       )}
 
-      <section style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+      <section className="agenda-days" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
         {days.map(date => {
           const key = ymd(date)
           const isSelected = key === selectedDate
@@ -589,7 +589,7 @@ export default function AgendaPage() {
         })}
       </section>
 
-      <section style={{
+      <section className="agenda-selected" style={{
         background: C.card,
         border: `1px solid ${C.border}`,
         borderRadius: 16,
@@ -634,7 +634,7 @@ export default function AgendaPage() {
             <div>
               <Clock size={30} color={C.purple} style={{ margin: '0 auto 10px' }} />
               <strong style={{ color: C.text, fontSize: 14 }}>Nenhum agendamento neste dia</strong>
-              <p style={{ margin: '6px 0 0', fontSize: 12 }}>Quando uma cliente marcar pelo link publico, ela aparece aqui.</p>
+              <p style={{ margin: '6px 0 0', fontSize: 12 }}>Quando uma cliente marcar pelo link público, ela aparece aqui.</p>
             </div>
           </div>
         ) : (
@@ -701,7 +701,7 @@ export default function AgendaPage() {
 
       {/* ─── BANNER DE VAGAS ─── */}
       {studioSlug && (
-        <section style={{
+        <section className="agenda-banner" style={{
           background: C.card,
           border: `1px solid ${C.border}`,
           borderRadius: 16,
@@ -723,7 +723,7 @@ export default function AgendaPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Share2 size={16} color={C.pink} />
-              <span style={{ color: C.text, fontSize: 14, fontWeight: 850 }}>Montar banner de vagas</span>
+              <span style={{ color: C.text, fontSize: 14, fontWeight: 850 }}>Montar banner semanal</span>
             </div>
             <span style={{ color: C.muted, fontSize: 12 }}>{bannerOpen ? '▲ fechar' : '▼ abrir'}</span>
           </button>
@@ -1069,14 +1069,88 @@ export default function AgendaPage() {
 
       <style>{`
         @media (max-width: 760px) {
-          section[style*="repeat(3, minmax"] {
-            grid-template-columns: 1fr !important;
+          .agenda-page {
+            gap: 14px !important;
           }
-          section[style*="grid-template-columns: auto minmax"] {
-            grid-template-columns: 1fr !important;
+          .agenda-header {
+            order: 1;
           }
-          div[style*="grid-template-columns: 74px"] {
+          .agenda-kpis {
+            order: 2;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+          }
+          .agenda-kpis > div {
+            padding: 13px !important;
+            border-radius: 14px !important;
+          }
+          .agenda-kpis > div:last-child {
+            grid-column: 1 / -1;
+          }
+          .agenda-kpis > div:last-child > div:last-child {
+            display: grid !important;
             grid-template-columns: 1fr !important;
+            gap: 8px !important;
+          }
+          .agenda-kpis > div:last-child a,
+          .agenda-kpis > div:last-child button {
+            width: 100%;
+            min-height: 42px !important;
+          }
+          .agenda-days {
+            order: 3;
+            padding-bottom: 8px !important;
+            margin: 0 -16px;
+            padding-left: 16px;
+            padding-right: 16px;
+          }
+          .agenda-selected {
+            order: 4;
+          }
+          .agenda-tracking {
+            order: 5;
+          }
+          .agenda-link {
+            order: 6;
+          }
+          .agenda-next {
+            order: 7;
+          }
+          .agenda-banner {
+            order: 8;
+          }
+          .agenda-tracking > div:first-child {
+            grid-template-columns: 1fr !important;
+            padding: 15px !important;
+          }
+          .agenda-tracking label {
+            width: 100% !important;
+          }
+          .agenda-tracking > div:nth-child(2) {
+            padding: 10px 15px !important;
+          }
+          .agenda-selected > div:not(:first-child),
+          .agenda-tracking div[style*="grid-template-columns: 74px"] {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+          }
+          .agenda-selected > div:not(:first-child) > div:last-child,
+          .agenda-tracking div[style*="grid-template-columns: 74px"] > div:last-child {
+            justify-content: stretch !important;
+          }
+          .agenda-selected > div:not(:first-child) button,
+          .agenda-tracking div[style*="grid-template-columns: 74px"] button {
+            min-height: 38px !important;
+          }
+          .agenda-link {
+            align-items: stretch !important;
+          }
+          .agenda-link > div {
+            width: 100%;
+          }
+          .agenda-link button,
+          .agenda-link a {
+            flex: 1 1 130px;
           }
         }
       `}</style>

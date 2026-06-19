@@ -2,9 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Copy, Download, Share2, Sparkles, Wand2 } from 'lucide-react'
+import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Copy, Download, Share2, Wand2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import type { Appointment } from '@/types/database'
 
 const C = {
   card: '#10101f',
@@ -20,6 +19,7 @@ const C = {
 
 type Slot = { time: string; occupied: boolean; selected: boolean }
 type Template = 'dark' | 'rose'
+type SlotsResponse = { slots?: string[]; reason?: 'blocked' | 'not_released'; error?: string }
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -32,15 +32,12 @@ export default function VitrinePage() {
     d.setHours(12, 0, 0, 0)
     return d
   })
-  const [studioId, setStudioId] = useState('')
   const [studioName, setStudioName] = useState('Tessy Nails')
   const [studioSlug, setStudioSlug] = useState('')
-  const [slotDuration, setSlotDuration] = useState(30)
   const [slots, setSlots] = useState<Slot[]>([])
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [workingHours, setWorkingHours] = useState<Record<string, { is_open: boolean; open: string; close: string }>>({})
+  const [slotReason, setSlotReason] = useState('')
   const [template, setTemplate] = useState<Template>('dark')
-  const [caption, setCaption] = useState('Reserve ja o seu horario')
+  const [caption, setCaption] = useState('Reserve já o seu horário')
   const [imageUrl, setImageUrl] = useState('')
   const [generating, setGenerating] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -52,60 +49,42 @@ export default function VitrinePage() {
       if (!user) { setLoading(false); return }
       const { data: profile } = await sb.from('profiles').select('studio_id').eq('id', user.id).single()
       if (!profile?.studio_id) { setLoading(false); return }
-      setStudioId(profile.studio_id)
-
       const [{ data: studio }, { data: settings }] = await Promise.all([
         sb.from('studios').select('name, slug').eq('id', profile.studio_id).single(),
-        sb.from('salon_settings').select('slot_duration, working_hours').eq('studio_id', profile.studio_id).single(),
+        sb.from('salon_settings').select('slot_duration').eq('studio_id', profile.studio_id).single(),
       ])
       if (studio?.name) setStudioName(studio.name)
       if (studio?.slug) setStudioSlug(studio.slug)
-      if (settings?.slot_duration) setSlotDuration(settings.slot_duration)
-      if (settings?.working_hours) setWorkingHours(settings.working_hours as Record<string, { is_open: boolean; open: string; close: string }>)
+      void settings
       setLoading(false)
     }
     void loadBase()
   }, [])
 
   useEffect(() => {
-    if (!studioId) return
+    if (!studioSlug) return
     const loadDay = async () => {
-      const sb = createClient()
-      const start = `${ymd(date)}T00:00:00`
-      const end = `${ymd(date)}T23:59:59`
-      const { data } = await sb
-        .from('appointments')
-        .select('*')
-        .eq('studio_id', studioId)
-        .gte('appointment_date', start)
-        .lte('appointment_date', end)
-      const rows = data || []
-      setAppointments(rows)
-
-      const weekday = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'][date.getDay()]
-      const config = (workingHours as any)?.[ymd(date)] || workingHours?.[weekday] || { is_open: true, open: '09:00', close: '18:00' }
-      const [oh, om] = (config.open || '09:00').split(':').map(Number)
-      const [ch, cm] = (config.close || '18:00').split(':').map(Number)
-      const openMin = oh * 60 + om
-      const closeMin = ch * 60 + cm
-      const busy = rows
-        .filter(item => !['cancelled', 'no_show'].includes(item.status))
-        .map(item => {
-          const d = new Date(item.appointment_date)
-          const startMin = d.getHours() * 60 + d.getMinutes()
-          return { start: startMin, end: startMin + (item.duration_minutes || slotDuration) }
-        })
-      const generated: Slot[] = []
-      for (let minute = openMin; minute + slotDuration <= closeMin; minute += slotDuration) {
-        const time = `${pad(Math.floor(minute / 60))}:${pad(minute % 60)}`
-        const occupied = busy.some(range => minute < range.end && minute + slotDuration > range.start)
-        generated.push({ time, occupied, selected: !occupied })
+      const response = await fetch(`/api/public/slots?slug=${encodeURIComponent(studioSlug)}&date=${ymd(date)}`, { cache: 'no-store' })
+      const data = await response.json() as SlotsResponse
+      if (!response.ok || data.error) {
+        setSlots([])
+        setSlotReason('Não foi possível carregar as vagas deste dia.')
+        setImageUrl('')
+        return
       }
-      setSlots(generated)
+      const availableSlots = data.slots || []
+      setSlots(availableSlots.map(time => ({ time, occupied: false, selected: true })))
+      setSlotReason(data.reason === 'blocked'
+        ? 'Este dia está bloqueado.'
+        : data.reason === 'not_released'
+          ? 'Este dia ainda não foi liberado em Vagas.'
+          : availableSlots.length === 0
+            ? 'Nao ha horarios livres para esse dia.'
+          : '')
       setImageUrl('')
     }
     void loadDay()
-  }, [date, studioId, slotDuration, workingHours])
+  }, [date, studioSlug])
 
   const selectedFree = useMemo(() => slots.filter(slot => slot.selected && !slot.occupied), [slots])
   const bookingUrl = studioSlug ? `${typeof window !== 'undefined' ? window.location.origin : ''}/agendar/${studioSlug}` : ''
@@ -127,7 +106,7 @@ export default function VitrinePage() {
     const tarde = selectedFree.filter(slot => Number(slot.time.slice(0, 2)) >= 12).map(slot => slot.time).join(' - ')
     const text = [
       `Horarios disponiveis - ${dateLabel(date)}`,
-      manha ? `Manha: ${manha}` : '',
+      manha ? `Manhã: ${manha}` : '',
       tarde ? `Tarde: ${tarde}` : '',
       caption,
       bookingUrl,
@@ -177,8 +156,8 @@ export default function VitrinePage() {
     ctx.fillText(dateLabel(date).toUpperCase(), 82, 130)
     ctx.fillStyle = text
     ctx.font = '900 86px system-ui, sans-serif'
-    ctx.fillText('Horarios', 82, 235)
-    ctx.fillText('disponiveis', 82, 325)
+    ctx.fillText('Horários', 82, 235)
+    ctx.fillText('disponíveis', 82, 325)
     ctx.fillStyle = accent
     ctx.font = '700 48px system-ui, sans-serif'
     ctx.fillText('unhas', 82, 390)
@@ -216,7 +195,7 @@ export default function VitrinePage() {
     ctx.fillStyle = accent
     ctx.font = '900 34px system-ui, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText(caption || 'Reserve ja o seu horario', 540, 1035)
+    ctx.fillText(caption || 'Reserve já o seu horário', 540, 1035)
 
     ctx.fillStyle = text
     ctx.font = '900 38px system-ui, sans-serif'
@@ -261,7 +240,7 @@ export default function VitrinePage() {
           <div>
             <p style={{ margin: '0 0 5px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>Vitrine</p>
             <h1 style={{ margin: 0, color: C.text, fontSize: 24, fontWeight: 900 }}>Vitrine do Dia</h1>
-            <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 12 }}>Escolha horarios avulsos e gere o banner para status.</p>
+            <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 12 }}>Escolha horários liberados e gere o banner para status.</p>
           </div>
         </div>
         <Link href="/disponibilidade" style={{ ...buttonStyle(C.purple, false), textDecoration: 'none' }}>
@@ -274,7 +253,7 @@ export default function VitrinePage() {
           <button onClick={() => moveDate(-1)} style={iconButtonStyle()}><ChevronLeft size={16} /></button>
           <div style={{ textAlign: 'center' }}>
             <strong style={{ display: 'block', color: C.text, fontSize: 16, textTransform: 'capitalize' }}>{dateLabel(date)}</strong>
-            <span style={{ color: C.muted, fontSize: 12 }}>{selectedFree.length} selecionado(s) livres</span>
+            <span style={{ color: C.muted, fontSize: 12 }}>{selectedFree.length} horário(s) selecionado(s)</span>
           </div>
           <button onClick={() => moveDate(1)} style={iconButtonStyle()}><ChevronRight size={16} /></button>
         </div>
@@ -287,7 +266,14 @@ export default function VitrinePage() {
           </div>
         </div>
 
-        <SlotGroup label="Manha" slots={slots.filter(slot => Number(slot.time.slice(0, 2)) < 12)} onToggle={toggleSlot} />
+        {slotReason && (
+          <div style={{ border: `1px solid ${C.border2}`, background: C.card2, color: C.muted, borderRadius: 12, padding: 14, fontSize: 13, lineHeight: 1.45 }}>
+            <strong style={{ display: 'block', color: C.text, marginBottom: 4 }}>Nenhuma vaga para vitrine</strong>
+            {slotReason} Abra a tela de Vagas para liberar o dia antes de compartilhar.
+          </div>
+        )}
+
+        <SlotGroup label="Manhã" slots={slots.filter(slot => Number(slot.time.slice(0, 2)) < 12)} onToggle={toggleSlot} />
         <SlotGroup label="Tarde" slots={slots.filter(slot => Number(slot.time.slice(0, 2)) >= 12)} onToggle={toggleSlot} />
       </section>
 

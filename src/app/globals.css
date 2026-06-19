@@ -2550,3 +2550,249 @@ nextjs-portal {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Salon theme toggle */
+.salon-theme-toggle {
+  height: 32px;
+  min-width: 58px;
+  border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  background: rgba(167, 139, 250, 0.12);
+  color: #ddd6fe;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+:root[data-salon-theme="rose"] {
+  color-scheme: light;
+}
+
+:root[data-salon-theme="rose"] body,
+:root[data-salon-theme="rose"] .salon-shell {
+  background: #fffafb !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main {
+  background:
+    radial-gradient(circle at 82% -120px, rgba(244, 114, 182, 0.10), transparent 310px),
+    linear-gradient(180deg, #fffafb 0%, #ffffff 46%, #fffafb 100%) !important;
+  color: #382233 !important;
+}
+
+:root[data-salon-theme="rose"] .manicure-sidebar,
+:root[data-salon-theme="rose"] .manicure-sidebar-shell,
+:root[data-salon-theme="rose"] .manicure-topbar,
+:root[data-salon-theme="rose"] .manicure-bottom-nav {
+  background: rgba(255, 252, 253, 0.97) !important;
+  border-color: #f1dce5 !important;
+  box-shadow: 0 14px 34px rgba(190, 24, 93, 0.045) !important;
+}
+
+:root[data-salon-theme="rose"] .manicure-sidebar {
+  border-right: 1px solid #f1dce5 !important;
+}
+
+:root[data-salon-theme="rose"] .manicure-logo,
+:root[data-salon-theme="rose"] .manicure-avatar,
+:root[data-salon-theme="rose"] .manicure-topbar-logo {
+  background: linear-gradient(135deg, #f7c4da, #d9c3f7) !important;
+  border-color: rgba(219, 39, 119, 0.18) !important;
+  color: #ffffff !important;
+}
+
+:root[data-salon-theme="rose"] .manicure-brand-copy strong,
+:root[data-salon-theme="rose"] .manicure-topbar-name,
+:root[data-salon-theme="rose"] .manicure-account-copy strong,
+:root[data-salon-theme="rose"] .dash-main :is(h1, h2, h3, strong) {
+  color: #382233 !important;
+}
+
+:root[data-salon-theme="rose"] .manicure-brand-copy span,
+:root[data-salon-theme="rose"] .manicure-account-copy span,
+:root[data-salon-theme="rose"] .manicure-nav-section p,
+:root[data-salon-theme="rose"] .dash-main :is(p, small) {
+  color: #916078 !important;
+}
+
+:root[data-salon-theme="rose"] .manicure-brand-copy small {
+  background: #fff6fa !important;
+  border-color: #efd3df !important;
+  color: #a33b67 !important;
+}
+
+:root[data-salon-theme="rose"] .manicure-nav-link,
+:root[data-salon-theme="rose"] .manicure-bottom-nav a,
+:root[data-salon-theme="rose"] .manicure-account-card,
+:root[data-salon-theme="rose"] .manicure-footer-actions :is(a, button),
+:root[data-salon-theme="rose"] .manicure-admin-shortcut a {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: #7b5167 !important;
+}
+
+:root[data-salon-theme="rose"] .manicure-nav-link:hover,
+:root[data-salon-theme="rose"] .manicure-bottom-nav a:hover {
+  background: #fff6fa !important;
+  border-color: #efd3df !important;
+  color: #a33b67 !important;
+}
+
+:root[data-salon-theme="rose"] .manicure-nav-link.is-active,
+:root[data-salon-theme="rose"] .manicure-bottom-nav a.is-active {
+  background: linear-gradient(135deg, #fff7fa, #faf5ff) !important;
+  border-color: #ead0dc !important;
+  color: #a33b67 !important;
+  box-shadow: 0 10px 22px rgba(190, 24, 93, 0.055) !important;
+}
+
+:root[data-salon-theme="rose"] .manicure-footer-actions :is(a, button),
+:root[data-salon-theme="rose"] .salon-theme-toggle {
+  background: #ffffff !important;
+  border-color: #ead0dc !important;
+  color: #a33b67 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-home,
+:root[data-salon-theme="rose"] .dash-panel,
+:root[data-salon-theme="rose"] .dash-kpi-card,
+:root[data-salon-theme="rose"] .dash-quick-action,
+:root[data-salon-theme="rose"] .dash-next-card,
+:root[data-salon-theme="rose"] .dash-week-nav button,
+:root[data-salon-theme="rose"] .dash-day-head,
+:root[data-salon-theme="rose"] .dash-day-items > div,
+:root[data-salon-theme="rose"] .agenda-page > section,
+:root[data-salon-theme="rose"] .agenda-tracking,
+:root[data-salon-theme="rose"] .agenda-selected,
+:root[data-salon-theme="rose"] .agenda-kpis > div,
+:root[data-salon-theme="rose"] .agenda-link,
+:root[data-salon-theme="rose"] .agenda-next,
+:root[data-salon-theme="rose"] .agenda-banner,
+:root[data-salon-theme="rose"] .vagas-summary,
+:root[data-salon-theme="rose"] .vagas-grid-section,
+:root[data-salon-theme="rose"] .vagas-days-grid > div,
+:root[data-salon-theme="rose"] .studio-page,
+:root[data-salon-theme="rose"] .studio-page-header,
+:root[data-salon-theme="rose"] .studio-service-card,
+:root[data-salon-theme="rose"] .studio-report-kpi,
+:root[data-salon-theme="rose"] .studio-report-panel,
+:root[data-salon-theme="rose"] .studio-modal {
+  background: rgba(255, 255, 255, 0.86) !important;
+  border-color: #f0dbe4 !important;
+  box-shadow: 0 14px 30px rgba(190, 24, 93, 0.045) !important;
+}
+
+:root[data-salon-theme="rose"] .dash-quick-action:hover,
+:root[data-salon-theme="rose"] .dash-next-card:hover,
+:root[data-salon-theme="rose"] .studio-service-card:hover {
+  background: #fff8fb !important;
+  border-color: #ead0dc !important;
+}
+
+:root[data-salon-theme="rose"] .dash-time,
+:root[data-salon-theme="rose"] .agenda-time,
+:root[data-salon-theme="rose"] .vagas-days-grid strong {
+  background: #fff7fa !important;
+  border-color: #ead0dc !important;
+  color: #a33b67 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main input,
+:root[data-salon-theme="rose"] .dash-main select,
+:root[data-salon-theme="rose"] .dash-main textarea {
+  background: #ffffff !important;
+  border-color: #ecd5df !important;
+  color: #382233 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main input::placeholder,
+:root[data-salon-theme="rose"] .dash-main textarea::placeholder {
+  color: #b98aa0 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main button,
+:root[data-salon-theme="rose"] .dash-main a {
+  border-color: #ead0dc;
+}
+
+:root[data-salon-theme="rose"] .dash-main button[style*="#8b5cf6"],
+:root[data-salon-theme="rose"] .dash-main a[style*="#8b5cf6"] {
+  background: linear-gradient(135deg, #c85f8d, #d978a2) !important;
+  border-color: #c85f8d !important;
+  color: #ffffff !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="background:#10101f"],
+:root[data-salon-theme="rose"] .dash-main [style*="background: #10101f"],
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgb(16, 16, 31)"],
+:root[data-salon-theme="rose"] .dash-main [style*="background-color: rgb(16, 16, 31)"],
+:root[data-salon-theme="rose"] .dash-main [style*="background:#17172a"],
+:root[data-salon-theme="rose"] .dash-main [style*="background: #17172a"],
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgb(23, 23, 42)"],
+:root[data-salon-theme="rose"] .dash-main [style*="background-color: rgb(23, 23, 42)"],
+:root[data-salon-theme="rose"] .dash-main [style*="background:rgba(255,255,255,0.03)"],
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgba(255,255,255,0.03)"],
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgba(255,255,255,0.04)"] {
+  background: rgba(255, 255, 255, 0.86) !important;
+  border-color: #f0dbe4 !important;
+}
+
+:root[data-salon-theme="rose"] .agenda-kpis > div:last-child :is(a, button),
+:root[data-salon-theme="rose"] .agenda-days > button,
+:root[data-salon-theme="rose"] .vagas-grid-section > div:first-child button,
+:root[data-salon-theme="rose"] .dash-week-nav button {
+  background: #ffffff !important;
+  border-color: #ecd5df !important;
+  color: #a33b67 !important;
+  box-shadow: 0 10px 20px rgba(190, 24, 93, 0.04) !important;
+}
+
+:root[data-salon-theme="rose"] .agenda-kpis > div:last-child :is(a, button):hover,
+:root[data-salon-theme="rose"] .agenda-days > button:hover,
+:root[data-salon-theme="rose"] .vagas-grid-section > div:first-child button:hover,
+:root[data-salon-theme="rose"] .dash-week-nav button:hover {
+  background: #fff8fb !important;
+  border-color: #ead0dc !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-grid-section > div:first-child button:disabled {
+  background: #f6edf2 !important;
+  border-color: #ead3dd !important;
+  color: #b98aa0 !important;
+  box-shadow: none !important;
+}
+
+:root[data-salon-theme="rose"] .agenda-kpis > div:last-child a:nth-child(2) {
+  background: linear-gradient(135deg, #c85f8d, #d978a2) !important;
+  color: #ffffff !important;
+  border-color: #c85f8d !important;
+}
+
+:root[data-salon-theme="rose"] .agenda-days > button[style*="rgba(167, 139, 250"],
+:root[data-salon-theme="rose"] .agenda-days > button[style*="rgb(167, 139, 250)"] {
+  background: #fff7fa !important;
+  border-color: #d9aabd !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-summary-actions button[style*="#f87171"],
+:root[data-salon-theme="rose"] .vagas-summary-actions button[style*="rgb(248, 113, 113)"] {
+  background: #fff7f8 !important;
+  border-color: #efd0d7 !important;
+  color: #aa5b6d !important;
+}
+
+:root[data-salon-theme="rose"] .studio-modal-backdrop {
+  background: rgba(56, 34, 51, 0.28) !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="color: #a78bfa"],
+:root[data-salon-theme="rose"] .dash-main [style*="color:#a78bfa"] {
+  color: #a33b67 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="color: #a1a1aa"],
+:root[data-salon-theme="rose"] .dash-main [style*="color:#a1a1aa"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: #c4b5fd"],
+:root[data-salon-theme="rose"] .dash-main [style*="color:#c4b5fd"] {
+  color: #916078 !important;
+}
