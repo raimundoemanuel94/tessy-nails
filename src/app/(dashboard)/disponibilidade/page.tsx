@@ -92,6 +92,10 @@ export default function DisponibilidadePage() {
     setEditDay(null)
   }
 
+  function openDayEditor(date: string, label: string, open = '09:00', close = '18:00') {
+    setEditDay({ date, label, open, close })
+  }
+
   const today = new Date(); today.setHours(12, 0, 0, 0)
   const dow = today.getDay() === 0 ? 7 : today.getDay()
   const monday = addDays(today, -(dow - 1) + weekOffset * 14)
@@ -112,6 +116,8 @@ export default function DisponibilidadePage() {
   }
 
   const rangeLabel = `${days[0].dayNum} de ${days[0].month} — ${days[days.length-1].dayNum} de ${days[days.length-1].month}`
+  const releasedCount = days.filter(day => !!workingHours[day.date]?.is_open && !blockedDates.includes(day.date)).length
+  const nextUnreleasedDay = days.find(day => !day.isPast && !workingHours[day.date]?.is_open && !blockedDates.includes(day.date))
 
   if (loading) return <div style={{ display: 'grid', placeItems: 'center', minHeight: '60vh', color: C.muted }}>Carregando...</div>
 
@@ -134,6 +140,49 @@ export default function DisponibilidadePage() {
       </header>
 
       {/* Dias padrão da semana */}
+      <section style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) auto',
+        gap: 16,
+        alignItems: 'center',
+        padding: 18,
+        borderRadius: 18,
+        background: `linear-gradient(135deg, ${C.purple}22, ${C.card})`,
+        border: `1px solid ${C.purple}35`,
+      }}>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: '0 0 6px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
+            Vagas da quinzena
+          </p>
+          <h2 style={{ margin: 0, color: C.text, fontSize: 18, fontWeight: 900 }}>
+            {releasedCount} {releasedCount === 1 ? 'dia liberado' : 'dias liberados'}
+          </h2>
+          <p style={{ margin: '6px 0 0', color: C.muted, fontSize: 12, lineHeight: 1.45 }}>
+            Libere somente os dias que vao aparecer para as clientes. Dias nao liberados nao entram no agendamento publico.
+          </p>
+        </div>
+        {nextUnreleasedDay && (
+          <button
+            onClick={() => openDayEditor(nextUnreleasedDay.date, `${nextUnreleasedDay.label} ${nextUnreleasedDay.dayNum}/${nextUnreleasedDay.month}`)}
+            style={{
+              minHeight: 42,
+              padding: '0 16px',
+              borderRadius: 12,
+              border: 'none',
+              background: C.purple,
+              color: '#fff',
+              fontFamily: 'inherit',
+              fontSize: 13,
+              fontWeight: 850,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Liberar proximo dia
+          </button>
+        )}
+      </section>
+
       <section style={{ background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, padding: 20 }}>
         <p style={{ margin: '0 0 14px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Dias de atendimento padrão</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 10 }}>
@@ -241,15 +290,45 @@ export default function DisponibilidadePage() {
                 {!isOpen && !isBlocked && <span style={{ color: C.muted, fontSize: 10 }}>Não liberado</span>}
 
                 {!day.isPast && (
-                  <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-                    <button onClick={() => toggleBlockDate(day.date)} title={isBlocked ? 'Desbloquear' : 'Bloquear dia'}
-                      style={{ flex: 1, height: 26, borderRadius: 7, border: `1px solid ${isBlocked ? C.red : C.border}`, background: isBlocked ? `${C.red}22` : 'transparent', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
-                      {isBlocked ? <Unlock size={11} color={C.red} /> : <Lock size={11} color={C.muted} />}
+                  <div style={{ display: 'grid', gap: 6, marginTop: 6 }}>
+                    <button
+                      onClick={() => openDayEditor(day.date, `${day.label} ${day.dayNum}/${day.month}`, config.open || '09:00', config.close || '18:00')}
+                      title="Liberar ou ajustar vagas deste dia"
+                      style={{
+                        minHeight: 32,
+                        borderRadius: 9,
+                        border: `1px solid ${isOpen ? `${C.purple}66` : C.purple}`,
+                        background: isOpen ? `${C.purple}18` : C.purple,
+                        color: isOpen ? C.purple : '#fff',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        fontSize: 11,
+                        fontWeight: 850,
+                      }}
+                    >
+                      {isOpen ? 'Ajustar vagas' : 'Liberar vagas'}
                     </button>
-                    <button onClick={() => setEditDay({ date: day.date, label: `${day.label} ${day.dayNum}/${day.month}`, open: config.open || '09:00', close: config.close || '18:00' })}
-                      title="Liberar ou ajustar horário deste dia"
-                      style={{ flex: 1, height: 26, borderRadius: 7, border: `1px solid ${C.border}`, background: 'transparent', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
-                      <Clock size={11} color={C.muted} />
+                    <button
+                      onClick={() => toggleBlockDate(day.date)}
+                      title={isBlocked ? 'Desbloquear' : 'Bloquear dia'}
+                      style={{
+                        minHeight: 28,
+                        borderRadius: 8,
+                        border: `1px solid ${isBlocked ? C.red : C.border}`,
+                        background: isBlocked ? `${C.red}18` : 'transparent',
+                        color: isBlocked ? C.red : C.muted,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        fontSize: 10,
+                        fontWeight: 800,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 5,
+                      }}
+                    >
+                      {isBlocked ? <Unlock size={11} /> : <Lock size={11} />}
+                      {isBlocked ? 'Desbloquear' : 'Bloquear'}
                     </button>
                   </div>
                 )}

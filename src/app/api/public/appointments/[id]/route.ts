@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { phonesMatch } from "@/lib/booking/client-access";
+import { checkRateLimit, rateLimitResponse, requestIp } from "@/lib/rate-limit";
+
+const GET_RATE_LIMIT = 30;
+const PATCH_RATE_LIMIT = 8;
+const RATE_WINDOW_MS = 10 * 60 * 1000;
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -9,6 +14,11 @@ type RouteContext = {
 export async function GET(req: Request, { params }: RouteContext) {
   try {
     const { id } = await params;
+    const ip = requestIp(req);
+    if (!checkRateLimit(`public:appointments:id:get:${ip}`, GET_RATE_LIMIT, RATE_WINDOW_MS)) {
+      return rateLimitResponse();
+    }
+
     const { searchParams } = new URL(req.url)
     const phone = searchParams.get("phone") || ""
     if (!id) {
@@ -73,6 +83,11 @@ export async function GET(req: Request, { params }: RouteContext) {
 export async function PATCH(req: Request, { params }: RouteContext) {
   try {
     const { id } = await params;
+    const ip = requestIp(req);
+    if (!checkRateLimit(`public:appointments:id:patch:${ip}`, PATCH_RATE_LIMIT, RATE_WINDOW_MS)) {
+      return rateLimitResponse();
+    }
+
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action || "");
     const phone = String(body?.phone || "");

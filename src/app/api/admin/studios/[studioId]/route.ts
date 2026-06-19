@@ -2,12 +2,14 @@
 import { NextResponse } from "next/server";
 import { mapServiceRow, mapSettingsRow, mapStudioRow, requireSuperadmin } from "../../_shared";
 
-export async function GET(_: Request, { params }: { params: { studioId: string } }) {
+type StudioRouteContext = { params: Promise<{ studioId: string }> };
+
+export async function GET(_: Request, { params }: StudioRouteContext) {
   const auth = await requireSuperadmin();
   if ("response" in auth) return auth.response;
 
   const { admin } = auth;
-  const studioId = params.studioId;
+  const { studioId } = await params;
 
   const { data: studio, error: studioError } = await admin
     .from("studios")
@@ -80,12 +82,12 @@ export async function GET(_: Request, { params }: { params: { studioId: string }
   });
 }
 
-export async function PUT(request: Request, { params }: { params: { studioId: string } }) {
+export async function PUT(request: Request, { params }: StudioRouteContext) {
   const auth = await requireSuperadmin();
   if ("response" in auth) return auth.response;
 
   const { admin } = auth;
-  const studioId = params.studioId;
+  const { studioId } = await params;
   const body = await request.json().catch(() => null);
 
   if (!body || typeof body !== "object") {

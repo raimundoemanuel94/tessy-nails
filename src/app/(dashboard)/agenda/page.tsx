@@ -135,6 +135,10 @@ export default function AgendaPage() {
   const selectedRevenue = selectedApts
     .filter(item => item.status !== 'cancelled')
     .reduce((sum, item) => sum + Number(item.price || 0), 0)
+  const todayApts = apts.filter(item => item.appointment_date.slice(0, 10) === today)
+  const activeTodayCount = todayApts.filter(item => !['completed', 'cancelled', 'no_show'].includes(item.status)).length
+  const pendingCount = apts.filter(item => item.status === 'pending').length
+  const selectedDateReleased = Boolean((salonSettings?.working_hours as any)?.[selectedDate]?.is_open)
 
   const changeStatus = async (id: string, status: string) => {
     const sb = createClient()
@@ -221,6 +225,37 @@ export default function AgendaPage() {
           </button>
         </div>
       </header>
+
+      <section style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+        gap: 10,
+      }}>
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14 }}>
+          <p style={{ margin: 0, color: C.muted, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Hoje</p>
+          <strong style={{ display: 'block', marginTop: 5, color: C.text, fontSize: 22 }}>{activeTodayCount}</strong>
+          <span style={{ color: C.muted, fontSize: 12 }}>{todayApts.length} no total</span>
+        </div>
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14 }}>
+          <p style={{ margin: 0, color: C.muted, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Pendentes</p>
+          <strong style={{ display: 'block', marginTop: 5, color: pendingCount ? C.amber : C.text, fontSize: 22 }}>{pendingCount}</strong>
+          <span style={{ color: C.muted, fontSize: 12 }}>{pendingCount ? 'precisam de resposta' : 'tudo em dia'}</span>
+        </div>
+        <div style={{ background: selectedDateReleased ? `${C.green}10` : `${C.purple}10`, border: `1px solid ${selectedDateReleased ? `${C.green}35` : `${C.purple}35`}`, borderRadius: 16, padding: 14, display: 'grid', gap: 8 }}>
+          <div>
+            <p style={{ margin: 0, color: selectedDateReleased ? C.green : C.purple, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Status de vagas</p>
+            <strong style={{ display: 'block', marginTop: 5, color: C.text, fontSize: 14 }}>{selectedDateReleased ? 'Dia liberado' : 'Dia nao liberado'}</strong>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <a href="/disponibilidade" style={{ ...navButtonStyle, minWidth: 'auto', height: 34, padding: '0 11px', color: C.purple, textDecoration: 'none' }}>
+              Liberar vagas
+            </a>
+            <button onClick={() => setBannerOpen(true)} style={{ ...navButtonStyle, minWidth: 'auto', height: 34, padding: '0 11px', color: C.pink }}>
+              Banner
+            </button>
+          </div>
+        </div>
+      </section>
 
       {studioSlug && (
         <section style={{
@@ -825,6 +860,9 @@ export default function AgendaPage() {
 
       <style>{`
         @media (max-width: 760px) {
+          section[style*="repeat(3, minmax"] {
+            grid-template-columns: 1fr !important;
+          }
           section[style*="grid-template-columns: auto minmax"] {
             grid-template-columns: 1fr !important;
           }
