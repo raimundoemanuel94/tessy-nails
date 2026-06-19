@@ -2608,6 +2608,14 @@ nextjs-portal {
   color: #382233 !important;
 }
 
+:root[data-salon-theme="rose"] .dash-hero h1 {
+  background: none !important;
+  background-image: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: #382233 !important;
+  color: #382233 !important;
+}
+
 :root[data-salon-theme="rose"] .manicure-brand-copy span,
 :root[data-salon-theme="rose"] .manicure-account-copy span,
 :root[data-salon-theme="rose"] .manicure-nav-section p,
@@ -2717,8 +2725,8 @@ nextjs-portal {
 
 :root[data-salon-theme="rose"] .dash-main button[style*="#8b5cf6"],
 :root[data-salon-theme="rose"] .dash-main a[style*="#8b5cf6"] {
-  background: linear-gradient(135deg, #c85f8d, #d978a2) !important;
-  border-color: #c85f8d !important;
+  background: linear-gradient(135deg, #b96a88, #ca819b) !important;
+  border-color: #b96a88 !important;
   color: #ffffff !important;
 }
 
@@ -2763,9 +2771,9 @@ nextjs-portal {
 }
 
 :root[data-salon-theme="rose"] .agenda-kpis > div:last-child a:nth-child(2) {
-  background: linear-gradient(135deg, #c85f8d, #d978a2) !important;
+  background: linear-gradient(135deg, #b96a88, #ca819b) !important;
   color: #ffffff !important;
-  border-color: #c85f8d !important;
+  border-color: #b96a88 !important;
 }
 
 :root[data-salon-theme="rose"] .agenda-days > button[style*="rgba(167, 139, 250"],
@@ -2779,6 +2787,141 @@ nextjs-portal {
   background: #fff7f8 !important;
   border-color: #efd0d7 !important;
   color: #aa5b6d !important;
+}
+
+/* Rose palette cleanup: keep the light theme calm and avoid rainbow state colors. */
+:root[data-salon-theme="rose"] .dash-main [style*="color: #ef4444"],
+:root[data-salon-theme="rose"] .dash-main [style*="color:#ef4444"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: rgb(239, 68, 68)"],
+:root[data-salon-theme="rose"] .dash-main [style*="color:#f87171"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: #f87171"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: rgb(248, 113, 113)"] {
+  color: #a85f6b !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: #ef4444"],
+:root[data-salon-theme="rose"] .dash-main [style*="border-color:#ef4444"],
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: rgb(239, 68, 68)"],
+:root[data-salon-theme="rose"] .dash-main [style*="border: 1px solid #ef4444"],
+:root[data-salon-theme="rose"] .dash-main [style*="border:1px solid #ef4444"],
+:root[data-salon-theme="rose"] .dash-main [style*="border: 1px solid rgb(239, 68, 68)"],
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: #f87171"],
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: rgb(248, 113, 113)"] {
+  border-color: #e7c2ca !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgba(239, 68, 68"],
+:root[data-salon-theme="rose"] .dash-main [style*="background-color: rgba(239, 68, 68"],
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgba(248, 113, 113"],
+:root[data-salon-theme="rose"] .dash-main [style*="background-color: rgba(248, 113, 113"] {
+  background: #fff8f9 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="color: #22c55e"],
+:root[data-salon-theme="rose"] .dash-main [style*="color:#22c55e"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: rgb(34, 197, 94)"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: #34d399"],
+:root[data-salon-theme="rose"] .dash-main [style*="color:#34d399"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: rgb(52, 211, 153)"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: #4ade9f"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: rgb(74, 222, 159)"] {
+  color: #4d9675 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: #22c55e"],
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: rgb(34, 197, 94)"],
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: #34d399"],
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: rgb(52, 211, 153)"],
+:root[data-salon-theme="rose"] .dash-main [style*="border: 1px solid #22c55e"],
+:root[data-salon-theme="rose"] .dash-main [style*="border: 1px solid rgb(34, 197, 94)"] {
+  border-color: #c8e2d4 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgba(34, 197, 94"],
+:root[data-salon-theme="rose"] .dash-main [style*="background-color: rgba(34, 197, 94"],
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgba(52, 211, 153"],
+:root[data-salon-theme="rose"] .dash-main [style*="background-color: rgba(52, 211, 153"] {
+  background: #f4fbf7 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="color: #7C5CBF"],
+:root[data-salon-theme="rose"] .dash-main [style*="color:#7C5CBF"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: #7c5cbf"],
+:root[data-salon-theme="rose"] .dash-main [style*="color:#7c5cbf"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: rgb(124, 92, 191)"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: #a78bfa"],
+:root[data-salon-theme="rose"] .dash-main [style*="color:#a78bfa"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: rgb(167, 139, 250)"] {
+  color: #9a6178 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: #7C5CBF"],
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: #7c5cbf"],
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: rgb(124, 92, 191)"],
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: #a78bfa"],
+:root[data-salon-theme="rose"] .dash-main [style*="border-color: rgb(167, 139, 250)"],
+:root[data-salon-theme="rose"] .dash-main [style*="border: 1px solid #7C5CBF"],
+:root[data-salon-theme="rose"] .dash-main [style*="border: 1px solid #7c5cbf"],
+:root[data-salon-theme="rose"] .dash-main [style*="border: 1px solid rgb(124, 92, 191)"] {
+  border-color: #e0c6d2 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgba(124, 92, 191"],
+:root[data-salon-theme="rose"] .dash-main [style*="background-color: rgba(124, 92, 191"],
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgba(167, 139, 250"],
+:root[data-salon-theme="rose"] .dash-main [style*="background-color: rgba(167, 139, 250"] {
+  background: #fff8fb !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgb(124, 92, 191)"],
+:root[data-salon-theme="rose"] .dash-main [style*="background-color: rgb(124, 92, 191)"],
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgb(167, 139, 250)"],
+:root[data-salon-theme="rose"] .dash-main [style*="background-color: rgb(167, 139, 250)"] {
+  background: #b96a88 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="border: 1.5px solid rgba(124, 92, 191"],
+:root[data-salon-theme="rose"] .dash-main [style*="border:1.5px solid rgba(124, 92, 191"],
+:root[data-salon-theme="rose"] .dash-main [style*="border: 1px solid rgba(124, 92, 191"],
+:root[data-salon-theme="rose"] .dash-main [style*="border:1px solid rgba(124, 92, 191"] {
+  border-color: #dec0cc !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="outline: rgba(124, 92, 191"],
+:root[data-salon-theme="rose"] .dash-main [style*="outline-color: rgba(124, 92, 191"] {
+  outline: 2px solid #d2aabb !important;
+  outline-color: #d2aabb !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="color: #fbbf24"],
+:root[data-salon-theme="rose"] .dash-main [style*="color:#fbbf24"],
+:root[data-salon-theme="rose"] .dash-main [style*="color: rgb(251, 191, 36)"] {
+  color: #a68038 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main [style*="background: rgba(251, 191, 36"],
+:root[data-salon-theme="rose"] .dash-main [style*="background-color: rgba(251, 191, 36"] {
+  background: #fffaf0 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main svg[stroke="#a78bfa"],
+:root[data-salon-theme="rose"] .dash-main svg[stroke="#7C5CBF"],
+:root[data-salon-theme="rose"] .dash-main svg[stroke="#7c5cbf"] {
+  stroke: #9a6178 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main svg[stroke="#34d399"],
+:root[data-salon-theme="rose"] .dash-main svg[stroke="#22c55e"] {
+  stroke: #4d9675 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main svg[stroke="#f87171"],
+:root[data-salon-theme="rose"] .dash-main svg[stroke="#ef4444"] {
+  stroke: #a85f6b !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main svg[stroke="#fbbf24"] {
+  stroke: #a68038 !important;
 }
 
 :root[data-salon-theme="rose"] .studio-modal-backdrop {
