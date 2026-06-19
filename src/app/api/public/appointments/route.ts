@@ -9,6 +9,8 @@ type AppointmentBody = {
   studio_id?: string;
   serviceId?: string;
   service_id?: string;
+  professionalId?: string;
+  professional_id?: string;
   appointmentDate?: string;
   appointment_date?: string;
   clientName?: string;
@@ -32,6 +34,7 @@ export async function POST(req: Request) {
   const studioIdInput = body.studioId ?? body.studio_id ?? null;
   const slugInput = body.slug?.trim() ?? null;
   const serviceId = body.serviceId ?? body.service_id ?? null;
+  const professionalId = body.professionalId ?? body.professional_id ?? null;
   const appointmentInput = body.appointmentDate ?? body.appointment_date ?? null;
   const clientName = body.clientName ?? body.client_name ?? "";
   const clientPhone = body.clientPhone ?? body.client_phone ?? "";
@@ -65,6 +68,18 @@ export async function POST(req: Request) {
     .single();
   if (serviceError || !service) return bad("Serviço inválido para este studio");
 
+  if (professionalId) {
+    const { data: professional, error: professionalError } = await supabase
+      .from("profiles")
+      .select("id, role, studio_id")
+      .eq("id", professionalId)
+      .eq("studio_id", studio.id)
+      .in("role", ["owner", "professional"])
+      .maybeSingle();
+
+    if (professionalError || !professional) return bad("Profissional invalido para este studio");
+  }
+
   const durationMinutes = Number(service.duration_minutes ?? 30);
   const bufferMinutes = Number(service.buffer_minutes ?? 0);
   const reservedMinutes = durationMinutes + bufferMinutes;
@@ -72,13 +87,32 @@ export async function POST(req: Request) {
   const localDate = zonedDateString(when, BOOKING_TIME_ZONE);
   const { start: dayStart, end: dayEnd } = zonedDayRange(localDate, BOOKING_TIME_ZONE);
 
-  const { data: sameDay, error: sameDayError } = await supabase
+  let sameDayQuery = supabase
     .from("appointments")
-    .select("appointment_date, duration_minutes, service_id")
+    .select(professionalId ? "appointment_date, duration_minutes, service_id, professional_id" : "appointment_date, duration_minutes, service_id")
     .eq("studio_id", studio.id)
     .neq("status", "cancelled")
     .gte("appointment_date", dayStart.toISOString())
     .lte("appointment_date", dayEnd.toISOString());
+
+  if (professionalId) {
+    sameDayQuery = sameDayQuery.or(`professional_id.eq.${professionalId},professional_id.is.null`);
+  }
+
+  let { data: sameDay, error: sameDayError } = await sameDayQuery;
+
+  if (sameDayError && professionalId) {
+    const fallback = await supabase
+      .from("appointments")
+      .select("appointment_date, duration_minutes, service_id")
+      .eq("studio_id", studio.id)
+      .neq("status", "cancelled")
+      .gte("appointment_date", dayStart.toISOString())
+      .lte("appointment_date", dayEnd.toISOString());
+
+    sameDay = fallback.data;
+    sameDayError = fallback.error;
+  }
 
   if (sameDayError) return bad("Falha ao validar disponibilidade", 500);
 
@@ -177,28 +211,46 @@ export async function POST(req: Request) {
 
   if (needsManualReview) status = "pending";
 
-  const { data: appointment, error: appointmentError } = await supabase
+  const appointmentPayload: Record<string, unknown> = {
+    studio_id: studio.id,
+    client_id: clientId,
+    service_id: service.id,
+    client_name: clientName.trim(),
+    service_name: service.name,
+    appointment_date: when.toISOString(),
+    duration_minutes: reservedMinutes,
+    price: service.price,
+    status,
+    source: "public",
+    notes: [
+      notes,
+      needsManualReview ? "Atencao: cliente com historico de cancelamento/falta. Confirmar manualmente." : null,
+    ].filter(Boolean).join("\n") || null,
+  };
+
+  if (professionalId) appointmentPayload.professional_id = professionalId;
+
+  let { data: appointment, error: appointmentError } = await supabase
     .from("appointments")
-    .insert({
-      studio_id: studio.id,
-      client_id: clientId,
-      service_id: service.id,
-      client_name: clientName.trim(),
-      service_name: service.name,
-      appointment_date: when.toISOString(),
-      duration_minutes: reservedMinutes,
-      price: service.price,
-      status,
-      source: "public",
-      notes: [
-        notes,
-        needsManualReview ? "Atencao: cliente com historico de cancelamento/falta. Confirmar manualmente." : null,
-      ].filter(Boolean).join("\n") || null,
-    })
+    .insert(appointmentPayload)
     .select(
-      "id, status, appointment_date, client_name, service_name, price, duration_minutes, client_id, service_id, studio_id",
+      professionalId
+        ? "id, status, appointment_date, client_name, service_name, price, duration_minutes, client_id, service_id, studio_id, professional_id"
+        : "id, status, appointment_date, client_name, service_name, price, duration_minutes, client_id, service_id, studio_id",
     )
     .single();
+
+  if (appointmentError && professionalId) {
+    const { professional_id: _professionalId, ...fallbackPayload } = appointmentPayload;
+    const fallback = await supabase
+      .from("appointments")
+      .insert(fallbackPayload)
+      .select("id, status, appointment_date, client_name, service_name, price, duration_minutes, client_id, service_id, studio_id")
+      .single();
+
+    appointment = fallback.data;
+    appointmentError = fallback.error;
+  }
 
   if (appointmentError || !appointment) return bad("Falha ao criar agendamento", 500);
 
@@ -212,6 +264,7 @@ export async function POST(req: Request) {
     studioId: appointment.studio_id,
     serviceId: appointment.service_id,
     clientId: appointment.client_id,
+    professionalId: appointment.professional_id ?? null,
   };
 
   return NextResponse.json(

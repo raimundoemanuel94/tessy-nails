@@ -82,6 +82,7 @@ export async function GET(req: NextRequest) {
 
     const slotDuration = Number(settings?.slot_duration ?? 30);
     const serviceId = searchParams.get("serviceId") ?? searchParams.get("service_id");
+    const professionalId = searchParams.get("professionalId") ?? searchParams.get("professional_id");
     let selectedDuration = Number(searchParams.get("duration") ?? slotDuration);
 
     if (serviceId) {
@@ -109,13 +110,32 @@ export async function GET(req: NextRequest) {
       allSlots.push(fromMin(minute));
     }
 
-    const { data: appointments, error: appointmentsError } = await supabase
+    let appointmentsQuery = supabase
       .from("appointments")
-      .select("appointment_date, duration_minutes, status, service_id")
+      .select(professionalId ? "appointment_date, duration_minutes, status, service_id, professional_id" : "appointment_date, duration_minutes, status, service_id")
       .eq("studio_id", studioId)
       .gte("appointment_date", dayRange.start.toISOString())
       .lte("appointment_date", dayRange.end.toISOString())
       .neq("status", "cancelled");
+
+    if (professionalId) {
+      appointmentsQuery = appointmentsQuery.or(`professional_id.eq.${professionalId},professional_id.is.null`);
+    }
+
+    let { data: appointments, error: appointmentsError } = await appointmentsQuery;
+
+    if (appointmentsError && professionalId) {
+      const fallback = await supabase
+        .from("appointments")
+        .select("appointment_date, duration_minutes, status, service_id")
+        .eq("studio_id", studioId)
+        .gte("appointment_date", dayRange.start.toISOString())
+        .lte("appointment_date", dayRange.end.toISOString())
+        .neq("status", "cancelled");
+
+      appointments = fallback.data;
+      appointmentsError = fallback.error;
+    }
 
     if (appointmentsError) {
       return NextResponse.json(

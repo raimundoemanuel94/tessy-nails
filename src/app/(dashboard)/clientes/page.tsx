@@ -1,7 +1,7 @@
 'use client'
 
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
-import { CalendarCheck, Clock, Mail, Phone, Plus, Search, Sparkles, UserRound } from 'lucide-react'
+import { CalendarCheck, Clock, Mail, MessageCircle, Phone, Plus, Search, Sparkles, UserRound } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Appointment, Client } from '@/types/database'
 
@@ -31,6 +31,8 @@ type ClientStats = {
   last: Appointment | null
   spent: number
 }
+
+type ClientFilter = 'all' | 'next' | 'no_phone' | 'public'
 
 function sourceLabel(source?: string | null) {
   if (source === 'public') return 'Link publico'
@@ -71,6 +73,7 @@ export default function ClientesPage() {
   const [studioId, setStudioId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<ClientFilter>('all')
   const [selected, setSelected] = useState<Client | null>(null)
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState({ name: '', phone: '', email: '', birth_date: '', notes: '' })
@@ -141,18 +144,34 @@ export default function ClientesPage() {
     const term = query.trim().toLowerCase()
     return clients.filter((client) => {
       const stats = statsByClient.get(client.id)
+      const passFilter =
+        filter === 'all' ||
+        (filter === 'next' && Boolean(stats?.next)) ||
+        (filter === 'no_phone' && !client.phone) ||
+        (filter === 'public' && client.source === 'public')
+
       return !term ||
         client.name.toLowerCase().includes(term) ||
         client.phone?.includes(term) ||
         client.email?.toLowerCase().includes(term) ||
         sourceLabel(client.source).toLowerCase().includes(term) ||
         stats?.appointments.some((appointment) => appointment.service_name.toLowerCase().includes(term))
+        ? passFilter
+        : false
     })
-  }, [clients, query, statsByClient])
+  }, [clients, filter, query, statsByClient])
 
   const publicClients = clients.filter((client) => client.source === 'public').length
   const withNext = clients.filter((client) => statsByClient.get(client.id)?.next).length
   const totalSpent = Array.from(statsByClient.values()).reduce((sum, stats) => sum + stats.spent, 0)
+
+  const openWhatsapp = (client: Client, text?: string) => {
+    if (!client.phone) return
+    const number = client.phone.replace(/\D/g, '')
+    if (!number) return
+    const message = text || `Ola ${client.name.split(' ')[0] || 'cliente'}, tudo bem?`
+    window.open(`https://wa.me/55${number}?text=${encodeURIComponent(message)}`, '_blank')
+  }
 
   const save = async () => {
     if (!form.name.trim() || !studioId) return
@@ -200,32 +219,66 @@ export default function ClientesPage() {
         </button>
       </header>
 
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12 }}>
-        <Metric label="Base ativa" value={clients.length} sub={`${publicClients} vieram do link`} color={C.purple} />
-        <Metric label="Com retorno" value={withNext} sub="proximos horarios" color={C.green} />
-        <Metric label="Receita historica" value={money(totalSpent)} sub="atendimentos concluidos" color={C.amber} />
-        <Metric label="Busca atual" value={filtered.length} sub="clientes filtradas" color={C.pink} />
+      <section className="clients-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12 }}>
+        <Metric label="Ativas" value={clients.length} sub={`${publicClients} do link`} color={C.purple} />
+        <Metric label="Retorno" value={withNext} sub="agendadas" color={C.green} />
+        <Metric label="Receita" value={money(totalSpent)} sub="concluidos" color={C.amber} />
+        <Metric label="Filtradas" value={filtered.length} sub="na busca" color={C.pink} />
       </section>
 
-      <label style={{
-        height: 44,
-        borderRadius: 13,
-        border: `1px solid ${C.border2}`,
-        background: C.card,
-        padding: '0 14px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        color: C.muted,
-      }}>
-        <Search size={16} />
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Buscar por nome, telefone, email, origem ou servico"
-          style={{ width: '100%', background: 'transparent', border: 0, outline: 'none', color: C.text, fontSize: 13, fontFamily: 'inherit' }}
-        />
-      </label>
+      <section className="clients-toolbar" style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) auto', gap: 10, alignItems: 'center' }}>
+        <label style={{
+          height: 44,
+          borderRadius: 13,
+          border: `1px solid ${C.border2}`,
+          background: C.card,
+          padding: '0 14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          color: C.muted,
+          minWidth: 0,
+        }}>
+          <Search size={16} />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar por nome, telefone, email, origem ou servico"
+            style={{ width: '100%', minWidth: 0, background: 'transparent', border: 0, outline: 'none', color: C.text, fontSize: 13, fontFamily: 'inherit' }}
+          />
+        </label>
+        <div className="clients-filters" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 1 }}>
+          {[
+            { id: 'all', label: 'Todas', count: clients.length },
+            { id: 'next', label: 'Com horario', count: withNext },
+            { id: 'no_phone', label: 'Sem telefone', count: clients.filter((client) => !client.phone).length },
+            { id: 'public', label: 'Do link', count: publicClients },
+          ].map((item) => {
+            const active = filter === item.id
+            return (
+              <button
+                key={item.id}
+                onClick={() => setFilter(item.id as ClientFilter)}
+                style={{
+                  height: 36,
+                  padding: '0 12px',
+                  borderRadius: 999,
+                  border: `1px solid ${active ? C.purple : C.border2}`,
+                  background: active ? `${C.purple}22` : C.card,
+                  color: active ? C.purple : C.muted,
+                  fontSize: 11,
+                  fontWeight: 850,
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {item.label} ({item.count})
+              </button>
+            )
+          })}
+        </div>
+      </section>
 
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
         {filtered.map((client, index) => {
@@ -266,6 +319,19 @@ export default function ClientesPage() {
                   <strong style={{ display: 'block', color: C.text, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.name}</strong>
                   <span style={{ display: 'block', color: C.muted, fontSize: 11, marginTop: 3 }}>{sourceLabel(client.source)}</span>
                 </div>
+                {client.phone && (
+                  <button
+                    title="Chamar no WhatsApp"
+                    aria-label="Chamar no WhatsApp"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      openWhatsapp(client)
+                    }}
+                    style={{ ...iconButton, marginLeft: 'auto', color: C.green, border: `1px solid ${C.green}35`, background: `${C.green}12` }}
+                  >
+                    <MessageCircle size={15} />
+                  </button>
+                )}
               </div>
 
               <div style={{ display: 'grid', gap: 8 }}>
@@ -285,10 +351,14 @@ export default function ClientesPage() {
                 padding: 10,
               }}>
                 <span style={{ display: 'block', color: stats?.next ? C.green : C.muted, fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.08em' }}>
-                  Proximo horario
+                  {stats?.last && !stats?.next ? 'Ultima visita' : 'Proximo horario'}
                 </span>
                 <strong style={{ display: 'block', color: C.text, fontSize: 12, marginTop: 4 }}>
-                  {stats?.next ? `${dateTime(stats.next.appointment_date)} - ${stats.next.service_name} - ${money(stats.next.price)}` : 'Nenhum marcado'}
+                  {stats?.next
+                    ? `${dateTime(stats.next.appointment_date)} - ${stats.next.service_name} - ${money(stats.next.price)}`
+                    : stats?.last
+                      ? `${dateTime(stats.last.appointment_date)} - ${stats.last.service_name}`
+                      : 'Nenhum marcado'}
                 </strong>
               </div>
             </article>
@@ -313,7 +383,7 @@ export default function ClientesPage() {
           background: C.card,
           overflow: 'hidden',
         }}>
-          <header style={{ padding: 18, borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start' }}>
+          <header style={{ padding: 18, borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <div>
               <p style={{ margin: '0 0 6px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>
                 Ficha da cliente
@@ -321,7 +391,17 @@ export default function ClientesPage() {
               <h2 style={{ margin: 0, color: C.text, fontSize: 20 }}>{selected.name}</h2>
               <p style={{ margin: '6px 0 0', color: C.muted, fontSize: 12 }}>{sourceLabel(selected.source)}</p>
             </div>
-            <button onClick={() => setSelected(null)} style={iconButton}>x</button>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {selected.phone && (
+                <button
+                  onClick={() => openWhatsapp(selected)}
+                  style={{ ...primaryButton, height: 34, padding: '0 12px', color: C.green, border: `1px solid ${C.green}42`, background: `${C.green}16` }}
+                >
+                  <MessageCircle size={14} /> WhatsApp
+                </button>
+              )}
+              <button onClick={() => setSelected(null)} style={iconButton}>x</button>
+            </div>
           </header>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12, padding: 18 }}>
@@ -381,16 +461,32 @@ export default function ClientesPage() {
           </div>
         </div>
       )}
+
+      <style>{`
+        @media (max-width: 760px) {
+          .clients-metrics {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+          }
+          .clients-toolbar {
+            grid-template-columns: 1fr !important;
+          }
+          .clients-filters {
+            margin-right: -4px;
+            padding-bottom: 5px !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }
 
 function Metric({ label, value, sub, color }: { label: string; value: string | number; sub: string; color: string }) {
   return (
-    <div style={{ borderRadius: 16, border: `1px solid ${C.border}`, background: C.card, padding: 16 }}>
-      <span style={{ color: C.muted, fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</span>
-      <strong style={{ display: 'block', color: C.text, fontSize: 24, marginTop: 8 }}>{value}</strong>
-      <p style={{ margin: '5px 0 0', color, fontSize: 11, fontWeight: 800 }}>{sub}</p>
+    <div style={{ borderRadius: 16, border: `1px solid ${C.border}`, background: C.card, padding: 16, minWidth: 0 }}>
+      <span style={{ display: 'block', color: C.muted, fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+      <strong style={{ display: 'block', color: C.text, fontSize: 23, lineHeight: 1.08, marginTop: 8, overflowWrap: 'anywhere' }}>{value}</strong>
+      <p style={{ margin: '5px 0 0', color, fontSize: 11, lineHeight: 1.3, fontWeight: 800 }}>{sub}</p>
     </div>
   )
 }

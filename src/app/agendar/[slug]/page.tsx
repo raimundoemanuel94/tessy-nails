@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createAdminClient } from '@/lib/supabase/admin'
 import AgendarClient from './AgendarClient'
 import { notFound, redirect } from 'next/navigation'
@@ -33,7 +32,7 @@ export default async function AgendarPage({
       .order('name'),
     sb
       .from('salon_settings')
-      .select('slot_duration, advance_days, cancel_hours, auto_confirm, working_hours')
+      .select('slot_duration, advance_days, cancel_hours, auto_confirm, working_hours, blocked_dates')
       .eq('studio_id', studio.id)
       .single(),
   ])
@@ -54,12 +53,17 @@ export default async function AgendarPage({
     if (prof) professional = prof
   }
 
+  const preDate = sp?.date ?? null
+  const preTime = sp?.time ?? null
+
   return (
     <AgendarClient
       studio={studio}
       services={services || []}
       settings={settings}
       professional={professional}
+      preDate={preDate}
+      preTime={preTime}
     />
   )
 }

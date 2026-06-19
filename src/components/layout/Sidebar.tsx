@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import Link from "next/link";
@@ -22,7 +21,7 @@ import {
 const NAV = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/agenda", icon: Calendar, label: "Agenda" },
-  { href: "/agendamentos", icon: CalendarDays, label: "Agendamentos" },
+  { href: "/disponibilidade", icon: CalendarDays, label: "Disponibilidade", shortLabel: "Vagas" },
   { href: "/clientes", icon: Users, label: "Clientes" },
   { href: "/servicos", icon: Scissors, label: "Serviços" },
   { href: "/relatorios", icon: BarChart3, label: "Relatórios" },
@@ -35,7 +34,17 @@ const SECTIONS = [
   { label: "Studio", items: NAV.slice(5) },
 ];
 
-export function Sidebar({ profile }: { profile: any }) {
+type SidebarProfile = {
+  role?: string | null;
+  full_name?: string | null;
+  email?: string | null;
+  studios?: {
+    name?: string | null;
+    plan?: string | null;
+  } | null;
+} | null;
+
+export function Sidebar({ profile }: { profile: SidebarProfile }) {
   const pathname = usePathname();
   const router = useRouter();
   const isSuperadmin = profile?.role === "superadmin";
@@ -128,12 +137,12 @@ export function Sidebar({ profile }: { profile: any }) {
       </aside>
 
       <nav className="manicure-bottom-nav md:hidden">
-        {bottomItems.map(({ href, icon: Icon, label }) => {
+        {bottomItems.map(({ href, icon: Icon, label, shortLabel }) => {
           const active = href === "/admin" ? pathname.startsWith("/admin") : isActive(href);
           return (
             <Link key={href} href={href} className={active ? "is-active" : ""}>
               <Icon size={20} />
-              <span>{label.split(" ")[0]}</span>
+              <span>{shortLabel ?? label.split(" ")[0]}</span>
             </Link>
           );
         })}
