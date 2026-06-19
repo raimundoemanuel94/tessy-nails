@@ -361,12 +361,16 @@ button:active, a:active, [role="button"]:active {
 }
 
 /* ── Dashboard main layout ── */
+:root { --sidebar-w: 240px; }
+body[data-sidebar="collapsed"] { --sidebar-w: 64px; }
+
 .dash-main {
   flex: 1; min-width: 0;
-  margin-left: 220px;
+  margin-left: var(--sidebar-w);
   padding: 28px 32px;
   box-sizing: border-box;
   min-height: 100vh;
+  transition: margin-left .25s cubic-bezier(0.4, 0, 0.2, 1);
   background:
     linear-gradient(180deg, rgba(157,127,212,0.055), transparent 260px),
     linear-gradient(90deg, rgba(244,114,182,0.035), transparent 46%),
@@ -374,7 +378,6 @@ button:active, a:active, [role="button"]:active {
 }
 .dash-admin {
   flex: 1; min-width: 0;
-  margin-left: 240px;
   padding: 32px 40px;
   box-sizing: border-box;
   min-height: 100vh;
@@ -2156,8 +2159,7 @@ nextjs-portal {
 }
 
 /* dash-main margin synced with sidebar width */
-.dash-main { margin-left: 240px; }
-body[data-sidebar="collapsed"] .dash-main { margin-left: 64px; }
+/* margin-left controlled by --sidebar-w CSS variable above */
 .manicure-sidebar-shell {
   height: 100%;
   min-height: 0;
