@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { phonesMatch } from "@/lib/booking/client-access";
+import { extractIp, isAllowed, rateLimitResponse } from "@/lib/rate-limit";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -57,6 +58,11 @@ export async function GET(_req: Request, { params }: RouteContext) {
 
 export async function PATCH(req: Request, { params }: RouteContext) {
   try {
+    const ip = extractIp(req)
+    if (!isAllowed(`patch-apt:${ip}`, 5, 10 * 60 * 1000)) {
+      return rateLimitResponse()
+    }
+
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action || "");

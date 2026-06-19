@@ -2,12 +2,12 @@
 import { NextResponse } from "next/server";
 import { requireSuperadmin } from "../../../_shared";
 
-export async function POST(request: Request, { params }: { params: { studioId: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ studioId: string }> }) {
   const auth = await requireSuperadmin();
   if ("response" in auth) return auth.response;
 
   const { admin } = auth;
-  const studioId = params.studioId;
+  const { studioId } = await params;
   const body = await request.json().catch(() => null);
 
   if (!body || typeof body !== "object") {

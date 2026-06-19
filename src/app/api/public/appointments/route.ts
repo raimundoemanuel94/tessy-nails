@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BOOKING_TIME_ZONE, localDateTimeToUtc, zonedDateString, zonedDayRange } from "@/lib/time";
 import { normalizePhone } from "@/lib/booking/client-access";
+import { extractIp, isAllowed, rateLimitResponse } from "@/lib/rate-limit";
 
 type AppointmentBody = {
   slug?: string;
@@ -23,6 +24,11 @@ type AppointmentBody = {
 };
 
 export async function POST(req: Request) {
+  const ip = extractIp(req)
+  if (!isAllowed(`post:${ip}`, 3, 10 * 60 * 1000)) {
+    return rateLimitResponse()
+  }
+
   let body: AppointmentBody;
 
   try {

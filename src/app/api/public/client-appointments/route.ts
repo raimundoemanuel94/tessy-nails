@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizePhone } from "@/lib/booking/client-access";
+import { extractIp, isAllowed, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function GET(req: Request) {
+  const ip = extractIp(req)
+  if (!isAllowed(`client-apts:${ip}`, 10, 5 * 60 * 1000)) {
+    return rateLimitResponse()
+  }
+
   const { searchParams } = new URL(req.url);
   const slug = searchParams.get("slug")?.trim();
   const phone = normalizePhone(searchParams.get("phone"));

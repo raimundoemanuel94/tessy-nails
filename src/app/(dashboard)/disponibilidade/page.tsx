@@ -517,8 +517,8 @@ export default function DisponibilidadePage() {
 
             {/* Preview do link */}
             {shareDate && shareTime && (() => {
-              const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tessy-nails.vercel.app'
-              const link = `${origin}/agendar/tessy-nails?date=${shareDate}&time=${shareTime}`
+              const origin = typeof window !== 'undefined' ? window.location.origin : ''
+              const link = `${origin}/agendar/${studioSlug}?date=${shareDate}&time=${shareTime}`
               return (
                 <div style={{ padding: '12px 14px', borderRadius: 12, background: `${C.purple}10`, border: `1px solid ${C.purple}25` }}>
                   <p style={{ margin: '0 0 6px', fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em' }}>Link gerado</p>

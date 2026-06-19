@@ -2,12 +2,12 @@
 import { NextResponse } from "next/server";
 import { requireSuperadmin } from "../../../../_shared";
 
-export async function PUT(request: Request, { params }: { params: { studioId: string; serviceId: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ studioId: string; serviceId: string }> }) {
   const auth = await requireSuperadmin();
   if ("response" in auth) return auth.response;
 
   const { admin } = auth;
-  const { studioId, serviceId } = params;
+  const { studioId, serviceId } = await params;
   const body = await request.json().catch(() => null);
 
   if (!body || typeof body !== "object") {
@@ -39,12 +39,12 @@ export async function PUT(request: Request, { params }: { params: { studioId: st
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_: Request, { params }: { params: { studioId: string; serviceId: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ studioId: string; serviceId: string }> }) {
   const auth = await requireSuperadmin();
   if ("response" in auth) return auth.response;
 
   const { admin } = auth;
-  const { studioId, serviceId } = params;
+  const { studioId, serviceId } = await params;
 
   const { error } = await admin
     .from("services")
