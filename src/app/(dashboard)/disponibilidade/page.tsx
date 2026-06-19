@@ -179,9 +179,9 @@ export default function DisponibilidadePage() {
 
       <header style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
-          <p style={{ margin: '0 0 6px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>Controle</p>
+          <p style={{ margin: '0 0 6px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>Agenda da cliente</p>
           <h1 style={{ margin: 0, color: C.text, fontSize: 24, fontWeight: 900 }}>Vagas</h1>
-          <p style={{ color: C.muted, fontSize: 12, margin: '5px 0 0' }}>Libere somente os dias e horários que devem aparecer para as clientes.</p>
+          <p style={{ color: C.muted, fontSize: 12, margin: '5px 0 0' }}>Escolha quais dias e horários aparecem no link de agendamento.</p>
         </div>
         {saving && <span style={{ color: C.muted, fontSize: 12 }}>Salvando...</span>}
       </header>
@@ -198,13 +198,13 @@ export default function DisponibilidadePage() {
       }}>
         <div style={{ minWidth: 0 }}>
           <p style={{ margin: '0 0 6px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
-            Vagas da quinzena
+            Resumo da semana
           </p>
           <h2 style={{ margin: 0, color: C.text, fontSize: 18, fontWeight: 900 }}>
-            {releasedCount} {releasedCount === 1 ? 'dia liberado' : 'dias liberados'}
+            {releasedCount} {releasedCount === 1 ? 'dia aparecendo no link' : 'dias aparecendo no link'}
           </h2>
           <p style={{ margin: '6px 0 0', color: C.muted, fontSize: 12, lineHeight: 1.45 }}>
-            Dias não liberados não entram no agendamento público. Esse é o controle manual da semana.
+            A cliente só consegue agendar nos dias marcados como visíveis.
           </p>
         </div>
         <div className="vagas-summary-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -245,7 +245,7 @@ export default function DisponibilidadePage() {
               whiteSpace: 'nowrap',
             }}
           >
-            Desbloquear próximo
+            Reabrir dia fechado
           </button>
         )}
         <Link
@@ -267,7 +267,7 @@ export default function DisponibilidadePage() {
             whiteSpace: 'nowrap',
           }}
         >
-          <Sparkles size={14} /> Vitrine
+          <Sparkles size={14} /> Gerar banner
         </Link>
         </div>
       </section>
@@ -275,8 +275,8 @@ export default function DisponibilidadePage() {
       <section className="vagas-grid-section" style={{ background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, padding: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
-            <p style={{ margin: '0 0 4px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Próximas 2 semanas</p>
-            <p style={{ margin: 0, color: C.muted, fontSize: 12 }}>{rangeLabel}</p>
+            <p style={{ margin: '0 0 4px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Escolha os dias</p>
+            <p style={{ margin: 0, color: C.muted, fontSize: 12 }}>{rangeLabel} · toque em um dia para ajustar</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setWeekOffset(w => w - 1)} disabled={weekOffset <= 0}
@@ -292,9 +292,9 @@ export default function DisponibilidadePage() {
 
         <div className="vagas-legend" style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
           {[
-            { color: C.purple, label: 'Liberado' },
-            { color: C.red, label: 'Bloqueado' },
-            { color: 'rgba(255,255,255,0.06)', label: 'Não liberado' },
+            { color: C.purple, label: 'Aparece no link' },
+            { color: C.red, label: 'Fechado' },
+            { color: 'rgba(255,255,255,0.06)', label: 'Não aparece' },
           ].map(({ color, label }) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{ width: 10, height: 10, borderRadius: 3, background: color, border: `1px solid ${color}` }} />
@@ -303,11 +303,11 @@ export default function DisponibilidadePage() {
           ))}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Lock size={10} color={C.muted} />
-            <span style={{ color: C.muted, fontSize: 11 }}>= bloquear dia</span>
+            <span style={{ color: C.muted, fontSize: 11 }}>= fechar dia</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Clock size={10} color={C.muted} />
-            <span style={{ color: C.muted, fontSize: 11 }}>= ajustar horário</span>
+            <span style={{ color: C.muted, fontSize: 11 }}>= ajustar horários</span>
           </div>
         </div>
 
@@ -322,7 +322,7 @@ export default function DisponibilidadePage() {
             const hasOverride = !!dateOverride
 
             return (
-              <div key={day.date} style={{
+              <div key={day.date} className={`vagas-day-card ${isBlocked ? 'is-blocked' : isOpen ? 'is-open' : 'is-empty'} ${day.isToday ? 'is-today' : ''}`} style={{
                 borderRadius: 12,
                 border: `1.5px solid ${isBlocked ? `${C.red}55` : isOpen ? `${C.purple}55` : C.border}`,
                 background: day.isToday ? `${C.purple}20` : isBlocked ? `${C.red}10` : isOpen ? `${C.purple}10` : C.card2,
@@ -336,7 +336,7 @@ export default function DisponibilidadePage() {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ color: C.muted, fontSize: 10, fontWeight: 700 }}>{day.label}</span>
-                  {day.isToday && <span style={{ background: C.purple, color: '#fff', fontSize: 8, fontWeight: 700, padding: '2px 5px', borderRadius: 999 }}>HOJE</span>}
+                  {day.isToday && <span className="vagas-today-pill" style={{ background: C.purple, color: '#fff', fontSize: 8, fontWeight: 700, padding: '2px 5px', borderRadius: 999 }}>HOJE</span>}
                   {hasOverride && !day.isToday && <span style={{ color: C.yellow, fontSize: 8, fontWeight: 700 }}>*</span>}
                 </div>
 
@@ -344,15 +344,17 @@ export default function DisponibilidadePage() {
                 <span style={{ color: C.muted, fontSize: 10 }}>{day.month}</span>
 
                 {isOpen && <span style={{ color: C.purple, fontSize: 10, fontWeight: 700 }}>{config.open}-{config.close}</span>}
-                {isBlocked && <span style={{ color: C.red, fontSize: 10, fontWeight: 700 }}>Bloqueado</span>}
-                {!isOpen && !isBlocked && <span style={{ color: C.muted, fontSize: 10 }}>Não liberado</span>}
+                {isOpen && <span style={{ color: C.purple, fontSize: 10, fontWeight: 800 }}>Aparece no link</span>}
+                {isBlocked && <span style={{ color: C.red, fontSize: 10, fontWeight: 800 }}>Fechado</span>}
+                {!isOpen && !isBlocked && <span style={{ color: C.muted, fontSize: 10 }}>Não aparece</span>}
 
                 {!day.isPast && (
                   <div style={{ display: 'grid', gap: 6, marginTop: 6 }}>
                     {!isBlocked && (
                       <button
+                        className="vagas-action-button"
                         onClick={() => openDayEditor(day.date, `${day.label} ${day.dayNum}/${day.month}`, config.open || '09:00', config.close || '18:00')}
-                        title="Liberar ou ajustar vagas deste dia"
+                        title="Liberar ou ajustar horários deste dia"
                         style={{
                           minHeight: 32,
                           borderRadius: 9,
@@ -365,12 +367,13 @@ export default function DisponibilidadePage() {
                           fontWeight: 850,
                         }}
                       >
-                        {isOpen ? 'Ajustar vagas' : 'Liberar vagas'}
+                        {isOpen ? 'Ajustar horários' : 'Liberar dia'}
                       </button>
                     )}
                     <button
+                      className={`vagas-lock-button ${isBlocked ? 'is-unblock' : 'is-lock'}`}
                       onClick={() => toggleBlockDate(day.date)}
-                      title={isBlocked ? 'Desbloquear' : 'Bloquear dia'}
+                      title={isBlocked ? 'Reabrir dia' : 'Fechar dia'}
                       style={{
                         minHeight: 28,
                         borderRadius: 8,
@@ -388,7 +391,7 @@ export default function DisponibilidadePage() {
                       }}
                     >
                       {isBlocked ? <Unlock size={11} /> : <Lock size={11} />}
-                      {isBlocked ? 'Desbloquear' : 'Bloquear'}
+                      {isBlocked ? 'Reabrir dia' : 'Fechar dia'}
                     </button>
                   </div>
                 )}
@@ -400,10 +403,10 @@ export default function DisponibilidadePage() {
 
       <details style={{ background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, padding: 18 }}>
         <summary style={{ cursor: 'pointer', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
-          Referência da semana
+          Horários padrão da semana
         </summary>
         <p style={{ margin: '12px 0 14px', color: C.muted, fontSize: 12, lineHeight: 1.45 }}>
-          Estes horários são apenas base para preencher os dias. Para a cliente enxergar vaga no link, libere o dia na grade acima.
+          Estes horários são apenas uma base. Para aparecer no link, o dia precisa ser liberado na grade acima.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 10 }}>
           {DAYS_KEYS.slice(1, 7).map((key, i) => {
@@ -429,20 +432,20 @@ export default function DisponibilidadePage() {
           })}
         </div>
         <p style={{ margin: '12px 0 0', color: C.muted, fontSize: 11 }}>
-          Ajuste a referência em <strong style={{ color: C.text }}>Configurações - Horários</strong>.
+          Ajuste a base em <strong style={{ color: C.text }}>Configurações - Horários</strong>.
         </p>
       </details>
 
       {editDay && (
-        <div onClick={e => e.target === e.currentTarget && setEditDay(null)}
+        <div className="vagas-modal-backdrop" onClick={e => e.target === e.currentTarget && setEditDay(null)}
           style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.65)', display: 'grid', placeItems: 'center', padding: 18 }}>
-          <div style={{ width: '100%', maxWidth: 420, maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', borderRadius: 20, background: C.card, border: `1px solid ${C.border2}`, padding: 22, display: 'flex', flexDirection: 'column', gap: 16, boxShadow: '0 24px 80px rgba(0,0,0,0.45)' }}>
+          <div className="vagas-modal" style={{ width: '100%', maxWidth: 420, maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', borderRadius: 20, background: C.card, border: `1px solid ${C.border2}`, padding: 22, display: 'flex', flexDirection: 'column', gap: 16, boxShadow: '0 24px 80px rgba(0,0,0,0.45)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14 }}>
               <div>
-                <p style={{ margin: '0 0 6px', color: C.purple, fontSize: 10, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>Liberar vagas</p>
+                <p style={{ margin: '0 0 6px', color: C.purple, fontSize: 10, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>Dia visível para clientes</p>
                 <strong style={{ color: C.text, fontSize: 18 }}> {editDay.label}</strong>
                 <p style={{ margin: '6px 0 0', color: C.muted, fontSize: 12, lineHeight: 1.45 }}>
-                  Escolha um período pronto. A cliente só verá horários dentro desse intervalo.
+                  Escolha o período em que você quer receber agendamentos.
                 </p>
               </div>
               <button onClick={() => setEditDay(null)} style={{ width: 32, height: 32, borderRadius: 10, border: `1px solid ${C.border}`, background: 'transparent', cursor: 'pointer', color: C.muted, fontFamily: 'inherit', flexShrink: 0 }}>x</button>
@@ -453,6 +456,7 @@ export default function DisponibilidadePage() {
                 const active = editDay.open === item.open && editDay.close === item.close
                 return (
                   <button
+                    className={`vagas-preset-button ${active ? 'is-active' : ''}`}
                     key={item.label}
                     onClick={() => setEditDay(current => current ? { ...current, open: item.open, close: item.close } : current)}
                     style={{
@@ -474,8 +478,8 @@ export default function DisponibilidadePage() {
               })}
             </div>
 
-            <div style={{ border: `1px solid ${C.border}`, background: C.card2, borderRadius: 14, padding: 14 }}>
-              <p style={{ margin: '0 0 10px', color: C.muted, fontSize: 11, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>Personalizar</p>
+            <div className="vagas-custom-hours" style={{ border: `1px solid ${C.border}`, background: C.card2, borderRadius: 14, padding: 14 }}>
+              <p style={{ margin: '0 0 10px', color: C.muted, fontSize: 11, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>Outro horário</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {(['open', 'close'] as const).map((field, fi) => (
                 <div key={field}>
@@ -488,21 +492,21 @@ export default function DisponibilidadePage() {
             </div>
             </div>
 
-            <div style={{ border: `1px solid ${C.green}30`, background: `${C.green}10`, borderRadius: 14, padding: 12 }}>
-              <strong style={{ display: 'block', color: C.green, fontSize: 12 }}>Vai aparecer no link público</strong>
+            <div className="vagas-visible-note" style={{ border: `1px solid ${C.green}30`, background: `${C.green}10`, borderRadius: 14, padding: 12 }}>
+              <strong style={{ display: 'block', color: C.green, fontSize: 12 }}>A cliente vai ver este período</strong>
               <span style={{ display: 'block', marginTop: 4, color: C.muted, fontSize: 12 }}>
-                {editDay.open} até {editDay.close}. Dias bloqueados ou sem salvar não aparecem para a cliente.
+                {editDay.open} até {editDay.close}. Depois de salvar, esse dia aparece no link.
               </span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
-              <button onClick={() => void saveEditDay(false)} disabled={saving}
+              <button className="vagas-modal-primary" onClick={() => void saveEditDay(false)} disabled={saving}
                 style={{ minHeight: 46, borderRadius: 12, border: 'none', background: C.purple, color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 850 }}>
-                {saving ? 'Salvando...' : 'Salvar vagas'}
+                {saving ? 'Salvando...' : 'Salvar e mostrar no link'}
               </button>
-              <button onClick={() => void saveEditDay(true)} disabled={saving}
+              <button className="vagas-modal-secondary" onClick={() => void saveEditDay(true)} disabled={saving}
                 style={{ minHeight: 44, borderRadius: 12, border: `1px solid ${C.green}40`, background: `${C.green}14`, color: C.green, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 850 }}>
-                Salvar e gerar vitrine
+                Salvar e abrir banner
               </button>
               <button onClick={() => setEditDay(null)} style={{ minHeight: 40, borderRadius: 12, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>
                 Cancelar
@@ -539,6 +543,57 @@ export default function DisponibilidadePage() {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             gap: 10px !important;
           }
+        }
+        :root[data-salon-theme="rose"] .vagas-modal-backdrop {
+          background: rgba(58, 38, 50, 0.28) !important;
+          backdrop-filter: blur(10px);
+        }
+        :root[data-salon-theme="rose"] .vagas-modal {
+          background: #fffdfd !important;
+          border-color: #eadde2 !important;
+          box-shadow: 0 24px 70px rgba(96, 52, 68, 0.16) !important;
+        }
+        :root[data-salon-theme="rose"] .vagas-modal .vagas-preset-button {
+          background: #ffffff !important;
+          border-color: #eadde2 !important;
+          color: #7f6a76 !important;
+        }
+        :root[data-salon-theme="rose"] .vagas-modal .vagas-preset-button strong,
+        :root[data-salon-theme="rose"] .vagas-modal .vagas-preset-button span {
+          color: #7f6a76 !important;
+        }
+        :root[data-salon-theme="rose"] .vagas-modal .vagas-preset-button.is-active {
+          background: #fff7f9 !important;
+          border-color: #cda9b8 !important;
+        }
+        :root[data-salon-theme="rose"] .vagas-modal .vagas-preset-button.is-active strong,
+        :root[data-salon-theme="rose"] .vagas-modal .vagas-preset-button.is-active span {
+          color: #332631 !important;
+        }
+        :root[data-salon-theme="rose"] .vagas-custom-hours {
+          background: #fffafa !important;
+          border-color: #eadde2 !important;
+        }
+        :root[data-salon-theme="rose"] .vagas-modal input[type="time"] {
+          background: #ffffff !important;
+          border-color: #e3d3da !important;
+          color: #332631 !important;
+        }
+        :root[data-salon-theme="rose"] .vagas-visible-note {
+          background: #f7fbf8 !important;
+          border-color: #cfe6d8 !important;
+        }
+        :root[data-salon-theme="rose"] .vagas-visible-note strong {
+          color: #4d9675 !important;
+        }
+        :root[data-salon-theme="rose"] .vagas-modal-primary {
+          background: #9a6178 !important;
+          color: #ffffff !important;
+        }
+        :root[data-salon-theme="rose"] .vagas-modal-secondary {
+          background: #f7fbf8 !important;
+          border-color: #cfe6d8 !important;
+          color: #4d9675 !important;
         }
       `}</style>
     </div>

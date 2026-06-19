@@ -11,12 +11,13 @@ import {
   ChevronRight,
   LayoutDashboard,
   LogOut,
-  Palette,
+  Moon,
   Pencil,
   Scissors,
   Settings,
   Shield,
   Sparkles,
+  Sun,
   Users,
 } from "lucide-react";
 
@@ -51,6 +52,11 @@ export function Sidebar({ profile }: { profile: any }) {
     document.documentElement.dataset.salonTheme = initial;
   }, []);
 
+  useEffect(() => {
+    const routes = isSuperadmin ? ["/admin", "/dashboard", "/agenda", "/disponibilidade"] : NAV.map((item) => item.href);
+    routes.forEach((href) => router.prefetch(href));
+  }, [isSuperadmin, router]);
+
   function toggleTheme() {
     const next = theme === "rose" ? "dark" : "rose";
     setTheme(next);
@@ -76,6 +82,16 @@ export function Sidebar({ profile }: { profile: any }) {
   const shortEmail = profile?.email ? (profile.email.length > 25 ? `${profile.email.slice(0, 22)}...` : profile.email) : "";
   const studioName = studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio");
   const initial = (studioName ?? displayName ?? "N").charAt(0).toUpperCase();
+  const isRose = theme === "rose";
+
+  const renderThemeToggle = () => (
+    <button type="button" className="salon-theme-switch" onClick={toggleTheme} title="Alternar tema" aria-label="Alternar tema">
+      <span className="salon-theme-switch-icon">
+        {isRose ? <Moon size={13} /> : <Sun size={13} />}
+      </span>
+      <span>{isRose ? "Noite" : "Dia"}</span>
+    </button>
+  );
 
   return (
     <>
@@ -134,9 +150,7 @@ export function Sidebar({ profile }: { profile: any }) {
                 <span>{shortEmail}</span>
               </div>
               <div className="manicure-footer-actions">
-                <button type="button" onClick={toggleTheme} title="Alternar tema" aria-label="Alternar tema">
-                  <Palette size={14} />
-                </button>
+                {renderThemeToggle()}
                 <Link href="/configuracoes" title="Editar perfil" aria-label="Editar perfil">
                   <Pencil size={14} />
                 </Link>
@@ -158,9 +172,7 @@ export function Sidebar({ profile }: { profile: any }) {
           )}
         </div>
         <span className="manicure-topbar-name">{studioName}</span>
-        <button type="button" className="salon-theme-toggle" onClick={toggleTheme} aria-label="Alternar tema">
-          {theme === "rose" ? "Dark" : "Rose"}
-        </button>
+        {renderThemeToggle()}
       </div>
 
       <nav className="manicure-bottom-nav md:hidden">

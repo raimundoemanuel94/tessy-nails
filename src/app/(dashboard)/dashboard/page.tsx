@@ -147,7 +147,7 @@ export default function DashboardPage() {
       if (!profile?.studio_id) { setLoading(false); return; }
       const { data } = await sb
         .from("appointments")
-        .select("*")
+        .select("id, client_name, service_name, appointment_date, duration_minutes, price, status")
         .eq("studio_id", profile.studio_id)
         .order("appointment_date", { ascending: true });
       if (data) setApts(data);

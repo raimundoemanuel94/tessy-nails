@@ -2564,6 +2564,60 @@ nextjs-portal {
   letter-spacing: 0;
 }
 
+.salon-theme-switch {
+  height: 34px;
+  min-width: 84px;
+  padding: 0 10px 0 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  background: rgba(167, 139, 250, 0.12);
+  color: #ddd6fe;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, color .18s ease;
+}
+
+.salon-theme-switch:hover {
+  transform: translateY(-1px);
+  border-color: rgba(167, 139, 250, 0.45);
+  background: rgba(167, 139, 250, 0.18);
+}
+
+.salon-theme-switch-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #7c5cbf, #f472b6);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(124, 92, 191, 0.22);
+}
+
+.manicure-footer-actions .salon-theme-switch {
+  min-width: 0;
+  width: 30px;
+  padding: 0;
+  gap: 0;
+}
+
+.manicure-footer-actions .salon-theme-switch > span:last-child {
+  display: none;
+}
+
+.manicure-footer-actions .salon-theme-switch-icon {
+  width: 20px;
+  height: 20px;
+}
+
 :root[data-salon-theme="rose"] {
   color-scheme: light;
 }
@@ -2659,6 +2713,19 @@ nextjs-portal {
   background: #ffffff !important;
   border-color: #ead0dc !important;
   color: #a33b67 !important;
+}
+
+:root[data-salon-theme="rose"] .salon-theme-switch {
+  background: #fff7f9 !important;
+  border-color: #d9b3c1 !important;
+  color: #7f4057 !important;
+  box-shadow: 0 10px 22px rgba(96, 52, 68, 0.075) !important;
+}
+
+:root[data-salon-theme="rose"] .salon-theme-switch-icon {
+  background: #9a6178 !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 18px rgba(96, 52, 68, 0.12) !important;
 }
 
 :root[data-salon-theme="rose"] .dash-home,
@@ -2938,4 +3005,181 @@ nextjs-portal {
 :root[data-salon-theme="rose"] .dash-main [style*="color: #c4b5fd"],
 :root[data-salon-theme="rose"] .dash-main [style*="color:#c4b5fd"] {
   color: #916078 !important;
+}
+
+/* Rose v2: cohesive salon palette */
+:root[data-salon-theme="rose"] .dash-main {
+  background:
+    radial-gradient(circle at 50% -120px, rgba(185, 106, 136, 0.08), transparent 330px),
+    linear-gradient(180deg, #fffdfd 0%, #fffafa 52%, #fffdfd 100%) !important;
+}
+
+:root[data-salon-theme="rose"] .manicure-topbar,
+:root[data-salon-theme="rose"] .manicure-bottom-nav,
+:root[data-salon-theme="rose"] .manicure-sidebar,
+:root[data-salon-theme="rose"] .manicure-sidebar-shell {
+  background: rgba(255, 253, 253, 0.98) !important;
+  border-color: #eadde2 !important;
+}
+
+:root[data-salon-theme="rose"] .manicure-bottom-nav a.is-active,
+:root[data-salon-theme="rose"] .manicure-nav-link.is-active {
+  background: #fff7f9 !important;
+  border-color: #e3cbd5 !important;
+  color: #8f5366 !important;
+}
+
+:root[data-salon-theme="rose"] .salon-theme-toggle,
+:root[data-salon-theme="rose"] .salon-theme-switch,
+:root[data-salon-theme="rose"] .manicure-footer-actions :is(a, button) {
+  border-color: #e4d2d9 !important;
+  color: #8f5366 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main :is(h1, h2, h3, strong) {
+  color: #332631 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main :is(p, small) {
+  color: #7f6a76 !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main :is(section, article, details, .dash-panel, .dash-kpi-card, .dash-quick-action, .dash-next-card, .agenda-kpis > div, .agenda-selected, .agenda-tracking, .agenda-banner, .vagas-summary, .vagas-grid-section, .studio-service-card, .studio-report-kpi, .studio-report-panel) {
+  border-color: #eadde2 !important;
+  box-shadow: 0 10px 24px rgba(96, 52, 68, 0.035) !important;
+}
+
+:root[data-salon-theme="rose"] .dash-main button,
+:root[data-salon-theme="rose"] .dash-main a {
+  box-shadow: none !important;
+}
+
+:root[data-salon-theme="rose"] .agenda-kpis > div:last-child a:nth-child(2),
+:root[data-salon-theme="rose"] .dash-main button[style*="#8b5cf6"],
+:root[data-salon-theme="rose"] .dash-main a[style*="#8b5cf6"] {
+  background: #9a6178 !important;
+  border-color: #9a6178 !important;
+  color: #ffffff !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-day-card {
+  background: #ffffff !important;
+  border-color: #eadde2 !important;
+  box-shadow: 0 8px 20px rgba(96, 52, 68, 0.035) !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-day-card.is-empty {
+  background: #fffdfd !important;
+  opacity: 0.58 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-day-card.is-open {
+  background: #fffafa !important;
+  border-color: #dcc3ce !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-day-card.is-blocked {
+  background: #fffafa !important;
+  border-color: #ead4da !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-day-card.is-today {
+  outline: 2px solid #cda9b8 !important;
+  outline-offset: 2px !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-day-card.is-blocked span,
+:root[data-salon-theme="rose"] .vagas-day-card.is-blocked strong {
+  color: #8f5366 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-day-card.is-open span,
+:root[data-salon-theme="rose"] .vagas-day-card.is-open strong {
+  color: #6f5662 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-today-pill {
+  background: #9a6178 !important;
+  color: #ffffff !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-action-button {
+  background: #fff7f9 !important;
+  border-color: #dcc3ce !important;
+  color: #8f5366 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-lock-button {
+  background: transparent !important;
+  border-color: #e5d6dc !important;
+  color: #8b7781 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-lock-button.is-unblock {
+  background: #fffafa !important;
+  border-color: #e3c7cf !important;
+  color: #8f5366 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-modal-backdrop {
+  background: rgba(58, 38, 50, 0.28) !important;
+  backdrop-filter: blur(10px);
+}
+
+:root[data-salon-theme="rose"] .vagas-modal {
+  background: #fffdfd !important;
+  border-color: #eadde2 !important;
+  box-shadow: 0 24px 70px rgba(96, 52, 68, 0.16) !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-modal .vagas-preset-button {
+  background: #ffffff !important;
+  border-color: #eadde2 !important;
+  color: #7f6a76 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-modal .vagas-preset-button strong,
+:root[data-salon-theme="rose"] .vagas-modal .vagas-preset-button span {
+  color: #7f6a76 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-modal .vagas-preset-button.is-active {
+  background: #fff7f9 !important;
+  border-color: #cda9b8 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-modal .vagas-preset-button.is-active strong,
+:root[data-salon-theme="rose"] .vagas-modal .vagas-preset-button.is-active span {
+  color: #332631 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-custom-hours {
+  background: #fffafa !important;
+  border-color: #eadde2 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-modal input[type="time"] {
+  background: #ffffff !important;
+  border-color: #e3d3da !important;
+  color: #332631 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-visible-note {
+  background: #f7fbf8 !important;
+  border-color: #cfe6d8 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-visible-note strong {
+  color: #4d9675 !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-modal-primary {
+  background: #9a6178 !important;
+  color: #ffffff !important;
+}
+
+:root[data-salon-theme="rose"] .vagas-modal-secondary {
+  background: #f7fbf8 !important;
+  border-color: #cfe6d8 !important;
+  color: #4d9675 !important;
 }

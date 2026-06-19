@@ -91,18 +91,23 @@ export default function AgendaPage() {
       if (!user) { setLoading(false); return }
       const { data: profile } = await sb.from('profiles').select('studio_id').eq('id', user.id).single()
       if (!profile?.studio_id) { setLoading(false); return }
-      const { data: studioData } = await sb.from('studios').select('slug, name, avatar_url, brand_color').eq('id', profile.studio_id).single()
+      const [studioResult, settingsResult, appointmentsResult] = await Promise.all([
+        sb.from('studios').select('slug, name, avatar_url, brand_color').eq('id', profile.studio_id).single(),
+        sb.from('salon_settings').select('slot_duration, working_hours').eq('studio_id', profile.studio_id).single(),
+        sb
+          .from('appointments')
+          .select('id, client_id, client_name, service_name, appointment_date, duration_minutes, price, status, notes')
+          .eq('studio_id', profile.studio_id)
+          .order('appointment_date', { ascending: true }),
+      ])
+      const studioData = studioResult.data
       if (studioData?.slug) setStudioSlug(studioData.slug)
       if (studioData?.name) setStudioName(studioData.name)
       if (studioData?.avatar_url) setStudioAvatar(studioData.avatar_url)
       if (studioData?.brand_color) setStudioBrandColor(studioData.brand_color)
-      const { data: settingsData } = await sb.from('salon_settings').select('slot_duration, working_hours').eq('studio_id', profile.studio_id).single()
+      const settingsData = settingsResult.data
       if (settingsData) setSalonSettings(settingsData)
-      const { data } = await sb
-        .from('appointments')
-        .select('*')
-        .eq('studio_id', profile.studio_id)
-        .order('appointment_date', { ascending: true })
+      const data = appointmentsResult.data
       const rows = data || []
       setApts(rows)
       const next = rows
