@@ -22,6 +22,7 @@ const NAV = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/agenda", icon: Calendar, label: "Agenda" },
   { href: "/disponibilidade", icon: CalendarDays, label: "Vagas" },
+  { href: "/vitrine", icon: Sparkles, label: "Vitrine" },
   { href: "/clientes", icon: Users, label: "Clientes" },
   { href: "/servicos", icon: Scissors, label: "Serviços" },
   { href: "/relatorios", icon: BarChart3, label: "Relatórios" },
@@ -29,9 +30,9 @@ const NAV = [
 ];
 
 const SECTIONS = [
-  { label: "Atendimento", items: NAV.slice(0, 3) },
-  { label: "Gestão", items: NAV.slice(3, 5) },
-  { label: "Studio", items: NAV.slice(5) },
+  { label: "Atendimento", items: NAV.slice(0, 4) },
+  { label: "Gestão", items: NAV.slice(4, 6) },
+  { label: "Studio", items: NAV.slice(6) },
 ];
 
 export function Sidebar({ profile }: { profile: any }) {
@@ -52,8 +53,8 @@ export function Sidebar({ profile }: { profile: any }) {
   }
 
   const bottomItems = isSuperadmin
-    ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 3)]
-    : [NAV[0], NAV[1], NAV[2], NAV[3], NAV[6]];
+    ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 4)]
+    : [NAV[0], NAV[1], NAV[2], NAV[3], NAV[7]];
   const displayName = profile?.full_name ?? profile?.email?.split("@")[0] ?? "Usuário";
   const shortEmail = profile?.email ? (profile.email.length > 25 ? `${profile.email.slice(0, 22)}...` : profile.email) : "";
   const initial = (studio?.name ?? displayName ?? "N").charAt(0).toUpperCase();

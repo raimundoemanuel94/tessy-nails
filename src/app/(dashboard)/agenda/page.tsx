@@ -263,7 +263,10 @@ export default function AgendaPage() {
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <a href="/disponibilidade" style={{ ...navButtonStyle, minWidth: 'auto', height: 34, padding: '0 11px', color: C.purple, textDecoration: 'none' }}>
-              Liberar vagas
+              Gerar vagas
+            </a>
+            <a href="/vitrine" style={{ ...navButtonStyle, minWidth: 'auto', height: 34, padding: '0 11px', color: C.green, textDecoration: 'none' }}>
+              Vitrine do Dia
             </a>
             <button onClick={() => setBannerOpen(true)} style={{ ...navButtonStyle, minWidth: 'auto', height: 34, padding: '0 11px', color: C.pink }}>
               Banner
@@ -349,6 +352,8 @@ export default function AgendaPage() {
               fontFamily: 'inherit',
               fontWeight: statusFilter === item ? 850 : 700,
               whiteSpace: 'nowrap',
+              flexShrink: 0,
+              minWidth: 'max-content',
             }}>
               {item === 'todos' ? 'Todos' : (ST[item]?.label || item)} ({statusCount(item)})
             </button>
