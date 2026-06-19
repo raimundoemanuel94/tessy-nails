@@ -230,7 +230,7 @@ export default function DashboardPage() {
               {fmtFull(nextApt.appointment_date)} as {fmtT(nextApt.appointment_date)} - {fmt(nextApt.price || 0)}
             </div>
           </div>
-          <Link href="/agendamentos" style={{
+          <Link href="/agenda" style={{
             height:38,padding:"0 14px",borderRadius:11,
             border:`1px solid ${grn}35`,background:`${grn}14`,color:grn,
             display:"inline-flex",alignItems:"center",justifyContent:"center",

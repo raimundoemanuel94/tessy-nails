@@ -133,7 +133,7 @@ export default function DisponibilidadePage() {
       <header style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <p style={{ margin: '0 0 6px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>Controle</p>
-          <h1 style={{ margin: 0, color: C.text, fontSize: 24, fontWeight: 900 }}>Disponibilidade</h1>
+          <h1 style={{ margin: 0, color: C.text, fontSize: 24, fontWeight: 900 }}>Vagas</h1>
           <p style={{ color: C.muted, fontSize: 12, margin: '5px 0 0' }}>Controle quais dias e horários aparecem para as clientes agendarem.</p>
         </div>
         {saving && <span style={{ color: C.muted, fontSize: 12 }}>Salvando...</span>}

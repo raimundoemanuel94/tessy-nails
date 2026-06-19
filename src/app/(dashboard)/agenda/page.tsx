@@ -1,7 +1,7 @@
 'use client'
 
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
-import { CalendarCheck, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, Copy, ExternalLink, Share2, XCircle } from 'lucide-react'
+import { CalendarCheck, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, Copy, ExternalLink, Search, Share2, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Appointment } from '@/types/database'
 
@@ -79,6 +79,8 @@ export default function AgendaPage() {
   const [studioBrandColor, setStudioBrandColor] = useState('#7C5CBF')
   const [copied, setCopied] = useState(false)
   const [bannerOpen, setBannerOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('todos')
+  const [search, setSearch] = useState('')
   const [weekSelection, setWeekSelection] = useState<Record<string, string[]>>({})
   const [salonSettings, setSalonSettings] = useState<{ slot_duration: number; working_hours: Record<string, { is_open: boolean; open: string; close: string }> } | null>(null)
 
@@ -139,6 +141,19 @@ export default function AgendaPage() {
   const activeTodayCount = todayApts.filter(item => !['completed', 'cancelled', 'no_show'].includes(item.status)).length
   const pendingCount = apts.filter(item => item.status === 'pending').length
   const selectedDateReleased = Boolean((salonSettings?.working_hours as any)?.[selectedDate]?.is_open)
+  const trackedApts = useMemo(() => {
+    const term = search.trim().toLowerCase()
+    return apts
+      .filter(item => statusFilter === 'todos' || item.status === statusFilter)
+      .filter(item => !term || `${item.client_name} ${item.service_name} ${item.notes || ''}`.toLowerCase().includes(term))
+  }, [apts, search, statusFilter])
+  const trackedUpcoming = trackedApts.filter(item =>
+    item.appointment_date >= new Date().toISOString() && !['completed', 'cancelled', 'no_show'].includes(item.status)
+  )
+  const trackedHistory = trackedApts
+    .filter(item => !trackedUpcoming.some(next => next.id === item.id))
+    .sort((a, b) => b.appointment_date.localeCompare(a.appointment_date))
+  const statusCount = (status: string) => status === 'todos' ? apts.length : apts.filter(item => item.status === status).length
 
   const changeStatus = async (id: string, status: string) => {
     const sb = createClient()
@@ -255,6 +270,195 @@ export default function AgendaPage() {
             </button>
           </div>
         </div>
+      </section>
+
+      <section style={{
+        background: C.card,
+        border: `1px solid ${C.border}`,
+        borderRadius: 16,
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          padding: '16px 18px',
+          borderBottom: `1px solid ${C.border}`,
+          display: 'grid',
+          gridTemplateColumns: 'minmax(210px, 1fr) auto',
+          gap: 12,
+          alignItems: 'center',
+          background: `linear-gradient(135deg, ${C.green}10, transparent)`,
+        }}>
+          <div>
+            <p style={{ margin: 0, color: C.green, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
+              Acompanhamento
+            </p>
+            <h2 style={{ margin: '4px 0 0', color: C.text, fontSize: 15, fontWeight: 900 }}>
+              Todos os agendamentos
+            </h2>
+            <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 12 }}>
+              {trackedUpcoming.length} ativos - {trackedHistory.length} no historico
+            </p>
+          </div>
+          <label style={{
+            height: 38,
+            width: 270,
+            maxWidth: '100%',
+            background: C.card2,
+            border: `1px solid ${C.border2}`,
+            borderRadius: 11,
+            padding: '0 12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            color: C.muted,
+          }}>
+            <Search size={14} />
+            <input
+              value={search}
+              onChange={event => setSearch(event.target.value)}
+              placeholder="Buscar cliente ou servico"
+              style={{
+                width: '100%',
+                background: 'transparent',
+                border: 0,
+                outline: 'none',
+                color: C.text,
+                fontSize: 12,
+                fontFamily: 'inherit',
+              }}
+            />
+          </label>
+        </div>
+
+        <div style={{
+          display: 'flex',
+          gap: 8,
+          overflowX: 'auto',
+          padding: '12px 18px',
+          borderBottom: `1px solid ${C.border}`,
+        }}>
+          {['todos', 'pending', 'confirmed', 'completed', 'cancelled', 'no_show'].map(item => (
+            <button key={item} onClick={() => setStatusFilter(item)} style={{
+              height: 34,
+              padding: '0 12px',
+              borderRadius: 999,
+              border: `1px solid ${statusFilter === item ? C.purple : C.border2}`,
+              background: statusFilter === item ? `${C.purple}22` : 'transparent',
+              color: statusFilter === item ? C.purple : C.muted,
+              cursor: 'pointer',
+              fontSize: 11,
+              fontFamily: 'inherit',
+              fontWeight: statusFilter === item ? 850 : 700,
+              whiteSpace: 'nowrap',
+            }}>
+              {item === 'todos' ? 'Todos' : (ST[item]?.label || item)} ({statusCount(item)})
+            </button>
+          ))}
+        </div>
+
+        {trackedUpcoming.length === 0 && trackedHistory.length === 0 ? (
+          <div style={{ minHeight: 170, display: 'grid', placeItems: 'center', textAlign: 'center', padding: 24, color: C.muted }}>
+            <div>
+              <Clock size={28} color={C.purple} style={{ margin: '0 auto 10px' }} />
+              <strong style={{ color: C.text, fontSize: 14 }}>Nenhum agendamento encontrado</strong>
+              <p style={{ margin: '6px 0 0', fontSize: 12 }}>Ajuste a busca ou o filtro para ver outros registros.</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {trackedUpcoming.length > 0 && (
+              <div>
+                <div style={{ padding: '12px 18px 8px', color: C.green, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
+                  Proximos
+                </div>
+                {trackedUpcoming.map((appointment, index) => {
+                  const status = ST[appointment.status] || { label: appointment.status, color: C.muted }
+                  return (
+                    <div key={appointment.id} style={{
+                      display: 'grid',
+                      gridTemplateColumns: '74px minmax(0, 1fr) auto',
+                      gap: 14,
+                      padding: '14px 18px',
+                      borderTop: index === 0 ? 'none' : `1px solid ${C.border}`,
+                      background: appointment.status === 'confirmed' ? `${C.green}07` : 'transparent',
+                    }}>
+                      <div style={{ textAlign: 'center', borderRadius: 14, background: `${status.color}12`, border: `1px solid ${status.color}30`, padding: '9px 6px' }}>
+                        <strong style={{ color: status.color, fontSize: 17 }}>{time(appointment.appointment_date)}</strong>
+                        <span style={{ display: 'block', color: C.muted, fontSize: 9, marginTop: 4 }}>{shortDate(appointment.appointment_date)}</span>
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 850 }}>{appointment.client_name || 'Cliente sem nome'}</h3>
+                          <Badge status={appointment.status} />
+                        </div>
+                        <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 12 }}>
+                          {appointment.service_name} - {appointment.duration_minutes || 0}min - {money(appointment.price)}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+                        {appointment.status === 'pending' && (
+                          <>
+                            <button onClick={() => void confirmWithWhatsapp(appointment.id)} style={actionStyle(C.green)}>
+                              <Check size={13} /> Confirmar + Zap
+                            </button>
+                            <button onClick={() => void recusarWithWhatsapp(appointment.id)} style={actionStyle(C.red)}>
+                              <XCircle size={13} /> Recusar
+                            </button>
+                          </>
+                        )}
+                        {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
+                          <button onClick={() => changeStatus(appointment.id, 'completed')} style={actionStyle(C.purple)}>
+                            <CheckCircle2 size={13} /> Concluir
+                          </button>
+                        )}
+                        {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
+                          <button onClick={() => changeStatus(appointment.id, 'no_show')} style={actionStyle(C.red)}>
+                            <XCircle size={13} /> Faltou
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {trackedHistory.length > 0 && (
+              <div style={{ borderTop: trackedUpcoming.length ? `1px solid ${C.border}` : 'none' }}>
+                <div style={{ padding: '12px 18px 8px', color: C.muted, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
+                  Historico recente
+                </div>
+                {trackedHistory.slice(0, 8).map((appointment, index) => {
+                  const status = ST[appointment.status] || { label: appointment.status, color: C.muted }
+                  return (
+                    <div key={appointment.id} style={{
+                      display: 'grid',
+                      gridTemplateColumns: '74px minmax(0, 1fr) auto',
+                      gap: 14,
+                      padding: '13px 18px',
+                      borderTop: index === 0 ? 'none' : `1px solid ${C.border}`,
+                      opacity: 0.92,
+                    }}>
+                      <div style={{ textAlign: 'center', borderRadius: 14, background: `${status.color}10`, border: `1px solid ${status.color}25`, padding: '9px 6px' }}>
+                        <strong style={{ color: status.color, fontSize: 17 }}>{time(appointment.appointment_date)}</strong>
+                        <span style={{ display: 'block', color: C.muted, fontSize: 9, marginTop: 4 }}>{shortDate(appointment.appointment_date)}</span>
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 850 }}>{appointment.client_name || 'Cliente sem nome'}</h3>
+                          <Badge status={appointment.status} />
+                        </div>
+                        <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 12 }}>
+                          {appointment.service_name} - {appointment.duration_minutes || 0}min - {money(appointment.price)}
+                        </p>
+                      </div>
+                      <strong style={{ color: C.green, fontSize: 13, alignSelf: 'center' }}>{money(appointment.price)}</strong>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )}
       </section>
 
       {studioSlug && (
