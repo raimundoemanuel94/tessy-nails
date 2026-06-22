@@ -13,7 +13,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  MessageCircle,
   Moon,
   Settings,
   Sun,
@@ -24,17 +23,18 @@ import {
 
 const NAV = [
   {
-    section: "Operação",
+    section: "Plataforma",
     items: [
       {
         key: "operacao",
         icon: LayoutDashboard,
-        label: "Plataforma",
+        label: "Visão geral",
         children: [
-          { href: "/admin", label: "Visão geral", exact: true },
+          { href: "/admin", label: "Dashboard", exact: true },
           { href: "/admin/studios", label: "Salões", badge: "studios" },
           { href: "/admin/clientes", label: "Clientes", badge: "clients" },
           { href: "/admin/agendamentos", label: "Agendamentos", badge: "appointments" },
+          { href: "/admin/relatorios", label: "Relatórios" },
         ],
       },
     ],
@@ -45,23 +45,11 @@ const NAV = [
       {
         key: "equipe",
         icon: Users,
-        label: "Pessoas",
+        label: "Profissionais",
         children: [
-          { href: "/admin/profissionais", label: "Profissionais", badge: "users" },
+          { href: "/admin/profissionais", label: "Contas & Vínculos", badge: "users" },
           { href: "/admin/comissoes", label: "Comissões" },
-          { href: "/admin/relatorios", label: "Relatórios" },
         ],
-      },
-    ],
-  },
-  {
-    section: "Relacionamento",
-    items: [
-      {
-        key: "relacionamento",
-        icon: MessageCircle,
-        label: "Mensagens",
-        children: [{ href: "/admin/mensagens", label: "Campanhas e WhatsApp" }],
       },
     ],
   },
@@ -73,7 +61,7 @@ const NAV = [
         icon: DollarSign,
         label: "Financeiro",
         children: [
-          { href: "/admin/financeiro", label: "Resumo financeiro", exact: true },
+          { href: "/admin/financeiro", label: "Resumo", exact: true },
           { href: "/admin/financeiro/assinaturas", label: "Assinaturas" },
           { href: "/admin/financeiro/inadimplencia", label: "Inadimplência" },
           { href: "/admin/config/planos", label: "Planos e preços" },
@@ -87,8 +75,11 @@ const NAV = [
       {
         key: "sistema",
         icon: Settings,
-        label: "Configuração",
-        children: [{ href: "/admin/config", label: "Preferências", exact: true }],
+        label: "Configurações",
+        children: [
+          { href: "/admin/config", label: "Preferências", exact: true },
+          { href: "/admin/mensagens", label: "Mensagens" },
+        ],
       },
     ],
   },
@@ -116,7 +107,9 @@ function NavGroup({ item, isActive, onNav, open, onToggle, getCount }: any) {
   const childActive = item.children.some((child: any) =>
     child.exact ? isActive(child.href, true) : isActive(child.href)
   );
-  const totalCount = item.children.reduce((sum: number, child: any) => sum + getCount(child.badge), 0);
+  // Só mostra badge no grupo se tiver um único badge filho relevante
+  const badgeCounts = item.children.map((child: any) => getCount(child.badge)).filter(Boolean);
+  const totalCount = badgeCounts.length === 1 ? badgeCounts[0] : 0;
 
   return (
     <div className="adm-side-group">

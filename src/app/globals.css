@@ -489,7 +489,7 @@ button:active, a:active, [role="button"]:active {
   text-decoration: none;
   color: #928ba8;
   font-size: 13px;
-  font-weight: 560;
+  font-weight: 550;
   border: 1px solid transparent;
   transition: background .15s, color .15s, border-color .15s;
 }
@@ -1877,7 +1877,7 @@ button:active, a:active, [role="button"]:active {
   color: #a5acba;
   text-decoration: none;
   font-size: 13px;
-  font-weight: 560;
+  font-weight: 550;
   border: 1px solid transparent;
   background: transparent;
   font-family: inherit;
@@ -1889,6 +1889,7 @@ button:active, a:active, [role="button"]:active {
   color: #f4f4f5;
   background: rgba(255,255,255,0.05);
 }
+.adm-side-link:active { transform: scale(0.98); }
 .adm-side-link.is-active {
   color: #f4f4f5;
   background: rgba(99,102,241,0.13);
@@ -1926,10 +1927,10 @@ button:active, a:active, [role="button"]:active {
 .adm-side-group-trigger > svg:last-child {
   flex: 0 0 auto;
   opacity: .55;
-  transform: rotate(-90deg);
-  transition: transform .16s;
+  transform: rotate(0deg);
+  transition: transform .2s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.adm-side-group-trigger > svg:last-child.is-open { transform: rotate(0deg); }
+.adm-side-group-trigger > svg:last-child.is-open { transform: rotate(-180deg); }
 .adm-side-children {
   display: grid;
   gap: 1px;
@@ -1939,7 +1940,7 @@ button:active, a:active, [role="button"]:active {
   transition: max-height .16s ease;
 }
 .adm-side-children.is-open {
-  max-height: 170px;
+  max-height: 300px;
   padding-top: 3px;
   padding-bottom: 3px;
 }
@@ -1967,6 +1968,7 @@ button:active, a:active, [role="button"]:active {
   color: #f4f4f5;
   background: rgba(255,255,255,0.045);
 }
+.adm-side-child:active { transform: scale(0.98); }
 .adm-side-child.is-active {
   color: #c7d2fe;
   background: rgba(99,102,241,0.10);
@@ -2057,7 +2059,14 @@ button:active, a:active, [role="button"]:active {
   background: rgba(255,255,255,0.055);
 }
 .adm-footer-actions button:hover {
+  color: #f4f4f5;
+  background: rgba(255,255,255,0.055);
+  border-color: rgba(255,255,255,0.12);
+}
+.adm-footer-actions button[title="Sair da conta"]:hover {
   color: #f87171;
+  background: rgba(248,113,113,0.08);
+  border-color: rgba(248,113,113,0.25);
   background: rgba(248,113,113,0.08);
   border-color: rgba(248,113,113,0.20);
 }
