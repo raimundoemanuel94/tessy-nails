@@ -53,6 +53,26 @@ export async function middleware(request: NextRequest) {
       .eq("id", user.id)
       .maybeSingle();
 
+    // Check trial expiry for studio owners
+    if (profile?.role !== "superadmin" && profile?.studio_id) {
+      const { data: studio } = await supabase
+        .from("studios")
+        .select("trial_ends_at, subscription_status, is_active")
+        .eq("id", profile.studio_id)
+        .maybeSingle();
+
+      const isExpired = studio?.trial_ends_at && new Date(studio.trial_ends_at) < new Date();
+      const isTrialStatus = studio?.subscription_status === "trial" || studio?.subscription_status === "trialing";
+      const isDashboardOrProtected = !isPublicPage && !isAuthPage && !isAuthCallback;
+
+      if (isExpired && isTrialStatus && isDashboardOrProtected && !pathname.startsWith("/setup")) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/setup";
+        url.searchParams.set("expired", "1");
+        return NextResponse.redirect(url);
+      }
+    }
+
     const targetPath = getPostAuthRedirectPath(profile);
     const isAdminPath = pathname.startsWith("/admin");
     const isDashboardPath = pathname.startsWith("/dashboard");

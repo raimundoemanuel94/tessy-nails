@@ -17,20 +17,26 @@ export default async function AdminComissoesPage() {
   const [{ data: profiles }, { data: appointments }, { data: studios }, { data: services }] = await Promise.all([
     supabase.from("profiles").select("id, name, email, role, studio_id, created_at"),
     supabase.from("appointments").select("id, studio_id, service_name, price, status, appointment_date"),
-    supabase.from("studios").select("id, name, slug"),
+    supabase.from("studios").select("id, name, slug, commission_rate"),
     supabase.from("services").select("id, studio_id, name, price, is_active"),
   ]);
 
   const professionals = (profiles ?? []).filter((profile) => ["professional", "owner"].includes(profile.role));
   const completed = (appointments ?? []).filter((appointment) => appointment.status === "completed");
   const grossRevenue = completed.reduce((sum, appointment) => sum + Number(appointment.price ?? 0), 0);
-  const estimatedCommission = grossRevenue * 0.4;
+  // Weighted commission per studio
+  const estimatedCommission = (studios ?? []).reduce((sum: number, studio: any) => {
+    const rev = completed.filter(a => a.studio_id === studio.id).reduce((s, a) => s + Number(a.price ?? 0), 0);
+    const rate = Number((studio as any).commission_rate ?? 40) / 100;
+    return sum + rev * rate;
+  }, 0);
   const studioById = new Map((studios ?? []).map((studio) => [studio.id, studio]));
 
-  const studioRows = (studios ?? []).map((studio) => {
+  const studioRows = (studios ?? []).map((studio: any) => {
     const rows = completed.filter((appointment) => appointment.studio_id === studio.id);
     const revenue = rows.reduce((sum, appointment) => sum + Number(appointment.price ?? 0), 0);
-    return { studio, appointments: rows.length, revenue, estimate: revenue * 0.4 };
+    const rate = Number(studio.commission_rate ?? 40) / 100;
+    return { studio, appointments: rows.length, revenue, estimate: revenue * rate, rate: Number(studio.commission_rate ?? 40) };
   }).sort((a, b) => b.revenue - a.revenue);
 
   return (
@@ -46,7 +52,7 @@ export default async function AdminComissoesPage() {
         <AdminMetricCard label="Profissionais" value={professionals.length} sub="owners e manicures" icon={UserRound} tone="brand" />
         <AdminMetricCard label="Atendimentos concluídos" value={completed.length} sub="base de cálculo" icon={CalendarCheck} tone="success" />
         <AdminMetricCard label="Receita concluída" value={formatCurrency(grossRevenue)} sub="antes de repasse" icon={BadgeDollarSign} tone="default" />
-        <AdminMetricCard label="Comissão estimada" value={formatCurrency(estimatedCommission)} sub="simulação 40%" icon={Scissors} tone="warning" />
+        <AdminMetricCard label="Comissão estimada" value={formatCurrency(estimatedCommission)} sub="baseado na taxa de cada salão" icon={Scissors} tone="warning" />
       </div>
 
       <AdminPanel title="Estimativa por salão" description="Enquanto o agendamento não tiver profissional vinculado, a estimativa fica no nível do salão." tone="warning">
@@ -64,7 +70,10 @@ export default async function AdminComissoesPage() {
               </div>
               <AdminStatusBadge tone={appointments ? "success" : "muted"}>{appointments} atend.</AdminStatusBadge>
               <strong style={{ color: revenue ? "#4ade80" : "#71717a", fontSize: 13 }}>{formatCurrency(revenue)}</strong>
-              <strong style={{ color: estimate ? "#fbbf24" : "#71717a", fontSize: 13 }}>{formatCurrency(estimate)}</strong>
+              <div>
+                <strong style={{ color: estimate ? "#fbbf24" : "#71717a", fontSize: 13 }}>{formatCurrency(estimate)}</strong>
+                <p style={{ margin: "3px 0 0", color: "#52525b", fontSize: 11 }}>{rate}% configurado</p>
+              </div>
             </div>
           ))}
         </div>

@@ -52,6 +52,15 @@ export default async function AdminMensagensPage() {
   ]);
 
   return (
+    <>
+    <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)', marginBottom: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+      <span style={{ fontSize: 16 }}>⚠️</span>
+      <div>
+        <strong style={{ color: '#fbbf24', fontSize: 13 }}>Módulo em desenvolvimento</strong>
+        <p style={{ margin: '2px 0 0', color: '#a1a1aa', fontSize: 12 }}>Os templates abaixo são pré-visualizações. O disparo real via WhatsApp Business API ainda não está integrado.</p>
+      </div>
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 1120 }}>
     <div style={{ display: "flex", flexDirection: "column", gap: 22, maxWidth: 1120 }}>
       <AdminPageHeader
         eyebrow="Relacionamento"
@@ -103,5 +112,7 @@ export default async function AdminMensagensPage() {
         </div>
       </AdminPanel>
     </div>
+    </div>
+    </>
   );
 }

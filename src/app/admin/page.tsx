@@ -45,8 +45,10 @@ function daysUntil(date: string | null | undefined) {
   return Math.round((target.getTime() - now.getTime()) / 86400000);
 }
 
-function getStudioMrr(studio: any, priceByPlan: Map<string, number>) {
-  if (studio.subscription_status !== "active") return 0;
+function getStudioMrr(studio: any, priceByPlan: Map<string, number>, includeTrials = false) {
+  const isActive = studio.subscription_status === "active";
+  const isTrial = studio.subscription_status === "trial" || studio.subscription_status === "trialing";
+  if (!isActive && !(includeTrials && isTrial)) return 0;
   const explicit = Number(studio.mrr ?? 0);
   if (Number.isFinite(explicit) && explicit > 0) return explicit;
   return Number(priceByPlan.get(studio.plan) ?? 0);
@@ -162,8 +164,11 @@ export default async function AdminPage() {
   }
 
   const staleStudios = activeStudios.filter((studio) => {
-    const days = daysBetween(lastByStudio.get(studio.id));
-    return days === null || days > 30;
+    const lastAppt = lastByStudio.get(studio.id);
+    if (lastAppt) return daysBetween(lastAppt)! > 30;
+    // No appointments: only flag as stale if studio is older than 7 days
+    const age = daysBetween(studio.created_at);
+    return age !== null && age > 7;
   });
   const trialExpiring = trials.filter((studio) => {
     const days = daysUntil(studio.trial_ends_at);
@@ -260,7 +265,7 @@ export default async function AdminPage() {
       />
 
       <div style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", gap: 12 }}>
-        <AdminMetricCard label="MRR atual" value={formatCurrency(mrr)} sub={`${mrrDelta >= 0 ? "+" : ""}${formatCurrency(mrrDelta)} vs mês anterior`} icon={DollarSign} tone="success" large />
+        <AdminMetricCard label="MRR (ativos)" value={formatCurrency(mrr)} sub={`${mrrDelta >= 0 ? "+" : ""}${formatCurrency(mrrDelta)} vs mês anterior · ${trials.length} em trial`} icon={DollarSign} tone="success" large />
         <AdminMetricCard label="ARR" value={formatCurrency(arr)} sub="receita anual recorrente" icon={TrendingUp} tone="brand" />
         <AdminMetricCard label="Pagantes" value={paidStudios.length} sub={`${studioList.length} studios totais`} icon={CreditCard} tone="default" />
         <AdminMetricCard label="ARPU" value={formatCurrency(arpu)} sub={`${trials.length} em trial`} icon={Users} tone="warning" />
