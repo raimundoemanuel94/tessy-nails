@@ -167,7 +167,7 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
               const studiosInPlan = studios.filter((studio: any) => studio.plan === plan.plan);
               const paying = studiosInPlan.filter((studio: any) => studio.subscription_status === "active").length;
               return (
-                <div key={plan.plan} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, background: "rgba(255,255,255,0.025)" }}>
+                <div key={plan.plan} className="admin-plan-card" style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, background: "rgba(255,255,255,0.025)" }}>
                   {isEdit ? (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 140px auto", gap: 10, alignItems: "end" }}>
                       <label style={{ display: "grid", gap: 5 }}>
@@ -188,15 +188,15 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
                       </div>
                     </div>
                   ) : (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: 14, alignItems: "center" }}>
+                    <div className="admin-plan-display-row" style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: 14, alignItems: "center" }}>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                          <span style={{ color, border: `1px solid ${color}44`, background: `${color}18`, borderRadius: 6, padding: "2px 7px", fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>{plan.plan}</span>
-                          <strong style={{ color: "#f4f4f5", fontSize: 14 }}>{plan.label}</strong>
+                          <span className="admin-plan-badge" style={{ color, border: `1px solid ${color}44`, background: `${color}18`, borderRadius: 6, padding: "2px 7px", fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>{plan.plan}</span>
+                          <strong className="admin-plan-name" style={{ color: "#f4f4f5", fontSize: 14 }}>{plan.label}</strong>
                         </div>
-                        <span style={{ color: "#71717a", fontSize: 12 }}>{studiosInPlan.length} salões · {paying} pagantes</span>
+                        <span className="admin-plan-meta" style={{ color: "#71717a", fontSize: 12 }}>{studiosInPlan.length} salões · {paying} pagantes</span>
                       </div>
-                      <strong style={{ color: Number(plan.price) > 0 ? "#4ade80" : "#71717a", fontSize: 15 }}>{formatCurrency(Number(plan.price ?? 0))}</strong>
+                      <strong className={Number(plan.price) > 0 ? "admin-plan-price" : "admin-plan-price admin-plan-price-free"} style={{ color: Number(plan.price) > 0 ? "#4ade80" : "#71717a", fontSize: 15 }}>{formatCurrency(Number(plan.price ?? 0))}</strong>
                       <AdminStatusBadge tone={saved === plan.plan ? "success" : "muted"}>{saved === plan.plan ? "Salvo" : "Mensal"}</AdminStatusBadge>
                       <button onClick={() => openEdit(plan)} className="admin-action-button" style={{ color: "#818cf8", borderColor: "rgba(99,102,241,0.26)", background: "rgba(99,102,241,0.11)" }}>
                         <Edit3 size={13} /> Editar

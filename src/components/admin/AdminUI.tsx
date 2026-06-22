@@ -1,4 +1,3 @@
-/* eslint-disable */
 import Link from "next/link";
 import type { ElementType, ReactNode } from "react";
 import { AlertTriangle, ArrowRight, CheckCircle2, Info, Loader2 } from "lucide-react";

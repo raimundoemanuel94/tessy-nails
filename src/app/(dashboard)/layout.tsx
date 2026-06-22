@@ -9,17 +9,26 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("*, studios!studios_owner_id_fkey(id, name, slug, plan, avatar_url, brand_color)")
+    .select("*")
     .eq("id", user.id)
     .single();
 
   if (!profile) redirect("/login");
-  // Superadmin não precisa de studio — profissional sim
   if (profile.role !== "superadmin" && !profile.studio_id) redirect("/setup");
 
+  const { data: studio } = profile.studio_id
+    ? await supabase
+        .from("studios")
+        .select("name, slug, plan, avatar_url")
+        .eq("id", profile.studio_id)
+        .maybeSingle()
+    : { data: null };
+
+  const sidebarProfile = { ...profile, studios: studio };
+
   return (
-    <div className="flex min-h-screen" style={{ background: "#080812" }}>
-      <Sidebar profile={profile} />
+    <div className="salon-shell flex min-h-screen" style={{ background: "#080812" }}>
+      <Sidebar profile={sidebarProfile} />
       <main className="dash-main">
         {children}
       </main>

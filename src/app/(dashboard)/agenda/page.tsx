@@ -1,7 +1,7 @@
 'use client'
 
 import { type CSSProperties, useEffect, useMemo, useState } from 'react'
-import { CalendarCheck, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, Copy, ExternalLink, Share2, XCircle } from 'lucide-react'
+import { CalendarCheck, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, Copy, ExternalLink, Search, Share2, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Appointment } from '@/types/database'
 
@@ -79,6 +79,8 @@ export default function AgendaPage() {
   const [studioBrandColor, setStudioBrandColor] = useState('#7C5CBF')
   const [copied, setCopied] = useState(false)
   const [bannerOpen, setBannerOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('todos')
+  const [search, setSearch] = useState('')
   const [weekSelection, setWeekSelection] = useState<Record<string, string[]>>({})
   const [salonSettings, setSalonSettings] = useState<{ slot_duration: number; working_hours: Record<string, { is_open: boolean; open: string; close: string }> } | null>(null)
 
@@ -89,18 +91,23 @@ export default function AgendaPage() {
       if (!user) { setLoading(false); return }
       const { data: profile } = await sb.from('profiles').select('studio_id').eq('id', user.id).single()
       if (!profile?.studio_id) { setLoading(false); return }
-      const { data: studioData } = await sb.from('studios').select('slug, name, avatar_url, brand_color').eq('id', profile.studio_id).single()
+      const [studioResult, settingsResult, appointmentsResult] = await Promise.all([
+        sb.from('studios').select('slug, name, avatar_url, brand_color').eq('id', profile.studio_id).single(),
+        sb.from('salon_settings').select('slot_duration, working_hours').eq('studio_id', profile.studio_id).single(),
+        sb
+          .from('appointments')
+          .select('id, client_id, client_name, service_name, appointment_date, duration_minutes, price, status, notes')
+          .eq('studio_id', profile.studio_id)
+          .order('appointment_date', { ascending: true }),
+      ])
+      const studioData = studioResult.data
       if (studioData?.slug) setStudioSlug(studioData.slug)
       if (studioData?.name) setStudioName(studioData.name)
       if (studioData?.avatar_url) setStudioAvatar(studioData.avatar_url)
       if (studioData?.brand_color) setStudioBrandColor(studioData.brand_color)
-      const { data: settingsData } = await sb.from('salon_settings').select('slot_duration, working_hours').eq('studio_id', profile.studio_id).single()
+      const settingsData = settingsResult.data
       if (settingsData) setSalonSettings(settingsData)
-      const { data } = await sb
-        .from('appointments')
-        .select('*')
-        .eq('studio_id', profile.studio_id)
-        .order('appointment_date', { ascending: true })
+      const data = appointmentsResult.data
       const rows = data || []
       setApts(rows)
       const next = rows
@@ -135,6 +142,23 @@ export default function AgendaPage() {
   const selectedRevenue = selectedApts
     .filter(item => item.status !== 'cancelled')
     .reduce((sum, item) => sum + Number(item.price || 0), 0)
+  const todayApts = apts.filter(item => item.appointment_date.slice(0, 10) === today)
+  const activeTodayCount = todayApts.filter(item => !['completed', 'cancelled', 'no_show'].includes(item.status)).length
+  const pendingCount = apts.filter(item => item.status === 'pending').length
+  const selectedDateReleased = Boolean((salonSettings?.working_hours as any)?.[selectedDate]?.is_open)
+  const trackedApts = useMemo(() => {
+    const term = search.trim().toLowerCase()
+    return apts
+      .filter(item => statusFilter === 'todos' || item.status === statusFilter)
+      .filter(item => !term || `${item.client_name} ${item.service_name} ${item.notes || ''}`.toLowerCase().includes(term))
+  }, [apts, search, statusFilter])
+  const trackedUpcoming = trackedApts.filter(item =>
+    item.appointment_date >= new Date().toISOString() && !['completed', 'cancelled', 'no_show'].includes(item.status)
+  )
+  const trackedHistory = trackedApts
+    .filter(item => !trackedUpcoming.some(next => next.id === item.id))
+    .sort((a, b) => b.appointment_date.localeCompare(a.appointment_date))
+  const statusCount = (status: string) => status === 'todos' ? apts.length : apts.filter(item => item.status === status).length
 
   const changeStatus = async (id: string, status: string) => {
     const sb = createClient()
@@ -198,8 +222,8 @@ export default function AgendaPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1180 }}>
-      <header style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+    <div className="agenda-page" style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1180 }}>
+      <header className="agenda-header" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <p style={{ margin: '0 0 6px', color: C.purple, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>
             Atendimento
@@ -222,8 +246,233 @@ export default function AgendaPage() {
         </div>
       </header>
 
+      <section className="agenda-kpis" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+        gap: 10,
+      }}>
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14 }}>
+          <p style={{ margin: 0, color: C.muted, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Hoje</p>
+          <strong style={{ display: 'block', marginTop: 5, color: C.text, fontSize: 22 }}>{activeTodayCount}</strong>
+          <span style={{ color: C.muted, fontSize: 12 }}>{todayApts.length} no total</span>
+        </div>
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14 }}>
+          <p style={{ margin: 0, color: C.muted, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Pendentes</p>
+          <strong style={{ display: 'block', marginTop: 5, color: pendingCount ? C.amber : C.text, fontSize: 22 }}>{pendingCount}</strong>
+          <span style={{ color: C.muted, fontSize: 12 }}>{pendingCount ? 'precisam de resposta' : 'tudo em dia'}</span>
+        </div>
+        <div style={{ background: selectedDateReleased ? `${C.green}10` : `${C.purple}10`, border: `1px solid ${selectedDateReleased ? `${C.green}35` : `${C.purple}35`}`, borderRadius: 16, padding: 14, display: 'grid', gap: 8 }}>
+          <div>
+            <p style={{ margin: 0, color: selectedDateReleased ? C.green : C.purple, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Status de vagas</p>
+            <strong style={{ display: 'block', marginTop: 5, color: C.text, fontSize: 14 }}>{selectedDateReleased ? 'Dia liberado' : 'Dia não liberado'}</strong>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <a href="/disponibilidade" style={{ ...navButtonStyle, minWidth: 'auto', height: 34, padding: '0 11px', color: C.purple, textDecoration: 'none' }}>
+              Liberar vagas
+            </a>
+            <a href="/vitrine" style={{ ...navButtonStyle, minWidth: 'auto', height: 34, padding: '0 11px', color: C.green, textDecoration: 'none' }}>
+              Postar status
+            </a>
+            <button onClick={() => setBannerOpen(true)} style={{ ...navButtonStyle, minWidth: 'auto', height: 34, padding: '0 11px', color: C.pink }}>
+              Banner semanal
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="agenda-tracking" style={{
+        background: C.card,
+        border: `1px solid ${C.border}`,
+        borderRadius: 16,
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          padding: '16px 18px',
+          borderBottom: `1px solid ${C.border}`,
+          display: 'grid',
+          gridTemplateColumns: 'minmax(210px, 1fr) auto',
+          gap: 12,
+          alignItems: 'center',
+          background: `linear-gradient(135deg, ${C.green}10, transparent)`,
+        }}>
+          <div>
+            <p style={{ margin: 0, color: C.green, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
+              Acompanhamento
+            </p>
+            <h2 style={{ margin: '4px 0 0', color: C.text, fontSize: 15, fontWeight: 900 }}>
+              Todos os agendamentos
+            </h2>
+            <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 12 }}>
+              {trackedUpcoming.length} ativos - {trackedHistory.length} no historico
+            </p>
+          </div>
+          <label style={{
+            height: 38,
+            width: 270,
+            maxWidth: '100%',
+            background: C.card2,
+            border: `1px solid ${C.border2}`,
+            borderRadius: 11,
+            padding: '0 12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            color: C.muted,
+          }}>
+            <Search size={14} />
+            <input
+              value={search}
+              onChange={event => setSearch(event.target.value)}
+              placeholder="Buscar cliente ou servico"
+              style={{
+                width: '100%',
+                background: 'transparent',
+                border: 0,
+                outline: 'none',
+                color: C.text,
+                fontSize: 12,
+                fontFamily: 'inherit',
+              }}
+            />
+          </label>
+        </div>
+
+        <div style={{
+          display: 'flex',
+          gap: 8,
+          overflowX: 'auto',
+          padding: '12px 18px',
+          borderBottom: `1px solid ${C.border}`,
+        }}>
+          {['todos', 'pending', 'confirmed', 'completed', 'cancelled', 'no_show'].map(item => (
+            <button key={item} onClick={() => setStatusFilter(item)} style={{
+              height: 34,
+              padding: '0 12px',
+              borderRadius: 999,
+              border: `1px solid ${statusFilter === item ? C.purple : C.border2}`,
+              background: statusFilter === item ? `${C.purple}22` : 'transparent',
+              color: statusFilter === item ? C.purple : C.muted,
+              cursor: 'pointer',
+              fontSize: 11,
+              fontFamily: 'inherit',
+              fontWeight: statusFilter === item ? 850 : 700,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              minWidth: 'max-content',
+            }}>
+              {item === 'todos' ? 'Todos' : (ST[item]?.label || item)} ({statusCount(item)})
+            </button>
+          ))}
+        </div>
+
+        {trackedUpcoming.length === 0 && trackedHistory.length === 0 ? (
+          <div style={{ minHeight: 170, display: 'grid', placeItems: 'center', textAlign: 'center', padding: 24, color: C.muted }}>
+            <div>
+              <Clock size={28} color={C.purple} style={{ margin: '0 auto 10px' }} />
+              <strong style={{ color: C.text, fontSize: 14 }}>Nenhum agendamento encontrado</strong>
+              <p style={{ margin: '6px 0 0', fontSize: 12 }}>Ajuste a busca ou o filtro para ver outros registros.</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {trackedUpcoming.length > 0 && (
+              <div>
+                <div style={{ padding: '12px 18px 8px', color: C.green, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
+                  Proximos
+                </div>
+                {trackedUpcoming.map((appointment, index) => {
+                  const status = ST[appointment.status] || { label: appointment.status, color: C.muted }
+                  return (
+                    <div key={appointment.id} style={{
+                      display: 'grid',
+                      gridTemplateColumns: '74px minmax(0, 1fr) auto',
+                      gap: 14,
+                      padding: '14px 18px',
+                      borderTop: index === 0 ? 'none' : `1px solid ${C.border}`,
+                      background: appointment.status === 'confirmed' ? `${C.green}07` : 'transparent',
+                    }}>
+                      <div style={{ textAlign: 'center', borderRadius: 14, background: `${status.color}12`, border: `1px solid ${status.color}30`, padding: '9px 6px' }}>
+                        <strong style={{ color: status.color, fontSize: 17 }}>{time(appointment.appointment_date)}</strong>
+                        <span style={{ display: 'block', color: C.muted, fontSize: 9, marginTop: 4 }}>{shortDate(appointment.appointment_date)}</span>
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 850 }}>{appointment.client_name || 'Cliente sem nome'}</h3>
+                          <Badge status={appointment.status} />
+                        </div>
+                        <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 12 }}>
+                          {appointment.service_name} - {appointment.duration_minutes || 0}min - {money(appointment.price)}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+                        {appointment.status === 'pending' && (
+                          <>
+                            <button onClick={() => void confirmWithWhatsapp(appointment.id)} style={actionStyle(C.green)}>
+                              <Check size={13} /> Confirmar + Zap
+                            </button>
+                            <button onClick={() => void recusarWithWhatsapp(appointment.id)} style={actionStyle(C.red)}>
+                              <XCircle size={13} /> Recusar
+                            </button>
+                          </>
+                        )}
+                        {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
+                          <button onClick={() => changeStatus(appointment.id, 'completed')} style={actionStyle(C.purple)}>
+                            <CheckCircle2 size={13} /> Concluir
+                          </button>
+                        )}
+                        {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
+                          <button onClick={() => changeStatus(appointment.id, 'no_show')} style={actionStyle(C.red)}>
+                            <XCircle size={13} /> Faltou
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {trackedHistory.length > 0 && (
+              <div style={{ borderTop: trackedUpcoming.length ? `1px solid ${C.border}` : 'none' }}>
+                <div style={{ padding: '12px 18px 8px', color: C.muted, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
+                  Historico recente
+                </div>
+                {trackedHistory.slice(0, 8).map((appointment, index) => {
+                  const status = ST[appointment.status] || { label: appointment.status, color: C.muted }
+                  return (
+                    <div key={appointment.id} style={{
+                      display: 'grid',
+                      gridTemplateColumns: '74px minmax(0, 1fr) auto',
+                      gap: 14,
+                      padding: '13px 18px',
+                      borderTop: index === 0 ? 'none' : `1px solid ${C.border}`,
+                      opacity: 0.92,
+                    }}>
+                      <div style={{ textAlign: 'center', borderRadius: 14, background: `${status.color}10`, border: `1px solid ${status.color}25`, padding: '9px 6px' }}>
+                        <strong style={{ color: status.color, fontSize: 17 }}>{time(appointment.appointment_date)}</strong>
+                        <span style={{ display: 'block', color: C.muted, fontSize: 9, marginTop: 4 }}>{shortDate(appointment.appointment_date)}</span>
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 850 }}>{appointment.client_name || 'Cliente sem nome'}</h3>
+                          <Badge status={appointment.status} />
+                        </div>
+                        <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 12 }}>
+                          {appointment.service_name} - {appointment.duration_minutes || 0}min - {money(appointment.price)}
+                        </p>
+                      </div>
+                      <strong style={{ color: C.green, fontSize: 13, alignSelf: 'center' }}>{money(appointment.price)}</strong>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
       {studioSlug && (
-        <section style={{
+        <section className="agenda-link" style={{
           display: 'flex',
           flexWrap: 'wrap',
           gap: 8,
@@ -249,7 +498,7 @@ export default function AgendaPage() {
       )}
 
       {nextApt && (
-        <section style={{
+        <section className="agenda-next" style={{
           display: 'grid',
           gridTemplateColumns: 'auto minmax(0, 1fr) auto',
           gap: 14,
@@ -273,7 +522,7 @@ export default function AgendaPage() {
           </div>
           <div style={{ minWidth: 0 }}>
             <p style={{ margin: 0, color: C.green, fontSize: 11, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>
-              Proximo horario
+              Próximo horário
             </p>
             <h2 style={{ margin: '4px 0 0', color: C.text, fontSize: 16, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {nextApt.client_name || 'Cliente'} - {nextApt.service_name}
@@ -299,7 +548,7 @@ export default function AgendaPage() {
         </section>
       )}
 
-      <section style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+      <section className="agenda-days" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
         {days.map(date => {
           const key = ymd(date)
           const isSelected = key === selectedDate
@@ -345,7 +594,7 @@ export default function AgendaPage() {
         })}
       </section>
 
-      <section style={{
+      <section className="agenda-selected" style={{
         background: C.card,
         border: `1px solid ${C.border}`,
         borderRadius: 16,
@@ -390,7 +639,7 @@ export default function AgendaPage() {
             <div>
               <Clock size={30} color={C.purple} style={{ margin: '0 auto 10px' }} />
               <strong style={{ color: C.text, fontSize: 14 }}>Nenhum agendamento neste dia</strong>
-              <p style={{ margin: '6px 0 0', fontSize: 12 }}>Quando uma cliente marcar pelo link publico, ela aparece aqui.</p>
+              <p style={{ margin: '6px 0 0', fontSize: 12 }}>Quando uma cliente marcar pelo link público, ela aparece aqui.</p>
             </div>
           </div>
         ) : (
@@ -457,7 +706,7 @@ export default function AgendaPage() {
 
       {/* ─── BANNER DE VAGAS ─── */}
       {studioSlug && (
-        <section style={{
+        <section className="agenda-banner" style={{
           background: C.card,
           border: `1px solid ${C.border}`,
           borderRadius: 16,
@@ -479,7 +728,7 @@ export default function AgendaPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Share2 size={16} color={C.pink} />
-              <span style={{ color: C.text, fontSize: 14, fontWeight: 850 }}>Montar banner de vagas</span>
+              <span style={{ color: C.text, fontSize: 14, fontWeight: 850 }}>Montar banner semanal</span>
             </div>
             <span style={{ color: C.muted, fontSize: 12 }}>{bannerOpen ? '▲ fechar' : '▼ abrir'}</span>
           </button>
@@ -825,11 +1074,88 @@ export default function AgendaPage() {
 
       <style>{`
         @media (max-width: 760px) {
-          section[style*="grid-template-columns: auto minmax"] {
-            grid-template-columns: 1fr !important;
+          .agenda-page {
+            gap: 14px !important;
           }
-          div[style*="grid-template-columns: 74px"] {
+          .agenda-header {
+            order: 1;
+          }
+          .agenda-kpis {
+            order: 2;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+          }
+          .agenda-kpis > div {
+            padding: 13px !important;
+            border-radius: 14px !important;
+          }
+          .agenda-kpis > div:last-child {
+            grid-column: 1 / -1;
+          }
+          .agenda-kpis > div:last-child > div:last-child {
+            display: grid !important;
             grid-template-columns: 1fr !important;
+            gap: 8px !important;
+          }
+          .agenda-kpis > div:last-child a,
+          .agenda-kpis > div:last-child button {
+            width: 100%;
+            min-height: 42px !important;
+          }
+          .agenda-days {
+            order: 3;
+            padding-bottom: 8px !important;
+            margin: 0 -16px;
+            padding-left: 16px;
+            padding-right: 16px;
+          }
+          .agenda-selected {
+            order: 4;
+          }
+          .agenda-tracking {
+            order: 5;
+          }
+          .agenda-link {
+            order: 6;
+          }
+          .agenda-next {
+            order: 7;
+          }
+          .agenda-banner {
+            order: 8;
+          }
+          .agenda-tracking > div:first-child {
+            grid-template-columns: 1fr !important;
+            padding: 15px !important;
+          }
+          .agenda-tracking label {
+            width: 100% !important;
+          }
+          .agenda-tracking > div:nth-child(2) {
+            padding: 10px 15px !important;
+          }
+          .agenda-selected > div:not(:first-child),
+          .agenda-tracking div[style*="grid-template-columns: 74px"] {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+          }
+          .agenda-selected > div:not(:first-child) > div:last-child,
+          .agenda-tracking div[style*="grid-template-columns: 74px"] > div:last-child {
+            justify-content: stretch !important;
+          }
+          .agenda-selected > div:not(:first-child) button,
+          .agenda-tracking div[style*="grid-template-columns: 74px"] button {
+            min-height: 38px !important;
+          }
+          .agenda-link {
+            align-items: stretch !important;
+          }
+          .agenda-link > div {
+            width: 100%;
+          }
+          .agenda-link button,
+          .agenda-link a {
+            flex: 1 1 130px;
           }
         }
       `}</style>

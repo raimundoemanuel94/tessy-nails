@@ -1,8 +1,17 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { normalizePhone } from "@/lib/booking/client-access";
+import { normalizePhone, phonesMatch } from "@/lib/booking/client-access";
+import { checkRateLimit, rateLimitResponse, requestIp } from "@/lib/rate-limit";
+
+const RATE_LIMIT = 30;
+const RATE_WINDOW_MS = 10 * 60 * 1000;
 
 export async function GET(req: Request) {
+  const ip = requestIp(req);
+  if (!checkRateLimit(`public:client-appointments:get:${ip}`, RATE_LIMIT, RATE_WINDOW_MS)) {
+    return rateLimitResponse();
+  }
+
   const { searchParams } = new URL(req.url);
   const slug = searchParams.get("slug")?.trim();
   const phone = normalizePhone(searchParams.get("phone"));
@@ -34,7 +43,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Não foi possível consultar clientes." }, { status: 500 });
   }
 
-  const matchedClients = (clients ?? []).filter((client) => normalizePhone(client.phone) === phone);
+  const matchedClients = (clients ?? []).filter((client) => phonesMatch(client.phone, phone));
   if (matchedClients.length === 0) {
     return NextResponse.json({ studio, client: null, appointments: [] });
   }

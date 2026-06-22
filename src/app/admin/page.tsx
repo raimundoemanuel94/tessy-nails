@@ -267,24 +267,24 @@ export default async function AdminPage() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
-        <AdminMetricCard label="Clientes totais" value={clientList.length} sub={`${publicClients} vieram do link publico`} icon={Users} tone="brand" />
-        <AdminMetricCard label="Proximos horarios" value={upcomingAppointments.length} sub="agenda futura ativa" icon={CalendarClock} tone="warning" />
-        <AdminMetricCard label="Concluidos" value={completedAppointments.length} sub={formatCurrency(completedRevenue)} icon={BarChart3} tone="success" />
-        <AdminMetricCard label="Ticket medio" value={formatCurrency(completedAppointments.length ? completedRevenue / completedAppointments.length : 0)} sub="por atendimento concluido" icon={DollarSign} tone="default" />
+        <AdminMetricCard label="Clientes totais" value={clientList.length} sub={`${publicClients} vieram do link público`} icon={Users} tone="brand" />
+        <AdminMetricCard label="Próximos horários" value={upcomingAppointments.length} sub="agenda futura ativa" icon={CalendarClock} tone="warning" />
+        <AdminMetricCard label="Concluídos" value={completedAppointments.length} sub={formatCurrency(completedRevenue)} icon={BarChart3} tone="success" />
+        <AdminMetricCard label="Ticket médio" value={formatCurrency(completedAppointments.length ? completedRevenue / completedAppointments.length : 0)} sub="por atendimento concluído" icon={DollarSign} tone="default" />
       </div>
 
       <AdminPanel
-        title="Mapa operacional por salao"
-        description="Clientes, agenda futura, atendimentos concluidos e receita por tenant."
+        title="Mapa operacional por salão"
+        description="Clientes, agenda futura, atendimentos concluídos e receita por tenant."
         tone="brand"
         actions={<AdminActionButton href="/admin/clientes" tone="muted">Ver clientes</AdminActionButton>}
       >
         {studioOps.length === 0 ? (
-          <AdminEmptyState title="Nenhum salao encontrado" description="Quando houver studios cadastrados, eles aparecem neste mapa operacional." />
+          <AdminEmptyState title="Nenhum salão encontrado" description="Quando houver studios cadastrados, eles aparecem neste mapa operacional." />
         ) : (
           <div>
             <div style={{ display: "grid", gridTemplateColumns: "1.25fr .7fr .75fr .75fr .75fr .8fr .8fr", gap: 12, padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              {["Salao", "Clientes", "Publicos", "Proximos", "Concluidos", "Receita", "Ultimo"].map((heading) => (
+              {["Salão", "Clientes", "Públicos", "Próximos", "Concluídos", "Receita", "Último"].map((heading) => (
                 <span key={heading} style={{ color: "#71717a", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
               ))}
             </div>

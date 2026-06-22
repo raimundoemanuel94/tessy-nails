@@ -2,540 +2,451 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  AlertCircle,
+  Calendar,
+  CalendarCheck,
+  CalendarPlus,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  DollarSign,
+  Sparkles,
+  TrendingUp,
+  Users,
+  XCircle,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronLeft, ChevronRight, TrendingUp, Calendar, Users, DollarSign, Clock, CheckCircle2, XCircle, AlertCircle, CalendarCheck } from "lucide-react";
 
-// ── Design tokens ─────────────────────────────────────────────────────────────
-const bg     = "#07071a";
-const card   = "rgba(255,255,255,0.03)";
-const card2  = "rgba(255,255,255,0.055)";
+const card = "rgba(255,255,255,0.035)";
+const card2 = "rgba(255,255,255,0.055)";
 const border = "rgba(255,255,255,0.07)";
-const purp   = "#a78bfa";
-const pink   = "#f472b6";
-const grn    = "#34d399";
-const amb    = "#fbbf24";
-const red    = "#f87171";
-const text   = "#f0f0ff";
-const muted  = "#6b6b9a";
+const purp = "#a78bfa";
+const pink = "#f472b6";
+const grn = "#34d399";
+const amb = "#fbbf24";
+const red = "#f87171";
+const text = "#f0f0ff";
+const muted = "#8f89aa";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 type Apt = {
-  id: string; client_name: string; service_name: string;
-  appointment_date: string; duration_minutes: number;
-  price: number; status: string; notes?: string;
+  id: string;
+  client_name: string;
+  service_name: string;
+  appointment_date: string;
+  duration_minutes: number;
+  price: number;
+  status: string;
 };
 
-const STATUS: Record<string, {label:string;color:string;icon:any}> = {
-  confirmed: { label:"Confirmado", color:grn,  icon:CheckCircle2 },
-  pending:   { label:"Pendente",   color:amb,  icon:AlertCircle  },
-  completed: { label:"Concluído",  color:purp, icon:CheckCircle2 },
-  cancelled: { label:"Cancelado",  color:red,  icon:XCircle      },
+const STATUS: Record<string, { label: string; color: string; icon: any }> = {
+  confirmed: { label: "Confirmado", color: grn, icon: CheckCircle2 },
+  pending: { label: "Pendente", color: amb, icon: AlertCircle },
+  completed: { label: "Concluído", color: purp, icon: CheckCircle2 },
+  cancelled: { label: "Cancelado", color: red, icon: XCircle },
 };
-const DAYS   = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-const MONTHS = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-const fmt    = (n:number) => `R$ ${n.toLocaleString("pt-BR",{minimumFractionDigits:2})}`;
-const fmtT   = (iso:string) => new Date(iso).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
-const fmtD   = (d:Date) => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
-const fmtFull = (iso:string) => new Date(iso).toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"2-digit"});
-const toISO  = (d:Date) => d.toISOString().slice(0,10);
-const addD   = (d:Date, n:number) => { const r=new Date(d); r.setDate(r.getDate()+n); return r; };
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
-const Sk = ({w,h,r=8}:{w:string|number;h:number;r?:number}) => (
-  <div style={{width:w,height:h,borderRadius:r,background:"rgba(255,255,255,0.06)",
-    animation:"shimmer 1.6s ease-in-out infinite"}}/>
-);
+const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+const MONTHS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+const fmt = (n: number) => `R$ ${Number(n || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+const fmtT = (iso: string) => new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+const fmtD = (d: Date) => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+const fmtFull = (iso: string) => new Date(iso).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit" });
+const toISO = (d: Date) => d.toISOString().slice(0, 10);
+const addD = (d: Date, n: number) => {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+};
 
-// ── KPI Card ──────────────────────────────────────────────────────────────────
-function KpiCard({icon:Icon,label,value,sub,color,gradient,loading}:{
-  icon:any;label:string;value:string|number;sub?:string;
-  color:string;gradient:string;loading?:boolean;
+function Sk({ w, h, r = 8 }: { w: string | number; h: number; r?: number }) {
+  return <div style={{ width: w, height: h, borderRadius: r, background: "rgba(255,255,255,0.06)", animation: "shimmer 1.6s ease-in-out infinite" }} />;
+}
+
+function KpiCard({ icon: Icon, label, value, sub, color, loading }: {
+  icon: any;
+  label: string;
+  value: string | number;
+  sub?: string;
+  color: string;
+  loading?: boolean;
 }) {
   return (
-    <div style={{
-      position:"relative",overflow:"hidden",
-      background:`linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)`,
-      border:`1px solid ${border}`,borderRadius:18,padding:"22px 24px",
-      backdropFilter:"blur(10px)",
-    }}>
-      {/* gradient orb */}
-      <div style={{
-        position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",
-        background:gradient,opacity:.15,filter:"blur(30px)",pointerEvents:"none",
-      }}/>
-      <div style={{position:"relative",zIndex:1}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
-          <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:muted}}>
-            {label}
-          </span>
-          <div style={{
-            width:36,height:36,borderRadius:10,
-            background:`${color}18`,border:`1px solid ${color}30`,
-            display:"flex",alignItems:"center",justifyContent:"center",
-          }}>
-            <Icon size={16} color={color}/>
-          </div>
-        </div>
-        {loading
-          ? <><Sk w={120} h={34}/><div style={{marginTop:8}}><Sk w={80} h={12}/></div></>
-          : <>
-              <div style={{fontSize:30,fontWeight:900,color:text,lineHeight:1,letterSpacing:"-0.02em"}}>{value}</div>
-              {sub && <div style={{fontSize:12,color:muted,marginTop:6}}>{sub}</div>}
-            </>
-        }
-        {/* bottom accent */}
-        <div style={{
-          position:"absolute",bottom:-22,left:-24,right:-24,height:2,
-          background:`linear-gradient(90deg,${color}60,transparent)`,
-        }}/>
+    <div className="dash-kpi-card">
+      <div className="dash-kpi-icon" style={{ color, background: `${color}18`, borderColor: `${color}30` }}>
+        <Icon size={16} />
       </div>
-
+      <span>{label}</span>
+      {loading ? (
+        <>
+          <Sk w={92} h={28} />
+          <Sk w={72} h={11} />
+        </>
+      ) : (
+        <>
+          <strong>{value}</strong>
+          {sub && <small>{sub}</small>}
+        </>
+      )}
+      <i style={{ background: `linear-gradient(90deg, ${color}65, transparent)` }} />
     </div>
   );
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+function QuickAction({ href, icon: Icon, title, sub, color, primary = false }: {
+  href: string;
+  icon: any;
+  title: string;
+  sub: string;
+  color: string;
+  primary?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`dash-quick-action ${primary ? "is-primary" : ""}`}
+      style={{
+        borderColor: `${color}45`,
+        background: primary ? `linear-gradient(135deg, ${color}33, rgba(255,255,255,0.04))` : `${color}12`,
+      }}
+    >
+      <span style={{ color, background: `${color}20`, borderColor: `${color}35` }}><Icon size={17} /></span>
+      <strong>{title}</strong>
+      <small>{sub}</small>
+    </Link>
+  );
+}
+
 export default function DashboardPage() {
-  const [apts,    setApts]    = useState<Apt[]>([]);
+  const [apts, setApts] = useState<Apt[]>([]);
   const [loading, setLoading] = useState(true);
   const [weekOff, setWeekOff] = useState(0);
 
-  const now      = new Date();
-  const today    = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const todayStr = toISO(today);
-  const mStart   = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-01`;
-  const mEnd     = toISO(new Date(now.getFullYear(), now.getMonth()+1, 0));
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  const monthEnd = toISO(new Date(now.getFullYear(), now.getMonth() + 1, 0));
 
-  const wStart = (() => {
+  const weekStart = (() => {
     const d = new Date(today);
     const dow = d.getDay();
-    d.setDate(d.getDate() + (dow===0 ? -6 : 1-dow) + weekOff*7);
+    d.setDate(d.getDate() + (dow === 0 ? -6 : 1 - dow) + weekOff * 7);
     return d;
   })();
-  const weekDays = Array.from({length:7}, (_,i) => addD(wStart, i));
-  const wEnd     = weekDays[6];
+  const weekDays = Array.from({ length: 7 }, (_, i) => addD(weekStart, i));
+  const weekEnd = weekDays[6];
 
   useEffect(() => {
     (async () => {
       const sb = createClient();
-      const { data:{ user } } = await sb.auth.getUser();
+      const { data: { user } } = await sb.auth.getUser();
       if (!user) { setLoading(false); return; }
-      const { data:p } = await sb.from("profiles").select("studio_id").eq("id",user.id).single();
-      if (!p?.studio_id) { setLoading(false); return; }
-      const { data } = await sb.from("appointments").select("*")
-        .eq("studio_id", p.studio_id).order("appointment_date",{ascending:true});
+      const { data: profile } = await sb.from("profiles").select("studio_id").eq("id", user.id).single();
+      if (!profile?.studio_id) { setLoading(false); return; }
+      const { data } = await sb
+        .from("appointments")
+        .select("id, client_name, service_name, appointment_date, duration_minutes, price, status")
+        .eq("studio_id", profile.studio_id)
+        .order("appointment_date", { ascending: true });
       if (data) setApts(data);
       setLoading(false);
     })();
   }, []);
 
-  const todayApts  = apts.filter(a => a.appointment_date.slice(0,10) === todayStr);
-  const weekApts   = apts.filter(a => { const d=a.appointment_date.slice(0,10); return d>=toISO(wStart)&&d<=toISO(wEnd); });
-  const monthApts  = apts.filter(a => { const d=a.appointment_date.slice(0,10); return d>=mStart&&d<=mEnd; });
-  const pendingAll = apts.filter(a => a.status==="pending");
-  const nextApt    = apts
-    .filter(a => a.appointment_date >= now.toISOString() && !["completed","cancelled"].includes(a.status))
-    .sort((a,b) => a.appointment_date.localeCompare(b.appointment_date))[0];
-  const mRevenue   = monthApts.filter(a=>a.status==="completed").reduce((s,a)=>s+(a.price||0),0);
-  const uniqueM    = new Set(monthApts.map(a=>a.client_name)).size;
+  const todayApts = apts.filter(a => a.appointment_date.slice(0, 10) === todayStr);
+  const weekApts = apts.filter(a => {
+    const d = a.appointment_date.slice(0, 10);
+    return d >= toISO(weekStart) && d <= toISO(weekEnd);
+  });
+  const monthApts = apts.filter(a => {
+    const d = a.appointment_date.slice(0, 10);
+    return d >= monthStart && d <= monthEnd;
+  });
+  const pendingAll = apts.filter(a => a.status === "pending");
+  const nextApt = apts
+    .filter(a => a.appointment_date >= now.toISOString() && !["completed", "cancelled"].includes(a.status))
+    .sort((a, b) => a.appointment_date.localeCompare(b.appointment_date))[0];
+  const monthRevenue = monthApts.filter(a => a.status === "completed").reduce((sum, a) => sum + (a.price || 0), 0);
+  const uniqueMonthClients = new Set(monthApts.map(a => a.client_name)).size;
 
-  const setStatus = async (id:string, status:string) => {
-    await createClient().from("appointments").update({status}).eq("id",id);
-    setApts(prev => prev.map(a => a.id===id ? {...a,status} : a));
+  const setStatus = async (id: string, status: string) => {
+    const { error } = await createClient().from("appointments").update({ status }).eq("id", id);
+    if (error) {
+      console.error("Erro ao atualizar status:", error.message);
+      return;
+    }
+    setApts(prev => prev.map(a => a.id === id ? { ...a, status } : a));
   };
 
   const hour = now.getHours();
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:20,maxWidth:1400,minWidth:0,overflow:"hidden"}}>
-
-      {/* ── HEADER ─────────────────────────────────────────────────────────── */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+    <div className="dash-home">
+      <header className="dash-hero">
         <div>
-          <h1 style={{
-            fontSize:26,fontWeight:900,color:text,margin:0,
-            background:`linear-gradient(120deg,${text},${purp})`,
-            WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",
-          }}>
-            {greeting}! 💅
-          </h1>
-          <p style={{color:muted,margin:"4px 0 0",fontSize:13}}>
-            {now.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
-          </p>
+          <h1>{greeting}</h1>
+          <p>{now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
         </div>
-        <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-          {!loading && pendingAll.length > 0 && (
-            <div style={{
-              display:"flex",alignItems:"center",gap:8,
-              background:`${amb}12`,border:`1px solid ${amb}30`,
-              borderRadius:12,padding:"10px 16px",
-            }}>
-              <div style={{width:7,height:7,borderRadius:"50%",background:amb,animation:"blink 1.4s ease-in-out infinite"}}/>
-              <span style={{fontSize:13,color:amb,fontWeight:700}}>
-                {pendingAll.length} pendente{pendingAll.length!==1?"s":""}
-              </span>
-            </div>
-          )}
-          <Link href="/agendamentos" style={{
-            display:"inline-flex",alignItems:"center",gap:6,
-            padding:"10px 16px",borderRadius:12,
-            background:`${purp}18`,border:`1px solid ${purp}30`,
-            color:purp,textDecoration:"none",fontSize:12,fontWeight:800,
-            whiteSpace:"nowrap",
-          }}>
-            + Novo agendamento
-          </Link>
-        </div>
-      </div>
+        {!loading && pendingAll.length > 0 && (
+          <div className="dash-pending-pill">
+            <i />
+            <span>{pendingAll.length} pendente{pendingAll.length !== 1 ? "s" : ""}</span>
+          </div>
+        )}
+      </header>
 
-      {/* ── KPI GRID ────────────────────────────────────────────────────────── */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:12}}>
-        <KpiCard loading={loading} icon={Calendar}   color={purp} gradient={purp}
-          label="Hoje"          value={loading?"—":todayApts.length}
-          sub={`${pendingAll.length} pendente${pendingAll.length!==1?"s":""}`}/>
-        <KpiCard loading={loading} icon={DollarSign} color={grn}  gradient={grn}
-          label="Faturamento" value={loading?"—":fmt(mRevenue)}
-          sub="agendamentos concluídos"/>
-        <KpiCard loading={loading} icon={Users}      color={pink} gradient={pink}
-          label="Clientes/mês"  value={loading?"—":uniqueM}
-          sub={`${monthApts.length} atendimento${monthApts.length!==1?"s":""}`}/>
-        <KpiCard loading={loading} icon={TrendingUp} color={amb}  gradient={amb}
-          label="Total"   value={loading?"—":apts.length}
-          sub={`${monthApts.length} este mês`}/>
-      </div>
+      <section className="dash-quick-grid">
+        <QuickAction href="/agenda" icon={CalendarCheck} title="Abrir agenda" sub="ver atendimentos" color={purp} primary />
+        <QuickAction href="/disponibilidade" icon={CalendarPlus} title="Liberar vagas" sub="semana e horários" color={grn} />
+        <QuickAction href="/vitrine" icon={Sparkles} title="Postar status" sub="gerar vitrine" color={pink} />
+      </section>
 
-      {/* ── CONTENT GRID ────────────────────────────────────────────────────── */}
+      <section className="dash-kpi-grid">
+        <KpiCard loading={loading} icon={Calendar} color={purp} label="Hoje" value={loading ? "-" : todayApts.length} sub={`${pendingAll.length} pendente${pendingAll.length !== 1 ? "s" : ""}`} />
+        <KpiCard loading={loading} icon={DollarSign} color={grn} label="Faturamento mês" value={loading ? "-" : fmt(monthRevenue)} sub="concluídos" />
+        <KpiCard loading={loading} icon={Users} color={pink} label="Clientes mês" value={loading ? "-" : uniqueMonthClients} sub={`${monthApts.length} atendimento${monthApts.length !== 1 ? "s" : ""}`} />
+        <KpiCard loading={loading} icon={TrendingUp} color={amb} label="Total geral" value={loading ? "-" : apts.length} sub={`${monthApts.length} este mês`} />
+      </section>
+
       {!loading && nextApt && (
-        <div style={{
-          display:"flex",flexWrap:"wrap",gap:14,
-          alignItems:"center",padding:"16px 18px",borderRadius:18,
-          background:`linear-gradient(135deg, ${grn}14, rgba(167,139,250,0.06))`,
-          border:`1px solid ${grn}30`,
-          boxShadow:"0 18px 50px rgba(52,211,153,0.08)",
-        }}>
-          <div style={{
-            width:52,height:52,borderRadius:16,display:"grid",placeItems:"center",
-            background:`${grn}16`,border:`1px solid ${grn}36`,color:grn,flexShrink:0,
-          }}>
-            <CalendarCheck size={22}/>
+        <section className="dash-next-card">
+          <div className="dash-next-icon"><CalendarCheck size={22} /></div>
+          <div>
+            <p>Próximo horário</p>
+            <strong>{nextApt.client_name} - {nextApt.service_name}</strong>
+            <span>{fmtFull(nextApt.appointment_date)} as {fmtT(nextApt.appointment_date)} - {fmt(nextApt.price || 0)}</span>
           </div>
-          <div style={{minWidth:0}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:4}}>
-              <span style={{fontSize:11,fontWeight:900,letterSpacing:".12em",textTransform:"uppercase",color:grn}}>
-                Proximo horario
-              </span>
-              <span style={{
-                fontSize:10,fontWeight:800,color:nextApt.status==="pending"?amb:grn,
-                background:`${nextApt.status==="pending"?amb:grn}18`,
-                border:`1px solid ${nextApt.status==="pending"?amb:grn}30`,
-                borderRadius:999,padding:"2px 8px",
-              }}>
-                {STATUS[nextApt.status]?.label || nextApt.status}
-              </span>
-            </div>
-            <div style={{fontSize:16,fontWeight:900,color:text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-              {nextApt.client_name} - {nextApt.service_name}
-            </div>
-            <div style={{fontSize:12,color:muted,marginTop:4}}>
-              {fmtFull(nextApt.appointment_date)} as {fmtT(nextApt.appointment_date)} - {fmt(nextApt.price || 0)}
-            </div>
-          </div>
-          <Link href="/agendamentos" style={{
-            height:38,padding:"0 14px",borderRadius:11,
-            border:`1px solid ${grn}35`,background:`${grn}14`,color:grn,
-            display:"inline-flex",alignItems:"center",justifyContent:"center",
-            textDecoration:"none",fontSize:12,fontWeight:900,whiteSpace:"nowrap",
-          }}>
-            Ver agenda
-          </Link>
-        </div>
+          <Link href="/agenda">Ver agenda</Link>
+        </section>
       )}
 
-      <div className="dash-two-col" style={{display:"grid",gridTemplateColumns:"1fr 1.6fr",gap:18,alignItems:"start"}}>
-
-        {/* AGENDA DO DIA */}
-        <div style={{
-          background:card,border:`1px solid ${border}`,borderRadius:18,
-          overflow:"hidden",backdropFilter:"blur(10px)",
-        }}>
-          {/* header */}
-          <div style={{
-            padding:"18px 20px",borderBottom:`1px solid ${border}`,
-            background:`linear-gradient(135deg, rgba(167,139,250,0.08), rgba(244,114,182,0.04))`,
-            display:"flex",alignItems:"center",justifyContent:"space-between",
-          }}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:8,height:8,borderRadius:"50%",background:purp,boxShadow:`0 0 8px ${purp}80`}}/>
-              <span style={{fontSize:14,fontWeight:800,color:text}}>Agenda de Hoje</span>
-            </div>
-            <div style={{
-              fontSize:11,fontWeight:800,padding:"4px 10px",borderRadius:20,
-              background:`${purp}18`,color:purp,border:`1px solid ${purp}30`,
-            }}>
-              {loading?"...": `${todayApts.length} atend.`}
-            </div>
-          </div>
-
-          {/* body */}
-          <div style={{padding:"4px 0"}}>
+      <section className="dash-content-grid">
+        <article className="dash-panel">
+          <header>
+            <div><i style={{ background: purp }} /> <strong>Agenda de hoje</strong></div>
+            <span>{loading ? "..." : `${todayApts.length} atend.`}</span>
+          </header>
+          <div className="dash-list">
             {loading ? (
-              <div style={{padding:"16px 20px",display:"flex",flexDirection:"column",gap:14}}>
-                {[1,2,3].map(i => (
-                  <div key={i} style={{display:"flex",gap:12,alignItems:"center"}}>
-                    <Sk w={50} h={44} r={10}/>
-                    <div style={{flex:1,display:"flex",flexDirection:"column",gap:6}}>
-                      <Sk w="60%" h={12}/><Sk w="40%" h={10}/>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              [1, 2, 3].map(i => <div key={i} className="dash-row"><Sk w={58} h={44} /><div><Sk w="70%" h={12} /><Sk w="42%" h={10} /></div></div>)
             ) : todayApts.length === 0 ? (
-              <div style={{textAlign:"center",padding:"44px 20px"}}>
-                <div style={{fontSize:44,marginBottom:12,lineHeight:1}}>🌸</div>
-                <div style={{fontSize:14,fontWeight:800,color:muted}}>Dia livre!</div>
-                <div style={{fontSize:12,color:muted,marginTop:4,opacity:.6}}>Nenhum agendamento hoje</div>
-              </div>
+              <div className="dash-empty"><strong>Dia livre</strong><span>Nenhum agendamento hoje</span></div>
             ) : (
-              todayApts.map((a, i) => {
-                const s = STATUS[a.status] ?? {label:a.status,color:muted,icon:Clock};
-                const SIcon = s.icon;
-                return (
-                  <div key={a.id} style={{
-                    display:"flex", flexWrap:"wrap", alignItems:"center", gap:10,
-                    padding:"14px 16px",
-                    borderBottom: i<todayApts.length-1 ? `1px solid ${border}` : "none",
-                  }}>
-                    {/* time block */}
-                    <div style={{
-                      width:58, padding:"8px 4px", borderRadius:10, textAlign:"center",
-                      background:`${s.color}12`, border:`1px solid ${s.color}25`, flexShrink:0,
-                    }}>
-                      <div style={{fontSize:15,fontWeight:900,color:s.color,lineHeight:1}}>{fmtT(a.appointment_date)}</div>
-                      <div style={{fontSize:9,color:muted,marginTop:3,whiteSpace:"nowrap"}}>{a.duration_minutes}min</div>
-                    </div>
-
-                    {/* info */}
-                    <div style={{flex:1, minWidth:0, overflow:'hidden'}}>
-                      <div style={{fontSize:14,fontWeight:700,color:text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:'100%'}}>{a.client_name}</div>
-                      <div style={{display:"flex",alignItems:"center",gap:5,marginTop:3,flexWrap:"wrap"}}>
-                        <SIcon size={11} color={s.color}/>
-                        <span style={{fontSize:11,fontWeight:700,color:s.color}}>{s.label}</span>
-                        <span style={{fontSize:11,color:muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:120}}>· {a.service_name}</span>
-                      </div>
-                    </div>
-
-                    {/* price + action */}
-                    <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0,flexWrap:'wrap',justifyContent:'flex-end'}}>
-                      <span style={{fontSize:14,fontWeight:800,color:grn}}>{fmt(a.price||0)}</span>
-                      {a.status==="pending" && (
-                        <button onClick={()=>setStatus(a.id,"confirmed")} style={{
-                          background:`${grn}18`,border:`1px solid ${grn}35`,color:grn,
-                          borderRadius:8,padding:"6px 12px",fontSize:11,cursor:"pointer",
-                          fontWeight:700,fontFamily:"inherit",whiteSpace:"nowrap",
-                        }}>✓ Confirmar</button>
-                      )}
-                      {a.status==="confirmed" && (
-                        <button onClick={()=>setStatus(a.id,"completed")} style={{
-                          background:`${purp}18`,border:`1px solid ${purp}35`,color:purp,
-                          borderRadius:8,padding:"6px 12px",fontSize:11,cursor:"pointer",
-                          fontWeight:700,fontFamily:"inherit",whiteSpace:"nowrap",
-                        }}>✦ Concluir</button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
+              todayApts.map((a, i) => <AppointmentRow key={a.id} appointment={a} last={i === todayApts.length - 1} onStatus={setStatus} />)
             )}
           </div>
-        </div>
+        </article>
 
-        {/* CALENDÁRIO SEMANAL */}
-        <div style={{
-          background:card,border:`1px solid ${border}`,borderRadius:18,
-          overflow:"hidden",backdropFilter:"blur(10px)",
-        }}>
-          {/* header */}
-          <div style={{
-            padding:"18px 20px",borderBottom:`1px solid ${border}`,
-            background:`linear-gradient(135deg, rgba(52,211,153,0.06), rgba(167,139,250,0.04))`,
-            display:"flex",alignItems:"center",justifyContent:"space-between",
-          }}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:8,height:8,borderRadius:"50%",background:grn,boxShadow:`0 0 8px ${grn}80`}}/>
-              <span style={{fontSize:14,fontWeight:800,color:text}}>Semana</span>
-              <span style={{fontSize:11,color:muted}}>{fmtD(wStart)} – {fmtD(wEnd)}</span>
+        <article className="dash-panel">
+          <header>
+            <div><i style={{ background: grn }} /> <strong>Semana</strong> <small>{fmtD(weekStart)} - {fmtD(weekEnd)}</small></div>
+            <div className="dash-week-nav">
+              <button onClick={() => setWeekOff(w => w - 1)}><ChevronLeft size={14} /></button>
+              <button onClick={() => setWeekOff(0)}>Hoje</button>
+              <button onClick={() => setWeekOff(w => w + 1)}><ChevronRight size={14} /></button>
             </div>
-            <div style={{display:"flex",gap:6,alignItems:"center"}}>
-              <button onClick={()=>setWeekOff(w=>w-1)} style={{
-                background:"none",border:`1px solid ${border}`,borderRadius:8,
-                padding:"6px 8px",color:muted,cursor:"pointer",display:"flex",alignItems:"center",
-              }}><ChevronLeft size={14}/></button>
-              <button onClick={()=>setWeekOff(0)} style={{
-                background:weekOff===0?`${purp}18`:"none",
-                border:`1px solid ${weekOff===0?`${purp}40`:border}`,
-                borderRadius:8,padding:"6px 12px",
-                color:weekOff===0?purp:muted,cursor:"pointer",
-                fontSize:11,fontWeight:700,fontFamily:"inherit",
-              }}>Hoje</button>
-              <button onClick={()=>setWeekOff(w=>w+1)} style={{
-                background:"none",border:`1px solid ${border}`,borderRadius:8,
-                padding:"6px 8px",color:muted,cursor:"pointer",display:"flex",alignItems:"center",
-              }}><ChevronRight size={14}/></button>
-            </div>
-          </div>
-
-          {/* days grid */}
-          <div style={{padding:"12px 16px",display:"grid",gridTemplateColumns:"repeat(7,minmax(40px,1fr))",gap:4,overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+          </header>
+          <div className="dash-week-grid">
             {weekDays.map(day => {
-              const dayStr  = toISO(day);
+              const dayStr = toISO(day);
               const isToday = dayStr === todayStr;
-              const isPast  = day < today;
-              const dApts   = weekApts.filter(a => a.appointment_date.slice(0,10)===dayStr)
-                .sort((a,b) => a.appointment_date.localeCompare(b.appointment_date));
-
+              const dayApts = weekApts
+                .filter(a => a.appointment_date.slice(0, 10) === dayStr)
+                .sort((a, b) => a.appointment_date.localeCompare(b.appointment_date));
               return (
-                <div key={dayStr} style={{display:"flex",flexDirection:"column",gap:4,opacity:isPast?.5:1}}>
-                  {/* day pill */}
-                  <div style={{
-                    display:"flex",flexDirection:"column",alignItems:"center",padding:"8px 4px 6px",
-                    borderRadius:12,marginBottom:2,
-                    background: isToday ? `linear-gradient(135deg,${purp}30,${pink}20)` : "transparent",
-                    border:`1px solid ${isToday?`${purp}50`:"transparent"}`,
-                  }}>
-                    <span style={{
-                      fontSize:9,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase",
-                      color:isToday?purp:muted,
-                    }}>{DAYS[day.getDay()]}</span>
-                    <span style={{
-                      fontSize:20,fontWeight:900,lineHeight:1.2,
-                      color:isToday?purp:text,
-                    }}>{day.getDate()}</span>
-                    <div style={{
-                      width:5,height:5,borderRadius:"50%",marginTop:3,
-                      background:dApts.length>0?(isToday?purp:muted):"transparent",
-                    }}/>
+                <div key={dayStr} className={isToday ? "is-today" : ""}>
+                  <div className="dash-day-head">
+                    <span>{DAYS[day.getDay()]}</span>
+                    <strong>{day.getDate()}</strong>
                   </div>
-
-                  {/* blocks */}
-                  <div style={{display:"flex",flexDirection:"column",gap:3,minHeight:90}}>
-                    {dApts.slice(0,4).map(a => {
-                      const sc = STATUS[a.status] ?? {color:muted};
+                  <div className="dash-day-items">
+                    {dayApts.slice(0, 4).map(a => {
+                      const st = STATUS[a.status] ?? { color: muted };
                       return (
-                        <div key={a.id} style={{
-                          background:`${sc.color}12`,
-                          borderLeft:`2px solid ${sc.color}`,
-                          borderRadius:"0 5px 5px 0",
-                          padding:"3px 5px",
-                        }}>
-                          <div style={{fontSize:9,fontWeight:800,color:text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{fmtT(a.appointment_date)}</div>
-                          <div style={{fontSize:9,color:sc.color,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",fontWeight:600}}>{a.client_name}</div>
+                        <div key={a.id} style={{ borderLeftColor: st.color, background: `${st.color}13` }}>
+                          <strong>{fmtT(a.appointment_date)}</strong>
+                          <span style={{ color: st.color }}>{a.client_name}</span>
                         </div>
                       );
                     })}
-                    {dApts.length > 4 && (
-                      <div style={{fontSize:9,color:muted,textAlign:"center",fontWeight:700}}>+{dApts.length-4}</div>
-                    )}
+                    {dayApts.length > 4 && <em>+{dayApts.length - 4}</em>}
                   </div>
                 </div>
               );
             })}
           </div>
-
-          {/* legend */}
-          {!loading && weekApts.length > 0 && (
-            <div style={{
-              padding:"12px 16px",borderTop:`1px solid ${border}`,
-              display:"flex",gap:14,flexWrap:"wrap",alignItems:"center",
-            }}>
-              {(["confirmed","pending","completed","cancelled"] as const).map(s => {
-                const cnt = weekApts.filter(a=>a.status===s).length;
-                if (!cnt) return null;
-                const sc = STATUS[s];
-                return (
-                  <div key={s} style={{display:"flex",alignItems:"center",gap:5}}>
-                    <div style={{width:6,height:6,borderRadius:"50%",background:sc.color}}/>
-                    <span style={{fontSize:10,color:muted}}>{sc.label} </span>
-                    <span style={{fontSize:10,fontWeight:800,color:sc.color}}>{cnt}</span>
-                  </div>
-                );
+          {weekApts.length > 0 && (
+            <footer className="dash-week-legend">
+              {(["confirmed", "pending", "completed", "cancelled"] as const).map(status => {
+                const count = weekApts.filter(a => a.status === status).length;
+                if (!count) return null;
+                const st = STATUS[status];
+                return <span key={status}><i style={{ background: st.color }} />{st.label} <b style={{ color: st.color }}>{count}</b></span>;
               })}
-              <div style={{marginLeft:"auto",fontSize:11,color:muted}}>
-                <b style={{color:text}}>{weekApts.length}</b> na semana
-              </div>
-            </div>
+              <strong>{weekApts.length} na semana</strong>
+            </footer>
           )}
-        </div>
-      </div>
+        </article>
+      </section>
 
-      {/* ── PENDENTES ───────────────────────────────────────────────────────── */}
       {!loading && pendingAll.length > 0 && (
-        <div style={{
-          background:card,border:`1px solid ${amb}20`,borderRadius:18,overflow:"hidden",
-        }}>
-          <div style={{
-            padding:"16px 20px",borderBottom:`1px solid ${amb}15`,
-            background:`linear-gradient(135deg,${amb}08,transparent)`,
-            display:"flex",alignItems:"center",gap:12,
-          }}>
-            <div style={{width:8,height:8,borderRadius:"50%",background:amb,animation:"blink 1.4s infinite"}}/>
-            <span style={{fontSize:14,fontWeight:800,color:text}}>Confirmações Pendentes</span>
-            <div style={{
-              fontSize:11,fontWeight:800,padding:"3px 10px",borderRadius:20,
-              background:`${amb}18`,color:amb,border:`1px solid ${amb}30`,
-            }}>{pendingAll.length}</div>
+        <section className="dash-panel dash-pending-panel">
+          <header>
+            <div><i style={{ background: amb }} /> <strong>Confirmacoes pendentes</strong></div>
+            <span>{pendingAll.length}</span>
+          </header>
+          <div className="dash-list">
+            {pendingAll.map((a, i) => <AppointmentRow key={a.id} appointment={a} last={i === pendingAll.length - 1} onStatus={setStatus} pending />)}
           </div>
-          <div style={{display:"flex",flexDirection:"column"}}>
-            {pendingAll.map((a,i) => {
-              const d = new Date(a.appointment_date);
-              return (
-                <div key={a.id} style={{
-                  display:"flex",alignItems:"center",gap:16,padding:"14px 20px",
-                  borderBottom:i<pendingAll.length-1?`1px solid ${border}`:"none",
-                  transition:"background .15s",
-                }}
-                  onMouseEnter={(e:any)=>e.currentTarget.style.background=card2}
-                  onMouseLeave={(e:any)=>e.currentTarget.style.background="transparent"}
-                >
-                  <div style={{
-                    minWidth:48,background:`${amb}12`,border:`1px solid ${amb}25`,
-                    borderRadius:10,padding:"8px 4px",textAlign:"center",flexShrink:0,
-                  }}>
-                    <div style={{fontSize:15,fontWeight:900,color:amb,lineHeight:1}}>{d.getDate()}</div>
-                    <div style={{fontSize:9,color:amb,fontWeight:700,textTransform:"uppercase"}}>{MONTHS[d.getMonth()]}</div>
-                  </div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:14,fontWeight:700,color:text}}>{a.client_name}</div>
-                    <div style={{fontSize:12,color:muted,marginTop:2}}>{a.service_name} · {fmtT(a.appointment_date)}</div>
-                  </div>
-                  <span style={{fontSize:15,fontWeight:900,color:grn,flexShrink:0}}>{fmt(a.price||0)}</span>
-                  <div style={{display:"flex",gap:8,flexShrink:0}}>
-                    <button onClick={()=>setStatus(a.id,"confirmed")} style={{
-                      background:`${grn}18`,border:`1px solid ${grn}35`,color:grn,
-                      borderRadius:10,padding:"9px 18px",fontSize:12,cursor:"pointer",
-                      fontWeight:800,fontFamily:"inherit",letterSpacing:"0.01em",
-                    }}>✓ Confirmar</button>
-                    <button onClick={()=>setStatus(a.id,"cancelled")} style={{
-                      background:`${red}10`,border:`1px solid ${red}25`,color:red,
-                      borderRadius:10,padding:"9px 14px",fontSize:12,cursor:"pointer",
-                      fontWeight:800,fontFamily:"inherit",
-                    }}>✕</button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        </section>
       )}
 
       <style>{`
         @keyframes shimmer { 0%,100%{opacity:.3} 50%{opacity:.7} }
-        @keyframes blink   { 0%,100%{opacity:1}  50%{opacity:.2} }
-        .md-main { box-sizing: border-box; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+        .dash-home { display:flex; flex-direction:column; gap:20px; max-width:1400px; }
+        .dash-hero { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+        .dash-hero h1 { margin:0; font-size:26px; font-weight:900; color:${text}; background:linear-gradient(120deg,${text},${purp}); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .dash-hero p { margin:4px 0 0; color:${muted}; font-size:13px; }
+        .dash-pending-pill { display:flex; align-items:center; gap:8px; background:${amb}12; border:1px solid ${amb}30; border-radius:12px; padding:10px 14px; color:${amb}; font-size:13px; font-weight:800; }
+        .dash-pending-pill i { width:7px; height:7px; border-radius:50%; background:${amb}; animation:blink 1.4s ease-in-out infinite; }
+        .dash-quick-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+        .dash-quick-action { min-height:74px; border:1px solid; border-radius:16px; padding:12px; text-decoration:none; display:grid; grid-template-columns:auto 1fr; gap:4px 10px; align-items:center; }
+        .dash-quick-action span { width:34px; height:34px; border-radius:11px; border:1px solid; display:grid; place-items:center; grid-row:1 / span 2; }
+        .dash-quick-action strong { color:${text}; font-size:13px; line-height:1.1; grid-column:2; align-self:end; }
+        .dash-quick-action small { color:${muted}; font-size:11px; line-height:1.1; grid-column:2; align-self:start; }
+        .dash-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+        .dash-kpi-card { position:relative; overflow:hidden; background:linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border:1px solid ${border}; border-radius:18px; padding:20px; min-height:150px; display:flex; flex-direction:column; gap:8px; }
+        .dash-kpi-card > span { color:${muted}; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+        .dash-kpi-card strong { color:${text}; font-size:29px; font-weight:900; line-height:1; }
+        .dash-kpi-card small { color:${muted}; font-size:12px; }
+        .dash-kpi-card > i { position:absolute; left:0; right:0; bottom:0; height:2px; }
+        .dash-kpi-icon { position:absolute; right:18px; top:18px; width:36px; height:36px; border-radius:10px; border:1px solid; display:grid; place-items:center; }
+        .dash-next-card { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:14px; align-items:center; padding:16px; border-radius:18px; background:linear-gradient(135deg, ${grn}14, rgba(167,139,250,.06)); border:1px solid ${grn}30; }
+        .dash-next-icon { width:52px; height:52px; border-radius:16px; display:grid; place-items:center; color:${grn}; background:${grn}16; border:1px solid ${grn}36; }
+        .dash-next-card p { margin:0 0 4px; color:${grn}; font-size:11px; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+        .dash-next-card strong { display:block; color:${text}; font-size:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .dash-next-card span { display:block; color:${muted}; font-size:12px; margin-top:4px; }
+        .dash-next-card a { height:38px; padding:0 14px; border-radius:11px; border:1px solid ${grn}35; background:${grn}14; color:${grn}; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; font-size:12px; font-weight:900; }
+        .dash-content-grid { display:grid; grid-template-columns:1fr 1.6fr; gap:18px; align-items:start; }
+        .dash-panel { background:${card}; border:1px solid ${border}; border-radius:18px; overflow:hidden; backdrop-filter:blur(10px); }
+        .dash-panel > header { padding:17px 18px; border-bottom:1px solid ${border}; display:flex; align-items:center; justify-content:space-between; gap:12px; background:linear-gradient(135deg, rgba(167,139,250,.08), rgba(244,114,182,.035)); }
+        .dash-panel header div { display:flex; align-items:center; gap:9px; min-width:0; }
+        .dash-panel header i { width:8px; height:8px; border-radius:50%; box-shadow:0 0 8px currentColor; }
+        .dash-panel header strong { color:${text}; font-size:14px; font-weight:850; }
+        .dash-panel header small, .dash-panel header span { color:${muted}; font-size:11px; }
+        .dash-list { padding:4px 0; }
+        .dash-row { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid ${border}; }
+        .dash-time { width:58px; padding:8px 4px; border-radius:10px; text-align:center; flex-shrink:0; }
+        .dash-time strong { display:block; font-size:15px; line-height:1; }
+        .dash-time span { display:block; color:${muted}; font-size:9px; margin-top:3px; }
+        .dash-info { flex:1; min-width:120px; }
+        .dash-info strong { display:block; color:${text}; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .dash-info span { display:flex; align-items:center; gap:5px; color:${muted}; font-size:11px; margin-top:3px; flex-wrap:wrap; }
+        .dash-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+        .dash-actions > span { color:${grn}; font-size:14px; font-weight:900; }
+        .dash-actions button { border-radius:9px; padding:7px 12px; font-size:11px; cursor:pointer; font-weight:800; font-family:inherit; white-space:nowrap; }
+        .dash-empty { text-align:center; padding:44px 20px; color:${muted}; display:grid; gap:5px; }
+        .dash-empty strong { color:${text}; }
+        .dash-week-nav { display:flex; gap:6px; }
+        .dash-week-nav button { background:${card2}; border:1px solid ${border}; border-radius:9px; color:${muted}; padding:7px 10px; font-size:11px; font-weight:800; cursor:pointer; font-family:inherit; display:flex; align-items:center; }
+        .dash-week-grid { padding:12px 14px; display:grid; grid-template-columns:repeat(7,minmax(40px,1fr)); gap:5px; overflow-x:auto; }
+        .dash-week-grid > div { min-width:42px; }
+        .dash-day-head { display:flex; flex-direction:column; align-items:center; padding:8px 4px 6px; border-radius:12px; margin-bottom:5px; border:1px solid transparent; }
+        .dash-week-grid .is-today .dash-day-head { background:linear-gradient(135deg,${purp}30,${pink}20); border-color:${purp}50; }
+        .dash-day-head span { color:${muted}; font-size:9px; font-weight:900; text-transform:uppercase; }
+        .dash-day-head strong { color:${text}; font-size:20px; line-height:1.2; }
+        .dash-week-grid .is-today .dash-day-head strong, .dash-week-grid .is-today .dash-day-head span { color:${purp}; }
+        .dash-day-items { display:flex; flex-direction:column; gap:3px; min-height:90px; }
+        .dash-day-items div { border-left:2px solid; border-radius:0 5px 5px 0; padding:3px 5px; overflow:hidden; }
+        .dash-day-items strong, .dash-day-items span { display:block; font-size:9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .dash-day-items strong { color:${text}; }
+        .dash-day-items em { color:${muted}; font-size:9px; text-align:center; font-style:normal; font-weight:800; }
+        .dash-week-legend { padding:12px 16px; border-top:1px solid ${border}; display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+        .dash-week-legend span { color:${muted}; font-size:10px; display:flex; align-items:center; gap:5px; }
+        .dash-week-legend i { width:6px; height:6px; border-radius:50%; }
+        .dash-week-legend strong { margin-left:auto; color:${muted}; font-size:11px; }
         @media (max-width: 768px) {
-          .md-main { margin-left: 0 !important; padding: 16px 16px 80px !important; }
+          .dash-home { gap:14px; }
+          .dash-hero { align-items:flex-start; }
+          .dash-hero h1 { font-size:22px; }
+          .dash-hero p { font-size:12px; }
+          .dash-pending-pill { padding:8px 10px; font-size:11px; }
+          .dash-quick-grid { grid-template-columns:1fr; gap:9px; }
+          .dash-quick-action { min-height:58px; border-radius:14px; padding:10px 12px; grid-template-columns:auto 1fr auto; }
+          .dash-quick-action::after {
+            content:"›";
+            color:rgba(255,255,255,.55);
+            font-size:22px;
+            font-weight:900;
+            grid-column:3;
+            grid-row:1 / span 2;
+            align-self:center;
+          }
+          .dash-quick-action span { width:32px; height:32px; grid-row:1 / span 2; }
+          .dash-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+          .dash-kpi-card { min-height:108px; padding:14px; border-radius:15px; }
+          .dash-kpi-icon { right:12px; top:12px; width:31px; height:31px; }
+          .dash-kpi-card > span { font-size:9px; padding-right:35px; }
+          .dash-kpi-card strong { font-size:23px; }
+          .dash-kpi-card small { font-size:10.5px; }
+          .dash-next-card { grid-template-columns:auto minmax(0,1fr); padding:14px; }
+          .dash-next-card a { grid-column:1 / -1; width:100%; }
+          .dash-content-grid { grid-template-columns:1fr; gap:14px; }
+          .dash-panel > header { padding:15px; }
+          .dash-row { padding:13px 15px; }
+          .dash-actions { width:100%; justify-content:space-between; padding-left:68px; }
+          .dash-actions button { min-height:36px; padding:0 14px; }
+          .dash-week-grid { padding:10px 12px; grid-template-columns:repeat(7,minmax(42px,1fr)); }
         }
       `}</style>
+    </div>
+  );
+}
+
+function AppointmentRow({ appointment, last, onStatus, pending = false }: {
+  appointment: Apt;
+  last: boolean;
+  onStatus: (id: string, status: string) => void;
+  pending?: boolean;
+}) {
+  const st = STATUS[appointment.status] ?? { label: appointment.status, color: muted, icon: Clock };
+  const Icon = st.icon;
+  return (
+    <div className="dash-row" style={{ borderBottom: last ? "none" : undefined }}>
+      <div className="dash-time" style={{ background: `${st.color}12`, border: `1px solid ${st.color}25` }}>
+        <strong style={{ color: st.color }}>{fmtT(appointment.appointment_date)}</strong>
+        <span>{appointment.duration_minutes}min</span>
+      </div>
+      <div className="dash-info">
+        <strong>{appointment.client_name}</strong>
+        <span>
+          <Icon size={11} color={st.color} />
+          <b style={{ color: st.color }}>{st.label}</b>
+          <em style={{ fontStyle: "normal" }}>· {appointment.service_name}</em>
+        </span>
+      </div>
+      <div className="dash-actions">
+        <span>{fmt(appointment.price || 0)}</span>
+        {appointment.status === "pending" && (
+          <button onClick={() => onStatus(appointment.id, "confirmed")} style={{ background: `${grn}18`, border: `1px solid ${grn}35`, color: grn }}>
+            Confirmar
+          </button>
+        )}
+        {appointment.status === "confirmed" && (
+          <button onClick={() => onStatus(appointment.id, "completed")} style={{ background: `${purp}18`, border: `1px solid ${purp}35`, color: purp }}>
+            Concluir
+          </button>
+        )}
+        {pending && (
+          <button onClick={() => onStatus(appointment.id, "cancelled")} style={{ background: `${red}10`, border: `1px solid ${red}25`, color: red }}>
+            Cancelar
+          </button>
+        )}
+      </div>
     </div>
   );
 }

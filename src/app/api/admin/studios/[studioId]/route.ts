@@ -1,13 +1,18 @@
-/* eslint-disable */
 import { NextResponse } from "next/server";
-import { mapServiceRow, mapSettingsRow, mapStudioRow, requireSuperadmin } from "../../_shared";
+import { isUuid, mapServiceRow, mapSettingsRow, mapStudioRow, requireSuperadmin } from "../../_shared";
 
-export async function GET(_: Request, { params }: { params: { studioId: string } }) {
+type StudioRouteContext = { params: Promise<{ studioId: string }> };
+
+export async function GET(_: Request, { params }: StudioRouteContext) {
   const auth = await requireSuperadmin();
   if ("response" in auth) return auth.response;
 
   const { admin } = auth;
-  const studioId = params.studioId;
+  const { studioId } = await params;
+
+  if (!isUuid(studioId)) {
+    return NextResponse.json({ error: "Studio não encontrado" }, { status: 404 });
+  }
 
   const { data: studio, error: studioError } = await admin
     .from("studios")
@@ -80,13 +85,17 @@ export async function GET(_: Request, { params }: { params: { studioId: string }
   });
 }
 
-export async function PUT(request: Request, { params }: { params: { studioId: string } }) {
+export async function PUT(request: Request, { params }: StudioRouteContext) {
   const auth = await requireSuperadmin();
   if ("response" in auth) return auth.response;
 
   const { admin } = auth;
-  const studioId = params.studioId;
+  const { studioId } = await params;
   const body = await request.json().catch(() => null);
+
+  if (!isUuid(studioId)) {
+    return NextResponse.json({ error: "Studio não encontrado" }, { status: 404 });
+  }
 
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });

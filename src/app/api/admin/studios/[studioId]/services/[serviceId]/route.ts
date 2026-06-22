@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
-import { requireSuperadmin } from "../../../../_shared";
+import { isUuid, requireSuperadmin } from "../../../../_shared";
 
-export async function PUT(request: Request, { params }: { params: { studioId: string; serviceId: string } }) {
+type StudioServiceRouteContext = { params: Promise<{ studioId: string; serviceId: string }> };
+
+export async function PUT(request: Request, { params }: StudioServiceRouteContext) {
   const auth = await requireSuperadmin();
   if ("response" in auth) return auth.response;
 
   const { admin } = auth;
-  const { studioId, serviceId } = params;
+  const { studioId, serviceId } = await params;
   const body = await request.json().catch(() => null);
+
+  if (!isUuid(studioId) || !isUuid(serviceId)) {
+    return NextResponse.json({ error: "Serviço não encontrado" }, { status: 404 });
+  }
 
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
@@ -53,12 +59,16 @@ export async function PUT(request: Request, { params }: { params: { studioId: st
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_: Request, { params }: { params: { studioId: string; serviceId: string } }) {
+export async function DELETE(_: Request, { params }: StudioServiceRouteContext) {
   const auth = await requireSuperadmin();
   if ("response" in auth) return auth.response;
 
   const { admin } = auth;
-  const { studioId, serviceId } = params;
+  const { studioId, serviceId } = await params;
+
+  if (!isUuid(studioId) || !isUuid(serviceId)) {
+    return NextResponse.json({ error: "Serviço não encontrado" }, { status: 404 });
+  }
 
   const { error } = await admin
     .from("services")
