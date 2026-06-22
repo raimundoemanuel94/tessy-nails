@@ -144,22 +144,38 @@ export default function AdminStudiosPage() {
   async function criar() {
     if (!nome || !slug) { toast.error("Nome e slug são obrigatórios."); return; }
     setSaving(true);
+    let createdStudioId: string | null = null;
     try {
       const { data: studio, error } = await supabase
         .from("studios").insert({ name: nome, slug, phone: phone||null, plan, is_active: true })
         .select("id").single();
       if (error) { toast.error(error.message.includes("unique") ? "Slug já em uso." : error.message); return; }
-      await supabase.from("salon_settings").insert({ studio_id: studio.id });
-      await supabase.from("services").insert(SERVICES_DEFAULT.map(s => ({ ...s, studio_id: studio.id, is_active: true })));
+      createdStudioId = studio.id;
+
+      const { error: settingsError } = await supabase.from("salon_settings").insert({ studio_id: studio.id });
+      if (settingsError) throw new Error(`Studio criado, mas falhou ao criar configurações: ${settingsError.message}`);
+
+      const { error: servicesError } = await supabase.from("services").insert(SERVICES_DEFAULT.map(s => ({ ...s, studio_id: studio.id, is_active: true })));
+      if (servicesError) throw new Error(`Studio criado, mas falhou ao criar serviços padrão: ${servicesError.message}`);
+
       toast.success(`"${nome}" criado!`);
       setOpen(false); setNome(""); setSlug(""); setPhone("");
       await load();
-    } catch (e: any) { toast.error(e.message); }
+    } catch (e: any) {
+      if (createdStudioId) {
+        await supabase.from("studios").delete().eq("id", createdStudioId);
+      }
+      toast.error(e.message);
+    }
     finally { setSaving(false); }
   }
 
   async function toggleActive(id: string, cur: boolean) {
-    await supabase.from("studios").update({ is_active: !cur }).eq("id", id);
+    const { error } = await supabase.from("studios").update({ is_active: !cur }).eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setStudios(s => s.map(x => x.id === id ? { ...x, is_active: !cur } : x));
     toast.success(cur ? "Studio desativado." : "Studio ativado.");
   }

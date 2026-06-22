@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (profile?.role !== "superadmin") redirect("/dashboard");
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
+    <div className="admin-app-shell">
       <AdminSidebar name={profile?.name ?? "Admin"} email={profile?.email ?? ""} />
       <main className="dash-admin">
         {children}

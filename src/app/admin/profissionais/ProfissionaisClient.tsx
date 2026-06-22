@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Users, Building2, UserCheck, UserX, Crown, Link2, Loader2, X, Check, Search, Unlink } from "lucide-react";
+import { toast } from "sonner";
 
 function hexToRgb(hex: string) { try { const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `${r},${g},${b}`; } catch { return "124,92,191"; } }
 
@@ -37,24 +38,48 @@ export function ProfissionaisClient({ initialProfiles, studios: initialStudios }
   async function linkProfessional() {
     if (!linkModal || !selStudio) return;
     setSaving(true);
-    // Vínculo bidirecional: studio.owner_id ← profile, profile.studio_id ← studio
-    await Promise.all([
-      sb.from("studios").update({ owner_id: linkModal.id }).eq("id", selStudio),
-      sb.from("profiles").update({ studio_id: selStudio }).eq("id", linkModal.id),
-    ]);
-    setStudios((prev: any) => prev.map((s: any) => s.id === selStudio ? { ...s, owner_id: linkModal.id } : s));
-    setProfiles((prev: any) => prev.map((p: any) => p.id === linkModal.id ? { ...p, studio_id: selStudio } : p));
-    setSaving(false); setLinkModal(null); setSelStudio("");
+    try {
+      const { error: studioError } = await sb.from("studios").update({ owner_id: linkModal.id }).eq("id", selStudio);
+      if (studioError) throw studioError;
+
+      const { error: profileError } = await sb.from("profiles").update({ studio_id: selStudio }).eq("id", linkModal.id);
+      if (profileError) {
+        await sb.from("studios").update({ owner_id: null }).eq("id", selStudio);
+        throw profileError;
+      }
+
+      setStudios((prev: any) => prev.map((s: any) => s.id === selStudio ? { ...s, owner_id: linkModal.id } : s));
+      setProfiles((prev: any) => prev.map((p: any) => p.id === linkModal.id ? { ...p, studio_id: selStudio } : p));
+      toast.success("Profissional vinculado ao studio.");
+      setLinkModal(null);
+      setSelStudio("");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Não foi possível vincular profissional.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function unlink(profile: any, studio: any) {
     if (!confirm(`Desvincular ${profile.name} de ${studio.name}?`)) return;
-    await Promise.all([
-      sb.from("studios").update({ owner_id: null }).eq("id", studio.id),
-      sb.from("profiles").update({ studio_id: null }).eq("id", profile.id),
-    ]);
+    const previousStudioId = profile.studio_id;
+    const { error: studioError } = await sb.from("studios").update({ owner_id: null }).eq("id", studio.id);
+    if (studioError) {
+      toast.error(studioError.message);
+      return;
+    }
+
+    const { error: profileError } = await sb.from("profiles").update({ studio_id: null }).eq("id", profile.id);
+    if (profileError) {
+      await sb.from("studios").update({ owner_id: profile.id }).eq("id", studio.id);
+      await sb.from("profiles").update({ studio_id: previousStudioId }).eq("id", profile.id);
+      toast.error(profileError.message);
+      return;
+    }
+
     setStudios((prev: any) => prev.map((s: any) => s.id === studio.id ? { ...s, owner_id: null } : s));
     setProfiles((prev: any) => prev.map((p: any) => p.id === profile.id ? { ...p, studio_id: null } : p));
+    toast.success("Profissional desvinculado.");
   }
 
   const KPIS = [

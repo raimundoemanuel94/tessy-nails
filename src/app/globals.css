@@ -375,6 +375,13 @@ button:active, a:active, [role="button"]:active {
     linear-gradient(90deg, rgba(244,114,182,0.035), transparent 46%),
     #080812;
 }
+.admin-app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  transition: background .22s ease, color .22s ease;
+}
 .dash-admin {
   flex: 1; min-width: 0;
   margin-left: 240px;
@@ -1292,6 +1299,25 @@ button:active, a:active, [role="button"]:active {
   border-bottom: 1px solid rgba(255,255,255,0.07);
   align-items: center; padding: 0 14px; gap: 10px;
 }
+.admin-topbar-theme {
+  margin-left: auto;
+  height: 34px;
+  min-width: 78px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  color: #c8cedb;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
 
 /* ── Admin: mobile drawer animation ── */
 @keyframes sidebar-in  { from { transform: translateX(-100%); } to { transform: translateX(0); } }
@@ -2053,7 +2079,15 @@ button:active, a:active, [role="button"]:active {
   border-radius: 9px;
   cursor: pointer;
 }
-.adm-mobile-menu { width: 36px; height: 36px; }
+.adm-mobile-menu {
+  width: auto;
+  min-width: 82px;
+  height: 38px;
+  gap: 7px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
 .adm-mobile-close {
   position: absolute;
   top: 12px;
@@ -2066,6 +2100,225 @@ button:active, a:active, [role="button"]:active {
   background: rgba(7,9,13,0.92);
   backdrop-filter: blur(16px);
   box-shadow: 0 12px 34px rgba(0,0,0,0.18);
+}
+
+.admin-plan-badge {
+  white-space: nowrap;
+}
+
+:root[data-admin-theme="day"] .admin-app-shell {
+  --brand: #111827;
+  --brand-light: #374151;
+  --brand-dark: #030712;
+  --brand-glow: rgba(17, 24, 39, 0.12);
+  --bg: #f4f5f7;
+  --bg2: #e5e7eb;
+  --surface: rgba(255,255,255,0.86);
+  --surface2: #ffffff;
+  --surface3: #f3f4f6;
+  --border: rgba(17, 24, 39, 0.10);
+  --border2: rgba(17, 24, 39, 0.16);
+  --text: #0f172a;
+  --text2: #334155;
+  --muted: #64748b;
+  --green: #047857;
+  --yellow: #a16207;
+  --red: #b91c1c;
+  --blue: #1d4ed8;
+  --gold: #92400e;
+  color-scheme: light;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f6f7f9 42%, #eef0f3 100%);
+}
+
+:root[data-admin-theme="day"] body {
+  background: #f4f5f7;
+}
+
+:root[data-admin-theme="day"] .dash-admin {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0) 240px),
+    #f4f5f7;
+}
+
+:root[data-admin-theme="day"] .admin-sidebar-desktop,
+:root[data-admin-theme="day"] .admin-sidebar-mobile {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.94)),
+    #ffffff !important;
+  border-color: rgba(15,23,42,0.10) !important;
+  box-shadow: 16px 0 44px rgba(15,23,42,0.08);
+}
+
+:root[data-admin-theme="day"] .admin-sidebar-mobile {
+  box-shadow: 24px 0 60px rgba(15,23,42,0.16);
+}
+
+:root[data-admin-theme="day"] .admin-topbar {
+  background: rgba(255,255,255,0.92);
+  border-color: rgba(15,23,42,0.10);
+  color: #0f172a;
+  box-shadow: 0 10px 28px rgba(15,23,42,0.07);
+}
+
+:root[data-admin-theme="day"] .admin-topbar-theme,
+:root[data-admin-theme="day"] .adm-mobile-menu,
+:root[data-admin-theme="day"] .adm-mobile-close {
+  background: #ffffff !important;
+  border-color: rgba(15,23,42,0.14) !important;
+  color: #111827 !important;
+}
+
+:root[data-admin-theme="day"] .adm-logo-mark,
+:root[data-admin-theme="day"] .adm-user-avatar {
+  background: linear-gradient(135deg, #111827, #475569);
+  color: #fff;
+  border-color: rgba(15,23,42,0.20);
+}
+
+:root[data-admin-theme="day"] .adm-brand-copy strong,
+:root[data-admin-theme="day"] .adm-user-copy strong,
+:root[data-admin-theme="day"] .admin-title,
+:root[data-admin-theme="day"] .admin-panel-head h2,
+:root[data-admin-theme="day"] .admin-metric-value,
+:root[data-admin-theme="day"] .admin-empty h3,
+:root[data-admin-theme="day"] .adm-side-link span,
+:root[data-admin-theme="day"] .adm-side-child span {
+  color: #0f172a !important;
+}
+
+:root[data-admin-theme="day"] .adm-brand-copy span,
+:root[data-admin-theme="day"] .adm-user-copy span,
+:root[data-admin-theme="day"] .admin-description,
+:root[data-admin-theme="day"] .admin-panel-head p,
+:root[data-admin-theme="day"] .admin-metric-sub,
+:root[data-admin-theme="day"] .admin-metric-top > span,
+:root[data-admin-theme="day"] .admin-table-head span,
+:root[data-admin-theme="day"] .adm-nav-section > p {
+  color: #64748b !important;
+}
+
+:root[data-admin-theme="day"] .admin-eyebrow {
+  color: #111827;
+}
+
+:root[data-admin-theme="day"] .admin-panel {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,0.94)),
+    #ffffff;
+  border-color: rgba(15,23,42,0.10);
+  box-shadow: 0 16px 42px rgba(15,23,42,0.07), inset 0 1px 0 rgba(255,255,255,0.80);
+}
+
+:root[data-admin-theme="day"] .admin-panel-head {
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  border-bottom-color: rgba(15,23,42,0.08);
+}
+
+:root[data-admin-theme="day"] .admin-metric {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,1), rgba(248,250,252,0.92)),
+    #ffffff;
+  border-color: rgba(15,23,42,0.10);
+  box-shadow: 0 12px 30px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.80);
+}
+
+:root[data-admin-theme="day"] .admin-metric-icon,
+:root[data-admin-theme="day"] .admin-empty-icon {
+  background: rgba(15,23,42,0.04);
+  border-color: rgba(15,23,42,0.10);
+}
+
+:root[data-admin-theme="day"] .admin-table-wrap,
+:root[data-admin-theme="day"] .admin-skeleton-row,
+:root[data-admin-theme="day"] .adm-account-card {
+  background: #ffffff;
+  border-color: rgba(15,23,42,0.10);
+}
+
+:root[data-admin-theme="day"] .admin-table-head,
+:root[data-admin-theme="day"] .admin-row-link {
+  border-color: rgba(15,23,42,0.08);
+}
+
+:root[data-admin-theme="day"] .admin-row-link:hover,
+:root[data-admin-theme="day"] .a-link-row:hover,
+:root[data-admin-theme="day"] .hover-row:hover,
+:root[data-admin-theme="day"] .a-row:hover {
+  background: rgba(15,23,42,0.045) !important;
+}
+
+:root[data-admin-theme="day"] .adm-side-link,
+:root[data-admin-theme="day"] .adm-side-child {
+  color: #475569 !important;
+}
+
+:root[data-admin-theme="day"] .adm-side-link:hover,
+:root[data-admin-theme="day"] .adm-side-child:hover,
+:root[data-admin-theme="day"] .adm-side-link.is-active,
+:root[data-admin-theme="day"] .adm-side-child.is-active {
+  background: rgba(15,23,42,0.07) !important;
+  color: #111827 !important;
+}
+
+:root[data-admin-theme="day"] .adm-count {
+  background: rgba(15,23,42,0.06);
+  color: #111827;
+  border-color: rgba(15,23,42,0.12);
+}
+
+:root[data-admin-theme="day"] .input-base,
+:root[data-admin-theme="day"] input,
+:root[data-admin-theme="day"] select,
+:root[data-admin-theme="day"] textarea {
+  background: #ffffff !important;
+  border-color: rgba(15,23,42,0.14) !important;
+  color: #0f172a !important;
+}
+
+:root[data-admin-theme="day"] .adm-footer-actions a,
+:root[data-admin-theme="day"] .adm-footer-actions button {
+  background: #ffffff;
+  border-color: rgba(15,23,42,0.12);
+  color: #475569;
+}
+
+:root[data-admin-theme="day"] .adm-footer-actions a:hover,
+:root[data-admin-theme="day"] .adm-footer-actions button:hover {
+  background: rgba(15,23,42,0.06);
+  color: #111827;
+}
+
+:root[data-admin-theme="day"] .adm-mobile-backdrop {
+  background: rgba(15,23,42,0.34);
+}
+
+:root[data-admin-theme="day"] .admin-plan-card {
+  background: #ffffff !important;
+  border-color: rgba(15,23,42,0.10) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.80);
+}
+
+:root[data-admin-theme="day"] .admin-plan-name {
+  color: #0f172a !important;
+}
+
+:root[data-admin-theme="day"] .admin-plan-meta {
+  color: #64748b !important;
+}
+
+:root[data-admin-theme="day"] .admin-plan-price {
+  color: #0e9f6e !important;
+}
+
+:root[data-admin-theme="day"] .admin-plan-price-free {
+  color: #64748b !important;
+}
+
+:root[data-admin-theme="day"] .admin-action-button {
+  background: #ffffff !important;
+  border-color: rgba(15,23,42,0.14) !important;
+  color: #111827 !important;
 }
 nextjs-portal {
   display: none !important;
@@ -2080,6 +2333,23 @@ nextjs-portal {
     background:
       linear-gradient(180deg, rgba(129,140,248,0.055), transparent 220px),
       #08090d;
+  }
+  :root[data-admin-theme="day"] .dash-admin {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.66), rgba(255,255,255,0) 230px),
+      linear-gradient(135deg, #fbf8f4 0%, #f4eee8 100%) !important;
+  }
+  .admin-plan-display-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .admin-plan-display-row > .admin-plan-price,
+  .admin-plan-display-row > .admin-action-button {
+    justify-self: start;
+  }
+  .admin-plan-display-row > .admin-action-button {
+    width: 100%;
+    justify-content: center;
   }
   .admin-title { font-size: 22px; }
   .admin-description { font-size: 12.5px; }
@@ -3182,4 +3452,56 @@ nextjs-portal {
   background: #f7fbf8 !important;
   border-color: #cfe6d8 !important;
   color: #4d9675 !important;
+}
+
+/* Admin day theme polish */
+:root[data-admin-theme="day"] {
+  color-scheme: light;
+}
+
+:root[data-admin-theme="day"] .admin-app-shell {
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f6f7f9 42%, #eef0f3 100%) !important;
+}
+
+:root[data-admin-theme="day"] .dash-admin {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0) 240px),
+    #f4f5f7 !important;
+}
+
+:root[data-admin-theme="day"] .admin-plan-card {
+  background: #ffffff !important;
+  border-color: rgba(15,23,42,0.10) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.80);
+}
+
+:root[data-admin-theme="day"] .admin-plan-name {
+  color: #0f172a !important;
+}
+
+:root[data-admin-theme="day"] .admin-plan-meta {
+  color: #64748b !important;
+}
+
+:root[data-admin-theme="day"] .admin-plan-price {
+  color: #0e9f6e !important;
+}
+
+:root[data-admin-theme="day"] .admin-plan-price-free {
+  color: #64748b !important;
+}
+
+:root[data-admin-theme="day"] .admin-action-button {
+  background: #ffffff !important;
+  border-color: rgba(15,23,42,0.14) !important;
+  color: #111827 !important;
+}
+
+@media (max-width: 768px) {
+  :root[data-admin-theme="day"] .dash-admin {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0) 210px),
+      #f4f5f7 !important;
+  }
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireSuperadmin } from "../../../_shared";
+import { isUuid, requireSuperadmin } from "../../../_shared";
 
 type StudioServicesRouteContext = { params: Promise<{ studioId: string }> };
 
@@ -10,6 +10,10 @@ export async function POST(request: Request, { params }: StudioServicesRouteCont
   const { admin } = auth;
   const { studioId } = await params;
   const body = await request.json().catch(() => null);
+
+  if (!isUuid(studioId)) {
+    return NextResponse.json({ error: "Studio não encontrado" }, { status: 404 });
+  }
 
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });

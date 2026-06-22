@@ -1,9 +1,9 @@
-/* eslint-disable */
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function requireSuperadmin() {
   const supabase = await createClient();
@@ -26,6 +26,10 @@ export async function requireSuperadmin() {
   }
 
   return { admin: createAdminClient() };
+}
+
+export function isUuid(value: string) {
+  return UUID_RE.test(value);
 }
 
 export function mapStudioRow(studio: any) {

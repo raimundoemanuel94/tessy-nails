@@ -14,7 +14,9 @@ import {
   LogOut,
   Menu,
   MessageCircle,
+  Moon,
   Settings,
+  Sun,
   UserRound,
   Users,
   X,
@@ -149,9 +151,10 @@ function NavGroup({ item, isActive, onNav, open, onToggle, getCount }: any) {
   );
 }
 
-function SidebarBody({ name, email, onNav, isActive, getCount, signOut, openGroups, toggleGroup }: any) {
+function SidebarBody({ name, email, onNav, isActive, getCount, signOut, openGroups, toggleGroup, theme, toggleTheme }: any) {
   const initial = (name || "A").charAt(0).toUpperCase();
   const shortEmail = email ? (email.length > 25 ? `${email.slice(0, 22)}...` : email) : "superadmin";
+  const isDay = theme === "day";
 
   return (
     <div className="adm-sidebar-shell">
@@ -195,6 +198,9 @@ function SidebarBody({ name, email, onNav, isActive, getCount, signOut, openGrou
             <span>{shortEmail}</span>
           </div>
           <div className="adm-footer-actions">
+            <button type="button" onClick={toggleTheme} title={isDay ? "Usar tema noite" : "Usar tema dia"} aria-label={isDay ? "Usar tema noite" : "Usar tema dia"}>
+              {isDay ? <Moon size={14} /> : <Sun size={14} />}
+            </button>
             <Link href="/dashboard" onClick={onNav} title="Ver app do salão" aria-label="Ver app do salão">
               <ExternalLink size={14} />
             </Link>
@@ -212,8 +218,23 @@ export function AdminSidebar({ name, email }: { name: string; email?: string }) 
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [theme, setTheme] = useState<"night" | "day">("night");
   const [counts, setCounts] = useState({ studios: 0, users: 0, clients: 0, appointments: 0 });
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("admin-theme");
+    const next = stored === "day" ? "day" : "night";
+    setTheme(next);
+    document.documentElement.setAttribute("data-admin-theme", next);
+  }, []);
+
+  function toggleTheme() {
+    const next = theme === "day" ? "night" : "day";
+    setTheme(next);
+    window.localStorage.setItem("admin-theme", next);
+    document.documentElement.setAttribute("data-admin-theme", next);
+  }
 
   useEffect(() => {
     const next: Record<string, boolean> = {};
@@ -266,16 +287,27 @@ export function AdminSidebar({ name, email }: { name: string; email?: string }) 
   const getCount = (key?: string) => key ? counts[key as keyof typeof counts] ?? 0 : 0;
   const toggleGroup = (key: string) => setOpenGroups((current) => ({ ...current, [key]: !current[key] }));
 
-  const sharedProps = { name, email, isActive, getCount, signOut, openGroups, toggleGroup };
+  const sharedProps = { name, email, isActive, getCount, signOut, openGroups, toggleGroup, theme, toggleTheme };
 
   return (
     <>
       <div className="admin-topbar">
-        <button type="button" onClick={() => setMobileOpen(true)} aria-label="Abrir menu" className="adm-mobile-menu">
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Abrir menu"
+          className="adm-mobile-menu"
+          style={{ width: "auto", minWidth: 82, paddingInline: 12, gap: 7, fontSize: 12, fontWeight: 800 }}
+        >
           <Menu size={18} />
+          <span>Menu</span>
         </button>
         <LogoMark />
         <strong>Nailit</strong>
+        <button type="button" className="admin-topbar-theme" onClick={toggleTheme} aria-label={theme === "day" ? "Usar tema noite" : "Usar tema dia"}>
+          {theme === "day" ? <Moon size={14} /> : <Sun size={14} />}
+          <span>{theme === "day" ? "Noite" : "Dia"}</span>
+        </button>
       </div>
 
       <aside className="admin-sidebar-desktop">

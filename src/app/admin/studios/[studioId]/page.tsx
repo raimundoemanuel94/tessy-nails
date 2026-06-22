@@ -114,14 +114,17 @@ export default function AdminStudioDetailPage() {
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 12000);
     try {
-      const response = await fetch(`/api/admin/studios/${studioId}`);
+      const response = await fetch(`/api/admin/studios/${studioId}`, { signal: controller.signal });
       const json = await response.json();
       if (!response.ok || json.error) throw new Error(json.error ?? "Erro ao carregar studio");
       setData(json);
     } catch (err: any) {
-      setError(err.message ?? String(err));
+      setError(err?.name === "AbortError" ? "A consulta demorou demais. Tente atualizar ou volte para a lista de salões." : err.message ?? String(err));
     } finally {
+      window.clearTimeout(timeout);
       setLoading(false);
     }
   }, [studioId]);
@@ -209,11 +212,16 @@ export default function AdminStudioDetailPage() {
   }
 
   async function toggleService(service: any) {
-    await fetch(`/api/admin/studios/${studioId}/services/${service.id}`, {
+    const response = await fetch(`/api/admin/studios/${studioId}/services/${service.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isActive: !service.isActive }),
     });
+    const json = await response.json().catch(() => null);
+    if (!response.ok || json?.error) {
+      setError(json?.error ?? "Não foi possível alterar o serviço");
+      return;
+    }
     await load();
   }
 
@@ -236,8 +244,9 @@ export default function AdminStudioDetailPage() {
   if (loading) {
     return (
       <AdminPanel>
-        <div style={{ padding: 56, display: "flex", justifyContent: "center", color: "#71717a" }}>
+        <div style={{ padding: 56, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, justifyContent: "center", color: "#71717a" }}>
           <Loader2 className="spin" />
+          <span style={{ fontSize: 12, fontWeight: 700 }}>Carregando dados do salão...</span>
         </div>
       </AdminPanel>
     );
@@ -249,7 +258,12 @@ export default function AdminStudioDetailPage() {
         title="Não foi possível carregar o Studio"
         description={error || "Tente novamente em alguns instantes."}
         tone="danger"
-        action={<AdminActionButton onClick={load} tone="danger">Tentar novamente</AdminActionButton>}
+        action={
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+            <AdminActionButton onClick={load} tone="danger">Tentar novamente</AdminActionButton>
+            <AdminActionButton href="/admin/studios" tone="muted"><ArrowLeft size={13} /> Voltar para salões</AdminActionButton>
+          </div>
+        }
       />
     );
   }
