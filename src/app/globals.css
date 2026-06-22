@@ -3505,3 +3505,85 @@ nextjs-portal {
       #f4f5f7 !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN BOTÕES — classes utilitárias consistentes
+   ═══════════════════════════════════════════════════════ */
+
+/* Botão ghost — borda leve, sem background */
+.admin-btn-ghost {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: #71717a;
+  transition: color .15s, border-color .15s, background .15s, transform .1s;
+  white-space: nowrap;
+}
+.admin-btn-ghost:hover {
+  color: #818cf8;
+  border-color: rgba(99,102,241,0.35);
+  background: rgba(99,102,241,0.06);
+}
+.admin-btn-ghost:active { transform: scale(.97); }
+
+/* Botão perigo */
+.admin-btn-danger {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  border: 1px solid rgba(248,113,113,0.2);
+  background: rgba(248,113,113,0.06);
+  color: #f87171;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.admin-btn-danger:hover {
+  border-color: rgba(248,113,113,0.4);
+  background: rgba(248,113,113,0.12);
+}
+.admin-btn-danger:active { transform: scale(.97); }
+
+/* Row link com hover */
+.admin-row-link {
+  display: grid; align-items: center; gap: 12px;
+  padding: 14px 18px; text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background .12s;
+}
+.admin-row-link:hover { background: rgba(255,255,255,0.025); }
+.admin-row-link:last-child { border-bottom: none; }
+
+/* Métrica card hover */
+.admin-metric { transition: transform .15s, border-color .2s; }
+.admin-metric:hover { transform: translateY(-2px); }
+
+/* Filtro pills — admin */
+.admin-filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.admin-filter-pill {
+  padding: 5px 12px; border-radius: 20px; cursor: pointer;
+  font-family: inherit; font-size: 12px; font-weight: 500;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03); color: #71717a;
+  transition: all .15s;
+}
+.admin-filter-pill.is-active {
+  background: rgba(99,102,241,0.14);
+  border-color: rgba(99,102,241,0.35);
+  color: #818cf8; font-weight: 700;
+}
+.admin-filter-pill:hover:not(.is-active) {
+  border-color: rgba(255,255,255,0.14);
+  color: #a1a1aa;
+}
+
+/* Input focus */
+.input-base:focus {
+  outline: none;
+  border-color: rgba(99,102,241,0.5) !important;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.08);
+}
+
+/* Loading spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin .8s linear infinite; }

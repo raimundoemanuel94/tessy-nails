@@ -37,6 +37,11 @@ export function ProfissionaisClient({ initialProfiles, studios: initialStudios }
 
   async function linkProfessional() {
     if (!linkModal || !selStudio) return;
+    // Se já tem studio_id, pedir confirmação
+    if (linkModal.studio_id) {
+      const prev = studios.find((s: any) => s.id === linkModal.studio_id);
+      if (!confirm(`${linkModal.name} já está vinculado a "${prev?.name ?? linkModal.studio_id}". Deseja substituir o vínculo?`)) return;
+    }
     setSaving(true);
     try {
       const { error: studioError } = await sb.from("studios").update({ owner_id: linkModal.id }).eq("id", selStudio);

@@ -105,7 +105,11 @@ export function PlanosClient({ planos }: { planos: any[] }) {
                     <div style={{ display: "flex", flexDirection: "column", gap: 4, width: 140 }}>
                       <label style={{ fontSize: 10, fontWeight: 500, color: C.muted, textTransform: "uppercase", letterSpacing: "0.07em" }}>Preço (R$/mês)</label>
                       <input type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)} className="input-base"
-                        style={{ height: 36, fontSize: 13 }} />
+                        min="0" step="0.01" placeholder="0,00"
+                        style={{ height: 36, fontSize: 13, borderColor: editPrice !== "" && Number(editPrice) < 0 ? "#f87171" : "" }} />
+                      {editPrice !== "" && Number(editPrice) < 0 && (
+                        <span style={{ fontSize: 11, color: "#f87171", marginTop: 2 }}>Preço não pode ser negativo</span>
+                      )}
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                       <div style={{ display: "flex", gap: 6, marginTop: 2 }}>
