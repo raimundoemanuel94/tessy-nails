@@ -155,17 +155,15 @@ function StepBar({ step }: { step: string }) {
   )
 }
 
-export default function AgendarClient({ studio, services, settings, professional, preDate, preTime }: { studio: Studio; services: Service[]; settings: Settings; professional?: Professional; preDate?: string | null; preTime?: string | null }) {
+export default function AgendarClient({ studio, services, settings, professional }: { studio: Studio; services: Service[]; settings: Settings; professional?: Professional }) {
   const brand = /^#[0-9A-Fa-f]{6}$/.test(studio.brand_color || '') ? studio.brand_color : '#7C5CBF'
   const rgb = safeRgb(brand)
   const router = useRouter()
 
-  // Se tem data+hora pré-definidos (link avulso), pula direto pra seleção de serviço
-  const hasPreSlot = !!preDate && !!preTime
   const [step, setStep] = useState<'service' | 'date' | 'time' | 'info' | 'done'>('service')
   const [selectedService, setSelectedService] = useState<Service | null>(null)
-  const [selectedDate, setSelectedDate] = useState(preDate || '')
-  const [selectedTime, setSelectedTime] = useState(preTime || '')
+  const [selectedDate, setSelectedDate] = useState('')
+  const [selectedTime, setSelectedTime] = useState('')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [phoneMasked, setPhoneMasked] = useState('')

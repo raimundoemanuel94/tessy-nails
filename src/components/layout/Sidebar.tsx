@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { MobileDrawer } from "@/components/layout/MobileDrawer";
 import {
   BarChart3,
   Calendar,
@@ -12,20 +11,21 @@ import {
   ChevronRight,
   LayoutDashboard,
   LogOut,
-  PanelLeft,
+  Moon,
   Pencil,
   Scissors,
   Settings,
   Shield,
   Sparkles,
+  Sun,
   Users,
 } from "lucide-react";
 
 const NAV = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/agenda", icon: Calendar, label: "Agenda" },
-  { href: "/agendamentos", icon: CalendarDays, label: "Agendamentos" },
-  { href: "/disponibilidade", icon: CalendarDays, label: "Disponibilidade" },
+  { href: "/disponibilidade", icon: CalendarDays, label: "Vagas" },
+  { href: "/vitrine", icon: Sparkles, label: "Vitrine" },
   { href: "/clientes", icon: Users, label: "Clientes" },
   { href: "/servicos", icon: Scissors, label: "Serviços" },
   { href: "/relatorios", icon: BarChart3, label: "Relatórios" },
@@ -42,26 +42,27 @@ export function Sidebar({ profile }: { profile: any }) {
   const pathname = usePathname();
   const router = useRouter();
   const isSuperadmin = profile?.role === "superadmin";
-  const [activeDrawer, setActiveDrawer] = useState<string | null>(null)
-  const openDrawer = (key: string) => setActiveDrawer(key)
-  const closeDrawer = () => setActiveDrawer(null)
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return localStorage.getItem('sidebar-collapsed') === 'true'
-  })
-  // Sync collapsed state to body data attribute (for CSS targeting)
-  useEffect(() => {
-    document.body.setAttribute('data-sidebar', collapsed ? 'collapsed' : 'expanded')
-  }, [collapsed])
-
-  const toggleCollapsed = () => setCollapsed(v => {
-    const next = !v
-    localStorage.setItem('sidebar-collapsed', String(next))
-    return next
-  })
-
-
   const studio = profile?.studios;
+  const [theme, setTheme] = useState<"dark" | "rose">("dark");
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("salon-theme");
+    const initial = stored === "rose" ? "rose" : "dark";
+    setTheme(initial);
+    document.documentElement.dataset.salonTheme = initial;
+  }, []);
+
+  useEffect(() => {
+    const routes = isSuperadmin ? ["/admin", "/dashboard", "/agenda", "/disponibilidade"] : NAV.map((item) => item.href);
+    routes.forEach((href) => router.prefetch(href));
+  }, [isSuperadmin, router]);
+
+  function toggleTheme() {
+    const next = theme === "rose" ? "dark" : "rose";
+    setTheme(next);
+    window.localStorage.setItem("salon-theme", next);
+    document.documentElement.dataset.salonTheme = next;
+  }
 
   async function signOut() {
     await createClient().auth.signOut();
@@ -70,53 +71,43 @@ export function Sidebar({ profile }: { profile: any }) {
   }
 
   function isActive(href: string) {
+    if (href === "/agenda" && pathname.startsWith("/agendamentos")) return true;
     return href === "/dashboard" ? pathname === href : pathname.startsWith(href);
   }
 
   const bottomItems = isSuperadmin
     ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 4)]
-    : [
-        { href: "/dashboard",      icon: NAV[0].icon, label: "Início" },
-        { href: "/agenda",         icon: NAV[1].icon, label: "Agenda" },
-        { href: "/agendamentos",   icon: NAV[2].icon, label: "Horários" },
-        { href: "/disponibilidade",icon: NAV[3].icon, label: "Vagas" },
-        { href: "/clientes",       icon: NAV[4].icon, label: "Clientes" },
-      ];
-  const displayName = profile?.full_name ?? profile?.email?.split("@")[0] ?? "Usuário";
+    : [NAV[0], NAV[1], NAV[2], NAV[3], NAV[7]];
+  const displayName = profile?.name ?? profile?.full_name ?? profile?.email?.split("@")[0] ?? "Usuário";
   const shortEmail = profile?.email ? (profile.email.length > 25 ? `${profile.email.slice(0, 22)}...` : profile.email) : "";
-  const initial = (studio?.name ?? displayName ?? "N").charAt(0).toUpperCase();
+  const studioName = studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio");
+  const initial = (studioName ?? displayName ?? "N").charAt(0).toUpperCase();
+  const isRose = theme === "rose";
+
+  const renderThemeToggle = () => (
+    <button type="button" className="salon-theme-switch" onClick={toggleTheme} title="Alternar tema" aria-label="Alternar tema">
+      <span className="salon-theme-switch-icon">
+        {isRose ? <Moon size={13} /> : <Sun size={13} />}
+      </span>
+      <span>{isRose ? "Noite" : "Dia"}</span>
+    </button>
+  );
 
   return (
     <>
-      <aside className={`manicure-sidebar hidden md:flex${collapsed ? " is-collapsed" : ""}`}>
+      <aside className="manicure-sidebar hidden md:flex">
         <div className="manicure-sidebar-shell">
           <div className="manicure-sidebar-brand">
             <div className={`manicure-logo ${isSuperadmin ? "is-admin" : ""}`}>
               {isSuperadmin ? <Shield size={16} /> : <Sparkles size={16} />}
             </div>
-            {!collapsed && (
-              <div className="manicure-brand-copy">
-                <div>
-                  <strong>{studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio")}</strong>
-                  <span>{isSuperadmin ? "Superadmin" : "Agenda e operação"}</span>
-                </div>
-                <small>{isSuperadmin ? "Admin" : studio?.plan ?? "Pro"}</small>
+            <div className="manicure-brand-copy">
+              <div>
+                <strong>{studioName}</strong>
+                <span>{isSuperadmin ? "Superadmin" : "Agenda e operação"}</span>
               </div>
-            )}
-            <button
-              onClick={toggleCollapsed}
-              title={collapsed ? "Expandir menu" : "Recolher menu"}
-              style={{
-                marginLeft: 'auto', flexShrink: 0,
-                width: 28, height: 28, borderRadius: 8,
-                border: '1px solid rgba(255,255,255,0.08)',
-                background: 'rgba(255,255,255,0.04)',
-                cursor: 'pointer', display: 'grid', placeItems: 'center',
-                color: '#6b648a', transition: 'background .15s',
-              }}
-            >
-              <PanelLeft size={14} style={{ transform: collapsed ? 'rotate(180deg)' : 'none', transition: 'transform .25s ease' }} />
-            </button>
+              <small>{isSuperadmin ? "Admin" : studio?.plan ?? "Pro"}</small>
+            </div>
           </div>
 
           {isSuperadmin && (
@@ -132,15 +123,15 @@ export function Sidebar({ profile }: { profile: any }) {
           <nav className="manicure-nav">
             {SECTIONS.map((section) => (
               <div key={section.label} className="manicure-nav-section">
-                {!collapsed && <p>{section.label}</p>}
+                <p>{section.label}</p>
                 <div>
                   {section.items.map(({ href, icon: Icon, label }) => {
                     const active = isActive(href);
                     return (
-                      <Link key={href} href={href} className={`manicure-nav-link ${active ? "is-active" : ""}`} title={collapsed ? label : undefined}>
+                      <Link key={href} href={href} className={`manicure-nav-link ${active ? "is-active" : ""}`}>
                         <Icon size={15} />
-                        {!collapsed && <span>{label}</span>}
-                        {!collapsed && active && <ChevronRight size={13} />}
+                        <span>{label}</span>
+                        {active && <ChevronRight size={13} />}
                       </Link>
                     );
                   })}
@@ -154,13 +145,12 @@ export function Sidebar({ profile }: { profile: any }) {
               <div className="manicure-avatar">
                 <span>{initial}</span>
               </div>
-              {!collapsed && (
-                <div className="manicure-account-copy">
-                  <strong>{displayName}</strong>
-                  <span>{shortEmail}</span>
-                </div>
-              )}
+              <div className="manicure-account-copy">
+                <strong>{displayName}</strong>
+                <span>{shortEmail}</span>
+              </div>
               <div className="manicure-footer-actions">
+                {renderThemeToggle()}
                 <Link href="/configuracoes" title="Editar perfil" aria-label="Editar perfil">
                   <Pencil size={14} />
                 </Link>
@@ -173,107 +163,29 @@ export function Sidebar({ profile }: { profile: any }) {
         </div>
       </aside>
 
-      {/* Mobile topbar */}
       <div className="manicure-topbar">
-        <div className="manicure-topbar-logo" style={{ overflow: 'hidden', borderRadius: '50%' }}>
-          {(profile as any)?.avatar_url
-            ? <img src={(profile as any).avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-            : <Sparkles size={14} color="#a78bfa" />
-          }
+        <div className="manicure-topbar-logo" style={{ overflow: "hidden", borderRadius: "50%" }}>
+          {studio?.avatar_url ? (
+            <img src={studio.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" />
+          ) : (
+            <Sparkles size={14} color="#a78bfa" />
+          )}
         </div>
-        <span className="manicure-topbar-name">
-          {studio?.name
-            ? studio.name
-            : profile?.full_name
-              ? profile.full_name.split(' ')[0]
-              : 'Meu Studio'}
-        </span>
-        <button
-          type="button"
-          onClick={signOut}
-          title="Sair da conta"
-          style={{
-            marginLeft: 'auto',
-            flexShrink: 0,
-            width: 34, height: 34,
-            borderRadius: 10,
-            border: '1px solid rgba(255,255,255,0.08)',
-            background: 'rgba(255,255,255,0.04)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer',
-          }}
-        >
-          <LogOut size={14} color="#6b6b9a" />
-        </button>
+        <span className="manicure-topbar-name">{studioName}</span>
+        {renderThemeToggle()}
       </div>
 
-      {/* Bottom nav — drawer mode */}
       <nav className="manicure-bottom-nav md:hidden">
-        {[
-          { key: 'inicio',    icon: LayoutDashboard, label: 'Início',    href: '/dashboard' },
-          { key: 'agenda',    icon: Calendar,        label: 'Agenda',    href: null },
-          { key: 'clientes',  icon: Users,           label: 'Clientes',  href: null },
-          { key: 'vagas',     icon: CalendarDays,    label: 'Vagas',     href: null },
-        ].map(({ key, icon: Icon, label, href }) => {
-          const active = href ? isActive(href) : activeDrawer === key
-          return href ? (
-            <Link key={key} href={href} className={active ? 'is-active' : ''} onClick={closeDrawer}>
+        {bottomItems.map(({ href, icon: Icon, label }) => {
+          const active = href === "/admin" ? pathname.startsWith("/admin") : isActive(href);
+          return (
+            <Link key={href} href={href} className={active ? "is-active" : ""}>
               <Icon size={20} />
-              <span>{label}</span>
+              <span>{label.split(" ")[0]}</span>
             </Link>
-          ) : (
-            <button key={key} className={active ? 'is-active' : ''} onClick={() => openDrawer(key)}
-              style={{ flex: 1, minWidth: 0, minHeight: 54, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', color: active ? '#a78bfa' : '#8d86a8', fontSize: 9, fontWeight: 700, fontFamily: 'inherit', letterSpacing: '.01em', whiteSpace: 'nowrap', padding: '0 2px' }}>
-              <Icon size={20} />
-              <span>{label}</span>
-            </button>
-          )
+          );
         })}
       </nav>
-
-      {/* Drawers */}
-      <MobileDrawer open={activeDrawer === 'agenda'} onClose={closeDrawer} title="Agenda">
-        <div style={{ padding: 16 }}>
-          <a href="/agenda" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(124,92,191,0.08)', border: '1px solid rgba(124,92,191,0.2)', marginBottom: 10, textDecoration: 'none' }}>
-            <Calendar size={20} color="#a78bfa" />
-            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Agenda da semana</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Calendário + banner de vagas</div></div>
-          </a>
-          <a href="/agendamentos" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 10, textDecoration: 'none' }}>
-            <CalendarDays size={20} color="#a78bfa" />
-            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Agendamentos</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Lista completa + confirmar + concluir</div></div>
-          </a>
-          <a href="/relatorios" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', textDecoration: 'none' }}>
-            <BarChart3 size={20} color="#a78bfa" />
-            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Relatórios</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Faturamento e métricas</div></div>
-          </a>
-        </div>
-      </MobileDrawer>
-
-      <MobileDrawer open={activeDrawer === 'clientes'} onClose={closeDrawer} title="Clientes">
-        <div style={{ padding: 16 }}>
-          <a href="/clientes" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(244,114,182,0.08)', border: '1px solid rgba(244,114,182,0.2)', marginBottom: 10, textDecoration: 'none' }}>
-            <Users size={20} color="#f472b6" />
-            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Meus clientes</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Histórico, WhatsApp e stats</div></div>
-          </a>
-          <a href="/servicos" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', textDecoration: 'none' }}>
-            <Scissors size={20} color="#f472b6" />
-            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Serviços</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Preços e catálogo</div></div>
-          </a>
-        </div>
-      </MobileDrawer>
-
-      <MobileDrawer open={activeDrawer === 'vagas'} onClose={closeDrawer} title="Disponibilidade">
-        <div style={{ padding: 16 }}>
-          <a href="/disponibilidade" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)', marginBottom: 10, textDecoration: 'none' }}>
-            <CalendarDays size={20} color="#34d399" />
-            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Disponibilidade</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Dias e horários disponíveis</div></div>
-          </a>
-          <a href="/configuracoes" onClick={closeDrawer} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', textDecoration: 'none' }}>
-            <Settings size={20} color="#34d399" />
-            <div><div style={{ color: '#f0f0ff', fontSize: 14, fontWeight: 700 }}>Configurações</div><div style={{ color: '#8d86a8', fontSize: 12, marginTop: 2 }}>Studio, horários e perfil</div></div>
-          </a>
-        </div>
-      </MobileDrawer>
     </>
   );
 }

@@ -238,13 +238,7 @@ export default function ConfiguracoesPage() {
               <label style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: 6 }}>
                 <AtSign size={12} style={{ display: "inline", marginRight: 4 }} />Instagram
               </label>
-              <input className="input-base" value={instagram} onChange={e => setInstagram(e.target.value.replace('@',''))} placeholder="tessy.nails (sem o @)" />
-              {instagram && (
-                <a href={`https://instagram.com/${instagram}`} target="_blank" rel="noreferrer"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#a78bfa', marginTop: 4, textDecoration: 'none' }}>
-                  ↗ instagram.com/{instagram}
-                </a>
-              )}
+              <input className="input-base" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@tessystudio" />
             </div>
             <div>
               <label style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: 6 }}>

@@ -53,17 +53,12 @@ export default async function AgendarPage({
     if (prof) professional = prof
   }
 
-  const preDate = sp?.date ?? null
-  const preTime = sp?.time ?? null
-
   return (
     <AgendarClient
       studio={studio}
       services={services || []}
       settings={settings}
       professional={professional}
-      preDate={preDate}
-      preTime={preTime}
     />
   )
 }
