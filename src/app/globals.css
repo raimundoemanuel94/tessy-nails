@@ -376,6 +376,26 @@ button:active, a:active, [role="button"]:active {
     #080812;
 }
 .admin-app-shell {
+  /* Night theme defaults (overridden by day theme below) */
+  --brand:       #818cf8;
+  --brand-light: #a5b4fc;
+  --brand-dark:  #6366f1;
+  --brand-glow:  rgba(99,102,241,0.25);
+  --bg:          #07090d;
+  --bg2:         #0a0c12;
+  --surface:     rgba(255,255,255,0.03);
+  --surface2:    rgba(255,255,255,0.05);
+  --surface3:    rgba(255,255,255,0.07);
+  --border:      rgba(255,255,255,0.08);
+  --border2:     rgba(255,255,255,0.12);
+  --text:        #f4f4f5;
+  --text2:       #a1a1aa;
+  --muted:       #71717a;
+  --green:       #4ade80;
+  --yellow:      #fbbf24;
+  --red:         #f87171;
+  --blue:        #60a5fa;
+  --gold:        #f59e0b;
   display: flex;
   min-height: 100vh;
   background: var(--bg);
@@ -2427,26 +2447,28 @@ button:active, a:active, [role="button"]:active {
 }
 
 :root[data-admin-theme="day"] .admin-app-shell {
-  --brand: #18181b;
+  --brand:       #18181b;
   --brand-light: #3f3f46;
-  --brand-dark: #09090b;
-  --brand-glow: rgba(24,24,27,0.10);
-  --bg: #fafafa;
-  --bg2: #f4f4f5;
-  --surface: #ffffff;
-  --surface2: #ffffff;
-  --surface3: #f9f9f9;
-  --border: rgba(24,24,27,0.08);
-  --border2: rgba(24,24,27,0.13);
-  --text: #09090b;
-  --text2: #3f3f46;
-  --muted: #71717a;
-  --green: #16a34a;
-  --yellow: #ca8a04;
-  --red: #dc2626;
-  --blue: #2563eb;
-  --gold: #b45309;
+  --brand-dark:  #09090b;
+  --brand-glow:  rgba(24,24,27,0.10);
+  --bg:          #fafafa;
+  --bg2:         #f4f4f5;
+  --surface:     #ffffff;
+  --surface2:    #f9f9f9;
+  --surface3:    #f4f4f5;
+  --border:      rgba(24,24,27,0.08);
+  --border2:     rgba(24,24,27,0.13);
+  --text:        #09090b;
+  --text2:       #3f3f46;
+  --muted:       #71717a;
+  --green:       #16a34a;
+  --yellow:      #ca8a04;
+  --red:         #dc2626;
+  --blue:        #2563eb;
+  --gold:        #b45309;
   color-scheme: light;
+  background: #fafafa;
+  color: #09090b;
 }
 
 :root[data-admin-theme="day"] body {
