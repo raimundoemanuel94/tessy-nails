@@ -5,96 +5,36 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
-  AlertCircle,
-  BarChart3,
-  Building2,
-  CalendarCheck,
-  ChevronDown,
-  Command,
-  CreditCard,
-  DollarSign,
-  ExternalLink,
-  FileText,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  MessageSquare,
-  Moon,
-  PanelLeftClose,
-  PanelLeftOpen,
-  ReceiptText,
-  Settings,
-  SlidersHorizontal,
-  Sun,
-  Users,
-  UserCog,
-  WalletCards,
-  X,
+  AlertCircle, BarChart3, Building2, CalendarCheck,
+  Command, CreditCard, DollarSign, ExternalLink,
+  FileText, LayoutDashboard, LogOut, Menu,
+  MessageSquare, Moon, PanelLeftClose, PanelLeftOpen,
+  ReceiptText, Settings, SlidersHorizontal, Sun,
+  Users, UserCog, WalletCards, X,
 } from "lucide-react";
 
-const NAV = [
-  {
-    section: "Plataforma",
-    items: [
-      {
-        key: "operacao",
-        icon: LayoutDashboard,
-        label: "Visão geral",
-        children: [
-          { href: "/admin", label: "Dashboard", exact: true, icon: BarChart3 },
-          { href: "/admin/studios", label: "Salões", badge: "studios", icon: Building2 },
-          { href: "/admin/clientes", label: "Clientes", badge: "clients", icon: Users },
-          { href: "/admin/agendamentos", label: "Agendamentos", badge: "appointments", icon: CalendarCheck },
-          { href: "/admin/relatorios", label: "Relatórios", icon: FileText },
-        ],
-      },
-    ],
-  },
-  {
-    section: "Equipe",
-    items: [
-      {
-        key: "equipe",
-        icon: Users,
-        label: "Profissionais",
-        children: [
-          { href: "/admin/profissionais", label: "Contas & Vínculos", badge: "users", icon: UserCog },
-          { href: "/admin/comissoes", label: "Comissões", icon: ReceiptText },
-        ],
-      },
-    ],
-  },
-  {
-    section: "Financeiro",
-    items: [
-      {
-        key: "financeiro",
-        icon: DollarSign,
-        label: "Financeiro",
-        children: [
-          { href: "/admin/financeiro", label: "Resumo", exact: true, icon: WalletCards },
-          { href: "/admin/financeiro/assinaturas", label: "Assinaturas", icon: CreditCard },
-          { href: "/admin/financeiro/inadimplencia", label: "Inadimplência", icon: AlertCircle },
-          { href: "/admin/config/planos", label: "Planos e preços", icon: SlidersHorizontal },
-        ],
-      },
-    ],
-  },
-  {
-    section: "Sistema",
-    items: [
-      {
-        key: "sistema",
-        icon: Settings,
-        label: "Configurações",
-        children: [
-          { href: "/admin/config", label: "Preferências", exact: true, icon: Settings },
-          { href: "/admin/mensagens", label: "Mensagens", icon: MessageSquare },
-        ],
-      },
-    ],
-  },
+// NAV flat — sem grupos, igual Sales.io
+const NAV_ITEMS = [
+  // Plataforma
+  { href: "/admin",                    label: "Dashboard",      icon: LayoutDashboard, exact: true,  badge: null,           group: "Plataforma" },
+  { href: "/admin/studios",            label: "Salões",         icon: Building2,       exact: false, badge: "studios",      group: "Plataforma" },
+  { href: "/admin/clientes",           label: "Clientes",       icon: Users,           exact: false, badge: "clients",      group: "Plataforma" },
+  { href: "/admin/agendamentos",       label: "Agendamentos",   icon: CalendarCheck,   exact: false, badge: "appointments", group: "Plataforma" },
+  { href: "/admin/relatorios",         label: "Relatórios",     icon: BarChart3,       exact: false, badge: null,           group: "Plataforma" },
+  // Equipe
+  { href: "/admin/profissionais",      label: "Profissionais",  icon: UserCog,         exact: false, badge: "users",        group: "Equipe"     },
+  { href: "/admin/comissoes",          label: "Comissões",      icon: ReceiptText,     exact: false, badge: null,           group: "Equipe"     },
+  // Financeiro
+  { href: "/admin/financeiro",         label: "Financeiro",     icon: WalletCards,     exact: true,  badge: null,           group: "Financeiro" },
+  { href: "/admin/financeiro/assinaturas",  label: "Assinaturas",   icon: CreditCard,      exact: false, badge: null,      group: "Financeiro" },
+  { href: "/admin/financeiro/inadimplencia",label: "Inadimplência", icon: AlertCircle,     exact: false, badge: null,      group: "Financeiro" },
+  { href: "/admin/config/planos",      label: "Planos",         icon: SlidersHorizontal,exact:false, badge: null,           group: "Financeiro" },
+  // Sistema
+  { href: "/admin/config",             label: "Configurações",  icon: Settings,        exact: true,  badge: null,           group: "Sistema"    },
+  { href: "/admin/mensagens",          label: "Mensagens",      icon: MessageSquare,   exact: false, badge: null,           group: "Sistema"    },
 ] as const;
+
+const GROUPS = ["Plataforma", "Equipe", "Financeiro", "Sistema"] as const;
 
 function LogoMark() {
   return (
@@ -106,165 +46,101 @@ function LogoMark() {
 
 function CountBadge({ n }: { n: number }) {
   if (!n) return null;
-  return (
-    <span className="adm-count" aria-label={`${n} itens`}>
-      {n > 99 ? "99+" : n}
-    </span>
-  );
+  return <span className="adm-count">{n > 99 ? "99+" : n}</span>;
 }
 
 function readBrowserStorage(key: string) {
-  try {
-    return window.localStorage?.getItem(key) ?? null;
-  } catch {
-    return null;
-  }
+  try { return window.localStorage?.getItem(key) ?? null; } catch { return null; }
 }
-
 function writeBrowserStorage(key: string, value: string) {
-  try {
-    window.localStorage?.setItem(key, value);
-  } catch {
-    // Keep the UI state working even when browser storage is unavailable.
-  }
+  try { window.localStorage?.setItem(key, value); } catch {}
 }
 
-function NavGroup({ item, isActive, onNav, open, onToggle, getCount, collapsed }: any) {
-  const Icon = item.icon;
-  const childActive = item.children.some((child: any) =>
-    child.exact ? isActive(child.href, true) : isActive(child.href)
-  );
-  // Só mostra badge no grupo se tiver um único badge filho relevante
-  const badgeCounts = item.children.map((child: any) => getCount(child.badge)).filter(Boolean);
-  const totalCount = badgeCounts.length === 1 ? badgeCounts[0] : 0;
-
-  return (
-    <div className="adm-side-group">
-      <button
-        type="button"
-        onClick={onToggle}
-        title={collapsed ? item.label : undefined}
-        className={`adm-side-link adm-side-group-trigger ${childActive ? "is-active" : ""}`}
-      >
-        <Icon size={15} />
-        <span>{item.label}</span>
-        <CountBadge n={totalCount} />
-        <ChevronDown size={13} className={open ? "is-open" : ""} />
-      </button>
-
-      <div className={`adm-side-children ${open ? "is-open" : ""}`}>
-        {item.children.map((child: any) => {
-          const active = child.exact ? isActive(child.href, true) : isActive(child.href);
-          const ChildIcon = child.icon;
-          return (
-            <Link
-              key={child.href}
-              href={child.href}
-              onClick={onNav}
-              title={child.label}
-              className={`adm-side-child ${active ? "is-active" : ""}`}
-            >
-              {ChildIcon && <ChildIcon size={13} strokeWidth={2.15} />}
-              <span>{child.label}</span>
-              <CountBadge n={getCount(child.badge)} />
-            </Link>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function SidebarBody({
-  name,
-  email,
-  onNav,
-  isActive,
-  getCount,
-  signOut,
-  openGroups,
-  toggleGroup,
-  theme,
-  toggleTheme,
-  collapsed,
-  toggleCollapsed,
-}: any) {
+function SidebarBody({ name, email, onNav, isActive, getCount, signOut, theme, toggleTheme, collapsed, toggleCollapsed }: any) {
   const initial = (name || "A").charAt(0).toUpperCase();
-  const shortEmail = email ? (email.length > 25 ? `${email.slice(0, 22)}...` : email) : "superadmin";
+  const shortEmail = email ? (email.length > 26 ? `${email.slice(0, 23)}...` : email) : "superadmin";
   const isDay = theme === "day";
 
   return (
     <div className="adm-sidebar-shell">
+      {/* Brand */}
       <div className="adm-sidebar-brand">
         <LogoMark />
-        <div className="adm-brand-copy">
-          <div>
-            <strong>Nailit</strong>
-            <span>Central da plataforma</span>
+        {!collapsed && (
+          <div className="adm-brand-copy">
+            <div>
+              <strong>Nailit</strong>
+              <span>Admin</span>
+            </div>
           </div>
-          <small>Admin</small>
-        </div>
-        <button
-          type="button"
-          className="adm-theme-icon"
-          onClick={toggleTheme}
-          title={isDay ? "Usar tema noite" : "Usar tema dia"}
-          aria-label={isDay ? "Usar tema noite" : "Usar tema dia"}
-        >
+        )}
+        <button type="button" className="adm-theme-icon" onClick={toggleTheme}
+          title={isDay ? "Tema noite" : "Tema dia"}>
           {isDay ? <Moon size={14} /> : <Sun size={14} />}
         </button>
         {toggleCollapsed && (
-          <button
-            type="button"
-            className="adm-collapse-icon"
-            onClick={toggleCollapsed}
-            title={collapsed ? "Expandir sidebar" : "Recolher sidebar"}
-            aria-label={collapsed ? "Expandir sidebar" : "Recolher sidebar"}
-          >
+          <button type="button" className="adm-collapse-icon" onClick={toggleCollapsed}
+            title={collapsed ? "Expandir" : "Recolher"}>
             {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
           </button>
         )}
       </div>
 
+      {/* Nav flat */}
       <nav className="adm-sidebar-nav">
-        {NAV.map((section) => (
-          <div key={section.section} className="adm-nav-section">
-            <p>{section.section}</p>
-            <div>
-              {section.items.map((item: any) => (
-                <NavGroup
-                  key={item.key}
-                  item={item}
-                  isActive={isActive}
-                  onNav={onNav}
-                  getCount={getCount}
-                  collapsed={collapsed}
-                  open={!!openGroups[item.key]}
-                  onToggle={() => toggleGroup(item.key)}
-                />
-              ))}
+        {GROUPS.map((group) => {
+          const items = NAV_ITEMS.filter((i) => i.group === group);
+          return (
+            <div key={group} className="adm-nav-section">
+              {!collapsed && <p>{group}</p>}
+              <div>
+                {items.map((item) => {
+                  const Icon = item.icon;
+                  const active = item.exact ? isActive(item.href, true) : isActive(item.href);
+                  const count = item.badge ? getCount(item.badge) : 0;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={onNav}
+                      title={collapsed ? item.label : undefined}
+                      className={`adm-side-link ${active ? "is-active" : ""}`}
+                    >
+                      <Icon size={16} strokeWidth={active ? 2.2 : 1.8} />
+                      {!collapsed && <span>{item.label}</span>}
+                      {!collapsed && <CountBadge n={count} />}
+                      {collapsed && count > 0 && (
+                        <span style={{ position: "absolute", top: 4, right: 4, width: 7, height: 7, borderRadius: "50%", background: "#7c3aed" }} />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
 
+      {/* Footer */}
       <footer className="adm-sidebar-footer">
         <div className="adm-account-card">
           <div className="adm-user-row">
             <div className="adm-user-avatar">{initial}</div>
-            <div className="adm-user-copy">
-              <strong>{name || "Admin"}</strong>
-              <span>{shortEmail}</span>
-            </div>
+            {!collapsed && (
+              <div className="adm-user-copy">
+                <strong>{name || "Admin"}</strong>
+                <span>{shortEmail}</span>
+              </div>
+            )}
           </div>
           <div className="adm-footer-actions">
-            <Link href="/dashboard" onClick={onNav} title="Ver app do salão" aria-label="Ver app do salão">
+            <Link href="/dashboard" onClick={onNav} title="Ver app">
               <ExternalLink size={14} />
-              <span>App</span>
+              {!collapsed && <span>App</span>}
             </Link>
-            <button type="button" onClick={signOut} title="Sair da conta" aria-label="Sair da conta">
+            <button type="button" onClick={signOut} title="Sair">
               <LogOut size={14} />
-              <span>Sair</span>
+              {!collapsed && <span>Sair</span>}
             </button>
           </div>
         </div>
@@ -280,7 +156,6 @@ export function AdminSidebar({ name, email }: { name: string; email?: string }) 
   const [collapsed, setCollapsed] = useState(false);
   const [theme, setTheme] = useState<"night" | "day">("day");
   const [counts, setCounts] = useState({ studios: 0, users: 0, clients: 0, appointments: 0 });
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const stored = readBrowserStorage("admin-theme");
@@ -294,36 +169,6 @@ export function AdminSidebar({ name, email }: { name: string; email?: string }) 
     setCollapsed(stored);
     document.documentElement.setAttribute("data-admin-sidebar", stored ? "collapsed" : "expanded");
   }, []);
-
-  function toggleTheme() {
-    const next = theme === "day" ? "night" : "day";
-    setTheme(next);
-    writeBrowserStorage("admin-theme", next);
-    document.documentElement.setAttribute("data-admin-theme", next);
-  }
-
-  function setSidebarCollapsed(next: boolean) {
-    setCollapsed(next);
-    writeBrowserStorage("admin-sidebar-collapsed", next ? "1" : "0");
-    document.documentElement.setAttribute("data-admin-sidebar", next ? "collapsed" : "expanded");
-  }
-
-  function toggleCollapsed() {
-    setSidebarCollapsed(!collapsed);
-  }
-
-  useEffect(() => {
-    const next: Record<string, boolean> = {};
-    NAV.forEach((section) => {
-      section.items.forEach((item: any) => {
-        const hasActive = item.children.some((child: any) =>
-          child.exact ? pathname === child.href : pathname.startsWith(child.href)
-        );
-        if (hasActive) next[item.key] = true;
-      });
-    });
-    setOpenGroups((current) => ({ ...current, ...next }));
-  }, [pathname]);
 
   useEffect(() => {
     const sb = createClient();
@@ -342,16 +187,25 @@ export function AdminSidebar({ name, email }: { name: string; email?: string }) 
     );
   }, []);
 
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
-
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
+    return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
+
+  function toggleTheme() {
+    const next = theme === "day" ? "night" : "day";
+    setTheme(next);
+    writeBrowserStorage("admin-theme", next);
+    document.documentElement.setAttribute("data-admin-theme", next);
+  }
+
+  function toggleCollapsed() {
+    const next = !collapsed;
+    setCollapsed(next);
+    writeBrowserStorage("admin-sidebar-collapsed", next ? "1" : "0");
+    document.documentElement.setAttribute("data-admin-sidebar", next ? "collapsed" : "expanded");
+  }
 
   async function signOut() {
     await createClient().auth.signOut();
@@ -359,62 +213,42 @@ export function AdminSidebar({ name, email }: { name: string; email?: string }) 
     router.refresh();
   }
 
-  const isActive = (href: string, exact?: boolean) => exact ? pathname === href : pathname.startsWith(href);
-  const getCount = (key?: string) => key ? counts[key as keyof typeof counts] ?? 0 : 0;
-  const toggleGroup = (key: string) => setOpenGroups((current) => ({ ...current, [key]: !current[key] }));
-  const toggleDesktopGroup = (key: string) => {
-    if (collapsed) {
-      setSidebarCollapsed(false);
-      setOpenGroups((current) => ({ ...current, [key]: true }));
-      return;
-    }
-    toggleGroup(key);
-  };
+  const isActive = (href: string, exact?: boolean) =>
+    exact ? pathname === href : pathname.startsWith(href);
+  const getCount = (key?: string) =>
+    key ? counts[key as keyof typeof counts] ?? 0 : 0;
 
-  const sharedProps = { name, email, isActive, getCount, signOut, openGroups, theme, toggleTheme };
+  const sharedProps = { name, email, isActive, getCount, signOut, theme, toggleTheme, collapsed };
 
   return (
     <>
+      {/* Mobile topbar */}
       <div className="admin-topbar">
-        <button
-          type="button"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Abrir menu"
-          className="adm-mobile-menu"
-          style={{ width: "auto", minWidth: 82, paddingInline: 12, gap: 7, fontSize: 12, fontWeight: 800 }}
-        >
-          <Menu size={18} />
-          <span>Menu</span>
+        <button type="button" onClick={() => setMobileOpen(true)}
+          className="adm-mobile-menu" style={{ minWidth: 80, paddingInline: 12, gap: 7, fontSize: 12, fontWeight: 700 }}>
+          <Menu size={18} /><span>Menu</span>
         </button>
         <LogoMark />
-        <strong>Nailit</strong>
-        <button type="button" className="admin-topbar-theme" onClick={toggleTheme} aria-label={theme === "day" ? "Usar tema noite" : "Usar tema dia"}>
+        <strong style={{ fontSize: 14, fontWeight: 700, color: "#1a1a2e", flex: 1 }}>Nailit</strong>
+        <button type="button" className="admin-topbar-theme" onClick={toggleTheme}>
           {theme === "day" ? <Moon size={14} /> : <Sun size={14} />}
           <span>{theme === "day" ? "Noite" : "Dia"}</span>
         </button>
       </div>
 
+      {/* Desktop */}
       <aside className="admin-sidebar-desktop">
-        <SidebarBody
-          {...sharedProps}
-          collapsed={collapsed}
-          toggleGroup={toggleDesktopGroup}
-          toggleCollapsed={toggleCollapsed}
-        />
+        <SidebarBody {...sharedProps} toggleCollapsed={toggleCollapsed} onNav={() => {}} />
       </aside>
 
+      {/* Mobile */}
       {mobileOpen && <div className="adm-mobile-backdrop" onClick={() => setMobileOpen(false)} />}
-
       <aside className={`admin-sidebar-mobile ${mobileOpen ? "open" : ""}`} aria-hidden={!mobileOpen}>
-        <button type="button" onClick={() => setMobileOpen(false)} aria-label="Fechar menu" className="adm-mobile-close">
+        <button type="button" onClick={() => setMobileOpen(false)} className="adm-mobile-close">
           <X size={15} />
         </button>
-        <SidebarBody
-          {...sharedProps}
-          collapsed={false}
-          toggleGroup={toggleGroup}
-          onNav={() => setMobileOpen(false)}
-        />
+        <SidebarBody {...sharedProps} collapsed={false} toggleCollapsed={undefined}
+          onNav={() => setMobileOpen(false)} />
       </aside>
     </>
   );
