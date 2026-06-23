@@ -1,53 +1,65 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  AlertTriangle,
-  BadgeCheck,
-  Bell,
-  CalendarClock,
-  Check,
-  CreditCard,
-  Database,
-  DollarSign,
-  Edit3,
-  Globe2,
-  Loader2,
-  LockKeyhole,
-  MessageCircle,
-  RotateCcw,
-  Save,
-  Settings2,
-  ShieldCheck,
-  Sparkles,
-  Users,
-  X,
+  AlertTriangle, BadgeCheck, Bell, CalendarClock, Check,
+  CreditCard, Database, DollarSign, Edit3, Globe2,
+  Loader2, LockKeyhole, MessageCircle, RotateCcw, Save,
+  Settings2, ShieldCheck, Sparkles, Users, X,
 } from "lucide-react";
 import {
-  AdminActionButton,
-  AdminMetricCard,
-  AdminPageHeader,
-  AdminPanel,
-  AdminStatusBadge,
+  AdminActionButton, AdminMetricCard, AdminPageHeader,
+  AdminPanel, AdminStatusBadge,
 } from "@/components/admin/AdminUI";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/utils";
 
 const planTone: Record<string, string> = {
-  free: "#94a3b8",
-  starter: "#60a5fa",
-  pro: "#818cf8",
-  studio: "#f472b6",
+  free: "#94a3b8", starter: "#60a5fa", pro: "#7c3aed", studio: "#f472b6",
 };
+
+const SETTING_GROUPS = [
+  {
+    label: "Operacional",
+    icon: CalendarClock,
+    color: "#7c3aed",
+    settings: [
+      { key: "default_commission_rate", label: "Comissão padrão (%)", type: "number", min: 0, max: 100 },
+      { key: "default_advance_days",    label: "Janela agendamento (dias)", type: "number", min: 1, max: 365 },
+      { key: "default_cancel_hours",    label: "Cancelamento mínimo (horas)", type: "number", min: 0 },
+      { key: "trial_days",              label: "Duração do trial (dias)", type: "number", min: 1 },
+      { key: "overdue_block_days",      label: "Bloqueio inadimplência (dias)", type: "number", min: 1 },
+    ],
+  },
+  {
+    label: "Mensagens",
+    icon: Bell,
+    color: "#10b981",
+    settings: [
+      { key: "reminder_hours_before", label: "Lembrete antes do horário (horas)", type: "number", min: 1 },
+      { key: "reactivation_days",     label: "Retorno de clientes inativos (dias)", type: "number", min: 1 },
+    ],
+  },
+  {
+    label: "Plataforma",
+    icon: Globe2,
+    color: "#3b82f6",
+    settings: [
+      { key: "platform_name",   label: "Nome da plataforma", type: "text" },
+      { key: "support_email",   label: "Email de suporte", type: "email" },
+      { key: "booking_timezone",label: "Fuso horário", type: "text" },
+    ],
+  },
+];
 
 function StatusLine({ ok, label, description }: any) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "28px 1fr auto", gap: 10, alignItems: "center", padding: "12px 0", borderBottom: "1px solid #e8e8f0" }}>
-      <div style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: ok ? "#4ade80" : "#fbbf24", background: ok ? "rgba(74,222,128,0.10)" : "rgba(251,191,36,0.10)", border: `1px solid ${ok ? "rgba(74,222,128,0.22)" : "rgba(251,191,36,0.24)"}` }}>
+      <div style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: ok ? "#10b981" : "#f59e0b", background: ok ? "rgba(16,185,129,0.08)" : "rgba(245,158,11,0.08)", border: `1px solid ${ok ? "rgba(16,185,129,0.22)" : "rgba(245,158,11,0.24)"}` }}>
         {ok ? <Check size={14} /> : <AlertTriangle size={14} />}
       </div>
       <div style={{ minWidth: 0 }}>
-        <strong style={{ display: "block", color: "#1a1a2e", fontSize: 13 }}>{label}</strong>
+        <strong style={{ display: "block", color: "#0f172a", fontSize: 13 }}>{label}</strong>
         <span style={{ display: "block", color: "#94a3b8", fontSize: 12, marginTop: 2 }}>{description}</span>
       </div>
       <AdminStatusBadge tone={ok ? "success" : "warning"}>{ok ? "OK" : "Ajustar"}</AdminStatusBadge>
@@ -56,25 +68,25 @@ function StatusLine({ ok, label, description }: any) {
 }
 
 function ModuleCard({ icon: Icon, title, status, description, items, tone = "brand" }: any) {
-  const color = tone === "success" ? "#4ade80" : tone === "warning" ? "#fbbf24" : tone === "danger" ? "#f87171" : "#818cf8";
+  const color = tone === "success" ? "#10b981" : tone === "warning" ? "#f59e0b" : tone === "danger" ? "#ef4444" : "#7c3aed";
   return (
-    <div style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 16, background: "#ffffff", minHeight: 190 }}>
+    <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#ffffff" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color, background: `${color}18`, border: `1px solid ${color}38` }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color, background: `${color}12`, border: `1px solid ${color}30` }}>
             <Icon size={17} />
           </div>
           <div>
-            <strong style={{ display: "block", color: "#1a1a2e", fontSize: 14 }}>{title}</strong>
+            <strong style={{ display: "block", color: "#0f172a", fontSize: 14 }}>{title}</strong>
             <span style={{ display: "block", color: "#94a3b8", fontSize: 11, marginTop: 2 }}>{description}</span>
           </div>
         </div>
         <AdminStatusBadge tone={tone}>{status}</AdminStatusBadge>
       </div>
-      <div style={{ display: "grid", gap: 7 }}>
+      <div style={{ display: "grid", gap: 6 }}>
         {items.map((item: string) => (
           <div key={item} style={{ display: "flex", alignItems: "center", gap: 7, color: "#64748b", fontSize: 12 }}>
-            <span style={{ width: 5, height: 5, borderRadius: 999, background: color, opacity: 0.8 }} />
+            <span style={{ width: 4, height: 4, borderRadius: 999, background: color, flexShrink: 0 }} />
             {item}
           </div>
         ))}
@@ -85,64 +97,96 @@ function ModuleCard({ icon: Icon, title, status, description, items, tone = "bra
 
 export function ConfigClient({ plans, studios, settings, counts, envStatus }: any) {
   const sb = createClient();
+
+  // Plans state
   const [rows, setRows] = useState(plans);
-  const [editing, setEditing] = useState<string | null>(null);
-  const [draft, setDraft] = useState({ label: "", price: "" });
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  const [editingPlan, setEditingPlan] = useState<string | null>(null);
+  const [planDraft, setPlanDraft] = useState({ label: "", price: "" });
+  const [savingPlan, setSavingPlan] = useState(false);
+  const [savedPlan, setSavedPlan] = useState<string | null>(null);
+  const [planError, setPlanError] = useState("");
 
-  const metrics = useMemo(() => {
-    const activeStudios = studios.filter((studio: any) => studio.is_active);
-    const trial = studios.filter((studio: any) => ["trial", "trialing"].includes(studio.subscription_status));
-    const pastDue = studios.filter((studio: any) => studio.subscription_status === "past_due");
-    const autoConfirm = settings.filter((setting: any) => setting.auto_confirm).length;
-    const configuredHours = settings.filter((setting: any) => setting.working_hours && Object.keys(setting.working_hours).length > 0).length;
-    const priceByPlan = new Map(rows.map((plan: any) => [plan.plan, Number(plan.price ?? 0)]));
-    const mrr = studios.reduce((sum: number, studio: any) => {
-      if (studio.subscription_status !== "active") return sum;
-      return sum + Number(studio.mrr ?? priceByPlan.get(studio.plan) ?? 0);
-    }, 0);
-    return { activeStudios, trial, pastDue, autoConfirm, configuredHours, mrr };
-  }, [studios, settings, rows]);
+  // Platform settings state
+  const [platformSettings, setPlatformSettings] = useState<Record<string, string>>({});
+  const [editingSettings, setEditingSettings] = useState<Record<string, string>>({});
+  const [savingGroup, setSavingGroup] = useState<string | null>(null);
+  const [savedGroup, setSavedGroup] = useState<string | null>(null);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+  const [settingsError, setSettingsError] = useState("");
 
-  function openEdit(plan: any) {
-    setEditing(plan.plan);
-    setDraft({ label: plan.label ?? "", price: String(plan.price ?? 0) });
-    setError("");
+  // Load platform settings
+  useEffect(() => {
+    sb.from("platform_settings").select("key, value").then(({ data }) => {
+      if (data) {
+        const map: Record<string, string> = {};
+        data.forEach((row: any) => {
+          const raw = row.value;
+          map[row.key] = typeof raw === "string" ? raw.replace(/^"|"$/g, "") : String(raw);
+        });
+        setPlatformSettings(map);
+        setEditingSettings(map);
+      }
+      setLoadingSettings(false);
+    });
+  }, []);
+
+  async function saveGroup(groupLabel: string, keys: string[]) {
+    setSavingGroup(groupLabel);
+    setSettingsError("");
+    const updates = keys.map((key) => ({
+      key,
+      value: isNaN(Number(editingSettings[key])) || editingSettings[key] === ""
+        ? JSON.stringify(editingSettings[key] ?? "")
+        : Number(editingSettings[key]),
+      updated_at: new Date().toISOString(),
+    }));
+    const { error } = await sb.from("platform_settings").upsert(updates, { onConflict: "key" });
+    setSavingGroup(null);
+    if (error) { setSettingsError(error.message); return; }
+    setPlatformSettings({ ...editingSettings });
+    setSavedGroup(groupLabel);
+    setTimeout(() => setSavedGroup(null), 2500);
   }
 
+  // Plans
+  function openEditPlan(plan: any) {
+    setEditingPlan(plan.plan);
+    setPlanDraft({ label: plan.label ?? "", price: String(plan.price ?? 0) });
+    setPlanError("");
+  }
   async function savePlan(plan: string) {
-    const price = Number(draft.price);
-    if (!draft.label.trim()) return setError("Nome do plano é obrigatório.");
-    if (!Number.isFinite(price) || price < 0) return setError("Preço inválido.");
-
-    setSaving(true);
-    setError("");
-    const { error } = await sb.from("plan_prices").update({ label: draft.label.trim(), price }).eq("plan", plan);
-    setSaving(false);
-    if (error) return setError(error.message);
-    setRows((current: any[]) => current.map((row) => row.plan === plan ? { ...row, label: draft.label.trim(), price } : row));
-    setEditing(null);
-    setSaved(plan);
-    setTimeout(() => setSaved(null), 2500);
+    const price = Number(planDraft.price);
+    if (!planDraft.label.trim()) return setPlanError("Nome obrigatório.");
+    if (!Number.isFinite(price) || price < 0) return setPlanError("Preço inválido.");
+    setSavingPlan(true);
+    setPlanError("");
+    const { error } = await sb.from("plan_prices").update({ label: planDraft.label.trim(), price }).eq("plan", plan);
+    setSavingPlan(false);
+    if (error) return setPlanError(error.message);
+    setRows((c: any[]) => c.map((r) => r.plan === plan ? { ...r, label: planDraft.label.trim(), price } : r));
+    setEditingPlan(null);
+    setSavedPlan(plan);
+    setTimeout(() => setSavedPlan(null), 2500);
   }
 
-  const envOk = [
-    envStatus.supabaseUrl,
-    envStatus.supabaseAnon,
-    envStatus.serviceRole,
-    envStatus.stripeSecret,
-    envStatus.stripePublic,
-    envStatus.whatsapp,
-  ].filter(Boolean).length;
+  // Metrics
+  const activeStudios = studios.filter((s: any) => s.is_active);
+  const trial = studios.filter((s: any) => ["trial", "trialing"].includes(s.subscription_status));
+  const autoConfirm = settings.filter((s: any) => s.auto_confirm).length;
+  const configuredHours = settings.filter((s: any) => s.working_hours && Object.keys(s.working_hours).length > 0).length;
+  const priceByPlan = new Map(rows.map((p: any) => [p.plan, Number(p.price ?? 0)]));
+  const mrr = studios.reduce((sum: number, s: any) => {
+    if (s.subscription_status !== "active") return sum;
+    return sum + Number(s.mrr ?? priceByPlan.get(s.plan) ?? 0);
+  }, 0);
+  const envOk = [envStatus.supabaseUrl, envStatus.supabaseAnon, envStatus.serviceRole, envStatus.stripeSecret, envStatus.stripePublic, envStatus.whatsapp].filter(Boolean).length;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 22, maxWidth: 1180 }}>
       <AdminPageHeader
         eyebrow="Sistema"
         title="Configurações da Plataforma"
-        description="Centro de controle da plataforma para planos, integrações, segurança, regras operacionais e módulos do Nailit."
+        description="Centro de controle do Nailit — planos, regras operacionais, integrações e módulos."
         actions={
           <>
             <AdminActionButton href="/admin/config/planos" tone="brand">Planos avançados</AdminActionButton>
@@ -151,54 +195,56 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
         }
       />
 
+      {/* KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
-        <AdminMetricCard label="MRR configurado" value={formatCurrency(metrics.mrr)} sub="por planos e assinaturas" icon={DollarSign} tone="success" />
-        <AdminMetricCard label="Salões ativos" value={metrics.activeStudios.length} sub={`${metrics.trial.length} em teste`} icon={Globe2} tone="brand" />
-        <AdminMetricCard label="Agenda configurada" value={`${metrics.configuredHours}/${studios.length}`} sub={`${metrics.autoConfirm} com auto-confirmação`} icon={CalendarClock} tone="warning" />
-        <AdminMetricCard label="Integrações OK" value={`${envOk}/6`} sub={envStatus.bookingTimezone} icon={Database} tone={envOk >= 4 ? "success" : "warning"} />
+        <AdminMetricCard label="MRR configurado" value={formatCurrency(mrr)} sub="por planos ativos" icon={DollarSign} tone="success" />
+        <AdminMetricCard label="Salões ativos" value={activeStudios.length} sub={`${trial.length} em teste`} icon={Globe2} tone="brand" />
+        <AdminMetricCard label="Agenda configurada" value={`${configuredHours}/${studios.length}`} sub={`${autoConfirm} auto-confirmação`} icon={CalendarClock} tone="warning" />
+        <AdminMetricCard label="Integrações OK" value={`${envOk}/6`} sub={envStatus.bookingTimezone ?? "sem timezone"} icon={Database} tone={envOk >= 4 ? "success" : "warning"} />
       </div>
 
+      {/* Planos + Status técnico */}
       <div style={{ display: "grid", gridTemplateColumns: "1.15fr .85fr", gap: 14, alignItems: "start" }}>
-        <AdminPanel title="Planos e preços" description="Edição rápida do catálogo comercial usado para calcular MRR da plataforma." tone="brand">
+        <AdminPanel title="Planos e preços" description="Edição do catálogo comercial." tone="brand">
           <div style={{ padding: 16, display: "grid", gap: 10 }}>
             {rows.map((plan: any) => {
-              const color = planTone[plan.plan] ?? "#818cf8";
-              const isEdit = editing === plan.plan;
-              const studiosInPlan = studios.filter((studio: any) => studio.plan === plan.plan);
-              const paying = studiosInPlan.filter((studio: any) => studio.subscription_status === "active").length;
+              const color = planTone[plan.plan] ?? "#7c3aed";
+              const isEdit = editingPlan === plan.plan;
+              const inPlan = studios.filter((s: any) => s.plan === plan.plan);
+              const paying = inPlan.filter((s: any) => s.subscription_status === "active").length;
               return (
-                <div key={plan.plan} className="admin-plan-card" style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, background: "#ffffff" }}>
+                <div key={plan.plan} style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 14, background: "#fff" }}>
                   {isEdit ? (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 140px auto", gap: 10, alignItems: "end" }}>
-                      <label style={{ display: "grid", gap: 5 }}>
-                        <span style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, textTransform: "uppercase" }}>Nome</span>
-                        <input value={draft.label} onChange={(e) => setDraft((d) => ({ ...d, label: e.target.value }))} className="input-base" />
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 130px auto", gap: 10, alignItems: "end" }}>
+                      <label style={{ display: "grid", gap: 4 }}>
+                        <span style={{ color: "#94a3b8", fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Nome</span>
+                        <input value={planDraft.label} onChange={(e) => setPlanDraft((d) => ({ ...d, label: e.target.value }))} className="input-base" />
                       </label>
-                      <label style={{ display: "grid", gap: 5 }}>
-                        <span style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, textTransform: "uppercase" }}>Preço mensal</span>
-                        <input value={draft.price} type="number" min="0" onChange={(e) => setDraft((d) => ({ ...d, price: e.target.value }))} className="input-base" />
+                      <label style={{ display: "grid", gap: 4 }}>
+                        <span style={{ color: "#94a3b8", fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>Preço/mês</span>
+                        <input value={planDraft.price} type="number" min="0" step="0.01" onChange={(e) => setPlanDraft((d) => ({ ...d, price: e.target.value }))} className="input-base" />
                       </label>
-                      <div style={{ display: "flex", gap: 7 }}>
-                        <button onClick={() => savePlan(plan.plan)} disabled={saving} className="admin-action-button" style={{ color: "#4ade80", borderColor: "rgba(74,222,128,0.25)", background: "rgba(74,222,128,0.10)" }}>
-                          {saving ? <Loader2 size={13} className="spin" /> : <Save size={13} />} Salvar
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button onClick={() => savePlan(plan.plan)} disabled={savingPlan} className="admin-action-button" style={{ color: "#10b981", borderColor: "rgba(16,185,129,0.25)", background: "rgba(16,185,129,0.08)" }}>
+                          {savingPlan ? <Loader2 size={13} className="spin" /> : <Save size={13} />} Salvar
                         </button>
-                        <button onClick={() => setEditing(null)} className="admin-action-button" style={{ color: "#94a3b8", borderColor: "rgba(113,113,122,0.20)", background: "rgba(113,113,122,0.10)" }}>
+                        <button onClick={() => setEditingPlan(null)} className="admin-action-button">
                           <X size={13} />
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="admin-plan-display-row" style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: 14, alignItems: "center" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: 12, alignItems: "center" }}>
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                          <span className="admin-plan-badge" style={{ color, border: `1px solid ${color}44`, background: `${color}18`, borderRadius: 6, padding: "2px 7px", fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>{plan.plan}</span>
-                          <strong className="admin-plan-name" style={{ color: "#1a1a2e", fontSize: 14 }}>{plan.label}</strong>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                          <span style={{ color, border: `1px solid ${color}44`, background: `${color}12`, borderRadius: 6, padding: "2px 7px", fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>{plan.plan}</span>
+                          <strong style={{ color: "#0f172a", fontSize: 14 }}>{plan.label}</strong>
                         </div>
-                        <span className="admin-plan-meta" style={{ color: "#94a3b8", fontSize: 12 }}>{studiosInPlan.length} salões · {paying} pagantes</span>
+                        <span style={{ color: "#94a3b8", fontSize: 12 }}>{inPlan.length} salões · {paying} pagantes</span>
                       </div>
-                      <strong className={Number(plan.price) > 0 ? "admin-plan-price" : "admin-plan-price admin-plan-price-free"} style={{ color: Number(plan.price) > 0 ? "#4ade80" : "#94a3b8", fontSize: 15 }}>{formatCurrency(Number(plan.price ?? 0))}</strong>
-                      <AdminStatusBadge tone={saved === plan.plan ? "success" : "muted"}>{saved === plan.plan ? "Salvo" : "Mensal"}</AdminStatusBadge>
-                      <button onClick={() => openEdit(plan)} className="admin-action-button" style={{ color: "#7c3aed", borderColor: "rgba(99,102,241,0.26)", background: "rgba(99,102,241,0.11)" }}>
+                      <strong style={{ color: Number(plan.price) > 0 ? "#10b981" : "#94a3b8", fontSize: 15 }}>{formatCurrency(Number(plan.price ?? 0))}</strong>
+                      <AdminStatusBadge tone={savedPlan === plan.plan ? "success" : "muted"}>{savedPlan === plan.plan ? "✓ Salvo" : "Mensal"}</AdminStatusBadge>
+                      <button onClick={() => openEditPlan(plan)} className="admin-action-button" style={{ color: "#7c3aed", borderColor: "rgba(124,58,237,0.22)", background: "rgba(124,58,237,0.08)" }}>
                         <Edit3 size={13} /> Editar
                       </button>
                     </div>
@@ -206,71 +252,86 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
                 </div>
               );
             })}
-            {error && <p style={{ color: "#f87171", fontSize: 12, margin: 0 }}>{error}</p>}
+            {planError && <p style={{ color: "#ef4444", fontSize: 12, margin: 0 }}>{planError}</p>}
           </div>
         </AdminPanel>
 
-        <AdminPanel title="Status técnico" description="Checklist das variáveis e serviços necessários para produção." tone={envOk >= 4 ? "success" : "warning"}>
+        <AdminPanel title="Status técnico" description="Variáveis e serviços necessários." tone={envOk >= 4 ? "success" : "warning"}>
           <div style={{ padding: "4px 16px 10px" }}>
             <StatusLine ok={envStatus.supabaseUrl && envStatus.supabaseAnon} label="Supabase público" description="URL e chave anon configuradas." />
-            <StatusLine ok={envStatus.serviceRole} label="Service role" description="Necessário para rotas administrativas e automações." />
+            <StatusLine ok={envStatus.serviceRole} label="Service role" description="Necessário para rotas admin e automações." />
             <StatusLine ok={envStatus.stripeSecret && envStatus.stripePublic} label="Pagamentos" description="Stripe pronto para checkout/webhooks." />
-            <StatusLine ok={envStatus.whatsapp} label="WhatsApp gateway" description="Envio automático de mensagens e lembretes." />
+            <StatusLine ok={envStatus.whatsapp} label="WhatsApp gateway" description="Envio automático de mensagens." />
           </div>
         </AdminPanel>
       </div>
 
-      <AdminPanel title="Módulos da plataforma" description="O que precisa existir para o Nailit operar como SaaS completo para vários salões." tone="brand">
+      {/* Regras operacionais — editáveis e salvam no banco */}
+      <div style={{ display: "grid", gap: 14 }}>
+        {loadingSettings ? (
+          <div style={{ textAlign: "center", padding: 32, color: "#94a3b8" }}><Loader2 size={20} className="spin" /></div>
+        ) : (
+          SETTING_GROUPS.map((group) => {
+            const Icon = group.icon;
+            const isSaving = savingGroup === group.label;
+            const isSaved = savedGroup === group.label;
+            const keys = group.settings.map((s) => s.key);
+            const isDirty = keys.some((k) => editingSettings[k] !== platformSettings[k]);
+            return (
+              <AdminPanel key={group.label}
+                title={group.label}
+                description="Configurações salvas no banco — afetam todos os salões."
+                tone="brand"
+                actions={
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    {isSaved && <span style={{ fontSize: 12, color: "#10b981", fontWeight: 600 }}>✓ Salvo</span>}
+                    {isDirty && !isSaving && (
+                      <button onClick={() => setEditingSettings((e) => { const r = { ...e }; keys.forEach((k) => { r[k] = platformSettings[k]; }); return r; })}
+                        className="admin-action-button" style={{ fontSize: 12 }}>
+                        <RotateCcw size={12} /> Desfazer
+                      </button>
+                    )}
+                    <button onClick={() => saveGroup(group.label, keys)} disabled={isSaving || !isDirty} className="admin-action-button"
+                      style={{ color: isDirty ? "#10b981" : "#94a3b8", borderColor: isDirty ? "rgba(16,185,129,0.25)" : "#e2e8f0", background: isDirty ? "rgba(16,185,129,0.08)" : "#f8fafc" }}>
+                      {isSaving ? <Loader2 size={13} className="spin" /> : <Save size={13} />} Salvar {group.label}
+                    </button>
+                  </div>
+                }
+              >
+                <div style={{ padding: "8px 16px 16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {group.settings.map((s) => (
+                    <label key={s.key} style={{ display: "grid", gap: 5 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: ".06em" }}>{s.label}</span>
+                      <input
+                        type={s.type ?? "text"}
+                        value={editingSettings[s.key] ?? ""}
+                        min={(s as any).min}
+                        max={(s as any).max}
+                        onChange={(e) => setEditingSettings((prev) => ({ ...prev, [s.key]: e.target.value }))}
+                        className="input-base"
+                        style={{ background: editingSettings[s.key] !== platformSettings[s.key] ? "rgba(124,58,237,0.04)" : "", borderColor: editingSettings[s.key] !== platformSettings[s.key] ? "rgba(124,58,237,0.30)" : "" }}
+                      />
+                    </label>
+                  ))}
+                </div>
+                {settingsError && <p style={{ color: "#ef4444", fontSize: 12, padding: "0 16px 12px" }}>{settingsError}</p>}
+              </AdminPanel>
+            );
+          })
+        )}
+      </div>
+
+      {/* Módulos */}
+      <AdminPanel title="Módulos da plataforma" description="Status de cada módulo do Nailit." tone="brand">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, padding: 16 }}>
-          <ModuleCard icon={CalendarClock} title="Agenda global" status="Ativo" tone="success" description="Monitoramento multi-salão" items={["Agendamentos por salão", "Auto-confirmação por conta", "Horários por regras do salão"]} />
+          <ModuleCard icon={CalendarClock} title="Agenda global" status="Ativo" tone="success" description="Monitoramento multi-salão" items={["Agendamentos por salão", "Auto-confirmação", "Horários por regras"]} />
           <ModuleCard icon={Users} title="Clientes e CRM" status="Parcial" tone="warning" description="Base e segmentos" items={["Clientes globais", "Reativação", "Aniversários e VIP"]} />
-          <ModuleCard icon={MessageCircle} title="Mensagens" status="Preparado" tone="warning" description="Campanhas e WhatsApp" items={["Templates", "Lembretes", "Gateway pendente"]} />
+          <ModuleCard icon={MessageCircle} title="Mensagens" status="Preparado" tone="warning" description="Campanhas e WhatsApp" items={["Templates prontos", "Lembretes", "Gateway pendente"]} />
           <ModuleCard icon={CreditCard} title="Financeiro SaaS" status="Ativo" tone="success" description="MRR e cobrança" items={["Planos editáveis", "Inadimplência", "Assinaturas"]} />
-          <ModuleCard icon={Sparkles} title="Comissões" status="Próximo" tone="warning" description="Repasse por manicure" items={["Falta professional_id", "Percentual por perfil", "Fechamento mensal"]} />
-          <ModuleCard icon={LockKeyhole} title="Segurança" status="Base" tone="brand" description="Controle administrativo" items={["Perfil de administrador", "Proteção de rotas", "Auditoria pendente"]} />
+          <ModuleCard icon={Sparkles} title="Comissões" status="Próximo" tone="warning" description="Repasse por profissional" items={["commission_rules no banco", "Percentual por perfil", "Fechamento mensal"]} />
+          <ModuleCard icon={LockKeyhole} title="Segurança" status="Base" tone="brand" description="Controle administrativo" items={["Perfil superadmin", "Proteção de rotas", "Auditoria pendente"]} />
         </div>
       </AdminPanel>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        <AdminPanel title="Regras operacionais recomendadas" description="Defaults que devem virar tabela platform_settings no próximo passo." tone="warning">
-          <div style={{ padding: 16, display: "grid", gap: 10 }}>
-            {[
-              ["Janela padrão de agendamento", "30 dias para cliente final, editável por salão."],
-              ["Cancelamento mínimo", "2h ou 24h conforme plano do salão."],
-              ["Bloqueio por inadimplência", "Suspender link público após X dias em atraso."],
-              ["Comissão padrão", "40% até o salão definir regra própria."],
-              ["Mensagens automáticas", "Lembrete 24h antes e retorno após 45 dias."],
-            ].map(([title, desc]) => (
-              <div key={title} style={{ display: "grid", gridTemplateColumns: "28px 1fr", gap: 10, alignItems: "start" }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#fbbf24", background: "rgba(251,191,36,0.10)", border: "1px solid rgba(251,191,36,0.24)" }}>
-                  <Settings2 size={14} />
-                </div>
-                <div>
-                  <strong style={{ color: "#1a1a2e", fontSize: 13 }}>{title}</strong>
-                  <p style={{ color: "#94a3b8", fontSize: 12, margin: "3px 0 0", lineHeight: 1.45 }}>{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </AdminPanel>
-
-        <AdminPanel title="Próximas tabelas críticas" description="Para liberar edição real de tudo sem depender de env ou hardcode." tone="brand">
-          <div style={{ padding: 16, display: "grid", gap: 10 }}>
-            {[
-              ["platform_settings", "marca, suporte, políticas globais, timezone e regras default"],
-              ["message_campaigns", "campanhas, público, status, conteúdo e métricas"],
-              ["message_events", "fila de envio, entregue, erro, resposta e provider"],
-              ["commission_rules", "percentuais por salão, profissional, serviço e período"],
-              ["audit_logs", "quem alterou preço, plano, salão, usuário e permissões"],
-            ].map(([table, desc]) => (
-              <div key={table} style={{ padding: 12, borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "#ffffff" }}>
-                <code style={{ color: "#7c3aed", fontSize: 12, fontWeight: 800 }}>{table}</code>
-                <p style={{ color: "#94a3b8", fontSize: 12, margin: "5px 0 0", lineHeight: 1.45 }}>{desc}</p>
-              </div>
-            ))}
-          </div>
-        </AdminPanel>
-      </div>
     </div>
   );
 }
