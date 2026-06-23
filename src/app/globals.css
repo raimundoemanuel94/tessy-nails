@@ -5147,3 +5147,99 @@ nextjs-portal {
   color: #3f4d5d !important;
   font-weight: 850 !important;
 }
+
+/* Admin sidebar header: prevent wrapping/duplication look */
+.admin-sidebar-desktop,
+.admin-sidebar-mobile {
+  width: 268px !important;
+}
+
+.dash-admin {
+  margin-left: 268px !important;
+}
+
+.adm-sidebar-brand {
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) 34px 34px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 0 12px !important;
+  min-width: 0 !important;
+}
+
+.adm-logo-mark {
+  grid-column: 1;
+}
+
+.adm-brand-copy {
+  grid-column: 2;
+  min-width: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
+}
+
+.adm-brand-copy > div {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.adm-brand-copy strong,
+.adm-brand-copy span {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.adm-brand-copy small {
+  display: none !important;
+  writing-mode: horizontal-tb !important;
+  white-space: nowrap !important;
+  min-width: 0 !important;
+  max-width: 46px !important;
+  overflow: hidden !important;
+  text-overflow: clip !important;
+  padding: 4px 7px !important;
+  letter-spacing: .045em !important;
+}
+
+.adm-theme-icon {
+  grid-column: 3;
+}
+
+.adm-collapse-icon {
+  grid-column: 4;
+}
+
+.adm-theme-icon,
+.adm-collapse-icon {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+}
+
+:root[data-admin-sidebar="collapsed"] .dash-admin {
+  margin-left: 76px !important;
+}
+
+:root[data-admin-sidebar="collapsed"] .admin-sidebar-desktop {
+  width: 76px !important;
+}
+
+:root[data-admin-sidebar="collapsed"] .admin-sidebar-desktop .adm-sidebar-brand {
+  display: flex !important;
+}
+
+@media (max-width: 1024px) {
+  .dash-admin {
+    margin-left: 0 !important;
+  }
+
+  .admin-sidebar-desktop {
+    display: none !important;
+  }
+
+  .admin-sidebar-mobile {
+    width: min(304px, calc(100vw - 34px)) !important;
+  }
+}
