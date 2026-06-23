@@ -2228,15 +2228,15 @@ button:active, a:active, [role="button"]:active {
 :root[data-admin-theme="day"] .adm-mobile-close,
 :root[data-admin-theme="day"] .adm-theme-icon,
 :root[data-admin-theme="day"] .adm-collapse-icon {
-  background: #f4f4f5 !important;
-  border-color: rgba(24,24,27,0.10) !important;
-  color: #3f3f46 !important;
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
 }
 :root[data-admin-theme="day"] .adm-theme-icon:hover,
 :root[data-admin-theme="day"] .adm-collapse-icon:hover {
-  background: #e4e4e7 !important;
-  border-color: rgba(24,24,27,0.16) !important;
-  color: #09090b !important;
+  background: #ede9fe !important;
+  border-color: #c4b5fd !important;
+  color: #7c3aed !important;
 }
 
 /* Logo + avatar — zinc escuro */
@@ -4384,22 +4384,6 @@ nextjs-portal {
   line-height: 1 !important;
 }
 
-.adm-theme-icon,
-.adm-collapse-icon,
-.adm-mobile-close {
-  width: 34px !important;
-  height: 34px !important;
-  border-radius: 10px !important;
-  transition:
-    transform .16s cubic-bezier(.2,.8,.2,1),
-    background .16s,
-    color .16s,
-    border-color .16s,
-    box-shadow .16s !important;
-}
-
-.adm-theme-icon:hover,
-.adm-collapse-icon:hover,
 .adm-mobile-close:hover {
   transform: translateY(-1px);
 }
@@ -5100,20 +5084,7 @@ nextjs-portal {
   letter-spacing: .045em !important;
 }
 
-.adm-theme-icon {
-  grid-column: 3;
-}
 
-.adm-collapse-icon {
-  grid-column: 4;
-}
-
-.adm-theme-icon,
-.adm-collapse-icon {
-  width: 34px !important;
-  height: 34px !important;
-  min-width: 34px !important;
-}
 
 :root[data-admin-sidebar="collapsed"] .dash-admin {
   margin-left: 76px !important;
