@@ -376,25 +376,25 @@ button:active, a:active, [role="button"]:active {
     #080812;
 }
 .admin-app-shell {
-  /* Night theme defaults (overridden by day theme below) */
-  --brand:       #818cf8;
-  --brand-light: #a5b4fc;
-  --brand-dark:  #6366f1;
-  --brand-glow:  rgba(99,102,241,0.25);
-  --bg:          #07090d;
-  --bg2:         #0a0c12;
-  --surface:     rgba(255,255,255,0.03);
-  --surface2:    rgba(255,255,255,0.05);
-  --surface3:    rgba(255,255,255,0.07);
-  --border:      rgba(255,255,255,0.08);
-  --border2:     rgba(255,255,255,0.12);
-  --text:        #f4f4f5;
-  --text2:       #a1a1aa;
-  --muted:       #71717a;
-  --green:       #4ade80;
-  --yellow:      #fbbf24;
-  --red:         #f87171;
-  --blue:        #60a5fa;
+  /* Shopzy-style: sidebar preta, conteúdo branco, accent roxo+amarelo */
+  --brand:       #7c3aed;
+  --brand-light: #8b5cf6;
+  --brand-dark:  #6d28d9;
+  --brand-glow:  rgba(124,58,237,0.30);
+  --bg:          #f1f5f9;
+  --bg2:         #e2e8f0;
+  --surface:     #ffffff;
+  --surface2:    #f8fafc;
+  --surface3:    #f1f5f9;
+  --border:      rgba(15,23,42,0.08);
+  --border2:     rgba(15,23,42,0.13);
+  --text:        #0f172a;
+  --text2:       #334155;
+  --muted:       #64748b;
+  --green:       #10b981;
+  --yellow:      #f59e0b;
+  --red:         #ef4444;
+  --blue:        #3b82f6;
   --gold:        #f59e0b;
   display: flex;
   min-height: 100vh;
@@ -408,10 +408,7 @@ button:active, a:active, [role="button"]:active {
   padding: 32px 40px;
   box-sizing: border-box;
   min-height: 100vh;
-  background:
-    linear-gradient(180deg, rgba(129,140,248,0.045), transparent 280px),
-    linear-gradient(90deg, rgba(15,23,42,0.22), transparent 42%),
-    #08090d;
+  background: #f1f5f9;
 }
 
 /* Manicure/studio shell */
@@ -1787,12 +1784,11 @@ button:active, a:active, [role="button"]:active {
   z-index: 20;
   display: flex;
   flex-direction: column;
-  background:
-    linear-gradient(180deg, rgba(129,140,248,0.055), transparent 210px),
-    #07090d;
-  border-right: 1px solid rgba(255,255,255,0.085);
-  box-shadow: 18px 0 52px rgba(0,0,0,0.18);
+  background: #0f0f14;
+  border-right: none;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.18);
   transition: width .22s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 .admin-sidebar-mobile {
   display: none;
@@ -1828,7 +1824,8 @@ button:active, a:active, [role="button"]:active {
   align-items: center;
   gap: 10px;
   padding: 0 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: #0f0f14;
 }
 .adm-theme-icon,
 .adm-collapse-icon {
@@ -1836,20 +1833,20 @@ button:active, a:active, [role="button"]:active {
   height: 30px;
   flex: 0 0 auto;
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: rgba(255,255,255,0.035);
-  color: #8f97a8;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.45);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background .14s, color .14s, border-color .14s;
+  transition: background .14s, color .14s;
 }
 .adm-theme-icon:hover,
 .adm-collapse-icon:hover {
-  color: #f4f4f5;
-  background: rgba(255,255,255,0.07);
-  border-color: rgba(255,255,255,0.13);
+  color: #ffffff;
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.15);
 }
 .adm-logo-mark {
   width: 32px;
@@ -1858,10 +1855,10 @@ button:active, a:active, [role="button"]:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a5b4fc;
-  background: linear-gradient(180deg, rgba(129,140,248,0.18), rgba(99,102,241,0.08));
-  border: 1px solid rgba(129,140,248,0.32);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  color: #ffffff;
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  border: none;
+  box-shadow: 0 4px 12px rgba(124,58,237,0.35);
 }
 .adm-brand-copy {
   min-width: 0;
@@ -1873,21 +1870,21 @@ button:active, a:active, [role="button"]:active {
 }
 .adm-brand-copy strong {
   display: block;
-  color: #f4f4f5;
+  color: #ffffff;
   font-size: 13.5px;
   font-weight: 780;
   line-height: 1;
 }
 .adm-brand-copy span {
   display: block;
-  color: #71717a;
+  color: rgba(255,255,255,0.45);
   font-size: 11px;
   margin-top: 3px;
 }
 .adm-brand-copy small {
-  color: #a5b4fc;
-  background: rgba(99,102,241,0.12);
-  border: 1px solid rgba(129,140,248,0.26);
+  color: #8b5cf6;
+  background: rgba(124,58,237,0.18);
+  border: 1px solid rgba(139,92,246,0.30);
   border-radius: 6px;
   padding: 3px 7px;
   font-size: 9px;
@@ -1977,10 +1974,10 @@ button:active, a:active, [role="button"]:active {
 }
 .adm-nav-section + .adm-nav-section { margin-top: 17px; }
 .adm-nav-section > p {
-  color: #555e70;
-  font-size: 10px;
-  font-weight: 720;
-  letter-spacing: .12em;
+  color: rgba(255,255,255,0.28);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .14em;
   text-transform: uppercase;
   padding: 0 10px 8px;
   margin: 0;
@@ -2036,11 +2033,11 @@ button:active, a:active, [role="button"]:active {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  color: #c7d2fe;
-  background: rgba(129,140,248,0.13);
-  border: 1px solid rgba(129,140,248,0.18);
+  color: #ffffff;
+  background: #7c3aed;
+  border: none;
   font-size: 10px;
-  font-weight: 720;
+  font-weight: 700;
 }
 .adm-side-group-trigger { width: 100%; }
 .adm-side-group-trigger > svg:last-child {
@@ -2064,17 +2061,18 @@ button:active, a:active, [role="button"]:active {
   padding-bottom: 3px;
 }
 .adm-side-child {
-  min-height: 30px;
+  min-height: 32px;
   display: flex;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 12px;
   border-radius: 7px;
-  color: #8f97a8;
+  color: rgba(255,255,255,0.42);
   text-decoration: none;
   font-size: 12.5px;
   font-weight: 500;
-  border-left: 1px solid rgba(255,255,255,0.06);
+  border-left: 1px solid rgba(255,255,255,0.08);
   gap: 8px;
+  transition: background .12s, color .12s;
 }
 .adm-side-child span:first-child {
   flex: 1;
@@ -2084,18 +2082,19 @@ button:active, a:active, [role="button"]:active {
   white-space: nowrap;
 }
 .adm-side-child:hover {
-  color: #f4f4f5;
-  background: rgba(255,255,255,0.045);
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.05);
 }
 .adm-side-child:active { transform: scale(0.98); }
 .adm-side-child.is-active {
-  color: #c7d2fe;
-  background: rgba(99,102,241,0.10);
-  border-left-color: rgba(129,140,248,0.38);
+  color: #a78bfa;
+  background: rgba(124,58,237,0.14);
+  border-left-color: #7c3aed;
 }
 .adm-sidebar-footer {
   padding: 12px;
-  border-top: 1px solid rgba(255,255,255,0.055);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  background: #0f0f14;
 }
 .adm-account-card {
   min-width: 0;
@@ -2124,11 +2123,12 @@ button:active, a:active, [role="button"]:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #c7d2fe;
-  background: rgba(99,102,241,0.12);
-  border: 1px solid rgba(129,140,248,0.22);
+  color: #ffffff;
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  border: none;
   font-size: 13px;
-  font-weight: 760;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(124,58,237,0.30);
 }
 .adm-user-copy { min-width: 0; }
 .adm-user-copy strong,
@@ -2140,12 +2140,12 @@ button:active, a:active, [role="button"]:active {
   white-space: nowrap;
 }
 .adm-user-copy strong {
-  color: #f4f4f5;
+  color: #ffffff;
   font-size: 12px;
-  font-weight: 720;
+  font-weight: 700;
 }
 .adm-user-copy span {
-  color: #71717a;
+  color: rgba(255,255,255,0.38);
   font-size: 11px;
   margin-top: 2px;
 }
