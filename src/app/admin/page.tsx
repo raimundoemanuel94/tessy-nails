@@ -110,7 +110,7 @@ function RiskRow({ icon: Icon, title, description, href, tone }: any) {
         <Icon size={16} />
       </div>
       <div style={{ minWidth: 0 }}>
-        <p style={{ margin: 0, color: "#1a1a2e", fontSize: 13, fontWeight: 750 }}>{title}</p>
+        <p style={{ margin: 0, color: "#1a1a2e", fontSize: 13, fontWeight: 700 }}>{title}</p>
         <p style={{ margin: "3px 0 0", color: "#94a3b8", fontSize: 12 }}>{description}</p>
       </div>
       <AdminActionButton href={href} tone={tone}>

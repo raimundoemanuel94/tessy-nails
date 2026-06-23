@@ -13,7 +13,7 @@ const STATUS_INFO: Record<string, { label: string; color: string; bg: string; bo
 
 const C = {
   card: "#ffffff", border: "#e8e8f0",
-  sep: "#1a1a2e", text: "#1a1a2e", sub: "#64748b", muted: "#94a3b8", r: 10,
+  sep: "#e8e8f0", text: "#1a1a2e", sub: "#64748b", muted: "#94a3b8", r: 10,
 };
 
 const planColors: Record<string, string> = {
@@ -123,8 +123,8 @@ export default function AdminRelatoriosPage() {
           {PERIODS.map(p => (
             <button key={p.key} onClick={() => setPeriod(p.key)}
               style={{ padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-                border: period === p.key ? "none" : "1px solid rgba(255,255,255,0.08)",
-                background: period === p.key ? "#818cf8" : "#ffffff",
+                border: period === p.key ? "none" : "1px solid #e8e8f0",
+                background: period === p.key ? "#7c3aed" : "#ffffff",
                 color: period === p.key ? "#fff" : C.muted,
                 transition: "all .15s" }}>
               {p.label}
@@ -243,7 +243,7 @@ export default function AdminRelatoriosPage() {
             return (
               <div key={label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: count > 0 ? C.sub : C.muted }}>{count > 0 ? count : ""}</span>
-                <div style={{ width: "100%", height: barH, borderRadius: 4, background: count > 0 ? "rgba(99,102,241,0.45)" : "#1a1a2e", border: count > 0 ? "1px solid rgba(99,102,241,0.30)" : `1px solid ${C.sep}` }}/>
+                <div style={{ width: "100%", height: barH, borderRadius: 4, background: count > 0 ? "#7c3aed" : "#e8e8f0", border: count > 0 ? "1px solid rgba(124,58,237,0.30)" : "1px solid #e8e8f0" }}/>
                 <span style={{ fontSize: 10, color: C.muted, textTransform: "capitalize" }}>{label}</span>
               </div>
             );
