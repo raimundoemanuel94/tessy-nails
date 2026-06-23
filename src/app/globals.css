@@ -1786,11 +1786,9 @@ button:active, a:active, [role="button"]:active {
   inset: 0 auto 0 0;
   width: min(310px, 86vw);
   z-index: 29;
-  background:
-    linear-gradient(180deg, rgba(129,140,248,0.055), transparent 210px),
-    #07090d;
-  border-right: 1px solid rgba(255,255,255,0.085);
-  box-shadow: 28px 0 60px rgba(0,0,0,0.38);
+  background: #2d2d3f;
+  border-right: none;
+  box-shadow: 28px 0 60px rgba(0,0,0,0.30);
   transform: translateX(-100%);
   visibility: hidden;
   pointer-events: none;
@@ -2027,6 +2025,7 @@ button:active, a:active, [role="button"]:active {
   border: none;
   font-size: 10px;
   font-weight: 700;
+  letter-spacing: 0;
 }
 .adm-side-group-trigger { width: 100%; }
 .adm-side-group-trigger > svg:last-child {
@@ -2073,10 +2072,11 @@ button:active, a:active, [role="button"]:active {
 }
 .adm-side-child:active { transform: scale(0.98); }
 .adm-side-child.is-active {
-  color: #a78bfa;
-  background: rgba(124,58,237,0.15);
-  border-left-color: #7c3aed;
+  color: #ffffff;
+  background: #7c3aed;
+  border-left-color: transparent;
   font-weight: 600;
+  border-radius: 8px;
 }
 .adm-sidebar-footer {
   padding: 12px;
