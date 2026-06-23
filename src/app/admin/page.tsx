@@ -211,8 +211,8 @@ export default async function AdminPage() {
   const urgentItems = [
     withoutOwner.length > 0 && {
       icon: Link2,
-      title: `${withoutOwner.length} studio${withoutOwner.length > 1 ? "s" : ""} sem profissional`,
-      description: "Esses tenants existem, mas ainda não têm owner vinculado.",
+      title: `${withoutOwner.length} salão${withoutOwner.length > 1 ? "ões" : ""} sem responsável`,
+      description: "Essas contas já existem, mas ainda não têm profissional responsável vinculado.",
       href: "/admin/profissionais",
       tone: "warning",
     },
@@ -225,22 +225,22 @@ export default async function AdminPage() {
     },
     trialExpiring.length > 0 && {
       icon: CreditCard,
-      title: `${trialExpiring.length} trial${trialExpiring.length > 1 ? "s" : ""} vencendo`,
+      title: `${trialExpiring.length} teste${trialExpiring.length > 1 ? "s" : ""} vencendo`,
       description: "Boa hora para converter antes de perder ativação.",
       href: "/admin/financeiro/assinaturas",
       tone: "warning",
     },
     staleStudios.length > 0 && {
       icon: CalendarClock,
-      title: `${staleStudios.length} studio${staleStudios.length > 1 ? "s" : ""} sem agenda recente`,
-      description: "Possível risco de churn ou onboarding incompleto.",
+      title: `${staleStudios.length} salão${staleStudios.length > 1 ? "ões" : ""} sem agenda recente`,
+      description: "Possível risco de cancelamento ou implantação incompleta.",
       href: "/admin/studios",
       tone: "brand",
     },
     inactiveStudios.length > 0 && {
       icon: AlertTriangle,
-      title: `${inactiveStudios.length} studio${inactiveStudios.length > 1 ? "s" : ""} inativo${inactiveStudios.length > 1 ? "s" : ""}`,
-      description: "Revise se é churn, suspensão temporária ou erro operacional.",
+      title: `${inactiveStudios.length} salão${inactiveStudios.length > 1 ? "ões" : ""} inativo${inactiveStudios.length > 1 ? "s" : ""}`,
+      description: "Revise se é cancelamento, suspensão temporária ou erro operacional.",
       href: "/admin/studios",
       tone: "muted",
     },
@@ -250,12 +250,12 @@ export default async function AdminPage() {
     <div style={{ display: "flex", flexDirection: "column", gap: 22, maxWidth: 1180 }}>
       <AdminPageHeader
         eyebrow="Central de comando"
-        title="Operação SaaS"
+        title="Painel executivo"
         description="Visão executiva para receita, ativação, risco e ações do dia na plataforma Nailit."
         actions={
           <>
             <AdminActionButton href="/admin/studios" tone="brand">
-              Novo studio <ArrowRight size={13} />
+              Novo salão <ArrowRight size={13} />
             </AdminActionButton>
             <AdminActionButton href="/admin/financeiro" tone="success">
               Ver financeiro
@@ -265,10 +265,10 @@ export default async function AdminPage() {
       />
 
       <div style={{ display: "grid", gridTemplateColumns: "1.4fr repeat(3, 1fr)", gap: 12 }}>
-        <AdminMetricCard label="MRR (ativos)" value={formatCurrency(mrr)} sub={`${mrrDelta >= 0 ? "+" : ""}${formatCurrency(mrrDelta)} vs mês anterior · ${trials.length} em trial`} icon={DollarSign} tone="success" large />
+        <AdminMetricCard label="MRR ativo" value={formatCurrency(mrr)} sub={`${mrrDelta >= 0 ? "+" : ""}${formatCurrency(mrrDelta)} vs mês anterior · ${trials.length} em teste`} icon={DollarSign} tone="success" large />
         <AdminMetricCard label="ARR" value={formatCurrency(arr)} sub="receita anual recorrente" icon={TrendingUp} tone="brand" />
-        <AdminMetricCard label="Pagantes" value={paidStudios.length} sub={`${studioList.length} studios totais`} icon={CreditCard} tone="default" />
-        <AdminMetricCard label="ARPU" value={formatCurrency(arpu)} sub={`${trials.length} em trial`} icon={Users} tone="warning" />
+        <AdminMetricCard label="Pagantes" value={paidStudios.length} sub={`${studioList.length} salões totais`} icon={CreditCard} tone="default" />
+        <AdminMetricCard label="ARPU" value={formatCurrency(arpu)} sub={`${trials.length} em teste`} icon={Users} tone="warning" />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
@@ -280,12 +280,12 @@ export default async function AdminPage() {
 
       <AdminPanel
         title="Mapa operacional por salão"
-        description="Clientes, agenda futura, atendimentos concluídos e receita por tenant."
+        description="Clientes, agenda futura, atendimentos concluídos e receita por salão."
         tone="brand"
         actions={<AdminActionButton href="/admin/clientes" tone="muted">Ver clientes</AdminActionButton>}
       >
         {studioOps.length === 0 ? (
-          <AdminEmptyState title="Nenhum salão encontrado" description="Quando houver studios cadastrados, eles aparecem neste mapa operacional." />
+          <AdminEmptyState title="Nenhum salão encontrado" description="Quando houver salões cadastrados, eles aparecem neste mapa operacional." />
         ) : (
           <div>
             <div style={{ display: "grid", gridTemplateColumns: "1.25fr .7fr .75fr .75fr .75fr .8fr .8fr", gap: 12, padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
@@ -331,11 +331,11 @@ export default async function AdminPage() {
           {urgentItems.length ? (
             urgentItems.slice(0, 6).map((item: any) => <RiskRow key={item.title} {...item} />)
           ) : (
-            <AdminEmptyState title="Operação sem alertas críticos" description="Nenhum trial vencendo, inadimplente ou studio sem owner no momento." tone="success" />
+            <AdminEmptyState title="Operação sem alertas críticos" description="Nenhum teste vencendo, inadimplente ou salão sem responsável no momento." tone="success" />
           )}
         </AdminPanel>
 
-        <AdminPanel title="Saúde da base" description="Resumo rápido dos tenants ativos e em risco." tone="brand">
+        <AdminPanel title="Saúde da base" description="Resumo rápido dos salões ativos e em risco." tone="brand">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: 16 }}>
             <AdminMetricCard label="Ativos" value={activeStudios.length} sub="com acesso liberado" icon={Building2} tone="success" />
             <AdminMetricCard label="Risco" value={staleStudios.length + pastDue.length} sub="uso baixo ou atraso" icon={AlertTriangle} tone={staleStudios.length + pastDue.length ? "danger" : "muted"} />
@@ -345,7 +345,7 @@ export default async function AdminPage() {
               <div key={row.plan}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                   <span style={{ fontSize: 12, color: "#f4f4f5", fontWeight: 700 }}>{PLAN_LABEL[row.plan] ?? row.plan}</span>
-                  <span style={{ fontSize: 12, color: "#71717a" }}>{row.count} studios · {formatCurrency(row.revenue)}</span>
+                  <span style={{ fontSize: 12, color: "#71717a" }}>{row.count} salões · {formatCurrency(row.revenue)}</span>
                 </div>
                 <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
                   <div style={{ width: `${row.pct}%`, height: "100%", background: row.plan === "studio" ? "#f472b6" : row.plan === "pro" ? "#818cf8" : row.plan === "starter" ? "#60a5fa" : "#71717a" }} />
@@ -358,8 +358,8 @@ export default async function AdminPage() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "start" }}>
         <AdminPanel
-          title="Studios recentes"
-          description="Novos tenants e status comercial."
+          title="Salões recentes"
+          description="Novas contas e status comercial."
           actions={<AdminActionButton href="/admin/studios" tone="muted">Ver todos</AdminActionButton>}
         >
           {studioList.slice(0, 7).map((studio) => {

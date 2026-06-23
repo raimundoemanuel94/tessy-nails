@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
-  CalendarDays,
   ChevronDown,
   Command,
   DollarSign,
@@ -14,9 +13,10 @@ import {
   LogOut,
   Menu,
   Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
   Settings,
   Sun,
-  UserRound,
   Users,
   X,
 } from "lucide-react";
@@ -102,7 +102,23 @@ function CountBadge({ n }: { n: number }) {
   );
 }
 
-function NavGroup({ item, isActive, onNav, open, onToggle, getCount }: any) {
+function readBrowserStorage(key: string) {
+  try {
+    return window.localStorage?.getItem(key) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function writeBrowserStorage(key: string, value: string) {
+  try {
+    window.localStorage?.setItem(key, value);
+  } catch {
+    // Keep the UI state working even when browser storage is unavailable.
+  }
+}
+
+function NavGroup({ item, isActive, onNav, open, onToggle, getCount, collapsed }: any) {
   const Icon = item.icon;
   const childActive = item.children.some((child: any) =>
     child.exact ? isActive(child.href, true) : isActive(child.href)
@@ -116,6 +132,7 @@ function NavGroup({ item, isActive, onNav, open, onToggle, getCount }: any) {
       <button
         type="button"
         onClick={onToggle}
+        title={collapsed ? item.label : undefined}
         className={`adm-side-link adm-side-group-trigger ${childActive ? "is-active" : ""}`}
       >
         <Icon size={15} />
@@ -132,6 +149,7 @@ function NavGroup({ item, isActive, onNav, open, onToggle, getCount }: any) {
               key={child.href}
               href={child.href}
               onClick={onNav}
+              title={child.label}
               className={`adm-side-child ${active ? "is-active" : ""}`}
             >
               <span>{child.label}</span>
@@ -144,7 +162,20 @@ function NavGroup({ item, isActive, onNav, open, onToggle, getCount }: any) {
   );
 }
 
-function SidebarBody({ name, email, onNav, isActive, getCount, signOut, openGroups, toggleGroup, theme, toggleTheme }: any) {
+function SidebarBody({
+  name,
+  email,
+  onNav,
+  isActive,
+  getCount,
+  signOut,
+  openGroups,
+  toggleGroup,
+  theme,
+  toggleTheme,
+  collapsed,
+  toggleCollapsed,
+}: any) {
   const initial = (name || "A").charAt(0).toUpperCase();
   const shortEmail = email ? (email.length > 25 ? `${email.slice(0, 22)}...` : email) : "superadmin";
   const isDay = theme === "day";
@@ -156,10 +187,30 @@ function SidebarBody({ name, email, onNav, isActive, getCount, signOut, openGrou
         <div className="adm-brand-copy">
           <div>
             <strong>Nailit</strong>
-            <span>Console superadmin</span>
+            <span>Central da plataforma</span>
           </div>
           <small>Admin</small>
         </div>
+        <button
+          type="button"
+          className="adm-theme-icon"
+          onClick={toggleTheme}
+          title={isDay ? "Usar tema noite" : "Usar tema dia"}
+          aria-label={isDay ? "Usar tema noite" : "Usar tema dia"}
+        >
+          {isDay ? <Moon size={14} /> : <Sun size={14} />}
+        </button>
+        {toggleCollapsed && (
+          <button
+            type="button"
+            className="adm-collapse-icon"
+            onClick={toggleCollapsed}
+            title={collapsed ? "Expandir sidebar" : "Recolher sidebar"}
+            aria-label={collapsed ? "Expandir sidebar" : "Recolher sidebar"}
+          >
+            {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+          </button>
+        )}
       </div>
 
       <nav className="adm-sidebar-nav">
@@ -174,6 +225,7 @@ function SidebarBody({ name, email, onNav, isActive, getCount, signOut, openGrou
                   isActive={isActive}
                   onNav={onNav}
                   getCount={getCount}
+                  collapsed={collapsed}
                   open={!!openGroups[item.key]}
                   onToggle={() => toggleGroup(item.key)}
                 />
@@ -185,20 +237,21 @@ function SidebarBody({ name, email, onNav, isActive, getCount, signOut, openGrou
 
       <footer className="adm-sidebar-footer">
         <div className="adm-account-card">
-          <div className="adm-user-avatar">{initial}</div>
-          <div className="adm-user-copy">
-            <strong>{name || "Admin"}</strong>
-            <span>{shortEmail}</span>
+          <div className="adm-user-row">
+            <div className="adm-user-avatar">{initial}</div>
+            <div className="adm-user-copy">
+              <strong>{name || "Admin"}</strong>
+              <span>{shortEmail}</span>
+            </div>
           </div>
           <div className="adm-footer-actions">
-            <button type="button" onClick={toggleTheme} title={isDay ? "Usar tema noite" : "Usar tema dia"} aria-label={isDay ? "Usar tema noite" : "Usar tema dia"}>
-              {isDay ? <Moon size={14} /> : <Sun size={14} />}
-            </button>
             <Link href="/dashboard" onClick={onNav} title="Ver app do salão" aria-label="Ver app do salão">
               <ExternalLink size={14} />
+              <span>App</span>
             </Link>
             <button type="button" onClick={signOut} title="Sair da conta" aria-label="Sair da conta">
               <LogOut size={14} />
+              <span>Sair</span>
             </button>
           </div>
         </div>
@@ -211,22 +264,39 @@ export function AdminSidebar({ name, email }: { name: string; email?: string }) 
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [theme, setTheme] = useState<"night" | "day">("night");
   const [counts, setCounts] = useState({ studios: 0, users: 0, clients: 0, appointments: 0 });
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("admin-theme");
+    const stored = readBrowserStorage("admin-theme");
     const next = stored === "day" ? "day" : "night";
     setTheme(next);
     document.documentElement.setAttribute("data-admin-theme", next);
   }, []);
 
+  useEffect(() => {
+    const stored = readBrowserStorage("admin-sidebar-collapsed") === "1";
+    setCollapsed(stored);
+    document.documentElement.setAttribute("data-admin-sidebar", stored ? "collapsed" : "expanded");
+  }, []);
+
   function toggleTheme() {
     const next = theme === "day" ? "night" : "day";
     setTheme(next);
-    window.localStorage.setItem("admin-theme", next);
+    writeBrowserStorage("admin-theme", next);
     document.documentElement.setAttribute("data-admin-theme", next);
+  }
+
+  function setSidebarCollapsed(next: boolean) {
+    setCollapsed(next);
+    writeBrowserStorage("admin-sidebar-collapsed", next ? "1" : "0");
+    document.documentElement.setAttribute("data-admin-sidebar", next ? "collapsed" : "expanded");
+  }
+
+  function toggleCollapsed() {
+    setSidebarCollapsed(!collapsed);
   }
 
   useEffect(() => {
@@ -279,8 +349,16 @@ export function AdminSidebar({ name, email }: { name: string; email?: string }) 
   const isActive = (href: string, exact?: boolean) => exact ? pathname === href : pathname.startsWith(href);
   const getCount = (key?: string) => key ? counts[key as keyof typeof counts] ?? 0 : 0;
   const toggleGroup = (key: string) => setOpenGroups((current) => ({ ...current, [key]: !current[key] }));
+  const toggleDesktopGroup = (key: string) => {
+    if (collapsed) {
+      setSidebarCollapsed(false);
+      setOpenGroups((current) => ({ ...current, [key]: true }));
+      return;
+    }
+    toggleGroup(key);
+  };
 
-  const sharedProps = { name, email, isActive, getCount, signOut, openGroups, toggleGroup, theme, toggleTheme };
+  const sharedProps = { name, email, isActive, getCount, signOut, openGroups, theme, toggleTheme };
 
   return (
     <>
@@ -304,7 +382,12 @@ export function AdminSidebar({ name, email }: { name: string; email?: string }) 
       </div>
 
       <aside className="admin-sidebar-desktop">
-        <SidebarBody {...sharedProps} />
+        <SidebarBody
+          {...sharedProps}
+          collapsed={collapsed}
+          toggleGroup={toggleDesktopGroup}
+          toggleCollapsed={toggleCollapsed}
+        />
       </aside>
 
       {mobileOpen && <div className="adm-mobile-backdrop" onClick={() => setMobileOpen(false)} />}
@@ -313,7 +396,12 @@ export function AdminSidebar({ name, email }: { name: string; email?: string }) 
         <button type="button" onClick={() => setMobileOpen(false)} aria-label="Fechar menu" className="adm-mobile-close">
           <X size={15} />
         </button>
-        <SidebarBody {...sharedProps} onNav={() => setMobileOpen(false)} />
+        <SidebarBody
+          {...sharedProps}
+          collapsed={false}
+          toggleGroup={toggleGroup}
+          onNav={() => setMobileOpen(false)}
+        />
       </aside>
     </>
   );

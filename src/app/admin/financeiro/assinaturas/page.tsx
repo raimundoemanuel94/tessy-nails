@@ -16,7 +16,7 @@ const PLAN_C: Record<string,{color:string;bg:string;border:string}> = {
 };
 const STATUS_S: Record<string,{label:string;color:string;bg:string;border:string}> = {
   active:   { label:"Ativo",        color:"#4ade80", bg:"rgba(74,222,128,0.08)",  border:"rgba(74,222,128,0.20)"  },
-  trial:    { label:"Trial",        color:"#818cf8", bg:"rgba(99,102,241,0.08)",  border:"rgba(99,102,241,0.20)"  },
+  trial:    { label:"Teste",        color:"#818cf8", bg:"rgba(99,102,241,0.08)",  border:"rgba(99,102,241,0.20)"  },
   past_due: { label:"Inadimplente", color:"#f87171", bg:"rgba(248,113,113,0.08)", border:"rgba(248,113,113,0.20)" },
   canceled: { label:"Cancelado",    color:"#52525b", bg:"rgba(82,82,91,0.08)",    border:"rgba(82,82,91,0.18)"    },
 };
@@ -30,7 +30,7 @@ function daysUntil(d: string|null): number|null {
 }
 
 const FILTERS = ["all","active","trial","expiring","canceled"] as const;
-const FILTER_LABELS: Record<string,string> = { all:"Todos", active:"Ativos", trial:"Trial", expiring:"Vencendo", canceled:"Cancelados" };
+const FILTER_LABELS: Record<string,string> = { all:"Todos", active:"Ativos", trial:"Em teste", expiring:"Vencendo", canceled:"Cancelados" };
 
 export default function AssinaturasPage() {
   const [studios, setStudios] = useState<any[]>([]);
@@ -62,9 +62,9 @@ export default function AssinaturasPage() {
 
   const SEGS = [
     { key:"active",   label:"Ativos",     sub:"pagantes",  count:seg.active.length,   icon:CheckCircle2, color:"#4ade80" },
-    { key:"trial",    label:"Trial",      sub:"testando",  count:seg.trial.length,    icon:Clock,        color:"#818cf8" },
+    { key:"trial",    label:"Em teste",   sub:"testando",  count:seg.trial.length,    icon:Clock,        color:"#818cf8" },
     { key:"expiring", label:"Vencendo",   sub:"7 dias",    count:seg.expiring.length, icon:AlertTriangle,color:"#fbbf24" },
-    { key:"canceled", label:"Cancelados", sub:"churn",     count:seg.canceled.length, icon:XCircle,      color:C.muted   },
+    { key:"canceled", label:"Cancelados", sub:"encerrados", count:seg.canceled.length, icon:XCircle,     color:C.muted   },
   ];
 
   const COLS = "2.4fr 1fr 1.2fr 1.1fr 1.1fr 0.9fr";
@@ -75,7 +75,7 @@ export default function AssinaturasPage() {
       <div>
         <p style={{ fontSize:11, fontWeight:500, color:C.muted, letterSpacing:"0.07em", textTransform:"uppercase", margin:"0 0 5px" }}>Financeiro</p>
         <h1 style={{ fontSize:22, fontWeight:700, color:C.text, margin:0, letterSpacing:"-0.025em" }}>Assinaturas</h1>
-        <p style={{ fontSize:13, color:C.muted, marginTop:4 }}>Quem está ativo, em trial e quem renova em breve</p>
+        <p style={{ fontSize:13, color:C.muted, marginTop:4 }}>Quem está ativo, em teste e quem renova em breve.</p>
       </div>
 
       {/* Seg cards — clicáveis como filtro */}

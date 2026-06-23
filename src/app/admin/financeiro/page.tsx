@@ -143,7 +143,7 @@ export default async function FinanceiroPage() {
       <AdminPageHeader
         eyebrow="Financeiro SaaS"
         title="Receita e assinaturas"
-        description="MRR, risco, trials e distribuição de receita por plano. Métricas históricas usam aproximação até existir snapshot financeiro."
+        description="MRR, risco, períodos de teste e distribuição de receita por plano. As métricas históricas usam os dados disponíveis hoje."
         actions={
           <>
             <AdminActionButton href="/admin/financeiro/assinaturas" tone="brand">Assinaturas <ArrowRight size={13} /></AdminActionButton>
@@ -160,9 +160,9 @@ export default async function FinanceiroPage() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
-        <AdminMetricCard label="New MRR" value={formatCurrency(newMrr)} sub={`${newThisMonth.length} novos pagantes no mês`} icon={CreditCard} tone="success" />
-        <AdminMetricCard label="Churned MRR aprox." value={formatCurrency(churnedMrrApprox)} sub={`${churnedThisMonth.length} contas canceladas/inativas`} icon={TrendingDown} tone={churnedMrrApprox ? "danger" : "muted"} />
-        <AdminMetricCard label="Trials" value={trials.length} sub={`${expiringTrials.length} vencendo em 7 dias`} icon={Layers} tone={expiringTrials.length ? "warning" : "brand"} />
+        <AdminMetricCard label="Novo MRR" value={formatCurrency(newMrr)} sub={`${newThisMonth.length} novos pagantes no mês`} icon={CreditCard} tone="success" />
+        <AdminMetricCard label="MRR perdido aprox." value={formatCurrency(churnedMrrApprox)} sub={`${churnedThisMonth.length} contas canceladas/inativas`} icon={TrendingDown} tone={churnedMrrApprox ? "danger" : "muted"} />
+        <AdminMetricCard label="Em teste" value={trials.length} sub={`${expiringTrials.length} vencendo em 7 dias`} icon={Layers} tone={expiringTrials.length ? "warning" : "brand"} />
         <AdminMetricCard label="Crescimento" value={`${growthRate >= 0 ? "+" : ""}${growthRate}%`} sub="novos ativos vs mês anterior" icon={growthRate >= 0 ? TrendingUp : TrendingDown} tone={growthRate >= 0 ? "success" : "danger"} />
       </div>
 
@@ -175,7 +175,7 @@ export default async function FinanceiroPage() {
           <div style={{ padding: 16, display: "grid", gap: 10 }}>
             {[
               ["Ativas", active.length, "success"],
-              ["Trials", trials.length, "warning"],
+              ["Em teste", trials.length, "warning"],
               ["Inadimplentes", pastDue.length, pastDue.length ? "danger" : "muted"],
               ["Canceladas/inativas", canceled.length, "muted"],
             ].map(([label, value, tone]) => (

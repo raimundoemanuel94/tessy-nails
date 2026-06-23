@@ -44,12 +44,12 @@ export default async function AdminComissoesPage() {
       <AdminPageHeader
         eyebrow="Equipe"
         title="Comissões"
-        description="Visão superadmin para preparar repasses por manicure, salão e serviço."
+        description="Visão administrativa para preparar repasses por manicure, salão e serviço."
         actions={<AdminActionButton href="/admin/profissionais" tone="brand">Gerenciar profissionais</AdminActionButton>}
       />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
-        <AdminMetricCard label="Profissionais" value={professionals.length} sub="owners e manicures" icon={UserRound} tone="brand" />
+        <AdminMetricCard label="Profissionais" value={professionals.length} sub="responsáveis e manicures" icon={UserRound} tone="brand" />
         <AdminMetricCard label="Atendimentos concluídos" value={completed.length} sub="base de cálculo" icon={CalendarCheck} tone="success" />
         <AdminMetricCard label="Receita concluída" value={formatCurrency(grossRevenue)} sub="antes de repasse" icon={BadgeDollarSign} tone="default" />
         <AdminMetricCard label="Comissão estimada" value={formatCurrency(estimatedCommission)} sub="baseado na taxa de cada salão" icon={Scissors} tone="warning" />
@@ -79,7 +79,7 @@ export default async function AdminComissoesPage() {
         </div>
       </AdminPanel>
 
-      <AdminPanel title="Para ativar comissão real por manicure" description="Esse é o próximo upgrade estrutural necessário para ficar nível SaaS completo." tone="brand">
+      <AdminPanel title="Para ativar comissão real por manicure" description="Próximo passo estrutural para calcular repasses com precisão por profissional." tone="brand">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, padding: 16 }}>
           {[
             ["appointments.professional_id", "Vincular cada atendimento à manicure responsável."],

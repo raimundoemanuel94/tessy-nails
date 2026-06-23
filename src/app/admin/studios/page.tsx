@@ -231,20 +231,21 @@ export default function AdminStudiosPage() {
     free:     studios.filter(s => s.plan === "free").length,
   };
 
-  const COLS = "1fr 130px 70px 130px 90px 70px 52px";
+  const COLS = "minmax(220px, 1fr) 140px 82px 140px 110px 92px 72px";
+  const TABLE_MIN_WIDTH = 900;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1120 }}>
+    <div className="admin-studios-page" style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1120 }}>
 
       {/* ── Header ── */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
           <p style={{ fontSize: 11, fontWeight: 500, color: C.muted, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 5 }}>
-            Admin Console
+            Operação
           </p>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.025em" }}>Studios</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.025em" }}>Salões</h1>
           <p style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>
-            {total} studio{total !== 1 ? "s" : ""} na plataforma
+            {total} {total === 1 ? "salão" : "salões"} na plataforma
             {nActive > 0 && <span style={{ color: "#4ade80", marginLeft: 6 }}>{nActive} ativos</span>}
           </p>
         </div>
@@ -255,7 +256,7 @@ export default function AdminStudiosPage() {
           fontSize: 13, fontWeight: 600, color: "#818cf8", cursor: "pointer", fontFamily: "inherit",
           transition: "background .15s",
         }}>
-          <Plus size={13}/> Novo Studio
+          <Plus size={13}/> Novo salão
         </button>
       </div>
 
@@ -267,7 +268,7 @@ export default function AdminStudiosPage() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar por nome ou slug…"
+            placeholder="Buscar por nome ou link público…"
             style={{
               width: "100%", height: 38, paddingLeft: 36, paddingRight: 12,
               background: C.card, border: `1px solid ${C.border}`,
@@ -310,7 +311,7 @@ export default function AdminStudiosPage() {
       </div>
 
       {/* ── Table ── */}
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: C.r, overflow: "hidden" }}>
+      <div className="admin-studios-table" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: C.r, overflowX: "auto", overflowY: "hidden" }}>
         {loading ? (
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "60px 0", gap: 10 }}>
             <Loader2 size={16} color={C.muted} className="spin"/>
@@ -328,14 +329,14 @@ export default function AdminStudiosPage() {
               <Building2 size={20} color={C.muted}/>
             </div>
             <p style={{ fontSize: 14, fontWeight: 600, color: C.sub, margin: "0 0 6px" }}>
-              {search || activeFilter !== "all" ? "Nenhum resultado" : "Nenhum studio ainda"}
+              {search || activeFilter !== "all" ? "Nenhum resultado" : "Nenhum salão ainda"}
             </p>
             <p style={{ fontSize: 12, color: C.muted, margin: "0 0 20px" }}>
               {search
                 ? `Sem resultados para "${search}"`
                 : activeFilter !== "all"
                 ? "Tente outro filtro"
-                : "Crie o primeiro studio da plataforma"}
+                : "Crie o primeiro salão da plataforma"}
             </p>
             {!search && activeFilter === "all" && (
               <button onClick={() => setOpen(true)} style={{
@@ -344,7 +345,7 @@ export default function AdminStudiosPage() {
                 background: "rgba(99,102,241,0.10)", border: "1px solid rgba(99,102,241,0.22)",
                 fontSize: 13, fontWeight: 600, color: "#818cf8", cursor: "pointer", fontFamily: "inherit",
               }}>
-                <Plus size={13}/> Criar studio
+                <Plus size={13}/> Criar salão
               </button>
             )}
           </div>
@@ -352,15 +353,16 @@ export default function AdminStudiosPage() {
         ) : (
           <>
             {/* Table header — sortable */}
-            <div style={{
+            <div className="admin-studios-table-head" style={{
               display: "grid", gridTemplateColumns: COLS,
               padding: "8px 18px", borderBottom: `1px solid ${C.sep}`,
+              minWidth: TABLE_MIN_WIDTH,
             }}>
               {[
-                { label: "Studio",        key: "name"   },
+                { label: "Salão",         key: "name"   },
                 { label: "Responsável",   key: null     },
                 { label: "Plano",         key: "plan"   },
-                { label: "Último agend.", key: "last"   },
+                { label: "Última agenda", key: "last"   },
                 { label: "Saúde",         key: "health" },
                 { label: "Status",        key: "status" },
                 { label: "",              key: null     },
@@ -396,10 +398,11 @@ export default function AdminStudiosPage() {
               return (
                 <div
                   key={s.id}
-                  className="a-row"
+                  className="a-row admin-studios-row"
                   style={{
                     display: "grid", gridTemplateColumns: COLS,
                     alignItems: "center", padding: "12px 18px",
+                    minWidth: TABLE_MIN_WIDTH,
                     borderBottom: !isLast ? `1px solid ${C.sep}` : "none",
                     opacity: s.is_active ? 1 : 0.55,
                     transition: "opacity .15s",
@@ -520,7 +523,7 @@ export default function AdminStudiosPage() {
         )}
       </div>
 
-      {/* ── Modal novo studio ── */}
+      {/* ── Modal novo salão ── */}
       {open && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 50,
@@ -536,10 +539,10 @@ export default function AdminStudiosPage() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22 }}>
               <div>
                 <h2 style={{ fontSize: 16, fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.02em" }}>
-                  Novo Studio
+                  Novo salão
                 </h2>
                 <p style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
-                  Inclui 8 serviços padrão automaticamente
+                  Inclui 8 serviços padrão automaticamente.
                 </p>
               </div>
               <button
@@ -563,7 +566,7 @@ export default function AdminStudiosPage() {
               </div>
               <div>
                 <label style={{ fontSize: 11, fontWeight: 500, color: C.muted, display: "block",
-                  marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>Slug (URL) *</label>
+                  marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>Link público *</label>
                 <input className="input-base" value={slug}
                   onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,""))}
                   placeholder="tessy-nails"/>
@@ -600,7 +603,7 @@ export default function AdminStudiosPage() {
                 fontFamily: "inherit", opacity: saving ? 0.6 : 1,
               }}>
                 {saving ? <Loader2 size={13} className="spin"/> : <Plus size={13}/>}
-                Criar Studio
+                Criar salão
               </button>
               <button onClick={() => setOpen(false)} style={{
                 height: 40, padding: "0 16px", borderRadius: 8,
@@ -619,12 +622,12 @@ export default function AdminStudiosPage() {
           <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: 28, maxWidth: 380, width: "calc(100% - 40px)" }}
             onClick={e => e.stopPropagation()}>
             <p style={{ fontSize: 16, fontWeight: 700, color: "#f4f4f5", margin: "0 0 8px" }}>
-              {confirmToggle.active ? "Desativar" : "Ativar"} studio?
+              {confirmToggle.active ? "Desativar" : "Ativar"} salão?
             </p>
             <p style={{ fontSize: 13, color: "#a1a1aa", margin: "0 0 20px" }}>
               {confirmToggle.active
-                ? `O studio "${confirmToggle.name}" ficará inacessível para novos agendamentos.`
-                : `O studio "${confirmToggle.name}" voltará a aceitar agendamentos.`}
+                ? `O salão "${confirmToggle.name}" ficará inacessível para novos agendamentos.`
+                : `O salão "${confirmToggle.name}" voltará a aceitar agendamentos.`}
             </p>
             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
               <button onClick={() => setConfirmToggle(null)}

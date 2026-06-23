@@ -5,12 +5,12 @@ import { AlertTriangle, ArrowRight, CheckCircle2, Info, Loader2 } from "lucide-r
 type Tone = "default" | "brand" | "success" | "warning" | "danger" | "muted";
 
 const tones: Record<Tone, { color: string; bg: string; border: string }> = {
-  default: { color: "#f4f4f5", bg: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.08)" },
-  brand: { color: "#818cf8", bg: "rgba(99,102,241,0.11)", border: "rgba(99,102,241,0.26)" },
-  success: { color: "#4ade80", bg: "rgba(74,222,128,0.10)", border: "rgba(74,222,128,0.22)" },
-  warning: { color: "#fbbf24", bg: "rgba(251,191,36,0.10)", border: "rgba(251,191,36,0.24)" },
-  danger: { color: "#f87171", bg: "rgba(248,113,113,0.10)", border: "rgba(248,113,113,0.24)" },
-  muted: { color: "#71717a", bg: "rgba(113,113,122,0.10)", border: "rgba(113,113,122,0.20)" },
+  default: { color: "#e5e7eb", bg: "rgba(148,163,184,0.08)", border: "rgba(148,163,184,0.16)" },
+  brand: { color: "#93c5fd", bg: "rgba(37,99,235,0.13)", border: "rgba(59,130,246,0.30)" },
+  success: { color: "#34d399", bg: "rgba(16,185,129,0.11)", border: "rgba(16,185,129,0.24)" },
+  warning: { color: "#f59e0b", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.26)" },
+  danger: { color: "#fb7185", bg: "rgba(244,63,94,0.11)", border: "rgba(244,63,94,0.26)" },
+  muted: { color: "#94a3b8", bg: "rgba(148,163,184,0.09)", border: "rgba(148,163,184,0.18)" },
 };
 
 export function AdminPageHeader({

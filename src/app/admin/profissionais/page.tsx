@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 const ROLE: Record<string, { bg: string; color: string; border: string; label: string }> = {
   superadmin:   { bg: "rgba(99,102,241,0.10)",  color: "#818cf8", border: "rgba(99,102,241,0.22)",  label: "Superadmin"   },
-  owner:        { bg: "rgba(34,197,94,0.08)",   color: "#4ade80", border: "rgba(34,197,94,0.20)",   label: "Owner"        },
+  owner:        { bg: "rgba(34,197,94,0.08)",   color: "#4ade80", border: "rgba(34,197,94,0.20)",   label: "Responsável"  },
   professional: { bg: "rgba(161,161,170,0.08)", color: "#a1a1aa", border: "rgba(161,161,170,0.18)", label: "Profissional" },
 };
 
@@ -40,7 +40,7 @@ export default async function AdminProfissionaisPage() {
       {/* Header */}
       <div>
         <p style={{ fontSize: 11, fontWeight: 500, color: C.muted, letterSpacing: "0.06em",
-          textTransform: "uppercase", marginBottom: 6 }}>Admin Console</p>
+          textTransform: "uppercase", marginBottom: 6 }}>Equipe</p>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.025em" }}>Usuários</h1>
         <p style={{ fontSize: 13, color: C.muted, marginTop: 5 }}>
           {all.length} conta{all.length !== 1 ? "s" : ""} na plataforma
@@ -52,9 +52,9 @@ export default async function AdminProfissionaisPage() {
         {[
           { label: "Total",         value: all.length,  color: C.sub  },
           { label: "Superadmin",    value: admins,       color: "#818cf8" },
-          { label: "Owners",        value: owners,       color: "#4ade80" },
+          { label: "Responsáveis",  value: owners,       color: "#4ade80" },
           { label: "Profissionais", value: profs,        color: C.sub  },
-          ...(noStudio > 0 ? [{ label: "Sem studio", value: noStudio, color: "#f87171" }] : []),
+          ...(noStudio > 0 ? [{ label: "Sem salão", value: noStudio, color: "#f87171" }] : []),
         ].map(({ label, value, color }) => (
           <div key={label} style={{
             display: "flex", alignItems: "center", gap: 5,
@@ -81,7 +81,7 @@ export default async function AdminProfissionaisPage() {
               display: "grid", gridTemplateColumns: "1fr 100px 180px",
               padding: "7px 18px", borderBottom: `1px solid ${C.sep}`,
             }}>
-              {["Usuário", "Role", "Studio vinculado"].map(h => (
+              {["Usuário", "Perfil", "Salão vinculado"].map(h => (
                 <span key={h} style={{ fontSize: 10, fontWeight: 500, color: C.muted, letterSpacing: "0.06em", textTransform: "uppercase" }}>{h}</span>
               ))}
             </div>
@@ -129,7 +129,7 @@ export default async function AdminProfissionaisPage() {
                     }}>{rs.label}</span>
                   </div>
 
-                  {/* Studio */}
+                  {/* Salão */}
                   <div>
                     {isAdmin ? (
                       <span style={{ fontSize: 12, color: C.muted, fontWeight: 500 }}>—</span>
@@ -141,7 +141,7 @@ export default async function AdminProfissionaisPage() {
                         <Building2 size={11}/> {p.studios.name}
                       </Link>
                     ) : (
-                      <span style={{ fontSize: 12, color: "#f87171", fontWeight: 500 }}>Sem studio</span>
+                      <span style={{ fontSize: 12, color: "#f87171", fontWeight: 500 }}>Sem salão</span>
                     )}
                   </div>
                 </div>
@@ -163,8 +163,8 @@ export default async function AdminProfissionaisPage() {
           1. Peça para ela criar uma conta em{" "}
           <strong style={{ color: C.sub }}>/login</strong>
           {" "}· 2. Vá em{" "}
-          <Link href="/admin/studios" style={{ color: "#818cf8" }}>Studios</Link>
-          {" "}→ crie o studio · 3. Edite o studio → vincule pelo owner_id
+          <Link href="/admin/studios" style={{ color: "#818cf8" }}>Salões</Link>
+          {" "}→ crie o salão · 3. Abra o salão → vincule o responsável
         </p>
       </div>
     </div>

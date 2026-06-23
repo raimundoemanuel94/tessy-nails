@@ -55,7 +55,7 @@ export function ProfissionaisClient({ initialProfiles, studios: initialStudios }
 
       setStudios((prev: any) => prev.map((s: any) => s.id === selStudio ? { ...s, owner_id: linkModal.id } : s));
       setProfiles((prev: any) => prev.map((p: any) => p.id === linkModal.id ? { ...p, studio_id: selStudio } : p));
-      toast.success("Profissional vinculado ao studio.");
+      toast.success("Profissional vinculado ao salão.");
       setLinkModal(null);
       setSelStudio("");
     } catch (err: any) {
@@ -90,7 +90,7 @@ export function ProfissionaisClient({ initialProfiles, studios: initialStudios }
   const KPIS = [
     { label: "Total profissionais", value: pros.length,    icon: Users,     color: "var(--brand-light)" },
     { label: "Vinculados",          value: linked.length,  icon: UserCheck, color: "var(--green)" },
-    { label: "Sem studio",          value: unlinked.length,icon: UserX,     color: unlinked.length > 0 ? "var(--yellow)" : "var(--muted)" },
+    { label: "Sem salão",           value: unlinked.length,icon: UserX,     color: unlinked.length > 0 ? "var(--yellow)" : "var(--muted)" },
   ];
 
   return (
@@ -122,7 +122,7 @@ export function ProfissionaisClient({ initialProfiles, studios: initialStudios }
         <div style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(245,200,66,.08)", border: "1px solid rgba(245,200,66,.25)", borderRadius: 14, padding: "14px 18px" }}>
           <UserX size={18} color="var(--yellow)"/>
           <span style={{ fontSize: 13, color: "var(--text)" }}>
-            <b>{unlinked.length}</b> profissional{unlinked.length > 1 ? "is" : ""} sem studio vinculado. Clique em <b style={{ color: "var(--yellow)" }}>Vincular</b> para conectar a um salão.
+            <b>{unlinked.length}</b> profissional{unlinked.length > 1 ? "is" : ""} sem salão vinculado. Clique em <b style={{ color: "var(--yellow)" }}>Vincular</b> para conectar a um salão.
           </span>
         </div>
       )}
@@ -159,7 +159,7 @@ export function ProfissionaisClient({ initialProfiles, studios: initialStudios }
                 </div>
                 <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.email}</div>
               </div>
-              {/* Studio vínculo */}
+              {/* Vínculo com salão */}
               <div style={{ flexShrink: 0 }}>
                 {isSuperadmin ? (
                   <span style={{ fontSize: 11, color: "var(--gold)", fontWeight: 600 }}>Admin geral</span>
@@ -179,7 +179,7 @@ export function ProfissionaisClient({ initialProfiles, studios: initialStudios }
                 ) : (
                   <button onClick={() => { setLinkModal(p); setSelStudio(""); }}
                     style={{ display: "flex", alignItems: "center", gap: 7, height: 36, padding: "0 16px", borderRadius: 10, border: "1px solid rgba(245,200,66,.3)", background: "rgba(245,200,66,.1)", color: "var(--yellow)", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "inherit" }}>
-                    <Link2 size={14}/> Vincular studio
+                    <Link2 size={14}/> Vincular salão
                   </button>
                 )}
               </div>
@@ -202,12 +202,12 @@ export function ProfissionaisClient({ initialProfiles, studios: initialStudios }
 
             {availableStudios.length === 0 ? (
               <div style={{ padding: 16, background: "rgba(245,200,66,.08)", border: "1px solid rgba(245,200,66,.25)", borderRadius: 12, fontSize: 13, color: "var(--text)" }}>
-                ⚠ Todos os studios já têm proprietário. Crie um novo studio primeiro em <b style={{ color: "var(--yellow)" }}>Studios</b>.
+                Todos os salões já têm responsável. Crie um novo salão primeiro em <b style={{ color: "var(--yellow)" }}>Salões</b>.
               </div>
             ) : (
               <>
                 <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                  <label style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase" }}>Escolha o studio (sem proprietário)</label>
+                  <label style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase" }}>Escolha o salão sem responsável</label>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 280, overflow: "auto" }}>
                     {availableStudios.map((s: any) => {
                       const rgb = hexToRgb(s.brand_color || "#7C5CBF");

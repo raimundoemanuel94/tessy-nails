@@ -114,7 +114,7 @@ export default function AdminRelatoriosPage() {
       {/* Header + filtro de período */}
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <p style={{ fontSize: 11, fontWeight: 500, color: C.muted, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Admin Console</p>
+          <p style={{ fontSize: 11, fontWeight: 500, color: C.muted, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Inteligência da plataforma</p>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.025em" }}>Relatórios</h1>
           <p style={{ fontSize: 13, color: C.muted, marginTop: 5 }}>Visão consolidada da plataforma</p>
         </div>
@@ -137,9 +137,9 @@ export default function AdminRelatoriosPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
         {[
           { label: "Receita total",  value: fmt(totalRevenue),          sub: `${completedAppts} concluídos`,      icon: TrendingUp,   color: "#818cf8" },
-          { label: "Studios ativos", value: `${activeStudios}`,         sub: `${inactiveStudios} inativo(s)`,     icon: Building2,    color: "#4ade80" },
+          { label: "Salões ativos",  value: `${activeStudios}`,         sub: `${inactiveStudios} inativo(s)`,     icon: Building2,    color: "#4ade80" },
           { label: "Agendamentos",   value: String(filteredAppts.length),sub: `no período selecionado`,            icon: CalendarDays, color: "#60a5fa" },
-          { label: "Usuários",       value: String(profiles.length),    sub: `${owners} owners · ${profs} prof`,  icon: Users,        color: "#a78bfa" },
+          { label: "Usuários",       value: String(profiles.length),    sub: `${owners} responsáveis · ${profs} profissionais`,  icon: Users,        color: "#a78bfa" },
         ].map(({ label, value, sub, icon: Icon, color }) => (
           <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: C.r, padding: "16px 18px" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
@@ -208,11 +208,11 @@ export default function AdminRelatoriosPage() {
         </div>
       </div>
 
-      {/* Top studios */}
+      {/* Top salões */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         {[
-          { title: "Top studios — agendamentos", items: topStudios.filter(s => s.apptCount > 0), getValue: (s: any) => String(s.apptCount), color: C.text, empty: "Sem agendamentos no período" },
-          { title: "Top studios — receita",      items: topByRevenue.filter(s => s.revenue > 0), getValue: (s: any) => fmt(s.revenue),   color: "#4ade80", empty: "Sem receita no período" },
+          { title: "Top salões — agendamentos", items: topStudios.filter(s => s.apptCount > 0), getValue: (s: any) => String(s.apptCount), color: C.text, empty: "Sem agendamentos no período" },
+          { title: "Top salões — receita",      items: topByRevenue.filter(s => s.revenue > 0), getValue: (s: any) => fmt(s.revenue),   color: "#4ade80", empty: "Sem receita no período" },
         ].map(({ title, items, getValue, color, empty }) => (
           <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: C.r, overflow: "hidden" }}>
             <div style={{ padding: "14px 18px", borderBottom: `1px solid ${C.sep}` }}>
@@ -236,7 +236,7 @@ export default function AdminRelatoriosPage() {
 
       {/* Crescimento */}
       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: C.r, padding: "18px" }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 20 }}>Crescimento — novos studios (últimos 6 meses)</p>
+        <p style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 20 }}>Crescimento — novos salões (últimos 6 meses)</p>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 80 }}>
           {studiosByMonth.map(({ label, count }) => {
             const barH = Math.max(4, Math.round((count / maxMonthCount) * 64));

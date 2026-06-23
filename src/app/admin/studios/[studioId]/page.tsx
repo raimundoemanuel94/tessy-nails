@@ -140,11 +140,11 @@ export default function AdminStudioDetailPage() {
   const trialDays = daysUntil(studio?.trialEndsAt);
   const renewalDays = daysUntil(studio?.nextBillingDate);
   const health = useMemo(() => {
-    if (!studio?.isActive) return { label: "Inativo", tone: "muted", description: "Acesso do tenant está pausado." };
-    if (!data?.owner) return { label: "Atenção", tone: "warning", description: "Studio sem profissional/owner vinculado." };
+    if (!studio?.isActive) return { label: "Inativo", tone: "muted", description: "Acesso do salão está pausado." };
+    if (!data?.owner) return { label: "Atenção", tone: "warning", description: "Salão sem profissional responsável vinculado." };
     if (subscriptionStatus === "past_due") return { label: "Crítico", tone: "danger", description: "Assinatura atrasada coloca MRR em risco." };
     if (activeServices.length === 0) return { label: "Atenção", tone: "warning", description: "Nenhum serviço ativo para o cliente agendar." };
-    return { label: "Saudável", tone: "success", description: "Tenant ativo, com owner e serviços disponíveis." };
+    return { label: "Saudável", tone: "success", description: "Salão ativo, com responsável e serviços disponíveis." };
   }, [activeServices.length, data?.owner, studio?.isActive, subscriptionStatus]);
 
   function openStudioEdit() {
@@ -255,7 +255,7 @@ export default function AdminStudioDetailPage() {
   if (error || !data) {
     return (
       <AdminEmptyState
-        title="Não foi possível carregar o Studio"
+        title="Não foi possível carregar o salão"
         description={error || "Tente novamente em alguns instantes."}
         tone="danger"
         action={
@@ -271,9 +271,9 @@ export default function AdminStudioDetailPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1120 }}>
       <AdminPageHeader
-        eyebrow="Studio 360"
+        eyebrow="Salão 360"
         title={studio.name}
-        description={`Tenant /${studio.slug} · criado em ${fmtDate(studio.createdAt)}`}
+        description={`Link público /${studio.slug} · criado em ${fmtDate(studio.createdAt)}`}
         actions={
           <>
             <AdminActionButton onClick={() => router.back()} tone="muted"><ArrowLeft size={13} /> Voltar</AdminActionButton>
@@ -289,7 +289,7 @@ export default function AdminStudioDetailPage() {
       <div style={{ display: "grid", gridTemplateColumns: "1.3fr repeat(3, 1fr)", gap: 12 }}>
         <AdminMetricCard label="Saúde" value={health.label} sub={health.description} icon={ShieldAlert} tone={health.tone as any} large />
         <AdminMetricCard label="MRR" value={formatCurrency(Number(studio.mrr ?? 0))} sub={subscriptionLabel(subscriptionStatus)} icon={DollarSign} tone={subscriptionTone(subscriptionStatus) as any} />
-        <AdminMetricCard label="Agendamentos" value={data.stats.appointments} sub="histórico do studio" icon={Calendar} tone="brand" />
+        <AdminMetricCard label="Agendamentos" value={data.stats.appointments} sub="histórico do salão" icon={Calendar} tone="brand" />
         <AdminMetricCard label="Serviços ativos" value={activeServices.length} sub={`${services.length} cadastrados`} icon={Scissors} tone={activeServices.length ? "success" : "warning"} />
       </div>
 
@@ -316,7 +316,7 @@ export default function AdminStudioDetailPage() {
       </div>
 
       {editingStudio && (
-        <AdminPanel title="Editar studio" description="Ajustes administrativos do tenant." tone="warning">
+        <AdminPanel title="Editar salão" description="Ajustes administrativos da conta." tone="warning">
           <div style={{ padding: 18, display: "grid", gridTemplateColumns: "1.2fr 1fr 150px auto", gap: 12, alignItems: "end" }}>
             <Field label="Nome" value={editName} onChange={setEditName} />
             <Field label="Slug" value={editSlug} onChange={setEditSlug} />
@@ -344,7 +344,7 @@ export default function AdminStudioDetailPage() {
 
       {tab === "overview" && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-          <AdminPanel title="Profissional responsável" description="Quem opera este studio." tone={data.owner ? "success" : "warning"}>
+          <AdminPanel title="Profissional responsável" description="Quem opera este salão." tone={data.owner ? "success" : "warning"}>
             {data.owner ? (
               <div style={{ padding: 18, display: "grid", gridTemplateColumns: "52px 1fr", gap: 14, alignItems: "center" }}>
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.24)", display: "flex", alignItems: "center", justifyContent: "center", color: "#818cf8", fontSize: 20, fontWeight: 850 }}>
@@ -358,8 +358,8 @@ export default function AdminStudioDetailPage() {
               </div>
             ) : (
               <AdminEmptyState
-                title="Studio sem owner"
-                description="Vincule um profissional para liberar uma operação SaaS completa."
+                title="Salão sem responsável"
+                description="Vincule um profissional para liberar a operação completa."
                 tone="warning"
                 action={<AdminActionButton href="/admin/profissionais" tone="warning"><User size={13} /> Vincular profissional</AdminActionButton>}
               />
@@ -369,7 +369,7 @@ export default function AdminStudioDetailPage() {
           <AdminPanel title="Resumo operacional" description="Sinais rápidos de uso e configuração." tone="brand">
             <div style={{ padding: 18, display: "grid", gap: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#71717a", fontSize: 12 }}>Status do tenant</span>
+                <span style={{ color: "#71717a", fontSize: 12 }}>Status do salão</span>
                 <AdminStatusBadge tone={studio.isActive ? "success" : "muted"} dot>{studio.isActive ? "Ativo" : "Inativo"}</AdminStatusBadge>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -390,7 +390,7 @@ export default function AdminStudioDetailPage() {
       )}
 
       {tab === "billing" && (
-        <AdminPanel title="Assinatura e monetização" description="Estado comercial do tenant e riscos de cobrança." tone={subscriptionTone(subscriptionStatus) as any}>
+        <AdminPanel title="Assinatura e monetização" description="Estado comercial do salão e riscos de cobrança." tone={subscriptionTone(subscriptionStatus) as any}>
           <div style={{ padding: 18, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
             <AdminMetricCard label="Status" value={subscriptionLabel(subscriptionStatus)} icon={CreditCard} tone={subscriptionTone(subscriptionStatus) as any} />
             <AdminMetricCard label="MRR" value={formatCurrency(Number(studio.mrr ?? 0))} icon={DollarSign} tone={Number(studio.mrr) > 0 ? "success" : "muted"} />
@@ -471,14 +471,14 @@ export default function AdminStudioDetailPage() {
               </div>
             </div>
           ) : (
-            <AdminEmptyState title="Configuração não encontrada" description="Crie as regras de agenda para o studio operar corretamente." tone="warning" />
+            <AdminEmptyState title="Configuração não encontrada" description="Crie as regras de agenda para o salão operar corretamente." tone="warning" />
           )}
         </AdminPanel>
       )}
 
       {deleteTarget && (
         <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, background: "rgba(0,0,0,.72)", backdropFilter: "blur(8px)" }}>
-          <AdminPanel title="Excluir serviço?" description={`Esta ação remove "${deleteTarget.name}" do catálogo do studio.`} tone="danger">
+          <AdminPanel title="Excluir serviço?" description={`Esta ação remove "${deleteTarget.name}" do catálogo do salão.`} tone="danger">
             <div style={{ padding: 18, display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <AdminActionButton onClick={() => setDeleteTarget(null)} tone="muted">Cancelar</AdminActionButton>
               <AdminActionButton onClick={deleteService} tone="danger" disabled={savingService}>

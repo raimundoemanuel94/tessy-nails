@@ -142,7 +142,7 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
       <AdminPageHeader
         eyebrow="Sistema"
         title="Configurações da Plataforma"
-        description="Centro de controle superadmin para planos, integrações, segurança, regras operacionais e módulos que sustentam o SaaS."
+        description="Centro de controle da plataforma para planos, integrações, segurança, regras operacionais e módulos do Nailit."
         actions={
           <>
             <AdminActionButton href="/admin/config/planos" tone="brand">Planos avançados</AdminActionButton>
@@ -222,12 +222,12 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
 
       <AdminPanel title="Módulos da plataforma" description="O que precisa existir para o Nailit operar como SaaS completo para vários salões." tone="brand">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, padding: 16 }}>
-          <ModuleCard icon={CalendarClock} title="Agenda global" status="Ativo" tone="success" description="Monitoramento multi-salão" items={["Agendamentos por salão", "Auto-confirmação por tenant", "Slots por regras do salão"]} />
+          <ModuleCard icon={CalendarClock} title="Agenda global" status="Ativo" tone="success" description="Monitoramento multi-salão" items={["Agendamentos por salão", "Auto-confirmação por conta", "Horários por regras do salão"]} />
           <ModuleCard icon={Users} title="Clientes e CRM" status="Parcial" tone="warning" description="Base e segmentos" items={["Clientes globais", "Reativação", "Aniversários e VIP"]} />
           <ModuleCard icon={MessageCircle} title="Mensagens" status="Preparado" tone="warning" description="Campanhas e WhatsApp" items={["Templates", "Lembretes", "Gateway pendente"]} />
           <ModuleCard icon={CreditCard} title="Financeiro SaaS" status="Ativo" tone="success" description="MRR e cobrança" items={["Planos editáveis", "Inadimplência", "Assinaturas"]} />
           <ModuleCard icon={Sparkles} title="Comissões" status="Próximo" tone="warning" description="Repasse por manicure" items={["Falta professional_id", "Percentual por perfil", "Fechamento mensal"]} />
-          <ModuleCard icon={LockKeyhole} title="Segurança" status="Base" tone="brand" description="Controle superadmin" items={["Role superadmin", "Middleware", "Auditoria pendente"]} />
+          <ModuleCard icon={LockKeyhole} title="Segurança" status="Base" tone="brand" description="Controle administrativo" items={["Perfil de administrador", "Proteção de rotas", "Auditoria pendente"]} />
         </div>
       </AdminPanel>
 
