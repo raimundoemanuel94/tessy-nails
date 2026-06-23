@@ -1773,9 +1773,9 @@ button:active, a:active, [role="button"]:active {
   z-index: 20;
   display: flex;
   flex-direction: column;
-  background: #2d2d3f;
-  border-right: none;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.12);
+  background: #ffffff;
+  border-right: 1px solid #e8e8f0;
+  box-shadow: none;
   transition: width .22s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
@@ -1786,9 +1786,9 @@ button:active, a:active, [role="button"]:active {
   inset: 0 auto 0 0;
   width: min(310px, 86vw);
   z-index: 29;
-  background: #2d2d3f;
-  border-right: none;
-  box-shadow: 28px 0 60px rgba(0,0,0,0.30);
+  background: #ffffff;
+  border-right: 1px solid #e8e8f0;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.08);
   transform: translateX(-100%);
   visibility: hidden;
   pointer-events: none;
@@ -1811,8 +1811,8 @@ button:active, a:active, [role="button"]:active {
   align-items: center;
   gap: 10px;
   padding: 0 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-  background: #0f0f14;
+  border-bottom: 1px solid #e8e8f0;
+  background: #ffffff;
 }
 .adm-theme-icon,
 .adm-collapse-icon {
@@ -1820,9 +1820,9 @@ button:active, a:active, [role="button"]:active {
   height: 30px;
   flex: 0 0 auto;
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.45);
+  border: 1px solid #e8e8f0;
+  background: #f4f5fb;
+  color: #94a3b8;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1831,9 +1831,9 @@ button:active, a:active, [role="button"]:active {
 }
 .adm-theme-icon:hover,
 .adm-collapse-icon:hover {
-  color: #ffffff;
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.15);
+  color: #7c3aed;
+  background: rgba(124,58,237,0.06);
+  border-color: rgba(124,58,237,0.20);
 }
 .adm-logo-mark {
   width: 32px;
@@ -1857,14 +1857,14 @@ button:active, a:active, [role="button"]:active {
 }
 .adm-brand-copy strong {
   display: block;
-  color: #ffffff;
+  color: #1a1a2e;
   font-size: 13.5px;
   font-weight: 780;
   line-height: 1;
 }
 .adm-brand-copy span {
   display: block;
-  color: rgba(255,255,255,0.40);
+  color: #94a3b8;
   font-size: 11px;
   margin-top: 3px;
 }
@@ -1961,7 +1961,7 @@ button:active, a:active, [role="button"]:active {
 }
 .adm-nav-section + .adm-nav-section { margin-top: 17px; }
 .adm-nav-section > p {
-  color: rgba(255,255,255,0.28);
+  color: #94a3b8;
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: .14em;
@@ -2054,11 +2054,11 @@ button:active, a:active, [role="button"]:active {
   align-items: center;
   padding: 0 12px;
   border-radius: 7px;
-  color: rgba(255,255,255,0.40);
+  color: #94a3b8;
   text-decoration: none;
   font-size: 12.5px;
   font-weight: 500;
-  border-left: 2px solid rgba(255,255,255,0.10);
+  border-left: 2px solid #e8e8f0;
   gap: 8px;
   transition: background .12s, color .12s;
 }
@@ -2067,8 +2067,8 @@ button:active, a:active, [role="button"]:active {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .adm-side-child:hover {
-  color: #ffffff;
-  background: rgba(255,255,255,0.06);
+  color: #7c3aed;
+  background: rgba(124,58,237,0.06);
 }
 .adm-side-child:active { transform: scale(0.98); }
 .adm-side-child.is-active {
@@ -2080,8 +2080,8 @@ button:active, a:active, [role="button"]:active {
 }
 .adm-sidebar-footer {
   padding: 12px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  background: #2d2d3f;
+  border-top: 1px solid #e8e8f0;
+  background: #ffffff;
 }
 .adm-account-card {
   min-width: 0;
@@ -2127,12 +2127,12 @@ button:active, a:active, [role="button"]:active {
   white-space: nowrap;
 }
 .adm-user-copy strong {
-  color: #ffffff;
+  color: #1a1a2e;
   font-size: 12px;
   font-weight: 700;
 }
 .adm-user-copy span {
-  color: rgba(255,255,255,0.35);
+  color: #94a3b8;
   font-size: 11px;
   margin-top: 2px;
 }
@@ -2263,9 +2263,9 @@ button:active, a:active, [role="button"]:active {
 /* Sidebar — branco com borda fina */
 :root[data-admin-theme="day"] .admin-sidebar-desktop,
 :root[data-admin-theme="day"] .admin-sidebar-mobile {
-  background: #2d2d3f !important;
-  border-color: transparent !important;
-  box-shadow: 28px 0 60px rgba(0,0,0,0.25) !important;
+  background: #ffffff !important;
+  border-color: #e8e8f0 !important;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.10) !important;
 }
 
 /* Topbar */
