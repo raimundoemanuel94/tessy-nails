@@ -1820,7 +1820,7 @@ button:active, a:active, [role="button"]:active {
   height: 30px;
   flex: 0 0 auto;
   border-radius: 8px;
-  border: 1px solid #e8e8f0;
+  border: 1px solid #e2e8f0;
   background: #f8fafc;
   color: #94a3b8;
   display: inline-flex;
@@ -1832,8 +1832,8 @@ button:active, a:active, [role="button"]:active {
 .adm-theme-icon:hover,
 .adm-collapse-icon:hover {
   color: #7c3aed;
-  background: rgba(124,58,237,0.06);
-  border-color: rgba(124,58,237,0.18);
+  background: #ede9fe;
+  border-color: #c4b5fd;
 }
 .adm-logo-mark {
   width: 34px;
@@ -3935,15 +3935,7 @@ nextjs-portal {
 :root[data-admin-theme="day"] .admin-topbar-theme,
 :root[data-admin-theme="day"] .adm-mobile-menu,
 :root[data-admin-theme="day"] .adm-mobile-close,
-:root[data-admin-theme="day"] .adm-theme-icon,
-:root[data-admin-theme="day"] .adm-collapse-icon,
-:root[data-admin-theme="day"] .adm-footer-actions a,
-:root[data-admin-theme="day"] .adm-footer-actions button {
-  background: #ffffff !important;
-  border-color: rgba(10,22,32,0.12) !important;
-  color: #0b1520 !important;
-  box-shadow: 0 8px 20px rgba(10,22,32,0.06) !important;
-}
+/* day theme icon overrides removidos */
 
 :root[data-admin-theme="day"] .admin-topbar-theme:hover,
 :root[data-admin-theme="day"] .adm-mobile-menu:hover,
