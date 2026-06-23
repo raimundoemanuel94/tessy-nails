@@ -67,28 +67,28 @@ export default async function AdminAgendamentosPage() {
           <AdminEmptyState title="Nenhum agendamento encontrado" description="Assim que os salões receberem reservas, elas entram nesta linha do tempo." />
         ) : (
           <div>
-            <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr 1fr .8fr .8fr .7fr", gap: 12, padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr 1fr .8fr .8fr .7fr", gap: 12, padding: "10px 16px", borderBottom: "1px solid #e8e8f0" }}>
               {["Cliente", "Salão", "Serviço", "Data", "Status", "Valor"].map((heading) => (
-                <span key={heading} style={{ color: "#71717a", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
+                <span key={heading} style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
               ))}
             </div>
             {appointmentList.slice(0, 80).map((appointment) => {
               const studio = studioById.get(appointment.studio_id);
               const status = STATUS[appointment.status] ?? { label: appointment.status || "Sem status", tone: "muted" };
               return (
-                <div key={appointment.id} style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr 1fr .8fr .8fr .7fr", gap: 12, alignItems: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                  <strong style={{ color: "#f4f4f5", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{appointment.client_name}</strong>
+                <div key={appointment.id} style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr 1fr .8fr .8fr .7fr", gap: 12, alignItems: "center", padding: "14px 16px", borderBottom: "1px solid #e8e8f0" }}>
+                  <strong style={{ color: "#1a1a2e", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{appointment.client_name}</strong>
                   <div style={{ minWidth: 0 }}>
                     {studio ? (
-                      <Link href={`/admin/studios/${studio.id}`} style={{ color: "#c7d2fe", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>{studio.name}</Link>
+                      <Link href={`/admin/studios/${studio.id}`} style={{ color: "#7c3aed", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>{studio.name}</Link>
                     ) : (
-                      <span style={{ color: "#71717a", fontSize: 12 }}>Sem salão</span>
+                      <span style={{ color: "#94a3b8", fontSize: 12 }}>Sem salão</span>
                     )}
                   </div>
-                  <span style={{ color: "#a1a1aa", fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{appointment.service_name || "Serviço"}</span>
-                  <span style={{ color: "#a1a1aa", fontSize: 12 }}>{new Date(appointment.appointment_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+                  <span style={{ color: "#64748b", fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{appointment.service_name || "Serviço"}</span>
+                  <span style={{ color: "#64748b", fontSize: 12 }}>{new Date(appointment.appointment_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
                   <AdminStatusBadge tone={status.tone} dot>{status.label}</AdminStatusBadge>
-                  <strong style={{ color: Number(appointment.price) > 0 ? "#4ade80" : "#71717a", fontSize: 13 }}>{formatCurrency(Number(appointment.price ?? 0))}</strong>
+                  <strong style={{ color: Number(appointment.price) > 0 ? "#4ade80" : "#94a3b8", fontSize: 13 }}>{formatCurrency(Number(appointment.price ?? 0))}</strong>
                 </div>
               );
             })}

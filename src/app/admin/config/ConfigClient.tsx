@@ -34,7 +34,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/utils";
 
 const planTone: Record<string, string> = {
-  free: "#71717a",
+  free: "#94a3b8",
   starter: "#60a5fa",
   pro: "#818cf8",
   studio: "#f472b6",
@@ -42,13 +42,13 @@ const planTone: Record<string, string> = {
 
 function StatusLine({ ok, label, description }: any) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "28px 1fr auto", gap: 10, alignItems: "center", padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "28px 1fr auto", gap: 10, alignItems: "center", padding: "12px 0", borderBottom: "1px solid #e8e8f0" }}>
       <div style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: ok ? "#4ade80" : "#fbbf24", background: ok ? "rgba(74,222,128,0.10)" : "rgba(251,191,36,0.10)", border: `1px solid ${ok ? "rgba(74,222,128,0.22)" : "rgba(251,191,36,0.24)"}` }}>
         {ok ? <Check size={14} /> : <AlertTriangle size={14} />}
       </div>
       <div style={{ minWidth: 0 }}>
-        <strong style={{ display: "block", color: "#f4f4f5", fontSize: 13 }}>{label}</strong>
-        <span style={{ display: "block", color: "#71717a", fontSize: 12, marginTop: 2 }}>{description}</span>
+        <strong style={{ display: "block", color: "#1a1a2e", fontSize: 13 }}>{label}</strong>
+        <span style={{ display: "block", color: "#94a3b8", fontSize: 12, marginTop: 2 }}>{description}</span>
       </div>
       <AdminStatusBadge tone={ok ? "success" : "warning"}>{ok ? "OK" : "Ajustar"}</AdminStatusBadge>
     </div>
@@ -58,22 +58,22 @@ function StatusLine({ ok, label, description }: any) {
 function ModuleCard({ icon: Icon, title, status, description, items, tone = "brand" }: any) {
   const color = tone === "success" ? "#4ade80" : tone === "warning" ? "#fbbf24" : tone === "danger" ? "#f87171" : "#818cf8";
   return (
-    <div style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 16, background: "rgba(255,255,255,0.025)", minHeight: 190 }}>
+    <div style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 16, background: "#ffffff", minHeight: 190 }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 36, height: 36, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color, background: `${color}18`, border: `1px solid ${color}38` }}>
             <Icon size={17} />
           </div>
           <div>
-            <strong style={{ display: "block", color: "#f4f4f5", fontSize: 14 }}>{title}</strong>
-            <span style={{ display: "block", color: "#71717a", fontSize: 11, marginTop: 2 }}>{description}</span>
+            <strong style={{ display: "block", color: "#1a1a2e", fontSize: 14 }}>{title}</strong>
+            <span style={{ display: "block", color: "#94a3b8", fontSize: 11, marginTop: 2 }}>{description}</span>
           </div>
         </div>
         <AdminStatusBadge tone={tone}>{status}</AdminStatusBadge>
       </div>
       <div style={{ display: "grid", gap: 7 }}>
         {items.map((item: string) => (
-          <div key={item} style={{ display: "flex", alignItems: "center", gap: 7, color: "#a1a1aa", fontSize: 12 }}>
+          <div key={item} style={{ display: "flex", alignItems: "center", gap: 7, color: "#64748b", fontSize: 12 }}>
             <span style={{ width: 5, height: 5, borderRadius: 999, background: color, opacity: 0.8 }} />
             {item}
           </div>
@@ -167,22 +167,22 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
               const studiosInPlan = studios.filter((studio: any) => studio.plan === plan.plan);
               const paying = studiosInPlan.filter((studio: any) => studio.subscription_status === "active").length;
               return (
-                <div key={plan.plan} className="admin-plan-card" style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, background: "rgba(255,255,255,0.025)" }}>
+                <div key={plan.plan} className="admin-plan-card" style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, background: "#ffffff" }}>
                   {isEdit ? (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 140px auto", gap: 10, alignItems: "end" }}>
                       <label style={{ display: "grid", gap: 5 }}>
-                        <span style={{ color: "#71717a", fontSize: 10, fontWeight: 800, textTransform: "uppercase" }}>Nome</span>
+                        <span style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, textTransform: "uppercase" }}>Nome</span>
                         <input value={draft.label} onChange={(e) => setDraft((d) => ({ ...d, label: e.target.value }))} className="input-base" />
                       </label>
                       <label style={{ display: "grid", gap: 5 }}>
-                        <span style={{ color: "#71717a", fontSize: 10, fontWeight: 800, textTransform: "uppercase" }}>Preço mensal</span>
+                        <span style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, textTransform: "uppercase" }}>Preço mensal</span>
                         <input value={draft.price} type="number" min="0" onChange={(e) => setDraft((d) => ({ ...d, price: e.target.value }))} className="input-base" />
                       </label>
                       <div style={{ display: "flex", gap: 7 }}>
                         <button onClick={() => savePlan(plan.plan)} disabled={saving} className="admin-action-button" style={{ color: "#4ade80", borderColor: "rgba(74,222,128,0.25)", background: "rgba(74,222,128,0.10)" }}>
                           {saving ? <Loader2 size={13} className="spin" /> : <Save size={13} />} Salvar
                         </button>
-                        <button onClick={() => setEditing(null)} className="admin-action-button" style={{ color: "#71717a", borderColor: "rgba(113,113,122,0.20)", background: "rgba(113,113,122,0.10)" }}>
+                        <button onClick={() => setEditing(null)} className="admin-action-button" style={{ color: "#94a3b8", borderColor: "rgba(113,113,122,0.20)", background: "rgba(113,113,122,0.10)" }}>
                           <X size={13} />
                         </button>
                       </div>
@@ -192,13 +192,13 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
                       <div style={{ minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                           <span className="admin-plan-badge" style={{ color, border: `1px solid ${color}44`, background: `${color}18`, borderRadius: 6, padding: "2px 7px", fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>{plan.plan}</span>
-                          <strong className="admin-plan-name" style={{ color: "#f4f4f5", fontSize: 14 }}>{plan.label}</strong>
+                          <strong className="admin-plan-name" style={{ color: "#1a1a2e", fontSize: 14 }}>{plan.label}</strong>
                         </div>
-                        <span className="admin-plan-meta" style={{ color: "#71717a", fontSize: 12 }}>{studiosInPlan.length} salões · {paying} pagantes</span>
+                        <span className="admin-plan-meta" style={{ color: "#94a3b8", fontSize: 12 }}>{studiosInPlan.length} salões · {paying} pagantes</span>
                       </div>
-                      <strong className={Number(plan.price) > 0 ? "admin-plan-price" : "admin-plan-price admin-plan-price-free"} style={{ color: Number(plan.price) > 0 ? "#4ade80" : "#71717a", fontSize: 15 }}>{formatCurrency(Number(plan.price ?? 0))}</strong>
+                      <strong className={Number(plan.price) > 0 ? "admin-plan-price" : "admin-plan-price admin-plan-price-free"} style={{ color: Number(plan.price) > 0 ? "#4ade80" : "#94a3b8", fontSize: 15 }}>{formatCurrency(Number(plan.price ?? 0))}</strong>
                       <AdminStatusBadge tone={saved === plan.plan ? "success" : "muted"}>{saved === plan.plan ? "Salvo" : "Mensal"}</AdminStatusBadge>
-                      <button onClick={() => openEdit(plan)} className="admin-action-button" style={{ color: "#818cf8", borderColor: "rgba(99,102,241,0.26)", background: "rgba(99,102,241,0.11)" }}>
+                      <button onClick={() => openEdit(plan)} className="admin-action-button" style={{ color: "#7c3aed", borderColor: "rgba(99,102,241,0.26)", background: "rgba(99,102,241,0.11)" }}>
                         <Edit3 size={13} /> Editar
                       </button>
                     </div>
@@ -246,8 +246,8 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
                   <Settings2 size={14} />
                 </div>
                 <div>
-                  <strong style={{ color: "#f4f4f5", fontSize: 13 }}>{title}</strong>
-                  <p style={{ color: "#71717a", fontSize: 12, margin: "3px 0 0", lineHeight: 1.45 }}>{desc}</p>
+                  <strong style={{ color: "#1a1a2e", fontSize: 13 }}>{title}</strong>
+                  <p style={{ color: "#94a3b8", fontSize: 12, margin: "3px 0 0", lineHeight: 1.45 }}>{desc}</p>
                 </div>
               </div>
             ))}
@@ -263,9 +263,9 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
               ["commission_rules", "percentuais por salão, profissional, serviço e período"],
               ["audit_logs", "quem alterou preço, plano, salão, usuário e permissões"],
             ].map(([table, desc]) => (
-              <div key={table} style={{ padding: 12, borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.025)" }}>
-                <code style={{ color: "#c7d2fe", fontSize: 12, fontWeight: 800 }}>{table}</code>
-                <p style={{ color: "#71717a", fontSize: 12, margin: "5px 0 0", lineHeight: 1.45 }}>{desc}</p>
+              <div key={table} style={{ padding: 12, borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "#ffffff" }}>
+                <code style={{ color: "#7c3aed", fontSize: 12, fontWeight: 800 }}>{table}</code>
+                <p style={{ color: "#94a3b8", fontSize: 12, margin: "5px 0 0", lineHeight: 1.45 }}>{desc}</p>
               </div>
             ))}
           </div>

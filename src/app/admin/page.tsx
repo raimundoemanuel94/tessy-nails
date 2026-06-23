@@ -105,7 +105,7 @@ function MiniBars({ data }: { data: { label: string; mrr: number }[] }) {
 
 function RiskRow({ icon: Icon, title, description, href, tone }: any) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "34px 1fr auto", gap: 12, alignItems: "center", padding: "13px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "34px 1fr auto", gap: 12, alignItems: "center", padding: "13px 16px", borderBottom: "1px solid #e8e8f0" }}>
       <div style={{ width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", background: "#f4f5fb", color: tone === "danger" ? "#f87171" : tone === "warning" ? "#fbbf24" : "#7c3aed" }}>
         <Icon size={16} />
       </div>
@@ -288,7 +288,7 @@ export default async function AdminPage() {
           <AdminEmptyState title="Nenhum salão encontrado" description="Quando houver salões cadastrados, eles aparecem neste mapa operacional." />
         ) : (
           <div>
-            <div style={{ display: "grid", gridTemplateColumns: "1.25fr .7fr .75fr .75fr .75fr .8fr .8fr", gap: 12, padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.25fr .7fr .75fr .75fr .75fr .8fr .8fr", gap: 12, padding: "10px 16px", borderBottom: "1px solid #e8e8f0" }}>
               {["Salão", "Clientes", "Públicos", "Próximos", "Concluídos", "Receita", "Último"].map((heading) => (
                 <span key={heading} style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
               ))}
@@ -300,7 +300,7 @@ export default async function AdminPage() {
                 <a
                   key={row.studio.id}
                   href={`/admin/studios/${row.studio.id}`}
-                  style={{ display: "grid", gridTemplateColumns: "1.25fr .7fr .75fr .75fr .75fr .8fr .8fr", gap: 12, alignItems: "center", padding: "14px 16px", color: "inherit", textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                  style={{ display: "grid", gridTemplateColumns: "1.25fr .7fr .75fr .75fr .75fr .8fr .8fr", gap: 12, alignItems: "center", padding: "14px 16px", color: "inherit", textDecoration: "none", borderBottom: "1px solid #e8e8f0" }}
                 >
                   <div style={{ minWidth: 0 }}>
                     <strong style={{ display: "block", color: "#1a1a2e", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.studio.name}</strong>
@@ -369,7 +369,7 @@ export default async function AdminPage() {
               <a
                 key={studio.id}
                 href={`/admin/studios/${studio.id}`}
-                style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 12, alignItems: "center", padding: "13px 16px", color: "inherit", textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 12, alignItems: "center", padding: "13px 16px", color: "inherit", textDecoration: "none", borderBottom: "1px solid #e8e8f0" }}
               >
                 <div style={{ minWidth: 0 }}>
                   <p style={{ margin: 0, color: "#1a1a2e", fontSize: 13, fontWeight: 750, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{studio.name}</p>

@@ -408,7 +408,7 @@ export default function AdminStudioDetailPage() {
           tone={activeServices.length ? "success" : "warning"}
         >
           {(addingService || editingServiceId) && (
-            <div style={{ padding: 16, borderBottom: "1px solid rgba(255,255,255,0.05)", display: "grid", gridTemplateColumns: "1.3fr 120px 130px 120px auto", gap: 10, alignItems: "end" }}>
+            <div style={{ padding: 16, borderBottom: "1px solid #e8e8f0", display: "grid", gridTemplateColumns: "1.3fr 120px 130px 120px auto", gap: 10, alignItems: "end" }}>
               <Field label="Nome" value={serviceForm.name} onChange={(value: string) => setServiceForm((form) => ({ ...form, name: value }))} />
               <Field label="Preço" type="number" value={serviceForm.price} onChange={(value: string) => setServiceForm((form) => ({ ...form, price: value }))} />
               <Field label="Duração" type="number" value={serviceForm.duration} onChange={(value: string) => setServiceForm((form) => ({ ...form, duration: value }))} />
@@ -426,13 +426,13 @@ export default function AdminStudioDetailPage() {
             <AdminEmptyState title="Nenhum serviço cadastrado" description="Sem serviços, a página pública não converte agendamentos." tone="warning" />
           ) : (
             services.map((service: any) => (
-              <div key={service.id} style={{ display: "grid", gridTemplateColumns: "1fr 110px 110px auto", alignItems: "center", gap: 12, padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)", opacity: service.isActive ? 1 : 0.55 }}>
+              <div key={service.id} style={{ display: "grid", gridTemplateColumns: "1fr 110px 110px auto", alignItems: "center", gap: 12, padding: "14px 16px", borderBottom: "1px solid #e8e8f0", opacity: service.isActive ? 1 : 0.55 }}>
                 <div style={{ minWidth: 0 }}>
                   <p style={{ color: "#1a1a2e", margin: 0, fontSize: 13, fontWeight: 800 }}>{service.name}</p>
                   <p style={{ color: "#94a3b8", margin: "4px 0 0", fontSize: 11 }}>{service.isActive ? "Disponível para agendamento" : "Oculto da vitrine"}</p>
                 </div>
                 <strong style={{ color: "#4ade80", fontSize: 12 }}>{formatCurrency(service.price)}</strong>
-                <span style={{ color: "#a1a1aa", fontSize: 12 }}>{formatDuration(service.durationMinutes)}</span>
+                <span style={{ color: "#64748b", fontSize: 12 }}>{formatDuration(service.durationMinutes)}</span>
                 <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
                   <AdminActionButton onClick={() => toggleService(service)} tone={service.isActive ? "warning" : "success"}>{service.isActive ? "Desativar" : "Ativar"}</AdminActionButton>
                   <AdminActionButton onClick={() => openServiceEdit(service)} tone="muted"><Pencil size={12} /></AdminActionButton>
@@ -477,7 +477,7 @@ export default function AdminStudioDetailPage() {
       )}
 
       {deleteTarget && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, background: "rgba(0,0,0,.72)", backdropFilter: "blur(8px)" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)" }}>
           <AdminPanel title="Excluir serviço?" description={`Esta ação remove "${deleteTarget.name}" do catálogo do salão.`} tone="danger">
             <div style={{ padding: 18, display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <AdminActionButton onClick={() => setDeleteTarget(null)} tone="muted">Cancelar</AdminActionButton>

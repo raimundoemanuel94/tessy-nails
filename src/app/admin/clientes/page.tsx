@@ -89,31 +89,31 @@ export default async function AdminClientesPage() {
           <AdminEmptyState title="Nenhum cliente cadastrado" description="Os clientes aparecerão aqui quando os salões começarem a receber agendamentos." />
         ) : (
           <div>
-            <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr .8fr .8fr .7fr", gap: 12, padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr .8fr .8fr .7fr", gap: 12, padding: "10px 16px", borderBottom: "1px solid #e8e8f0" }}>
               {["Cliente", "Salão", "Contato", "Visitas", "Última visita", "Receita"].map((heading) => (
-                <span key={heading} style={{ color: "#71717a", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
+                <span key={heading} style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
               ))}
             </div>
             {enriched.slice(0, 40).map((client) => {
               const lastDays = daysAgo(client.stats.lastDate ?? client.created_at);
               const tone = lastDays !== null && lastDays >= 45 ? "warning" : client.stats.count >= 2 ? "success" : "muted";
               return (
-                <div key={client.id} style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr .8fr .8fr .7fr", gap: 12, alignItems: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <div key={client.id} style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr .8fr .8fr .7fr", gap: 12, alignItems: "center", padding: "14px 16px", borderBottom: "1px solid #e8e8f0" }}>
                   <div style={{ minWidth: 0 }}>
-                    <strong style={{ display: "block", color: "#f4f4f5", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{client.name}</strong>
-                    <span style={{ color: "#71717a", fontSize: 11 }}>{client.email || client.source || "sem origem"}</span>
+                    <strong style={{ display: "block", color: "#1a1a2e", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{client.name}</strong>
+                    <span style={{ color: "#94a3b8", fontSize: 11 }}>{client.email || client.source || "sem origem"}</span>
                   </div>
                   <div style={{ minWidth: 0 }}>
                     {client.studio ? (
-                      <Link href={`/admin/studios/${client.studio.id}`} style={{ color: "#c7d2fe", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>{client.studio.name}</Link>
+                      <Link href={`/admin/studios/${client.studio.id}`} style={{ color: "#7c3aed", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>{client.studio.name}</Link>
                     ) : (
-                      <span style={{ color: "#71717a", fontSize: 12 }}>Sem salão</span>
+                      <span style={{ color: "#94a3b8", fontSize: 12 }}>Sem salão</span>
                     )}
                   </div>
                   <AdminStatusBadge tone={client.phone ? "success" : "warning"}>{client.phone ? "WhatsApp" : "Sem telefone"}</AdminStatusBadge>
-                  <span style={{ color: "#f4f4f5", fontSize: 13, fontWeight: 800 }}>{client.stats.count}</span>
+                  <span style={{ color: "#1a1a2e", fontSize: 13, fontWeight: 800 }}>{client.stats.count}</span>
                   <AdminStatusBadge tone={tone as any} dot>{lastDays === 0 ? "Hoje" : lastDays ? `${lastDays}d` : "Sem visita"}</AdminStatusBadge>
-                  <strong style={{ color: Number(client.stats.revenue) > 0 ? "#4ade80" : "#71717a", fontSize: 13 }}>{formatCurrency(Number(client.stats.revenue ?? 0))}</strong>
+                  <strong style={{ color: Number(client.stats.revenue) > 0 ? "#4ade80" : "#94a3b8", fontSize: 13 }}>{formatCurrency(Number(client.stats.revenue ?? 0))}</strong>
                 </div>
               );
             })}

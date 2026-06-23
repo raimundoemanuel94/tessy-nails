@@ -90,7 +90,7 @@ export default async function AdminMensagensPage() {
                 <AdminStatusBadge tone={tone as any}>Modelo</AdminStatusBadge>
               </div>
               <p style={{ color: "#94a3b8", fontSize: 12, margin: "0 0 10px" }}>{audience}</p>
-              <p style={{ color: "#d4d4d8", fontSize: 12, lineHeight: 1.55, margin: 0, padding: 12, borderRadius: 10, background: "rgba(0,0,0,0.04)", border: "1px solid rgba(255,255,255,0.055)" }}>{message}</p>
+              <p style={{ color: "#334155", fontSize: 12, lineHeight: 1.55, margin: 0, padding: 12, borderRadius: 10, background: "rgba(0,0,0,0.04)", border: "1px solid rgba(255,255,255,0.055)" }}>{message}</p>
             </div>
           ))}
         </div>

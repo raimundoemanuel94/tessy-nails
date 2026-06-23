@@ -100,7 +100,7 @@ export default function InadimplenciaPage() {
           />
         ) : (
           <div>
-            <div style={{ display: "grid", gridTemplateColumns: "2fr .8fr .9fr .8fr 1fr auto", gap: 12, padding: "9px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "2fr .8fr .9fr .8fr 1fr auto", gap: 12, padding: "9px 16px", borderBottom: "1px solid #e8e8f0" }}>
               {["Salão", "Plano", "Vencimento", "Atraso", "MRR", "Ações"].map((heading) => (
                 <span key={heading} style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
               ))}
@@ -108,7 +108,7 @@ export default function InadimplenciaPage() {
             {overdue.map((studio) => {
               const sev = severity(studio.daysLate);
               return (
-                <div key={studio.id} style={{ display: "grid", gridTemplateColumns: "2fr .8fr .9fr .8fr 1fr auto", gap: 12, alignItems: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)", background: studio.daysLate >= 14 ? "rgba(248,113,113,0.04)" : "transparent" }}>
+                <div key={studio.id} style={{ display: "grid", gridTemplateColumns: "2fr .8fr .9fr .8fr 1fr auto", gap: 12, alignItems: "center", padding: "14px 16px", borderBottom: "1px solid #e8e8f0", background: studio.daysLate >= 14 ? "rgba(248,113,113,0.04)" : "transparent" }}>
                   <div style={{ minWidth: 0 }}>
                     <Link href={`/admin/studios/${studio.id}`} style={{ color: "#1a1a2e", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>{studio.name}</Link>
                     <p style={{ color: "#94a3b8", fontSize: 11, margin: "4px 0 0", fontFamily: "monospace" }}>/{studio.slug}</p>
@@ -137,7 +137,7 @@ export default function InadimplenciaPage() {
       </p>
 
       {suspendTarget && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(0,0,0,.72)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <AdminPanel title="Suspender acesso?" description={`O salão ${suspendTarget.name} ficará inativo até a reativação manual.`} tone="danger">
             <div style={{ padding: 18, display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <AdminActionButton onClick={() => setSuspendTarget(null)} tone="muted">Cancelar</AdminActionButton>
