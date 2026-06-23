@@ -265,13 +265,13 @@ export function AdminSidebar({ name, email }: { name: string; email?: string }) 
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [theme, setTheme] = useState<"night" | "day">("night");
+  const [theme, setTheme] = useState<"night" | "day">("day");
   const [counts, setCounts] = useState({ studios: 0, users: 0, clients: 0, appointments: 0 });
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const stored = readBrowserStorage("admin-theme");
-    const next = stored === "day" ? "day" : "night";
+    const next = stored === "night" ? "night" : "day";
     setTheme(next);
     document.documentElement.setAttribute("data-admin-theme", next);
   }, []);
