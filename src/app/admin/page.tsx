@@ -89,12 +89,12 @@ function MiniBars({ data }: { data: { label: string; mrr: number }[] }) {
                 width: "100%",
                 height: Math.max(8, Math.round((item.mrr / max) * 100)),
                 borderRadius: "7px 7px 3px 3px",
-                background: item.mrr > 0 ? "linear-gradient(180deg,#4ade80,#15803d)" : "rgba(255,255,255,0.06)",
+                background: item.mrr > 0 ? "linear-gradient(180deg,#4ade80,#15803d)" : "#e8e8f0",
                 border: "1px solid rgba(255,255,255,0.08)",
               }}
             />
           </div>
-          <p style={{ marginTop: 8, textAlign: "center", fontSize: 10, color: "#71717a", fontWeight: 700, textTransform: "uppercase" }}>
+          <p style={{ marginTop: 8, textAlign: "center", fontSize: 10, color: "#94a3b8", fontWeight: 700, textTransform: "uppercase" }}>
             {item.label}
           </p>
         </div>
@@ -106,12 +106,12 @@ function MiniBars({ data }: { data: { label: string; mrr: number }[] }) {
 function RiskRow({ icon: Icon, title, description, href, tone }: any) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "34px 1fr auto", gap: 12, alignItems: "center", padding: "13px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-      <div style={{ width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.04)", color: tone === "danger" ? "#f87171" : tone === "warning" ? "#fbbf24" : "#818cf8" }}>
+      <div style={{ width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", background: "#f4f5fb", color: tone === "danger" ? "#f87171" : tone === "warning" ? "#fbbf24" : "#7c3aed" }}>
         <Icon size={16} />
       </div>
       <div style={{ minWidth: 0 }}>
-        <p style={{ margin: 0, color: "#f4f4f5", fontSize: 13, fontWeight: 750 }}>{title}</p>
-        <p style={{ margin: "3px 0 0", color: "#71717a", fontSize: 12 }}>{description}</p>
+        <p style={{ margin: 0, color: "#1a1a2e", fontSize: 13, fontWeight: 750 }}>{title}</p>
+        <p style={{ margin: "3px 0 0", color: "#94a3b8", fontSize: 12 }}>{description}</p>
       </div>
       <AdminActionButton href={href} tone={tone}>
         Resolver <ArrowRight size={12} />
@@ -290,7 +290,7 @@ export default async function AdminPage() {
           <div>
             <div style={{ display: "grid", gridTemplateColumns: "1.25fr .7fr .75fr .75fr .75fr .8fr .8fr", gap: 12, padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
               {["Salão", "Clientes", "Públicos", "Próximos", "Concluídos", "Receita", "Último"].map((heading) => (
-                <span key={heading} style={{ color: "#71717a", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
+                <span key={heading} style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
               ))}
             </div>
             {studioOps.slice(0, 12).map((row) => {
@@ -303,18 +303,18 @@ export default async function AdminPage() {
                   style={{ display: "grid", gridTemplateColumns: "1.25fr .7fr .75fr .75fr .75fr .8fr .8fr", gap: 12, alignItems: "center", padding: "14px 16px", color: "inherit", textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
                 >
                   <div style={{ minWidth: 0 }}>
-                    <strong style={{ display: "block", color: "#f4f4f5", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.studio.name}</strong>
+                    <strong style={{ display: "block", color: "#1a1a2e", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.studio.name}</strong>
                     <span style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                      <span style={{ color: "#71717a", fontSize: 11, fontFamily: "monospace" }}>/{row.studio.slug}</span>
+                      <span style={{ color: "#94a3b8", fontSize: 11, fontFamily: "monospace" }}>/{row.studio.slug}</span>
                       <AdminStatusBadge tone={statusTone as any} dot>{row.studio.is_active ? "Ativo" : "Inativo"}</AdminStatusBadge>
                     </span>
                   </div>
-                  <strong style={{ color: "#f4f4f5", fontSize: 13 }}>{row.clients}</strong>
-                  <span style={{ color: row.publicClients ? "#818cf8" : "#71717a", fontSize: 13, fontWeight: 800 }}>{row.publicClients}</span>
-                  <span style={{ color: row.upcoming ? "#fbbf24" : "#71717a", fontSize: 13, fontWeight: 800 }}>{row.upcoming}</span>
-                  <span style={{ color: row.completed ? "#4ade80" : "#71717a", fontSize: 13, fontWeight: 800 }}>{row.completed}</span>
-                  <strong style={{ color: row.revenue ? "#4ade80" : "#71717a", fontSize: 13 }}>{formatCurrency(row.revenue)}</strong>
-                  <span style={{ color: "#a1a1aa", fontSize: 12 }}>{row.last ? new Date(row.last).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "Sem agenda"}</span>
+                  <strong style={{ color: "#1a1a2e", fontSize: 13 }}>{row.clients}</strong>
+                  <span style={{ color: row.publicClients ? "#818cf8" : "#94a3b8", fontSize: 13, fontWeight: 800 }}>{row.publicClients}</span>
+                  <span style={{ color: row.upcoming ? "#fbbf24" : "#94a3b8", fontSize: 13, fontWeight: 800 }}>{row.upcoming}</span>
+                  <span style={{ color: row.completed ? "#4ade80" : "#94a3b8", fontSize: 13, fontWeight: 800 }}>{row.completed}</span>
+                  <strong style={{ color: row.revenue ? "#4ade80" : "#94a3b8", fontSize: 13 }}>{formatCurrency(row.revenue)}</strong>
+                  <span style={{ color: "#64748b", fontSize: 12 }}>{row.last ? new Date(row.last).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "Sem agenda"}</span>
                 </a>
               );
             })}
@@ -344,11 +344,11 @@ export default async function AdminPage() {
             {planRows.map((row) => (
               <div key={row.plan}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, color: "#f4f4f5", fontWeight: 700 }}>{PLAN_LABEL[row.plan] ?? row.plan}</span>
-                  <span style={{ fontSize: 12, color: "#71717a" }}>{row.count} salões · {formatCurrency(row.revenue)}</span>
+                  <span style={{ fontSize: 12, color: "#1a1a2e", fontWeight: 700 }}>{PLAN_LABEL[row.plan] ?? row.plan}</span>
+                  <span style={{ fontSize: 12, color: "#94a3b8" }}>{row.count} salões · {formatCurrency(row.revenue)}</span>
                 </div>
-                <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                  <div style={{ width: `${row.pct}%`, height: "100%", background: row.plan === "studio" ? "#f472b6" : row.plan === "pro" ? "#818cf8" : row.plan === "starter" ? "#60a5fa" : "#71717a" }} />
+                <div style={{ height: 6, borderRadius: 999, background: "#e8e8f0", overflow: "hidden" }}>
+                  <div style={{ width: `${row.pct}%`, height: "100%", background: row.plan === "studio" ? "#f472b6" : row.plan === "pro" ? "#818cf8" : row.plan === "starter" ? "#60a5fa" : "#94a3b8" }} />
                 </div>
               </div>
             ))}
@@ -372,11 +372,11 @@ export default async function AdminPage() {
                 style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 12, alignItems: "center", padding: "13px 16px", color: "inherit", textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
               >
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ margin: 0, color: "#f4f4f5", fontSize: 13, fontWeight: 750, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{studio.name}</p>
-                  <p style={{ margin: "3px 0 0", color: "#71717a", fontSize: 11, fontFamily: "monospace" }}>/{studio.slug}</p>
+                  <p style={{ margin: 0, color: "#1a1a2e", fontSize: 13, fontWeight: 750, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{studio.name}</p>
+                  <p style={{ margin: "3px 0 0", color: "#94a3b8", fontSize: 11, fontFamily: "monospace" }}>/{studio.slug}</p>
                 </div>
                 <AdminStatusBadge tone={statusTone as any} dot>{status === "past_due" ? "Atrasado" : status === "trialing" || status === "trial" ? "Trial" : studio.is_active ? "Ativo" : "Inativo"}</AdminStatusBadge>
-                <span style={{ color: getStudioMrr(studio, priceByPlan) ? "#4ade80" : "#71717a", fontSize: 12, fontWeight: 800 }}>
+                <span style={{ color: getStudioMrr(studio, priceByPlan) ? "#4ade80" : "#94a3b8", fontSize: 12, fontWeight: 800 }}>
                   {formatCurrency(getStudioMrr(studio, priceByPlan))}
                 </span>
               </a>

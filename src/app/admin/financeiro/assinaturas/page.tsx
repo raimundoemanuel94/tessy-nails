@@ -5,20 +5,20 @@ import { CheckCircle2, Clock, AlertTriangle, XCircle, Search, Loader2, ArrowUpRi
 import Link from "next/link";
 
 const C = {
-  bg:"#0d0d10", card:"rgba(255,255,255,0.03)", border:"rgba(255,255,255,0.08)",
-  sep:"rgba(255,255,255,0.05)", text:"#f4f4f5", sub:"#a1a1aa", muted:"#52525b",
+  bg:"#f4f5fb", card:"#ffffff", border:"#e8e8f0",
+  sep:"#1a1a2e", text:"#1a1a2e", sub:"#64748b", muted:"#94a3b8",
 };
 const PLAN_C: Record<string,{color:string;bg:string;border:string}> = {
   pro:     { color:"#818cf8", bg:"rgba(99,102,241,0.10)",  border:"rgba(99,102,241,0.22)"  },
   starter: { color:"#60a5fa", bg:"rgba(96,165,250,0.10)",  border:"rgba(96,165,250,0.22)"  },
-  free:    { color:"#71717a", bg:"rgba(113,113,122,0.10)", border:"rgba(113,113,122,0.20)" },
+  free:    { color:"#94a3b8", bg:"rgba(113,113,122,0.10)", border:"rgba(113,113,122,0.20)" },
   studio:  { color:"#f472b6", bg:"rgba(244,114,182,0.10)", border:"rgba(244,114,182,0.22)" },
 };
 const STATUS_S: Record<string,{label:string;color:string;bg:string;border:string}> = {
   active:   { label:"Ativo",        color:"#4ade80", bg:"rgba(74,222,128,0.08)",  border:"rgba(74,222,128,0.20)"  },
   trial:    { label:"Teste",        color:"#818cf8", bg:"rgba(99,102,241,0.08)",  border:"rgba(99,102,241,0.20)"  },
   past_due: { label:"Inadimplente", color:"#f87171", bg:"rgba(248,113,113,0.08)", border:"rgba(248,113,113,0.20)" },
-  canceled: { label:"Cancelado",    color:"#52525b", bg:"rgba(82,82,91,0.08)",    border:"rgba(82,82,91,0.18)"    },
+  canceled: { label:"Cancelado",    color:"#94a3b8", bg:"rgba(82,82,91,0.08)",    border:"rgba(82,82,91,0.18)"    },
 };
 
 const fmtBRL = (n: number) => n===0 ? "R$ 0,00" : `R$ ${n.toLocaleString("pt-BR",{minimumFractionDigits:2})}`;

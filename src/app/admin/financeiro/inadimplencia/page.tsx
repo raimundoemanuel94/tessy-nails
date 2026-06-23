@@ -89,7 +89,7 @@ export default function InadimplenciaPage() {
 
       <AdminPanel title="Fila de cobrança" description="Priorize pelo atraso e pela receita em risco. A cobrança automática ainda depende da integração com gateway." tone={overdue.length ? "danger" : "success"}>
         {loading ? (
-          <div style={{ padding: 50, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, color: "#71717a" }}>
+          <div style={{ padding: 50, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, color: "#94a3b8" }}>
             <Loader2 size={16} className="spin" /> Carregando
           </div>
         ) : overdue.length === 0 ? (
@@ -102,7 +102,7 @@ export default function InadimplenciaPage() {
           <div>
             <div style={{ display: "grid", gridTemplateColumns: "2fr .8fr .9fr .8fr 1fr auto", gap: 12, padding: "9px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
               {["Salão", "Plano", "Vencimento", "Atraso", "MRR", "Ações"].map((heading) => (
-                <span key={heading} style={{ color: "#71717a", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
+                <span key={heading} style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
               ))}
             </div>
             {overdue.map((studio) => {
@@ -110,11 +110,11 @@ export default function InadimplenciaPage() {
               return (
                 <div key={studio.id} style={{ display: "grid", gridTemplateColumns: "2fr .8fr .9fr .8fr 1fr auto", gap: 12, alignItems: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)", background: studio.daysLate >= 14 ? "rgba(248,113,113,0.04)" : "transparent" }}>
                   <div style={{ minWidth: 0 }}>
-                    <Link href={`/admin/studios/${studio.id}`} style={{ color: "#f4f4f5", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>{studio.name}</Link>
-                    <p style={{ color: "#71717a", fontSize: 11, margin: "4px 0 0", fontFamily: "monospace" }}>/{studio.slug}</p>
+                    <Link href={`/admin/studios/${studio.id}`} style={{ color: "#1a1a2e", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>{studio.name}</Link>
+                    <p style={{ color: "#94a3b8", fontSize: 11, margin: "4px 0 0", fontFamily: "monospace" }}>/{studio.slug}</p>
                   </div>
                   <AdminStatusBadge tone="brand">{studio.plan}</AdminStatusBadge>
-                  <span style={{ color: "#a1a1aa", fontSize: 12 }}>{studio.next_billing_date ? new Date(studio.next_billing_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "-"}</span>
+                  <span style={{ color: "#64748b", fontSize: 12 }}>{studio.next_billing_date ? new Date(studio.next_billing_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "-"}</span>
                   <AdminStatusBadge tone={sev.tone as any} dot>{studio.daysLate}d · {sev.label}</AdminStatusBadge>
                   <strong style={{ color: "#f87171", fontSize: 13 }}>{Number(studio.mrr ?? 0) > 0 ? formatCurrency(Number(studio.mrr)) : "-"}</strong>
                   <div style={{ display: "flex", gap: 7, justifyContent: "flex-end" }}>
@@ -132,7 +132,7 @@ export default function InadimplenciaPage() {
         )}
       </AdminPanel>
 
-      <p style={{ color: "#71717a", fontSize: 11, margin: 0 }}>
+      <p style={{ color: "#94a3b8", fontSize: 11, margin: 0 }}>
         A cobrança automática depende de integração com Stripe, Pagar.me ou outro gateway. Enquanto isso, esta fila serve para priorização manual e suspensão controlada.
       </p>
 

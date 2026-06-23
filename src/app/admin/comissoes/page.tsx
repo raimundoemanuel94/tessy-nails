@@ -59,20 +59,20 @@ export default async function AdminComissoesPage() {
         <div>
           <div style={{ display: "grid", gridTemplateColumns: "1.4fr .8fr .8fr .8fr", gap: 12, padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
             {["Salão", "Concluídos", "Receita", "Repasse estimado"].map((heading) => (
-              <span key={heading} style={{ color: "#71717a", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
+              <span key={heading} style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
             ))}
           </div>
           {studioRows.slice(0, 30).map(({ studio, appointments, revenue, estimate }) => (
             <div key={studio.id} style={{ display: "grid", gridTemplateColumns: "1.4fr .8fr .8fr .8fr", gap: 12, alignItems: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
               <div>
-                <a href={`/admin/studios/${studio.id}`} style={{ color: "#f4f4f5", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>{studio.name}</a>
-                <p style={{ color: "#71717a", fontSize: 11, margin: "4px 0 0", fontFamily: "monospace" }}>/{studio.slug}</p>
+                <a href={`/admin/studios/${studio.id}`} style={{ color: "#1a1a2e", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>{studio.name}</a>
+                <p style={{ color: "#94a3b8", fontSize: 11, margin: "4px 0 0", fontFamily: "monospace" }}>/{studio.slug}</p>
               </div>
               <AdminStatusBadge tone={appointments ? "success" : "muted"}>{appointments} atend.</AdminStatusBadge>
-              <strong style={{ color: revenue ? "#4ade80" : "#71717a", fontSize: 13 }}>{formatCurrency(revenue)}</strong>
+              <strong style={{ color: revenue ? "#4ade80" : "#94a3b8", fontSize: 13 }}>{formatCurrency(revenue)}</strong>
               <div>
-                <strong style={{ color: estimate ? "#fbbf24" : "#71717a", fontSize: 13 }}>{formatCurrency(estimate)}</strong>
-                <p style={{ margin: "3px 0 0", color: "#52525b", fontSize: 11 }}>{rate}% configurado</p>
+                <strong style={{ color: estimate ? "#fbbf24" : "#94a3b8", fontSize: 13 }}>{formatCurrency(estimate)}</strong>
+                <p style={{ margin: "3px 0 0", color: "#94a3b8", fontSize: 11 }}>{rate}% configurado</p>
               </div>
             </div>
           ))}
@@ -86,9 +86,9 @@ export default async function AdminComissoesPage() {
             ["profiles.commission_rate", "Definir percentual por profissional ou por salão."],
             ["commission_payouts", "Fechamento de repasse com status: pendente, pago e ajustado."],
           ].map(([title, desc]) => (
-            <div key={title} style={{ padding: 14, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.025)" }}>
-              <h3 style={{ color: "#c7d2fe", fontSize: 13, margin: "0 0 7px", fontFamily: "monospace" }}>{title}</h3>
-              <p style={{ color: "#71717a", fontSize: 12, margin: 0, lineHeight: 1.5 }}>{desc}</p>
+            <div key={title} style={{ padding: 14, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "#ffffff" }}>
+              <h3 style={{ color: "#7c3aed", fontSize: 13, margin: "0 0 7px", fontFamily: "monospace" }}>{title}</h3>
+              <p style={{ color: "#94a3b8", fontSize: 12, margin: 0, lineHeight: 1.5 }}>{desc}</p>
             </div>
           ))}
         </div>

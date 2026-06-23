@@ -19,21 +19,21 @@ const SERVICES_DEFAULT = [
 
 /* ── Design tokens ────────────────────────────────── */
 const C = {
-  card:   "rgba(255,255,255,0.03)",
-  border: "rgba(255,255,255,0.08)",
-  sep:    "rgba(255,255,255,0.05)",
-  text:   "#f4f4f5",
-  sub:    "#a1a1aa",
-  muted:  "#52525b",
-  dim:    "#3f3f46",
+  card:   "#ffffff",
+  border: "#e8e8f0",
+  sep:    "#1a1a2e",
+  text:   "#1a1a2e",
+  sub:    "#64748b",
+  muted:  "#94a3b8",
+  dim:    "#64748b",
   r:      10,
 };
 
 /* ── Plan colors ─────────────────────────────────── */
 const PC: Record<string, { bg: string; color: string; border: string }> = {
-  pro:     { bg: "rgba(99,102,241,0.10)",  color: "#818cf8", border: "rgba(99,102,241,0.22)"  },
+  pro:     { bg: "rgba(99,102,241,0.10)",  color: "#7c3aed", border: "rgba(99,102,241,0.22)"  },
   starter: { bg: "rgba(96,165,250,0.10)",  color: "#60a5fa", border: "rgba(96,165,250,0.22)"  },
-  free:    { bg: "rgba(113,113,122,0.10)", color: "#71717a", border: "rgba(113,113,122,0.20)" },
+  free:    { bg: "rgba(113,113,122,0.10)", color: "#94a3b8", border: "rgba(113,113,122,0.20)" },
   studio:  { bg: "rgba(244,114,182,0.10)", color: "#f472b6", border: "rgba(244,114,182,0.22)" },
 };
 
@@ -41,7 +41,7 @@ const PC: Record<string, { bg: string; color: string; border: string }> = {
 const HEALTH_CFG = {
   active: { dot: "#22c55e", color: "#4ade80", bg: "rgba(34,197,94,0.08)",   border: "rgba(34,197,94,0.20)",   label: "Ativo"  },
   warm:   { dot: "#eab308", color: "#fbbf24", bg: "rgba(234,179,8,0.08)",   border: "rgba(234,179,8,0.20)",   label: "Morno"  },
-  risk:   { dot: "#52525b", color: "#71717a", bg: "rgba(82,82,91,0.10)",    border: "rgba(82,82,91,0.18)",    label: "Risco"  },
+  risk:   { dot: "#94a3b8", color: "#94a3b8", bg: "rgba(82,82,91,0.10)",    border: "rgba(82,82,91,0.18)",    label: "Risco"  },
 };
 
 /* ── Filter chips config ─────────────────────────── */
@@ -253,7 +253,7 @@ export default function AdminStudiosPage() {
           display: "inline-flex", alignItems: "center", gap: 7,
           padding: "9px 16px", borderRadius: 8,
           background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)",
-          fontSize: 13, fontWeight: 600, color: "#818cf8", cursor: "pointer", fontFamily: "inherit",
+          fontSize: 13, fontWeight: 600, color: "#7c3aed", cursor: "pointer", fontFamily: "inherit",
           transition: "background .15s",
         }}>
           <Plus size={13}/> Novo salão
@@ -292,7 +292,7 @@ export default function AdminStudiosPage() {
                   padding: "4px 11px", borderRadius: 20, cursor: "pointer",
                   fontFamily: "inherit", fontSize: 12, fontWeight: isOn ? 600 : 400,
                   transition: "all .15s",
-                  background: isOn ? "rgba(99,102,241,0.14)" : "rgba(255,255,255,0.04)",
+                  background: isOn ? "rgba(99,102,241,0.14)" : "#f4f5fb",
                   border: isOn ? "1px solid rgba(99,102,241,0.30)" : `1px solid ${C.border}`,
                   color: isOn ? "#818cf8" : C.sub,
                 }}
@@ -301,7 +301,7 @@ export default function AdminStudiosPage() {
                 <span style={{
                   fontSize: 10, fontWeight: 700,
                   color: isOn ? "#818cf8" : C.muted,
-                  background: isOn ? "rgba(99,102,241,0.15)" : "rgba(255,255,255,0.06)",
+                  background: isOn ? "rgba(99,102,241,0.15)" : "#e8e8f0",
                   padding: "1px 5px", borderRadius: 10,
                 }}>{count}</span>
               </button>
@@ -322,7 +322,7 @@ export default function AdminStudiosPage() {
           <div style={{ padding: "60px 24px", textAlign: "center" }}>
             <div style={{
               width: 44, height: 44, borderRadius: 12,
-              background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`,
+              background: "#f4f5fb", border: `1px solid ${C.border}`,
               display: "flex", alignItems: "center", justifyContent: "center",
               margin: "0 auto 14px",
             }}>
@@ -343,7 +343,7 @@ export default function AdminStudiosPage() {
                 display: "inline-flex", alignItems: "center", gap: 6,
                 padding: "8px 16px", borderRadius: 8,
                 background: "rgba(99,102,241,0.10)", border: "1px solid rgba(99,102,241,0.22)",
-                fontSize: 13, fontWeight: 600, color: "#818cf8", cursor: "pointer", fontFamily: "inherit",
+                fontSize: 13, fontWeight: 600, color: "#7c3aed", cursor: "pointer", fontFamily: "inherit",
               }}>
                 <Plus size={13}/> Criar salão
               </button>
@@ -414,7 +414,7 @@ export default function AdminStudiosPage() {
                       width: 32, height: 32, borderRadius: 8, flexShrink: 0,
                       background: "rgba(99,102,241,0.10)", border: "1px solid rgba(99,102,241,0.20)",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 12, fontWeight: 700, color: "#818cf8",
+                      fontSize: 12, fontWeight: 700, color: "#7c3aed",
                     }}>
                       {s.name.charAt(0).toUpperCase()}
                     </div>
@@ -493,11 +493,11 @@ export default function AdminStudiosPage() {
                       style={{
                         display: "flex", alignItems: "center", justifyContent: "center",
                         width: 28, height: 28, borderRadius: 6,
-                        background: "rgba(255,255,255,0.04)", border: `1px solid ${C.sep}`,
+                        background: "#f4f5fb", border: `1px solid ${C.sep}`,
                         color: C.muted, textDecoration: "none", transition: "all .15s",
                       }}
-                      onMouseEnter={(e: any) => { e.currentTarget.style.color = C.text; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
-                      onMouseLeave={(e: any) => { e.currentTarget.style.color = C.muted; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                      onMouseEnter={(e: any) => { e.currentTarget.style.color = C.text; e.currentTarget.style.background = "#e8e8f0"; }}
+                      onMouseLeave={(e: any) => { e.currentTarget.style.color = C.muted; e.currentTarget.style.background = "#f4f5fb"; }}
                     >
                       <Pencil size={11}/>
                     </Link>
@@ -506,12 +506,12 @@ export default function AdminStudiosPage() {
                       style={{
                         display: "flex", alignItems: "center", justifyContent: "center",
                         width: 28, height: 28, borderRadius: 6,
-                        background: "rgba(255,255,255,0.04)", border: `1px solid ${C.sep}`,
+                        background: "#f4f5fb", border: `1px solid ${C.sep}`,
                         color: s.is_active ? "#4ade80" : C.muted,
                         cursor: "pointer", fontFamily: "inherit", transition: "all .15s",
                       }}
-                      onMouseEnter={(e: any) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
-                      onMouseLeave={(e: any) => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                      onMouseEnter={(e: any) => { e.currentTarget.style.background = "#e8e8f0"; }}
+                      onMouseLeave={(e: any) => { e.currentTarget.style.background = "#f4f5fb"; }}
                     >
                       <Power size={11}/>
                     </button>
@@ -548,7 +548,7 @@ export default function AdminStudiosPage() {
               <button
                 onClick={() => setOpen(false)}
                 style={{
-                  background: "rgba(255,255,255,0.05)", border: `1px solid ${C.sep}`,
+                  background: "#1a1a2e", border: `1px solid ${C.sep}`,
                   borderRadius: 7, padding: "6px", cursor: "pointer", color: C.muted,
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}
@@ -571,7 +571,7 @@ export default function AdminStudiosPage() {
                   onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,""))}
                   placeholder="tessy-nails"/>
                 {slug && (
-                  <p style={{ fontSize: 11, color: "#818cf8", marginTop: 5, fontFamily: "monospace" }}>
+                  <p style={{ fontSize: 11, color: "#7c3aed", marginTop: 5, fontFamily: "monospace" }}>
                     nailit.com.br/agendar/{slug}
                   </p>
                 )}
@@ -598,7 +598,7 @@ export default function AdminStudiosPage() {
               <button onClick={criar} disabled={saving} style={{
                 flex: 1, height: 40, borderRadius: 8,
                 background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.30)",
-                color: "#818cf8", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                color: "#7c3aed", fontSize: 13, fontWeight: 600, cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                 fontFamily: "inherit", opacity: saving ? 0.6 : 1,
               }}>
@@ -607,7 +607,7 @@ export default function AdminStudiosPage() {
               </button>
               <button onClick={() => setOpen(false)} style={{
                 height: 40, padding: "0 16px", borderRadius: 8,
-                background: "rgba(255,255,255,0.04)", border: `1px solid ${C.sep}`,
+                background: "#f4f5fb", border: `1px solid ${C.sep}`,
                 color: C.muted, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
               }}>Cancelar</button>
             </div>
@@ -621,17 +621,17 @@ export default function AdminStudiosPage() {
           onClick={() => setConfirmToggle(null)}>
           <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: 28, maxWidth: 380, width: "calc(100% - 40px)" }}
             onClick={e => e.stopPropagation()}>
-            <p style={{ fontSize: 16, fontWeight: 700, color: "#f4f4f5", margin: "0 0 8px" }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "#1a1a2e", margin: "0 0 8px" }}>
               {confirmToggle.active ? "Desativar" : "Ativar"} salão?
             </p>
-            <p style={{ fontSize: 13, color: "#a1a1aa", margin: "0 0 20px" }}>
+            <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 20px" }}>
               {confirmToggle.active
                 ? `O salão "${confirmToggle.name}" ficará inacessível para novos agendamentos.`
                 : `O salão "${confirmToggle.name}" voltará a aceitar agendamentos.`}
             </p>
             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
               <button onClick={() => setConfirmToggle(null)}
-                style={{ padding: "8px 18px", borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#a1a1aa", cursor: "pointer", fontFamily: "inherit", fontSize: 13 }}>
+                style={{ padding: "8px 18px", borderRadius: 8, background: "#e8e8f0", border: "1px solid rgba(255,255,255,0.1)", color: "#64748b", cursor: "pointer", fontFamily: "inherit", fontSize: 13 }}>
                 Cancelar
               </button>
               <button onClick={() => void toggleActive(confirmToggle.id, confirmToggle.active)}

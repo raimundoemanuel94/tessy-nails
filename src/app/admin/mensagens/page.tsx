@@ -79,18 +79,18 @@ export default async function AdminMensagensPage() {
       <AdminPanel title="Templates prontos" description="Primeiro passo: padronizar mensagens. Depois ligamos com gateway de WhatsApp e histórico de disparos." tone="brand">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, padding: 16 }}>
           {templates.map(({ icon: Icon, title, audience, message, tone }) => (
-            <div key={title} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 16, background: "rgba(255,255,255,0.025)" }}>
+            <div key={title} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 16, background: "#ffffff" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#c7d2fe", background: "rgba(99,102,241,0.12)", border: "1px solid rgba(129,140,248,0.25)" }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#7c3aed", background: "rgba(99,102,241,0.12)", border: "1px solid rgba(129,140,248,0.25)" }}>
                     <Icon size={16} />
                   </div>
-                  <strong style={{ color: "#f4f4f5", fontSize: 14 }}>{title}</strong>
+                  <strong style={{ color: "#1a1a2e", fontSize: 14 }}>{title}</strong>
                 </div>
                 <AdminStatusBadge tone={tone as any}>Modelo</AdminStatusBadge>
               </div>
-              <p style={{ color: "#71717a", fontSize: 12, margin: "0 0 10px" }}>{audience}</p>
-              <p style={{ color: "#d4d4d8", fontSize: 12, lineHeight: 1.55, margin: 0, padding: 12, borderRadius: 10, background: "rgba(0,0,0,0.20)", border: "1px solid rgba(255,255,255,0.055)" }}>{message}</p>
+              <p style={{ color: "#94a3b8", fontSize: 12, margin: "0 0 10px" }}>{audience}</p>
+              <p style={{ color: "#d4d4d8", fontSize: 12, lineHeight: 1.55, margin: 0, padding: 12, borderRadius: 10, background: "rgba(0,0,0,0.04)", border: "1px solid rgba(255,255,255,0.055)" }}>{message}</p>
             </div>
           ))}
         </div>
@@ -103,10 +103,10 @@ export default async function AdminMensagensPage() {
             ["2", "Gateway WhatsApp", "Integrar provedor e registrar enviado, entregue, erro e resposta."],
             ["3", "Automações", "Lembrete 24h, aniversário, retorno e campanha geral por segmento."],
           ].map(([step, title, desc]) => (
-            <div key={step} style={{ padding: 14, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.025)" }}>
-              <span style={{ color: "#818cf8", fontSize: 11, fontWeight: 900 }}>{step}</span>
-              <h3 style={{ color: "#f4f4f5", fontSize: 13, margin: "6px 0" }}>{title}</h3>
-              <p style={{ color: "#71717a", fontSize: 12, margin: 0, lineHeight: 1.5 }}>{desc}</p>
+            <div key={step} style={{ padding: 14, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "#ffffff" }}>
+              <span style={{ color: "#7c3aed", fontSize: 11, fontWeight: 900 }}>{step}</span>
+              <h3 style={{ color: "#1a1a2e", fontSize: 13, margin: "6px 0" }}>{title}</h3>
+              <p style={{ color: "#94a3b8", fontSize: 12, margin: 0, lineHeight: 1.5 }}>{desc}</p>
             </div>
           ))}
         </div>

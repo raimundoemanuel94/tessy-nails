@@ -75,7 +75,7 @@ function subscriptionLabel(status?: string | null) {
 function Field({ label, value, onChange, type = "text", placeholder }: any) {
   return (
     <label style={{ display: "grid", gap: 6 }}>
-      <span style={{ color: "#71717a", fontSize: 10, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase" }}>{label}</span>
+      <span style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase" }}>{label}</span>
       <input
         type={type}
         value={value}
@@ -244,7 +244,7 @@ export default function AdminStudioDetailPage() {
   if (loading) {
     return (
       <AdminPanel>
-        <div style={{ padding: 56, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, justifyContent: "center", color: "#71717a" }}>
+        <div style={{ padding: 56, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, justifyContent: "center", color: "#94a3b8" }}>
           <Loader2 className="spin" />
           <span style={{ fontSize: 12, fontWeight: 700 }}>Carregando dados do salão...</span>
         </div>
@@ -305,9 +305,9 @@ export default function AdminStudioDetailPage() {
             onClick={() => setTab(key as Tab)}
             className="admin-action-button"
             style={{
-              color: tab === key ? "#818cf8" : "#71717a",
-              background: tab === key ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.03)",
-              borderColor: tab === key ? "rgba(99,102,241,0.30)" : "rgba(255,255,255,0.08)",
+              color: tab === key ? "#818cf8" : "#94a3b8",
+              background: tab === key ? "rgba(99,102,241,0.12)" : "#ffffff",
+              borderColor: tab === key ? "rgba(99,102,241,0.30)" : "#e8e8f0",
             }}
           >
             {label}
@@ -321,7 +321,7 @@ export default function AdminStudioDetailPage() {
             <Field label="Nome" value={editName} onChange={setEditName} />
             <Field label="Slug" value={editSlug} onChange={setEditSlug} />
             <label style={{ display: "grid", gap: 6 }}>
-              <span style={{ color: "#71717a", fontSize: 10, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase" }}>Plano</span>
+              <span style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase" }}>Plano</span>
               <select value={editPlan} onChange={(event) => setEditPlan(event.target.value)} className="input-base" style={{ height: 38, borderRadius: 9 }}>
                 <option value="free">Free</option>
                 <option value="starter">Starter</option>
@@ -347,13 +347,13 @@ export default function AdminStudioDetailPage() {
           <AdminPanel title="Profissional responsável" description="Quem opera este salão." tone={data.owner ? "success" : "warning"}>
             {data.owner ? (
               <div style={{ padding: 18, display: "grid", gridTemplateColumns: "52px 1fr", gap: 14, alignItems: "center" }}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.24)", display: "flex", alignItems: "center", justifyContent: "center", color: "#818cf8", fontSize: 20, fontWeight: 850 }}>
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(124,58,237,0.10)", border: "1px solid rgba(124,58,237,0.24)", display: "flex", alignItems: "center", justifyContent: "center", color: "#7c3aed", fontSize: 20, fontWeight: 850 }}>
                   {(data.owner.name || "?").charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p style={{ color: "#f4f4f5", fontWeight: 800, margin: 0 }}>{data.owner.name || "Sem nome"}</p>
-                  <p style={{ color: "#71717a", margin: "4px 0 0", fontSize: 12 }}>{data.owner.email || "Sem email"}</p>
-                  <p style={{ color: "#71717a", margin: "3px 0 0", fontSize: 12 }}>{data.owner.phone || "Sem telefone"}</p>
+                  <p style={{ color: "#1a1a2e", fontWeight: 800, margin: 0 }}>{data.owner.name || "Sem nome"}</p>
+                  <p style={{ color: "#94a3b8", margin: "4px 0 0", fontSize: 12 }}>{data.owner.email || "Sem email"}</p>
+                  <p style={{ color: "#94a3b8", margin: "3px 0 0", fontSize: 12 }}>{data.owner.phone || "Sem telefone"}</p>
                 </div>
               </div>
             ) : (
@@ -369,20 +369,20 @@ export default function AdminStudioDetailPage() {
           <AdminPanel title="Resumo operacional" description="Sinais rápidos de uso e configuração." tone="brand">
             <div style={{ padding: 18, display: "grid", gap: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#71717a", fontSize: 12 }}>Status do salão</span>
+                <span style={{ color: "#94a3b8", fontSize: 12 }}>Status do salão</span>
                 <AdminStatusBadge tone={studio.isActive ? "success" : "muted"} dot>{studio.isActive ? "Ativo" : "Inativo"}</AdminStatusBadge>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#71717a", fontSize: 12 }}>Plano</span>
+                <span style={{ color: "#94a3b8", fontSize: 12 }}>Plano</span>
                 <AdminStatusBadge tone="brand">{studio.plan}</AdminStatusBadge>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#71717a", fontSize: 12 }}>Trial até</span>
-                <strong style={{ color: trialDays !== null && trialDays <= 7 ? "#fbbf24" : "#f4f4f5", fontSize: 12 }}>{fmtDate(studio.trialEndsAt)}{trialDays !== null ? ` · ${trialDays}d` : ""}</strong>
+                <span style={{ color: "#94a3b8", fontSize: 12 }}>Trial até</span>
+                <strong style={{ color: trialDays !== null && trialDays <= 7 ? "#fbbf24" : "#1a1a2e", fontSize: 12 }}>{fmtDate(studio.trialEndsAt)}{trialDays !== null ? ` · ${trialDays}d` : ""}</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#71717a", fontSize: 12 }}>Próxima cobrança</span>
-                <strong style={{ color: renewalDays !== null && renewalDays < 0 ? "#f87171" : "#f4f4f5", fontSize: 12 }}>{fmtDate(studio.nextBillingDate)}{renewalDays !== null ? ` · ${renewalDays >= 0 ? `em ${renewalDays}d` : `${Math.abs(renewalDays)}d atrasado`}` : ""}</strong>
+                <span style={{ color: "#94a3b8", fontSize: 12 }}>Próxima cobrança</span>
+                <strong style={{ color: renewalDays !== null && renewalDays < 0 ? "#f87171" : "#1a1a2e", fontSize: 12 }}>{fmtDate(studio.nextBillingDate)}{renewalDays !== null ? ` · ${renewalDays >= 0 ? `em ${renewalDays}d` : `${Math.abs(renewalDays)}d atrasado`}` : ""}</strong>
               </div>
             </div>
           </AdminPanel>
@@ -428,8 +428,8 @@ export default function AdminStudioDetailPage() {
             services.map((service: any) => (
               <div key={service.id} style={{ display: "grid", gridTemplateColumns: "1fr 110px 110px auto", alignItems: "center", gap: 12, padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)", opacity: service.isActive ? 1 : 0.55 }}>
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ color: "#f4f4f5", margin: 0, fontSize: 13, fontWeight: 800 }}>{service.name}</p>
-                  <p style={{ color: "#71717a", margin: "4px 0 0", fontSize: 11 }}>{service.isActive ? "Disponível para agendamento" : "Oculto da vitrine"}</p>
+                  <p style={{ color: "#1a1a2e", margin: 0, fontSize: 13, fontWeight: 800 }}>{service.name}</p>
+                  <p style={{ color: "#94a3b8", margin: "4px 0 0", fontSize: 11 }}>{service.isActive ? "Disponível para agendamento" : "Oculto da vitrine"}</p>
                 </div>
                 <strong style={{ color: "#4ade80", fontSize: 12 }}>{formatCurrency(service.price)}</strong>
                 <span style={{ color: "#a1a1aa", fontSize: 12 }}>{formatDuration(service.durationMinutes)}</span>
@@ -453,11 +453,11 @@ export default function AdminStudioDetailPage() {
                   const config = data.settings.workingHours[day];
                   return (
                     <div key={day} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 12, background: config?.isOpen ? "rgba(255,255,255,0.035)" : "rgba(255,255,255,0.015)", opacity: config?.isOpen ? 1 : 0.45, textAlign: "center" }}>
-                      <p style={{ color: "#71717a", fontSize: 10, fontWeight: 800, margin: "0 0 8px", textTransform: "uppercase" }}>{DAY_LABELS[day]}</p>
+                      <p style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, margin: "0 0 8px", textTransform: "uppercase" }}>{DAY_LABELS[day]}</p>
                       {config?.isOpen ? (
-                        <p style={{ color: "#f4f4f5", fontSize: 12, fontWeight: 800, margin: 0 }}>{config.open}<br />{config.close}</p>
+                        <p style={{ color: "#1a1a2e", fontSize: 12, fontWeight: 800, margin: 0 }}>{config.open}<br />{config.close}</p>
                       ) : (
-                        <p style={{ color: "#71717a", fontSize: 12, fontWeight: 700, margin: 0 }}>Fechado</p>
+                        <p style={{ color: "#94a3b8", fontSize: 12, fontWeight: 700, margin: 0 }}>Fechado</p>
                       )}
                     </div>
                   );

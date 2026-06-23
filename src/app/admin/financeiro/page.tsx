@@ -14,9 +14,9 @@ export const dynamic = "force-dynamic";
 
 const PLAN_COLOR: Record<string, string> = {
   studio: "#f472b6",
-  pro: "#818cf8",
+  pro: "#7c3aed",
   starter: "#60a5fa",
-  free: "#71717a",
+  free: "#94a3b8",
 };
 
 function monthBounds(offset = 0) {
@@ -47,7 +47,7 @@ function MiniArea({ data }: { data: { label: string; value: number }[] }) {
           <div style={{ height: 108, display: "flex", alignItems: "end" }}>
             <div style={{ width: "100%", height: Math.max(8, Math.round((item.value / max) * 104)), borderRadius: "7px 7px 3px 3px", background: "linear-gradient(180deg,#4ade80,#166534)", border: "1px solid rgba(255,255,255,0.08)" }} />
           </div>
-          <p style={{ marginTop: 8, textAlign: "center", color: "#71717a", fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>{item.label}</p>
+          <p style={{ marginTop: 8, textAlign: "center", color: "#94a3b8", fontSize: 10, fontWeight: 700, textTransform: "uppercase" }}>{item.label}</p>
         </div>
       ))}
     </div>
@@ -134,7 +134,7 @@ export default async function FinanceiroPage() {
       count: rows.length,
       revenue,
       pct: mrr ? Math.round((revenue / mrr) * 100) : 0,
-      color: PLAN_COLOR[plan] ?? "#71717a",
+      color: PLAN_COLOR[plan] ?? "#94a3b8",
     };
   });
 
@@ -180,7 +180,7 @@ export default async function FinanceiroPage() {
               ["Canceladas/inativas", canceled.length, "muted"],
             ].map(([label, value, tone]) => (
               <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ color: "#71717a", fontSize: 12 }}>{label}</span>
+                <span style={{ color: "#94a3b8", fontSize: 12 }}>{label}</span>
                 <AdminStatusBadge tone={tone as any} dot>{value}</AdminStatusBadge>
               </div>
             ))}
@@ -194,15 +194,15 @@ export default async function FinanceiroPage() {
             <div key={plan.plan}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 7 }}>
                 <div>
-                  <strong style={{ color: "#f4f4f5", fontSize: 13 }}>{plan.label}</strong>
-                  <span style={{ color: "#71717a", fontSize: 12, marginLeft: 8 }}>{plan.count} pagantes · {formatCurrency(plan.price)}/mês</span>
+                  <strong style={{ color: "#1a1a2e", fontSize: 13 }}>{plan.label}</strong>
+                  <span style={{ color: "#94a3b8", fontSize: 12, marginLeft: 8 }}>{plan.count} pagantes · {formatCurrency(plan.price)}/mês</span>
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                  <span style={{ color: "#71717a", fontSize: 11 }}>{plan.pct}%</span>
+                  <span style={{ color: "#94a3b8", fontSize: 11 }}>{plan.pct}%</span>
                   <strong style={{ color: plan.color, fontSize: 13, minWidth: 88, textAlign: "right" }}>{formatCurrency(plan.revenue)}</strong>
                 </div>
               </div>
-              <div style={{ height: 7, borderRadius: 999, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+              <div style={{ height: 7, borderRadius: 999, background: "#e8e8f0", overflow: "hidden" }}>
                 <div style={{ height: "100%", width: `${plan.pct}%`, background: `linear-gradient(90deg,${plan.color},${plan.color}99)` }} />
               </div>
             </div>
