@@ -390,7 +390,7 @@ button:active, a:active, [role="button"]:active {
   --adm-red:      #ef4444;
   display: flex;
   min-height: 100vh;
-  background: #f5f6fa;
+  background: #f4f6f8;
   color: #1a1a2e;
 }
 .dash-admin {
@@ -399,7 +399,7 @@ button:active, a:active, [role="button"]:active {
   padding: 32px 40px;
   box-sizing: border-box;
   min-height: 100vh;
-  background: #f5f6fa;
+  background: #ffffff;
 }
 
 /* Manicure/studio shell */
@@ -1773,9 +1773,9 @@ button:active, a:active, [role="button"]:active {
   z-index: 20;
   display: flex;
   flex-direction: column;
-  background: #1c1c27;
+  background: #2d2d3f;
   border-right: none;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+  box-shadow: 2px 0 8px rgba(0,0,0,0.12);
   transition: width .22s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
@@ -2081,7 +2081,7 @@ button:active, a:active, [role="button"]:active {
 .adm-sidebar-footer {
   padding: 12px;
   border-top: 1px solid rgba(255,255,255,0.06);
-  background: #1c1c27;
+  background: #2d2d3f;
 }
 .adm-account-card {
   min-width: 0;
