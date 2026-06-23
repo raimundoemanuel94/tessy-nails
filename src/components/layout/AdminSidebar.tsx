@@ -5,19 +5,30 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
+  AlertCircle,
+  BarChart3,
+  Building2,
+  CalendarCheck,
   ChevronDown,
   Command,
+  CreditCard,
   DollarSign,
   ExternalLink,
+  FileText,
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquare,
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
+  ReceiptText,
   Settings,
+  SlidersHorizontal,
   Sun,
   Users,
+  UserCog,
+  WalletCards,
   X,
 } from "lucide-react";
 
@@ -30,11 +41,11 @@ const NAV = [
         icon: LayoutDashboard,
         label: "Visão geral",
         children: [
-          { href: "/admin", label: "Dashboard", exact: true },
-          { href: "/admin/studios", label: "Salões", badge: "studios" },
-          { href: "/admin/clientes", label: "Clientes", badge: "clients" },
-          { href: "/admin/agendamentos", label: "Agendamentos", badge: "appointments" },
-          { href: "/admin/relatorios", label: "Relatórios" },
+          { href: "/admin", label: "Dashboard", exact: true, icon: BarChart3 },
+          { href: "/admin/studios", label: "Salões", badge: "studios", icon: Building2 },
+          { href: "/admin/clientes", label: "Clientes", badge: "clients", icon: Users },
+          { href: "/admin/agendamentos", label: "Agendamentos", badge: "appointments", icon: CalendarCheck },
+          { href: "/admin/relatorios", label: "Relatórios", icon: FileText },
         ],
       },
     ],
@@ -47,8 +58,8 @@ const NAV = [
         icon: Users,
         label: "Profissionais",
         children: [
-          { href: "/admin/profissionais", label: "Contas & Vínculos", badge: "users" },
-          { href: "/admin/comissoes", label: "Comissões" },
+          { href: "/admin/profissionais", label: "Contas & Vínculos", badge: "users", icon: UserCog },
+          { href: "/admin/comissoes", label: "Comissões", icon: ReceiptText },
         ],
       },
     ],
@@ -61,10 +72,10 @@ const NAV = [
         icon: DollarSign,
         label: "Financeiro",
         children: [
-          { href: "/admin/financeiro", label: "Resumo", exact: true },
-          { href: "/admin/financeiro/assinaturas", label: "Assinaturas" },
-          { href: "/admin/financeiro/inadimplencia", label: "Inadimplência" },
-          { href: "/admin/config/planos", label: "Planos e preços" },
+          { href: "/admin/financeiro", label: "Resumo", exact: true, icon: WalletCards },
+          { href: "/admin/financeiro/assinaturas", label: "Assinaturas", icon: CreditCard },
+          { href: "/admin/financeiro/inadimplencia", label: "Inadimplência", icon: AlertCircle },
+          { href: "/admin/config/planos", label: "Planos e preços", icon: SlidersHorizontal },
         ],
       },
     ],
@@ -77,8 +88,8 @@ const NAV = [
         icon: Settings,
         label: "Configurações",
         children: [
-          { href: "/admin/config", label: "Preferências", exact: true },
-          { href: "/admin/mensagens", label: "Mensagens" },
+          { href: "/admin/config", label: "Preferências", exact: true, icon: Settings },
+          { href: "/admin/mensagens", label: "Mensagens", icon: MessageSquare },
         ],
       },
     ],
@@ -144,6 +155,7 @@ function NavGroup({ item, isActive, onNav, open, onToggle, getCount, collapsed }
       <div className={`adm-side-children ${open ? "is-open" : ""}`}>
         {item.children.map((child: any) => {
           const active = child.exact ? isActive(child.href, true) : isActive(child.href);
+          const ChildIcon = child.icon;
           return (
             <Link
               key={child.href}
@@ -152,6 +164,7 @@ function NavGroup({ item, isActive, onNav, open, onToggle, getCount, collapsed }
               title={child.label}
               className={`adm-side-child ${active ? "is-active" : ""}`}
             >
+              {ChildIcon && <ChildIcon size={13} strokeWidth={2.15} />}
               <span>{child.label}</span>
               <CountBadge n={getCount(child.badge)} />
             </Link>
