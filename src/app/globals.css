@@ -4550,44 +4550,7 @@ nextjs-portal {
   box-shadow: none !important;
 }
 
-.adm-sidebar-footer {
-  padding: 12px !important;
-}
-
-.adm-account-card {
-  border-radius: 14px !important;
-  padding: 11px !important;
-  gap: 10px !important;
-}
-
-.adm-user-avatar {
-  width: 34px !important;
-  height: 34px !important;
-  border-radius: 10px !important;
-}
-
-.adm-footer-actions {
-  gap: 8px !important;
-}
-
-.adm-footer-actions a,
-.adm-footer-actions button {
-  height: 36px !important;
-  border-radius: 10px !important;
-  font-size: 11.5px !important;
-  font-weight: 800 !important;
-  transition:
-    transform .16s cubic-bezier(.2,.8,.2,1),
-    background .16s,
-    color .16s,
-    border-color .16s,
-    box-shadow .16s !important;
-}
-
-.adm-footer-actions a:hover,
-.adm-footer-actions button:hover {
-  transform: translateY(-1px);
-}
+/* footer cleanup */
 
 :root[data-admin-theme="day"] .adm-sidebar-brand,
 :root[data-admin-theme="day"] .adm-sidebar-footer {
@@ -4847,11 +4810,7 @@ nextjs-portal {
   color: #1f4f66 !important;
 }
 
-.adm-footer-actions a,
-.adm-footer-actions button {
-  height: 34px !important;
-  border-radius: 8px !important;
-}
+
 
 :root[data-admin-theme="night"] .adm-nav-section > p {
   color: #8996a5 !important;
