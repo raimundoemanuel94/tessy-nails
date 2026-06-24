@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
-  AlertCircle, BarChart3, Building2, CalendarCheck,
+  Activity, AlertCircle, BarChart3, Building2, CalendarCheck,
   Command, CreditCard, DollarSign, ExternalLink,
   FileText, LayoutDashboard, LogOut, Menu,
   MessageSquare, Moon, PanelLeftClose, PanelLeftOpen,
@@ -32,6 +32,7 @@ const NAV_ITEMS = [
   // Sistema
   { href: "/admin/config",             label: "Configurações",  icon: Settings,        exact: true,  badge: null,           group: "Sistema"    },
   { href: "/admin/mensagens",          label: "Mensagens",      icon: MessageSquare,   exact: false, badge: null,           group: "Sistema"    },
+  { href: "/admin/logs",               label: "Logs",           icon: Activity,        exact: false, badge: null,           group: "Sistema"    },
 ] as const;
 
 const GROUPS = ["Plataforma", "Equipe", "Financeiro", "Sistema"] as const;

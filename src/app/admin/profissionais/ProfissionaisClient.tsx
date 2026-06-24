@@ -1,247 +1,428 @@
 "use client";
 import { useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Users, Building2, UserCheck, UserX, Crown, Link2, Loader2, X, Check, Search, Unlink } from "lucide-react";
-import { toast } from "sonner";
+import {
+  Building2, Check, Crown, ExternalLink, Key, Loader2,
+  Plus, Search, Shield, Unlink, UserCheck, Users, UserX, X, Clock,
+} from "lucide-react";
 
-function hexToRgb(hex: string) { try { const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `${r},${g},${b}`; } catch { return "124,92,191"; } }
+const C = {
+  bg: "#f4f5fb", card: "#ffffff", border: "#e2e8f0",
+  sep: "#f0f0f8", text: "#0f172a", sub: "#64748b", muted: "#94a3b8",
+};
+
+const ROLE_INFO: Record<string, any> = {
+  superadmin:   { label: "Superadmin",   color: "#7c3aed", bg: "rgba(124,58,237,0.10)",  border: "rgba(124,58,237,0.22)"  },
+  owner:        { label: "Responsável",  color: "#10b981", bg: "rgba(16,185,129,0.08)",  border: "rgba(16,185,129,0.20)"  },
+  professional: { label: "Profissional", color: "#64748b", bg: "rgba(100,116,139,0.08)", border: "rgba(100,116,139,0.18)" },
+};
+
+function Modal({ title, onClose, children }: any) {
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.35)" }}>
+      <div style={{ background: "#fff", borderRadius: 16, padding: 24, width: "100%", maxWidth: 440, boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: C.text, margin: 0 }}>{title}</h3>
+          <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: C.muted }}><X size={18} /></button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function InputField({ label, ...props }: any) {
+  return (
+    <label style={{ display: "grid", gap: 5 }}>
+      <span style={{ fontSize: 11, fontWeight: 600, color: C.sub, textTransform: "uppercase", letterSpacing: ".06em" }}>{label}</span>
+      <input {...props} className="input-base" />
+    </label>
+  );
+}
 
 export function ProfissionaisClient({ initialProfiles, studios: initialStudios }: any) {
   const sb = createClient();
   const [profiles, setProfiles] = useState(initialProfiles);
-  const [studios, setStudios]   = useState(initialStudios);
-  const [search, setSearch]     = useState("");
-  const [linkModal, setLinkModal] = useState<any>(null); // profile being linked
-  const [selStudio, setSelStudio] = useState("");
-  const [saving, setSaving]     = useState(false);
+  const [studios, setStudios] = useState(initialStudios);
+  const [search, setSearch] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type?: string } | null>(null);
 
-  const studioById = useMemo(() => Object.fromEntries(studios.map((s: any) => [s.id, s])), [studios]);
+  // Modals
+  const [createAdminModal, setCreateAdminModal] = useState(false);
+  const [resetModal, setResetModal] = useState<any>(null);
+  const [trialModal, setTrialModal] = useState<any>(null);
+  const [impersonateModal, setImpersonateModal] = useState<any>(null);
+  const [linkModal, setLinkModal] = useState<any>(null);
+
+  // Forms
+  const [adminForm, setAdminForm] = useState({ name: "", email: "", password: "" });
+  const [trialDays, setTrialDays] = useState("7");
+  const [trialStatus, setTrialStatus] = useState("trial");
+  const [selStudio, setSelStudio] = useState("");
+
+  function showToast(msg: string, type = "success") {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  async function callAction(payload: any) {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/actions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erro");
+      return data;
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleCreateAdmin() {
+    if (!adminForm.name || !adminForm.email || !adminForm.password) return showToast("Preencha todos os campos", "error");
+    try {
+      await callAction({ action: "create_admin", ...adminForm });
+      showToast("Admin criado com sucesso!");
+      setCreateAdminModal(false);
+      setAdminForm({ name: "", email: "", password: "" });
+      window.location.reload();
+    } catch (e: any) { showToast(e.message, "error"); }
+  }
+
+  async function handleResetPassword() {
+    try {
+      await callAction({ action: "reset_password", email: resetModal.email });
+      showToast(`Email de reset enviado para ${resetModal.email}`);
+      setResetModal(null);
+    } catch (e: any) { showToast(e.message, "error"); }
+  }
+
+  async function handleUpdateTrial() {
+    try {
+      await callAction({ action: "update_trial", studioId: trialModal.id, days: Number(trialDays), status: trialStatus });
+      showToast("Trial atualizado!");
+      setTrialModal(null);
+      window.location.reload();
+    } catch (e: any) { showToast(e.message, "error"); }
+  }
+
+  async function handleImpersonate() {
+    try {
+      const data = await callAction({ action: "impersonate", ownerEmail: impersonateModal.email, studioId: impersonateModal.studioId });
+      if (data.link) {
+        navigator.clipboard.writeText(data.link);
+        showToast("Link de acesso copiado! Cole em aba anônima.");
+      }
+      setImpersonateModal(null);
+    } catch (e: any) { showToast(e.message, "error"); }
+  }
+
+  async function handleLink() {
+    if (!linkModal || !selStudio) return;
+    setSaving(true);
+    try {
+      await sb.from("studios").update({ owner_id: linkModal.id }).eq("id", selStudio);
+      await sb.from("profiles").update({ studio_id: selStudio }).eq("id", linkModal.id);
+      showToast("Vinculado com sucesso!");
+      setLinkModal(null);
+      window.location.reload();
+    } catch (e: any) { showToast(e.message, "error"); }
+    finally { setSaving(false); }
+  }
+
+  async function handleUnlink(profile: any) {
+    if (!confirm(`Desvincular ${profile.name} do salão?`)) return;
+    setSaving(true);
+    const studio = studios.find((s: any) => s.owner_id === profile.id);
+    if (studio) await sb.from("studios").update({ owner_id: null }).eq("id", studio.id);
+    await sb.from("profiles").update({ studio_id: null }).eq("id", profile.id);
+    showToast("Desvinculado");
+    setSaving(false);
+    window.location.reload();
+  }
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    if (!q) return profiles;
+    return profiles.filter((p: any) => (p.name ?? "").toLowerCase().includes(q) || (p.email ?? "").toLowerCase().includes(q));
+  }, [profiles, search]);
+
   const ownerToStudio = useMemo(() => {
     const m: Record<string, any> = {};
     studios.forEach((s: any) => { if (s.owner_id) m[s.owner_id] = s; });
     return m;
   }, [studios]);
 
-  const pros   = profiles.filter((p: any) => p.role === "professional");
-  const admins = profiles.filter((p: any) => p.role === "superadmin");
-  const linked   = pros.filter((p: any) => ownerToStudio[p.id]);
-  const unlinked = pros.filter((p: any) => !ownerToStudio[p.id]);
-
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return profiles;
-    return profiles.filter((p: any) => (p.name||"").toLowerCase().includes(q) || (p.email||"").toLowerCase().includes(q));
-  }, [profiles, search]);
-
-  const availableStudios = studios.filter((s: any) => !s.owner_id);
-
-  async function linkProfessional() {
-    if (!linkModal || !selStudio) return;
-    // Se já tem studio_id, pedir confirmação
-    if (linkModal.studio_id) {
-      const prev = studios.find((s: any) => s.id === linkModal.studio_id);
-      if (!confirm(`${linkModal.name} já está vinculado a "${prev?.name ?? linkModal.studio_id}". Deseja substituir o vínculo?`)) return;
-    }
-    setSaving(true);
-    try {
-      const { error: studioError } = await sb.from("studios").update({ owner_id: linkModal.id }).eq("id", selStudio);
-      if (studioError) throw studioError;
-
-      const { error: profileError } = await sb.from("profiles").update({ studio_id: selStudio }).eq("id", linkModal.id);
-      if (profileError) {
-        await sb.from("studios").update({ owner_id: null }).eq("id", selStudio);
-        throw profileError;
-      }
-
-      setStudios((prev: any) => prev.map((s: any) => s.id === selStudio ? { ...s, owner_id: linkModal.id } : s));
-      setProfiles((prev: any) => prev.map((p: any) => p.id === linkModal.id ? { ...p, studio_id: selStudio } : p));
-      toast.success("Profissional vinculado ao salão.");
-      setLinkModal(null);
-      setSelStudio("");
-    } catch (err: any) {
-      toast.error(err?.message ?? "Não foi possível vincular profissional.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function unlink(profile: any, studio: any) {
-    if (!confirm(`Desvincular ${profile.name} de ${studio.name}?`)) return;
-    const previousStudioId = profile.studio_id;
-    const { error: studioError } = await sb.from("studios").update({ owner_id: null }).eq("id", studio.id);
-    if (studioError) {
-      toast.error(studioError.message);
-      return;
-    }
-
-    const { error: profileError } = await sb.from("profiles").update({ studio_id: null }).eq("id", profile.id);
-    if (profileError) {
-      await sb.from("studios").update({ owner_id: profile.id }).eq("id", studio.id);
-      await sb.from("profiles").update({ studio_id: previousStudioId }).eq("id", profile.id);
-      toast.error(profileError.message);
-      return;
-    }
-
-    setStudios((prev: any) => prev.map((s: any) => s.id === studio.id ? { ...s, owner_id: null } : s));
-    setProfiles((prev: any) => prev.map((p: any) => p.id === profile.id ? { ...p, studio_id: null } : p));
-    toast.success("Profissional desvinculado.");
-  }
-
-  const KPIS = [
-    { label: "Total profissionais", value: pros.length,    icon: Users,     color: "var(--brand-light)" },
-    { label: "Vinculados",          value: linked.length,  icon: UserCheck, color: "var(--green)" },
-    { label: "Sem salão",           value: unlinked.length,icon: UserX,     color: unlinked.length > 0 ? "var(--yellow)" : "var(--muted)" },
-  ];
+  const admins = profiles.filter((p: any) => p.role === "superadmin").length;
+  const owners = profiles.filter((p: any) => p.role === "owner").length;
+  const profs = profiles.filter((p: any) => p.role === "professional").length;
+  const noStudio = profiles.filter((p: any) => p.role !== "superadmin" && !p.studio_id).length;
+  const freeStudios = studios.filter((s: any) => !s.owner_id);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 960 }}>
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 200, padding: "12px 18px", borderRadius: 10, background: toast.type === "error" ? "#ef4444" : "#10b981", color: "#fff", fontSize: 13, fontWeight: 600, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+          {toast.msg}
+        </div>
+      )}
+
+      {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 6 }}>⚡ Profissionais</div>
-          <h1 style={{ fontSize: 27, fontWeight: 900, color: "var(--text)", margin: 0, letterSpacing: "-.02em" }}>Contas & Vínculos</h1>
-          <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 4 }}>{profiles.length} contas na plataforma</p>
+          <p style={{ fontSize: 11, fontWeight: 600, color: "#7c3aed", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4 }}>Equipe</p>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: C.text, margin: 0, letterSpacing: "-.03em" }}>Usuários & Profissionais</h1>
+          <p style={{ fontSize: 13, color: C.sub, marginTop: 4 }}>{profiles.length} contas na plataforma</p>
         </div>
+        <button onClick={() => setCreateAdminModal(true)}
+          style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 10, border: "none", background: "#7c3aed", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          <Plus size={15} /> Criar Superadmin
+        </button>
       </div>
 
-      {/* KPIs */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
-        {KPIS.map(({ label, value, icon: Icon, color }) => (
-          <div key={label} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, padding: "18px 18px", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", top: 0, left: 12, right: 12, height: 2, background: `linear-gradient(90deg,transparent,${color},transparent)`, opacity: .7 }}/>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--muted)" }}>{label}</span>
-              <Icon size={16} color={color}/>
-            </div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: "var(--text)", letterSpacing: "-.02em" }}>{value}</div>
+      {/* Stats */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {[
+          { label: "Total", value: profiles.length, color: C.sub },
+          { label: "Superadmins", value: admins, color: "#7c3aed" },
+          { label: "Responsáveis", value: owners, color: "#10b981" },
+          { label: "Profissionais", value: profs, color: C.sub },
+          ...(noStudio > 0 ? [{ label: "Sem salão", value: noStudio, color: "#ef4444" }] : []),
+        ].map(({ label, value, color }) => (
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 12px", borderRadius: 20, background: C.card, border: `1px solid ${C.border}` }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}</span>
+            <span style={{ fontSize: 11, color: C.muted }}>{label}</span>
           </div>
         ))}
       </div>
 
-      {/* Alerta de não-vinculados */}
-      {unlinked.length > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(245,200,66,.08)", border: "1px solid rgba(245,200,66,.25)", borderRadius: 14, padding: "14px 18px" }}>
-          <UserX size={18} color="var(--yellow)"/>
-          <span style={{ fontSize: 13, color: "var(--text)" }}>
-            <b>{unlinked.length}</b> profissional{unlinked.length > 1 ? "is" : ""} sem salão vinculado. Clique em <b style={{ color: "var(--yellow)" }}>Vincular</b> para conectar a um salão.
-          </span>
-        </div>
-      )}
-
       {/* Search */}
       <div style={{ position: "relative" }}>
-        <Search size={15} color="var(--muted)" style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)" }}/>
+        <Search size={14} style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)", color: C.muted }} />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome ou email..."
-          style={{ width: "100%", height: 44, padding: "0 14px 0 40px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 13, color: "var(--text)", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}/>
+          className="input-base" style={{ paddingLeft: 36, width: "100%", boxSizing: "border-box" }} />
       </div>
 
-      {/* Lista */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {filtered.map((p: any) => {
-          const studio = ownerToStudio[p.id];
-          const isSuperadmin = p.role === "superadmin";
-          const rgb = studio ? hexToRgb(studio.brand_color || "#7C5CBF") : "124,92,191";
+      {/* Table */}
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
+        {/* Header */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 160px 200px", padding: "9px 16px", background: "#f8fafc", borderBottom: `1px solid ${C.sep}` }}>
+          {["Usuário", "Perfil", "Salão", "Ações"].map(h => (
+            <span key={h} style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: ".08em" }}>{h}</span>
+          ))}
+        </div>
+
+        {filtered.map((p: any, i: number) => {
+          const role = ROLE_INFO[p.role] ?? ROLE_INFO.professional;
+          const isAdmin = p.role === "superadmin";
+          const linkedStudio = ownerToStudio[p.id];
+          const avatar = (p.name ?? "?").charAt(0).toUpperCase();
+
           return (
-            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 14, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "14px 18px" }}>
-              {/* Avatar */}
-              <div style={{ width: 46, height: 46, borderRadius: 14, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, fontWeight: 800,
-                background: isSuperadmin ? "linear-gradient(135deg,#f59e0b,#f0b64a)" : "linear-gradient(140deg,var(--brand),var(--brand-light))",
-                color: isSuperadmin ? "#1a1208" : "#fff" }}>
-                {p.avatar_url ? <img src={p.avatar_url} style={{ width: "100%", height: "100%", borderRadius: 12, objectFit: "cover" }} alt=""/> : (p.name || "?").charAt(0).toUpperCase()}
-              </div>
-              {/* Info */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>{p.name || "—"}</span>
-                  {isSuperadmin
-                    ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9, fontWeight: 800, padding: "2px 8px", borderRadius: 6, background: "rgba(245,158,11,.15)", color: "var(--gold)", border: "1px solid rgba(245,158,11,.3)", textTransform: "uppercase" }}><Crown size={10}/> Superadmin</span>
-                    : <span style={{ fontSize: 9, fontWeight: 800, padding: "2px 8px", borderRadius: 6, background: "rgba(124,92,191,.15)", color: "var(--brand-light)", border: "1px solid rgba(124,92,191,.3)", textTransform: "uppercase" }}>Profissional</span>
-                  }
+            <div key={p.id} style={{
+              display: "grid", gridTemplateColumns: "1fr 110px 160px 200px",
+              alignItems: "center", padding: "13px 16px",
+              borderBottom: i < filtered.length - 1 ? `1px solid ${C.sep}` : "none",
+              transition: "background .1s",
+            }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#f8fafc")}
+              onMouseLeave={e => (e.currentTarget.style.background = "")}>
+
+              {/* User */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 10, flexShrink: 0, background: isAdmin ? "rgba(124,58,237,0.12)" : "#f1f5f9", border: isAdmin ? "1px solid rgba(124,58,237,0.25)" : `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: isAdmin ? "#7c3aed" : C.sub }}>
+                  {avatar}
                 </div>
-                <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.email}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name ?? "—"}</div>
+                  <div style={{ fontSize: 11, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.email}</div>
+                </div>
               </div>
-              {/* Vínculo com salão */}
-              <div style={{ flexShrink: 0 }}>
-                {isSuperadmin ? (
-                  <span style={{ fontSize: 11, color: "var(--gold)", fontWeight: 600 }}>Admin geral</span>
-                ) : studio ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 10, background: `rgba(${rgb},.1)`, border: `1px solid rgba(${rgb},.25)` }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 7, background: `linear-gradient(140deg,${studio.brand_color||"#7C5CBF"},rgba(0,0,0,.3))`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800, color: "#fff" }}>
-                        {studio.name.slice(0,2).toUpperCase()}
-                      </div>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>{studio.name}</span>
-                    </div>
-                    <button onClick={() => unlink(p, studio)} title="Desvincular"
-                      style={{ width: 32, height: 32, borderRadius: 9, border: "1px solid rgba(245,90,90,.2)", background: "none", color: "#f87171", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Unlink size={14}/>
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => { setLinkModal(p); setSelStudio(""); }}
-                    style={{ display: "flex", alignItems: "center", gap: 7, height: 36, padding: "0 16px", borderRadius: 10, border: "1px solid rgba(245,200,66,.3)", background: "rgba(245,200,66,.1)", color: "var(--yellow)", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "inherit" }}>
-                    <Link2 size={14}/> Vincular salão
+
+              {/* Role */}
+              <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 6, background: role.bg, color: role.color, border: `1px solid ${role.border}`, display: "inline-block" }}>
+                {role.label}
+              </span>
+
+              {/* Studio */}
+              <div>
+                {isAdmin ? <span style={{ fontSize: 12, color: C.muted }}>—</span>
+                  : linkedStudio ? (
+                    <a href={`/admin/studios/${linkedStudio.id}`} style={{ fontSize: 12, color: "#7c3aed", fontWeight: 500, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+                      <Building2 size={11} /> {linkedStudio.name}
+                    </a>
+                  ) : (
+                    <span style={{ fontSize: 12, color: "#ef4444", fontWeight: 500 }}>Sem salão</span>
+                  )}
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                {/* Reset senha */}
+                {!isAdmin && (
+                  <button title="Resetar senha" onClick={() => setResetModal(p)}
+                    style={{ padding: "4px 8px", borderRadius: 7, border: `1px solid ${C.border}`, background: "#f8fafc", color: C.sub, cursor: "pointer", fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}>
+                    <Key size={11} /> Senha
+                  </button>
+                )}
+                {/* Trial */}
+                {linkedStudio && (
+                  <button title="Controlar trial" onClick={() => { setTrialModal(linkedStudio); setTrialDays("7"); setTrialStatus(linkedStudio.subscription_status ?? "trial"); }}
+                    style={{ padding: "4px 8px", borderRadius: 7, border: `1px solid ${C.border}`, background: "#f8fafc", color: C.sub, cursor: "pointer", fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}>
+                    <Clock size={11} /> Trial
+                  </button>
+                )}
+                {/* Impersonar */}
+                {p.role === "owner" && linkedStudio && (
+                  <button title="Entrar como este salão" onClick={() => setImpersonateModal({ email: p.email, name: p.name, studioId: linkedStudio.id, studioName: linkedStudio.name })}
+                    style={{ padding: "4px 8px", borderRadius: 7, border: "1px solid rgba(124,58,237,0.25)", background: "rgba(124,58,237,0.06)", color: "#7c3aed", cursor: "pointer", fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}>
+                    <ExternalLink size={11} /> Entrar
+                  </button>
+                )}
+                {/* Vincular */}
+                {!isAdmin && !linkedStudio && (
+                  <button title="Vincular a salão" onClick={() => { setLinkModal(p); setSelStudio(""); }}
+                    style={{ padding: "4px 8px", borderRadius: 7, border: "1px solid rgba(16,185,129,0.25)", background: "rgba(16,185,129,0.06)", color: "#10b981", cursor: "pointer", fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}>
+                    <UserCheck size={11} /> Vincular
+                  </button>
+                )}
+                {/* Desvincular */}
+                {!isAdmin && linkedStudio && (
+                  <button title="Desvincular" onClick={() => handleUnlink(p)}
+                    style={{ padding: "4px 8px", borderRadius: 7, border: "1px solid rgba(239,68,68,0.20)", background: "rgba(239,68,68,0.06)", color: "#ef4444", cursor: "pointer", fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}>
+                    <Unlink size={11} />
                   </button>
                 )}
               </div>
             </div>
           );
         })}
+
+        {filtered.length === 0 && (
+          <div style={{ padding: "48px 24px", textAlign: "center", color: C.muted }}>
+            <Users size={24} style={{ opacity: 0.3, marginBottom: 10 }} />
+            <p style={{ fontSize: 14, fontWeight: 600, color: C.sub }}>Nenhum usuário encontrado</p>
+          </div>
+        )}
       </div>
 
-      {/* Modal de vínculo */}
-      {linkModal && (
-        <div onClick={e => e.target === e.currentTarget && setLinkModal(null)} style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-          <div style={{ background: "var(--surface)", border: "1px solid var(--border2)", borderRadius: 22, padding: 26, width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", gap: 18, boxShadow: "0 24px 60px rgba(0,0,0,.6)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ fontSize: 17, fontWeight: 900, color: "var(--text)" }}>Vincular profissional</div>
-                <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>{linkModal.name} · {linkModal.email}</div>
-              </div>
-              <button onClick={() => setLinkModal(null)} style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 22, cursor: "pointer" }}>×</button>
+      {/* MODAL: Criar admin */}
+      {createAdminModal && (
+        <Modal title="Criar Superadmin" onClose={() => setCreateAdminModal(false)}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <InputField label="Nome" value={adminForm.name} onChange={(e: any) => setAdminForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex: João Admin" />
+            <InputField label="Email" type="email" value={adminForm.email} onChange={(e: any) => setAdminForm(f => ({ ...f, email: e.target.value }))} placeholder="admin@nailit.app" />
+            <InputField label="Senha" type="password" value={adminForm.password} onChange={(e: any) => setAdminForm(f => ({ ...f, password: e.target.value }))} placeholder="Mínimo 8 caracteres" />
+            <p style={{ fontSize: 11, color: C.muted, margin: "4px 0 0" }}>⚠️ Este usuário terá acesso total à plataforma.</p>
+            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <button onClick={handleCreateAdmin} disabled={saving}
+                style={{ flex: 1, padding: "10px", borderRadius: 10, border: "none", background: "#7c3aed", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+                {saving ? <Loader2 size={14} className="spin" /> : <Shield size={14} />} Criar Admin
+              </button>
+              <button onClick={() => setCreateAdminModal(false)} style={{ padding: "10px 16px", borderRadius: 10, border: `1px solid ${C.border}`, background: "#f8fafc", color: C.sub, cursor: "pointer" }}>Cancelar</button>
             </div>
-
-            {availableStudios.length === 0 ? (
-              <div style={{ padding: 16, background: "rgba(245,200,66,.08)", border: "1px solid rgba(245,200,66,.25)", borderRadius: 12, fontSize: 13, color: "var(--text)" }}>
-                Todos os salões já têm responsável. Crie um novo salão primeiro em <b style={{ color: "var(--yellow)" }}>Salões</b>.
-              </div>
-            ) : (
-              <>
-                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                  <label style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase" }}>Escolha o salão sem responsável</label>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 280, overflow: "auto" }}>
-                    {availableStudios.map((s: any) => {
-                      const rgb = hexToRgb(s.brand_color || "#7C5CBF");
-                      const sel = selStudio === s.id;
-                      return (
-                        <button key={s.id} onClick={() => setSelStudio(s.id)}
-                          style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-                            border: `1px solid ${sel ? `rgba(${rgb},.5)` : "var(--border)"}`, background: sel ? `rgba(${rgb},.1)` : "var(--surface2)" }}>
-                          <div style={{ width: 36, height: 36, borderRadius: 11, background: `linear-gradient(140deg,${s.brand_color||"#7C5CBF"},rgba(0,0,0,.35))`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, color: "#fff" }}>
-                            {s.name.slice(0,2).toUpperCase()}
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{s.name}</div>
-                            <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "monospace" }}>/{s.slug}</div>
-                          </div>
-                          {sel && <Check size={16} color={s.brand_color || "var(--brand-light)"}/>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={linkProfessional} disabled={saving || !selStudio}
-                    style={{ flex: 1, height: 44, borderRadius: 12, background: "linear-gradient(135deg,var(--brand-light),var(--brand))", color: "#fff", border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 4px 18px var(--brand-glow)", opacity: (saving || !selStudio) ? 0.5 : 1 }}>
-                    {saving ? <><Loader2 size={14} style={{ animation: "spin .8s linear infinite" }}/> Vinculando...</> : <><Link2 size={14}/> Vincular</>}
-                  </button>
-                  <button onClick={() => setLinkModal(null)} style={{ height: 44, padding: "0 18px", borderRadius: 12, border: "1px solid var(--border2)", background: "none", color: "var(--muted)", cursor: "pointer", fontFamily: "inherit", fontWeight: 600, fontSize: 13 }}>Cancelar</button>
-                </div>
-              </>
-            )}
           </div>
-        </div>
+        </Modal>
       )}
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+
+      {/* MODAL: Reset senha */}
+      {resetModal && (
+        <Modal title="Resetar senha" onClose={() => setResetModal(null)}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <p style={{ fontSize: 13, color: C.sub, margin: 0 }}>
+              Um email de redefinição de senha será enviado para <strong style={{ color: C.text }}>{resetModal.email}</strong>.
+            </p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={handleResetPassword} disabled={saving}
+                style={{ flex: 1, padding: "10px", borderRadius: 10, border: "none", background: "#7c3aed", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+                {saving ? <Loader2 size={14} className="spin" /> : <Key size={14} />} Enviar email de reset
+              </button>
+              <button onClick={() => setResetModal(null)} style={{ padding: "10px 16px", borderRadius: 10, border: `1px solid ${C.border}`, background: "#f8fafc", color: C.sub, cursor: "pointer" }}>Cancelar</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* MODAL: Trial */}
+      {trialModal && (
+        <Modal title={`Trial — ${trialModal.name}`} onClose={() => setTrialModal(null)}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <p style={{ fontSize: 12, color: C.muted, margin: 0 }}>
+              Status atual: <strong style={{ color: C.text }}>{trialModal.subscription_status}</strong>
+              {trialModal.trial_ends_at && <> · Expira: <strong>{new Date(trialModal.trial_ends_at).toLocaleDateString("pt-BR")}</strong></>}
+            </p>
+            <InputField label="Estender trial (dias a partir de hoje)" type="number" min="1" max="365" value={trialDays} onChange={(e: any) => setTrialDays(e.target.value)} />
+            <label style={{ display: "grid", gap: 5 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: C.sub, textTransform: "uppercase", letterSpacing: ".06em" }}>Status</span>
+              <select value={trialStatus} onChange={e => setTrialStatus(e.target.value)} className="input-base">
+                <option value="trial">Trial</option>
+                <option value="active">Ativo (pago)</option>
+                <option value="past_due">Inadimplente</option>
+                <option value="cancelled">Cancelado</option>
+                <option value="suspended">Suspenso</option>
+              </select>
+            </label>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={handleUpdateTrial} disabled={saving}
+                style={{ flex: 1, padding: "10px", borderRadius: 10, border: "none", background: "#7c3aed", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+                {saving ? <Loader2 size={14} className="spin" /> : <Clock size={14} />} Salvar
+              </button>
+              <button onClick={() => setTrialModal(null)} style={{ padding: "10px 16px", borderRadius: 10, border: `1px solid ${C.border}`, background: "#f8fafc", color: C.sub, cursor: "pointer" }}>Cancelar</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* MODAL: Impersonar */}
+      {impersonateModal && (
+        <Modal title={`Entrar como ${impersonateModal.studioName}`} onClose={() => setImpersonateModal(null)}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ padding: 12, borderRadius: 10, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)" }}>
+              <p style={{ fontSize: 12, color: "#92400e", margin: 0 }}>
+                ⚠️ Isso vai gerar um link de acesso único para <strong>{impersonateModal.email}</strong>. O link será copiado — abra em aba anônima. Todas as ações serão logadas.
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={handleImpersonate} disabled={saving}
+                style={{ flex: 1, padding: "10px", borderRadius: 10, border: "none", background: "#7c3aed", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+                {saving ? <Loader2 size={14} className="spin" /> : <ExternalLink size={14} />} Gerar link & Copiar
+              </button>
+              <button onClick={() => setImpersonateModal(null)} style={{ padding: "10px 16px", borderRadius: 10, border: `1px solid ${C.border}`, background: "#f8fafc", color: C.sub, cursor: "pointer" }}>Cancelar</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* MODAL: Vincular */}
+      {linkModal && (
+        <Modal title={`Vincular ${linkModal.name}`} onClose={() => setLinkModal(null)}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <label style={{ display: "grid", gap: 5 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: C.sub, textTransform: "uppercase", letterSpacing: ".06em" }}>Salão sem responsável</span>
+              <select value={selStudio} onChange={e => setSelStudio(e.target.value)} className="input-base">
+                <option value="">Selecionar...</option>
+                {freeStudios.map((s: any) => (
+                  <option key={s.id} value={s.id}>{s.name} (/{s.slug})</option>
+                ))}
+              </select>
+            </label>
+            {freeStudios.length === 0 && <p style={{ fontSize: 12, color: "#f59e0b" }}>Todos os salões já têm responsável.</p>}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={handleLink} disabled={saving || !selStudio}
+                style={{ flex: 1, padding: "10px", borderRadius: 10, border: "none", background: selStudio ? "#10b981" : "#e2e8f0", color: selStudio ? "#fff" : C.muted, fontSize: 13, fontWeight: 600, cursor: selStudio ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+                {saving ? <Loader2 size={14} className="spin" /> : <UserCheck size={14} />} Vincular
+              </button>
+              <button onClick={() => setLinkModal(null)} style={{ padding: "10px 16px", borderRadius: 10, border: `1px solid ${C.border}`, background: "#f8fafc", color: C.sub, cursor: "pointer" }}>Cancelar</button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
