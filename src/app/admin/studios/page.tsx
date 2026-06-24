@@ -21,7 +21,7 @@ const SERVICES_DEFAULT = [
 const C = {
   card:   "#ffffff",
   border: "#e8e8f0",
-  sep:    "#1a1a2e",
+  sep:    "#f0f0f8",
   text:   "#1a1a2e",
   sub:    "#64748b",
   muted:  "#94a3b8",

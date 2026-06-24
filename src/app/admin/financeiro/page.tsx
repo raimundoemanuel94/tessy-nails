@@ -40,6 +40,18 @@ function daysUntil(date?: string | null) {
 
 function MiniArea({ data }: { data: { label: string; value: number }[] }) {
   const max = Math.max(...data.map((item) => item.value), 1);
+  // Churn metrics
+  const { start: thisMonthStart, end: thisMonthEnd } = monthBounds(0);
+  const { start: lastMonthStart } = monthBounds(-1);
+  const canceledThisMonth = studioList.filter(s =>
+    s.subscription_status === "canceled" &&
+    s.updated_at && new Date(s.updated_at) >= thisMonthStart && new Date(s.updated_at) < thisMonthEnd
+  ).length;
+  const activeLastMonth = studioList.filter(s =>
+    new Date(s.created_at) < lastMonthStart && s.is_active
+  ).length;
+  const churnRate = activeLastMonth > 0 ? canceledThisMonth / activeLastMonth : 0;
+
   return (
     <div style={{ padding: 18, display: "grid", gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))`, gap: 10, alignItems: "end", height: 150 }}>
       {data.map((item) => (

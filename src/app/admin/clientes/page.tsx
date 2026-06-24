@@ -1,3 +1,5 @@
+"use client";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { CalendarClock, Heart, Search, Sparkles, Users } from "lucide-react";
 import {
@@ -8,30 +10,44 @@ import {
   AdminPanel,
   AdminStatusBadge,
 } from "@/components/admin/AdminUI";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/utils";
-
-export const dynamic = "force-dynamic";
 
 function daysAgo(date?: string | null) {
   if (!date) return null;
   return Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 86400000));
 }
 
-export default async function AdminClientesPage() {
-  const supabase = await createClient();
+export default function AdminClientesPage() {
+  const supabase = createClient();
+  const [clients, setClients] = useState<any[]>([]);
+  const [studios, setStudios] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [studioFilter, setStudioFilter] = useState("all");
 
-  const [{ data: clients }, { data: studios }, { data: appointments }] = await Promise.all([
-    supabase.from("clients").select("id, studio_id, name, phone, email, birth_date, source, is_active, created_at").order("created_at", { ascending: false }),
-    supabase.from("studios").select("id, name, slug, is_active"),
-    supabase.from("appointments").select("id, studio_id, client_id, client_name, price, status, appointment_date, created_at"),
-  ]);
+  useEffect(() => {
+    Promise.all([
+      supabase.from("clients").select("id,studio_id,name,phone,email,birth_date,source,is_active,created_at").order("created_at",{ascending:false}),
+      supabase.from("studios").select("id,name,slug,is_active"),
+      supabase.from("appointments").select("id,studio_id,client_id,client_name,price,status,appointment_date,created_at"),
+    ]).then(([c, s, a]) => {
+      setClients(c.data ?? []);
+      setStudios(s.data ?? []);
+      setAppointments(a.data ?? []);
+      setLoading(false);
+    });
+  }, []);
 
-  const clientList = clients ?? [];
-  const studioById = new Map((studios ?? []).map((studio) => [studio.id, studio]));
+  const studioById = useMemo(() => new Map((studios).map(s => [s.id, s])), [studios]);
 
-  const statsByClient = new Map<string, any>();
-  for (const appointment of appointments ?? []) {
+  const clientList = clients;
+  const clientListAll = clients;
+
+  const statsByClient = useMemo(() => {
+    const m = new Map<string, any>();
+    for (const appointment of appointments) {
     const key = appointment.client_id || `${appointment.studio_id}:${appointment.client_name}`;
     const current = statsByClient.get(key) ?? { count: 0, revenue: 0, lastDate: null, completed: 0 };
     current.count += 1;
@@ -39,25 +55,38 @@ export default async function AdminClientesPage() {
       current.completed += 1;
       current.revenue += Number(appointment.price ?? 0);
     }
-    if (!current.lastDate || appointment.appointment_date > current.lastDate) current.lastDate = appointment.appointment_date;
-    statsByClient.set(key, current);
-  }
+      if (!current.lastDate || appointment.appointment_date > current.lastDate) current.lastDate = appointment.appointment_date;
+      m.set(key, current);
+    }
+    return m;
+  }, [appointments]);
 
-  const enriched = clientList.map((client) => {
+  const enriched = useMemo(() => clientList.map((client) => {
     const byId = statsByClient.get(client.id);
     const byName = statsByClient.get(`${client.studio_id}:${client.name}`);
     const stats = byId ?? byName ?? { count: 0, revenue: 0, lastDate: null, completed: 0 };
     return { ...client, stats, studio: studioById.get(client.studio_id) };
-  });
+  }), [clientList, statsByClient, studioById]);
 
-  const activeClients = enriched.filter((client) => client.is_active !== false);
-  const withPhone = enriched.filter((client) => client.phone);
-  const recurring = enriched.filter((client) => client.stats.count >= 2);
-  const dormant = enriched.filter((client) => {
+  const filtered = useMemo(() => {
+    return enriched.filter(c => {
+      if (studioFilter !== "all" && c.studio_id !== studioFilter) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return (c.name??"").toLowerCase().includes(q) || (c.email??"").toLowerCase().includes(q) || (c.phone??"").toLowerCase().includes(q);
+      }
+      return true;
+    });
+  }, [enriched, studioFilter, search]);
+
+  const activeClients = filtered.filter((client) => client.is_active !== false);
+  const withPhone = filtered.filter((client) => client.phone);
+  const recurring = filtered.filter((client) => client.stats.count >= 2);
+  const dormant = filtered.filter((client) => {
     const days = daysAgo(client.stats.lastDate ?? client.created_at);
     return days !== null && days >= 45;
   });
-  const totalRevenue = enriched.reduce((sum, client) => sum + Number(client.stats.revenue ?? 0), 0);
+  const totalRevenue = filtered.reduce((sum, client) => sum + Number(client.stats.revenue ?? 0), 0);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 22, maxWidth: 1180 }}>
@@ -72,6 +101,20 @@ export default async function AdminClientesPage() {
           </>
         }
       />
+
+      {/* Filtros */}
+      <div style={{ display:"flex", gap:10, flexWrap:"wrap", alignItems:"center" }}>
+        <div style={{ position:"relative", flex:1, minWidth:200 }}>
+          <Search size={14} style={{ position:"absolute", left:11, top:"50%", transform:"translateY(-50%)", color:"#94a3b8" }} />
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar por nome, email ou telefone..."
+            style={{ width:"100%", height:36, paddingLeft:33, paddingRight:12, borderRadius:8, border:"1px solid #e2e8f0", fontSize:13, outline:"none", fontFamily:"inherit", background:"#fff", color:"#0f172a", boxSizing:"border-box" }} />
+        </div>
+        <select value={studioFilter} onChange={e=>setStudioFilter(e.target.value)}
+          style={{ height:36, padding:"0 10px", borderRadius:8, border:"1px solid #e2e8f0", fontSize:13, background:"#fff", color:"#0f172a", fontFamily:"inherit", cursor:"pointer" }}>
+          <option value="all">Todos os salões</option>
+          {studios.map((s:any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
         <AdminMetricCard label="Clientes ativos" value={activeClients.length} sub={`${clientList.length} cadastros totais`} icon={Users} tone="brand" />
@@ -94,7 +137,7 @@ export default async function AdminClientesPage() {
                 <span key={heading} style={{ color: "#94a3b8", fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{heading}</span>
               ))}
             </div>
-            {enriched.slice(0, 40).map((client) => {
+            {filtered.slice(0, 80).map((client) => {
               const lastDays = daysAgo(client.stats.lastDate ?? client.created_at);
               const tone = lastDays !== null && lastDays >= 45 ? "warning" : client.stats.count >= 2 ? "success" : "muted";
               return (

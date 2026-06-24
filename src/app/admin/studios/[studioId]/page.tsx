@@ -390,12 +390,90 @@ export default function AdminStudioDetailPage() {
       )}
 
       {tab === "billing" && (
-        <AdminPanel title="Assinatura e monetização" description="Estado comercial do salão e riscos de cobrança." tone={subscriptionTone(subscriptionStatus) as any}>
+        <AdminPanel title="Assinatura e monetização" description="Estado comercial do salão — altere plano, status e datas." tone={subscriptionTone(subscriptionStatus) as any}>
           <div style={{ padding: 18, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
             <AdminMetricCard label="Status" value={subscriptionLabel(subscriptionStatus)} icon={CreditCard} tone={subscriptionTone(subscriptionStatus) as any} />
             <AdminMetricCard label="MRR" value={formatCurrency(Number(studio.mrr ?? 0))} icon={DollarSign} tone={Number(studio.mrr) > 0 ? "success" : "muted"} />
             <AdminMetricCard label="Trial" value={trialDays === null ? "—" : `${trialDays}d`} sub={fmtDate(studio.trialEndsAt)} icon={Clock} tone={trialDays !== null && trialDays <= 7 ? "warning" : "muted"} />
             <AdminMetricCard label="Renovação" value={renewalDays === null ? "—" : renewalDays >= 0 ? `${renewalDays}d` : "Atrasada"} sub={fmtDate(studio.nextBillingDate)} icon={Calendar} tone={renewalDays !== null && renewalDays < 0 ? "danger" : "brand"} />
+          </div>
+          {/* Ações de billing */}
+          <div style={{ padding: "0 18px 18px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            {/* Mudar plano */}
+            <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 14 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", marginBottom: 10 }}>Alterar plano</p>
+              <div style={{ display: "flex", gap: 8 }}>
+                <select id="plan-select" defaultValue={studio.plan}
+                  style={{ flex: 1, height: 36, padding: "0 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 13, background: "#fff", fontFamily: "inherit", cursor: "pointer" }}>
+                  <option value="free">Free — R$ 0</option>
+                  <option value="starter">Starter — R$ 19</option>
+                  <option value="pro">Pro — R$ 29</option>
+                  <option value="studio">Studio — R$ 59</option>
+                </select>
+                <button onClick={async () => {
+                  const plan = (document.getElementById("plan-select") as HTMLSelectElement).value;
+                  const sb2 = (await import("@/lib/supabase/client")).createClient();
+                  await sb2.from("studios").update({ plan }).eq("id", studio.id);
+                  setStudio((s: any) => ({ ...s, plan }));
+                  alert("Plano atualizado!");
+                }} style={{ padding: "0 14px", height: 36, borderRadius: 8, border: "none", background: "#7c3aed", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                  Salvar
+                </button>
+              </div>
+            </div>
+            {/* Mudar status */}
+            <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 14 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", marginBottom: 10 }}>Alterar status de assinatura</p>
+              <div style={{ display: "flex", gap: 8 }}>
+                <select id="status-select" defaultValue={studio.subscriptionStatus ?? "trial"}
+                  style={{ flex: 1, height: 36, padding: "0 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 13, background: "#fff", fontFamily: "inherit", cursor: "pointer" }}>
+                  <option value="trial">Trial</option>
+                  <option value="active">Ativo (pago)</option>
+                  <option value="past_due">Inadimplente</option>
+                  <option value="cancelled">Cancelado</option>
+                  <option value="suspended">Suspenso</option>
+                </select>
+                <button onClick={async () => {
+                  const status = (document.getElementById("status-select") as HTMLSelectElement).value;
+                  const sb2 = (await import("@/lib/supabase/client")).createClient();
+                  await sb2.from("studios").update({ subscription_status: status }).eq("id", studio.id);
+                  setStudio((s: any) => ({ ...s, subscriptionStatus: status }));
+                  alert("Status atualizado!");
+                }} style={{ padding: "0 14px", height: 36, borderRadius: 8, border: "none", background: "#7c3aed", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                  Salvar
+                </button>
+              </div>
+            </div>
+            {/* Estender trial */}
+            <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 14 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", marginBottom: 10 }}>Estender trial</p>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input id="trial-days" type="number" min="1" max="90" defaultValue="7" placeholder="Dias"
+                  style={{ flex: 1, height: 36, padding: "0 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 13, background: "#fff", fontFamily: "inherit" }} />
+                <button onClick={async () => {
+                  const days = Number((document.getElementById("trial-days") as HTMLInputElement).value);
+                  const res = await fetch("/api/admin/actions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update_trial", studioId: studio.id, days }) });
+                  const d = await res.json();
+                  alert(d.ok ? `Trial estendido por ${days} dias!` : d.error);
+                }} style={{ padding: "0 14px", height: 36, borderRadius: 8, border: "none", background: "#f59e0b", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                  Estender
+                </button>
+              </div>
+            </div>
+            {/* Reset senha owner */}
+            <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 14 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>Reset de senha</p>
+              <p style={{ fontSize: 11, color: "#94a3b8", marginBottom: 10 }}>Envia email de redefinição para o owner deste salão.</p>
+              <button onClick={async () => {
+                if (!ownerEmail) return alert("Owner sem email cadastrado.");
+                if (!confirm(`Enviar reset de senha para ${ownerEmail}?`)) return;
+                const res = await fetch("/api/admin/actions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "reset_password", email: ownerEmail }) });
+                const d = await res.json();
+                alert(d.ok ? "Email de reset enviado!" : d.error);
+              }} style={{ padding: "0 14px", height: 36, borderRadius: 8, border: "1px solid rgba(239,68,68,0.25)", background: "rgba(239,68,68,0.06)", color: "#ef4444", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", width: "100%" }}>
+                Enviar reset de senha
+              </button>
+            </div>
           </div>
         </AdminPanel>
       )}
