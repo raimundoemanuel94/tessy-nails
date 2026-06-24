@@ -345,5 +345,6 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
         </div>
       </AdminPanel>
     </div>
+    </>
   );
 }
