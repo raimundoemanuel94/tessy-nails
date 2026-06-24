@@ -37,7 +37,9 @@ function ClientRow({ client, studio, template, booking_url }: any) {
         <div style={{ fontSize: 13, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{client.name}</div>
         <div style={{ fontSize: 11, color: C.muted }}>{phone || "Sem telefone"} {client.studio_name ? `· ${client.studio_name}` : ""}</div>
       </div>
-      {hora ? (
+      {client.next_date ? (
+        <span style={{ fontSize: 12, color: C.sub }}>{client.next_date} {hora}</span>
+      ) : hora ? (
         <span style={{ fontSize: 12, color: C.sub }}>{hora}</span>
       ) : (
         <span style={{ fontSize: 11, color: C.muted }}>—</span>
@@ -133,38 +135,51 @@ export default function AdminMensagensPage() {
 
   const filtered = useMemo(() => studioFilter === "all" ? clients : clients.filter(c => c.studio_id === studioFilter), [clients, studioFilter]);
 
-  // Agendamentos próximas 24h
-  const tomorrow = new Date(); tomorrow.setHours(tomorrow.getHours() + 24);
+  // Agendamentos próximas 7 dias (expandido pra ter dados reais)
+  const next7d = new Date(); next7d.setDate(next7d.getDate() + 7);
   const today = new Date(); today.setHours(0,0,0,0);
   const upcomingAppts = appointments.filter(a => {
     const d = new Date(a.appointment_date);
-    return d >= today && d <= tomorrow && !["cancelled","canceled","completed"].includes(a.status ?? "");
+    return d >= today && d <= next7d && !["cancelled","canceled","completed"].includes(a.status ?? "");
+  });
+
+  // Também pega os recentes (últimos 30 dias) pra mostrar algo útil
+  const past30d = new Date(); past30d.setDate(past30d.getDate() - 30);
+  const recentAppts = appointments.filter(a => {
+    const d = new Date(a.appointment_date);
+    return d >= past30d && d <= today;
   });
 
   const lembretes = useMemo(() => {
-    const clientIds = new Set(upcomingAppts.map(a => a.client_id));
-    return filtered.filter(c => clientIds.has(c.id)).map(c => {
-      const appt = upcomingAppts.find(a => a.client_id === c.id);
-      const d = appt ? new Date(appt.appointment_date) : null;
-      const studio = studioById.get(c.studio_id);
-      return { ...c, next_hour: d ? d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "", studio_name: studio?.name };
+    // Combina próximos + recentes sem duplicar
+    const allRelevant = [...upcomingAppts, ...recentAppts];
+    const seen = new Set<string>();
+    const unique = allRelevant.filter(a => {
+      if (!a.client_id || seen.has(a.client_id)) return false;
+      seen.add(a.client_id);
+      return true;
     });
-  }, [filtered, upcomingAppts, studioById]);
+    return unique.map(appt => {
+      const client = clients.find(c => c.id === appt.client_id) ?? { id: appt.client_id, name: appt.client_name, phone: null };
+      const d = new Date(appt.appointment_date);
+      const isFuture = d >= today;
+      const studio = studioById.get(appt.studio_id ?? client.studio_id);
+      return { ...client, next_hour: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }), 
+        next_date: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+        is_future: isFuture, studio_name: studio?.name, _studio_id: appt.studio_id };
+    }).filter(c => studioFilter === "all" || c._studio_id === studioFilter || c.studio_id === studioFilter);
+  }, [clients, upcomingAppts, recentAppts, studioById, studioFilter, today]);
 
-  // Inativos 45+ dias
+  // Inativos 45+ dias — inclui todos os clientes do banco
   const reativacao = useMemo(() => {
-    return filtered.filter(c => {
-      const lastAppt = appointments.filter(a => a.client_id === c.id && a.status === "completed").sort((a,b) => b.appointment_date.localeCompare(a.appointment_date))[0];
-      const ref = lastAppt?.appointment_date ?? c.created_at;
-      const days = Math.floor((Date.now() - new Date(ref).getTime()) / 86400000);
-      return days >= 45;
-    }).map(c => {
-      const lastAppt = appointments.filter(a => a.client_id === c.id).sort((a,b) => b.appointment_date.localeCompare(a.appointment_date))[0];
+    return filtered.map(c => {
+      const lastAppt = appointments.filter(a => a.client_id === c.id)
+        .sort((a,b) => b.appointment_date.localeCompare(a.appointment_date))[0];
       const ref = lastAppt?.appointment_date ?? c.created_at;
       const days = Math.floor((Date.now() - new Date(ref).getTime()) / 86400000);
       const studio = studioById.get(c.studio_id);
       return { ...c, last_visit: ref, days_away: days, studio_name: studio?.name };
-    });
+    }).filter(c => c.days_away >= 30).sort((a,b) => b.days_away - a.days_away);
   }, [filtered, appointments, studioById]);
 
   // Aniversariantes do mês
@@ -187,7 +202,7 @@ export default function AdminMensagensPage() {
     return { ...c, studio_name: studio?.name };
   }), [filtered, studioById]);
 
-  const primaryStudio = studios[0];
+  const primaryStudio = studios.find(s => s.slug === "tessy-nails") ?? studios.find(s => s.is_active) ?? studios[0];
   const bookingUrl = primaryStudio ? `https://tessy-nails.vercel.app/agendar/${primaryStudio.slug}` : "";
 
   const totalWithPhone = clients.filter(c => c.phone).length;
@@ -240,11 +255,11 @@ export default function AdminMensagensPage() {
         <div style={{ padding: 40, textAlign: "center", color: C.muted }}>Carregando...</div>
       ) : (
         <>
-          <Section title="Lembretes — agendamentos nas próximas 24h" icon={Bell} color="#f59e0b"
+          <Section title="Lembretes — agendamentos próximos e recentes" icon={Bell} color="#f59e0b"
             clients={lembretes} studio={primaryStudio} template="lembrete" booking_url={bookingUrl}
-            empty="Nenhum agendamento nas próximas 24 horas." />
+            empty="Nenhum agendamento encontrado." />
 
-          <Section title="Reativação — 45+ dias sem visita" icon={RotateCcw} color="#7c3aed"
+          <Section title="Reativação — clientes há 30+ dias sem visita" icon={RotateCcw} color="#7c3aed"
             clients={reativacao.slice(0, 30)} studio={primaryStudio} template="reativacao" booking_url={bookingUrl}
             empty="Nenhum cliente inativo no momento." />
 
