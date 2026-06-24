@@ -48,13 +48,13 @@ export default function AdminClientesPage() {
   const statsByClient = useMemo(() => {
     const m = new Map<string, any>();
     for (const appointment of appointments) {
-    const key = appointment.client_id || `${appointment.studio_id}:${appointment.client_name}`;
-    const current = statsByClient.get(key) ?? { count: 0, revenue: 0, lastDate: null, completed: 0 };
-    current.count += 1;
-    if (appointment.status === "completed") {
-      current.completed += 1;
-      current.revenue += Number(appointment.price ?? 0);
-    }
+      const key = appointment.client_id || `${appointment.studio_id}:${appointment.client_name}`;
+      const current = m.get(key) ?? { count: 0, revenue: 0, lastDate: null, completed: 0 };
+      current.count += 1;
+      if (appointment.status === "completed") {
+        current.completed += 1;
+        current.revenue += Number(appointment.price ?? 0);
+      }
       if (!current.lastDate || appointment.appointment_date > current.lastDate) current.lastDate = appointment.appointment_date;
       m.set(key, current);
     }
