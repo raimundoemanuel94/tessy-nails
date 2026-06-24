@@ -182,6 +182,9 @@ export default function AgendarClient({ studio, services, settings, professional
     setPhone(raw)
   }
   const [notes, setNotes] = useState('')
+  const [birthDate, setBirthDate] = useState('')
+  const [email, setEmail] = useState('')
+  const [infoSubStep, setInfoSubStep] = useState<'name'|'phone'|'birth'|'review'>('name')
   const [loading, setLoading] = useState(false)
   const [slots, setSlots] = useState<string[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
@@ -249,6 +252,8 @@ export default function AgendarClient({ studio, services, settings, professional
           appointmentDate: `${selectedDate}T${selectedTime}:00`,
           clientName: name.trim(),
           clientPhone: phone.trim(),
+          clientEmail: email.trim() || undefined,
+          birthDate: birthDate || undefined,
           notes: notes.trim() || undefined,
           professionalId: professional?.id ?? undefined,
         }),
@@ -1824,7 +1829,7 @@ export default function AgendarClient({ studio, services, settings, professional
               onClick={() => {
                 if (step === 'date') setStep('service')
                 else if (step === 'time') setStep('date')
-                else if (step === 'info') setStep('time')
+                else if (step === 'info') { setStep('time'); setInfoSubStep('name'); }
               }}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -2199,50 +2204,159 @@ export default function AgendarClient({ studio, services, settings, professional
             )}
 
             {step === 'info' && selectedService && (
-              <>
-                <div className="booking-step-head">
-                  <div className="booking-title">
-                    <span>Ultimo passo</span>
-                    <h2>Seus dados</h2>
-                    <p>Confirme nome e WhatsApp para reservar seu horario.</p>
-                  </div>
+              <div className="booking-chat-flow">
+                <style>{`
+                  .booking-chat-flow { display: flex; flex-direction: column; gap: 0; }
+                  .bchat-bubble { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; animation: bubbleIn .3s ease; }
+                  @keyframes bubbleIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+                  .bchat-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--booking-brand, #C2185B); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+                  .bchat-msg { background: #f4f4f8; border-radius: 18px 18px 18px 4px; padding: 12px 16px; max-width: 85%; }
+                  .bchat-msg p { margin: 0; font-size: 14px; line-height: 1.5; color: #1a1a2e; }
+                  .bchat-msg strong { color: var(--booking-brand, #C2185B); }
+                  .bchat-input-wrap { margin: 4px 0 20px 46px; display: flex; flex-direction: column; gap: 8px; }
+                  .bchat-input { border: 2px solid #e8e8f0; border-radius: 12px; padding: 12px 14px; font-size: 15px; width: 100%; outline: none; font-family: inherit; transition: border-color .2s; background: #fff; box-sizing: border-box; }
+                  .bchat-input:focus { border-color: var(--booking-brand, #C2185B); }
+                  .bchat-btn { border: none; border-radius: 12px; padding: 13px 20px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity .15s, transform .1s; }
+                  .bchat-btn:active { transform: scale(.97); }
+                  .bchat-btn-primary { background: var(--booking-brand, #C2185B); color: #fff; }
+                  .bchat-btn-skip { background: transparent; color: #94a3b8; font-size: 13px; padding: 8px 0; }
+                  .bchat-answer { display: flex; justify-content: flex-end; margin-bottom: 16px; animation: bubbleIn .25s ease; }
+                  .bchat-answer span { background: var(--booking-brand, #C2185B); color: #fff; border-radius: 18px 18px 4px 18px; padding: 10px 16px; font-size: 14px; max-width: 75%; }
+                  .bchat-progress { display: flex; gap: 5px; justify-content: center; margin-bottom: 20px; }
+                  .bchat-dot { width: 7px; height: 7px; border-radius: 50%; background: #e8e8f0; transition: background .2s; }
+                  .bchat-dot.active { background: var(--booking-brand, #C2185B); }
+                  .bchat-summary { background: rgba(0,0,0,0.03); border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; display: flex; gap: 10px; align-items: center; }
+                  .bchat-summary-icon { font-size: 20px; }
+                  .bchat-summary p { margin: 0; font-size: 12px; color: #64748b; }
+                  .bchat-summary strong { display: block; font-size: 13px; color: #1a1a2e; margin-bottom: 2px; }
+                `}</style>
+
+                {/* Progress dots */}
+                <div className="bchat-progress">
+                  {['name','phone','birth','review'].map((s,i) => (
+                    <div key={s} className={`bchat-dot ${['name','phone','birth','review'].indexOf(infoSubStep) >= i ? 'active' : ''}`} />
+                  ))}
                 </div>
-                <div className="booking-summary">
-                  <span className="booking-summary-mark">{selectedService.name.slice(0, 1).toUpperCase()}</span>
+
+                {/* Resumo do agendamento */}
+                <div className="bchat-summary">
+                  <span className="bchat-summary-icon">💅</span>
                   <div>
                     <strong>{selectedService.name}</strong>
-                    <p>{formatDate(selectedDate)} as {selectedTime} - {money(selectedService.price)}</p>
+                    <p>{formatDate(selectedDate)} às {selectedTime} · {money(selectedService.price)}</p>
                   </div>
                 </div>
-                <p className="booking-trust-note">
-                  Atendimento com hora marcada. Cancelamento com ate {settings?.cancel_hours || 24}h de antecedencia.
-                </p>
-                <div className="booking-field">
-                  <label>Nome completo</label>
-                  <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Ex: Ana Silva" />
-                </div>
-                <div className="booking-field">
-                  <label>WhatsApp</label>
-                  <input
-                    value={phoneMasked}
-                    onChange={(event) => handlePhoneChange(event.target.value)}
-                    placeholder="(66) 99999-0000"
-                    inputMode="tel"
-                    maxLength={15}
-                  />
-                  <p className="booking-field-help">
-                    Digite o WhatsApp com DDD. Ex: (66) 99999-0000
-                  </p>
-                </div>
-                <div className="booking-field">
-                  <label>Observacoes (opcional)</label>
-                  <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Alergias, preferencias de esmalte..." />
-                </div>
-                <button className="booking-primary" onClick={submit} disabled={loading || !name.trim() || phone.length < 10}>
-                  {loading ? 'Confirmando...' : 'Confirmar horario'}
-                </button>
-                {bookingError && <div className="booking-error">{bookingError}</div>}
-              </>
+
+                {/* STEP 1: Nome */}
+                {(infoSubStep === 'name' || infoSubStep === 'phone' || infoSubStep === 'birth' || infoSubStep === 'review') && (
+                  <div className="bchat-bubble">
+                    <div className="bchat-avatar">💅</div>
+                    <div className="bchat-msg">
+                      <p>Oi! Pra garantir seu horário, preciso só do seu nome. <strong>Como você se chama?</strong></p>
+                    </div>
+                  </div>
+                )}
+                {(infoSubStep === 'phone' || infoSubStep === 'birth' || infoSubStep === 'review') && name && (
+                  <div className="bchat-answer"><span>{name.split(' ')[0]} 👋</span></div>
+                )}
+                {infoSubStep === 'name' && (
+                  <div className="bchat-input-wrap">
+                    <input className="bchat-input" value={name} onChange={e => setName(e.target.value)}
+                      placeholder="Seu nome completo" autoFocus
+                      onKeyDown={e => { if (e.key === 'Enter' && name.trim().length >= 2) setInfoSubStep('phone'); }} />
+                    <button className="bchat-btn bchat-btn-primary"
+                      disabled={name.trim().length < 2}
+                      onClick={() => setInfoSubStep('phone')}>
+                      Continuar →
+                    </button>
+                  </div>
+                )}
+
+                {/* STEP 2: Telefone */}
+                {(infoSubStep === 'phone' || infoSubStep === 'birth' || infoSubStep === 'review') && (
+                  <div className="bchat-bubble" style={{ animationDelay: '.05s' }}>
+                    <div className="bchat-avatar">💅</div>
+                    <div className="bchat-msg">
+                      <p>Ótimo, <strong>{name.split(' ')[0]}</strong>! Agora me passa seu <strong>WhatsApp com DDD</strong> — vou te mandar a confirmação por lá 📲</p>
+                    </div>
+                  </div>
+                )}
+                {(infoSubStep === 'birth' || infoSubStep === 'review') && phone && (
+                  <div className="bchat-answer"><span>📱 {phoneMasked}</span></div>
+                )}
+                {infoSubStep === 'phone' && (
+                  <div className="bchat-input-wrap">
+                    <input className="bchat-input" value={phoneMasked}
+                      onChange={e => handlePhoneChange(e.target.value)}
+                      placeholder="(66) 99999-0000" inputMode="tel" maxLength={15} autoFocus
+                      onKeyDown={e => { if (e.key === 'Enter' && phone.length >= 10) setInfoSubStep('birth'); }} />
+                    <button className="bchat-btn bchat-btn-primary"
+                      disabled={phone.length < 10}
+                      onClick={() => setInfoSubStep('birth')}>
+                      Continuar →
+                    </button>
+                  </div>
+                )}
+
+                {/* STEP 3: Data de nascimento (opcional) */}
+                {(infoSubStep === 'birth' || infoSubStep === 'review') && (
+                  <div className="bchat-bubble" style={{ animationDelay: '.08s' }}>
+                    <div className="bchat-avatar">🎂</div>
+                    <div className="bchat-msg">
+                      <p>Uma última coisinha — <strong>quando é seu aniversário?</strong> 🥳 A gente adora mandar um carinho especial nessa data! <em style={{ color: '#94a3b8', fontSize: 12 }}>(opcional)</em></p>
+                    </div>
+                  </div>
+                )}
+                {infoSubStep === 'review' && (
+                  <div className="bchat-answer">
+                    <span>{birthDate ? `🎂 ${new Date(birthDate + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}` : 'Prefiro não informar 😅'}</span>
+                  </div>
+                )}
+                {infoSubStep === 'birth' && (
+                  <div className="bchat-input-wrap">
+                    <input className="bchat-input" type="date" value={birthDate}
+                      onChange={e => setBirthDate(e.target.value)} autoFocus
+                      max={new Date().toISOString().split('T')[0]} />
+                    <button className="bchat-btn bchat-btn-primary"
+                      onClick={() => setInfoSubStep('review')}>
+                      {birthDate ? 'Confirmar data 🎉' : 'Continuar'}
+                    </button>
+                    <button className="bchat-btn bchat-btn-skip"
+                      onClick={() => { setBirthDate(''); setInfoSubStep('review'); }}>
+                      Pular por agora
+                    </button>
+                  </div>
+                )}
+
+                {/* STEP 4: Review + confirmar */}
+                {infoSubStep === 'review' && (
+                  <>
+                    <div className="bchat-bubble" style={{ animationDelay: '.1s' }}>
+                      <div className="bchat-avatar">✅</div>
+                      <div className="bchat-msg">
+                        <p>Perfeito! Só confirmar e o horário é seu 🎉</p>
+                      </div>
+                    </div>
+                    <div className="bchat-input-wrap">
+                      {/* Email opcional escondido no detalhe */}
+                      <details style={{ marginBottom: 4 }}>
+                        <summary style={{ fontSize: 12, color: '#94a3b8', cursor: 'pointer', userSelect: 'none' }}>
+                          + Adicionar email para confirmação (opcional)
+                        </summary>
+                        <input className="bchat-input" type="email" value={email}
+                          onChange={e => setEmail(e.target.value)}
+                          placeholder="seu@email.com" style={{ marginTop: 8 }} />
+                      </details>
+                      <button className="booking-primary bchat-btn bchat-btn-primary"
+                        style={{ width: '100%', marginTop: 4 }}
+                        onClick={submit} disabled={loading}>
+                        {loading ? 'Confirmando...' : '🎀 Confirmar agendamento'}
+                      </button>
+                      {bookingError && <div className="booking-error">{bookingError}</div>}
+                    </div>
+                  </>
+                )}
+              </div>
             )}
 
             {step === 'done' && (

@@ -19,6 +19,8 @@ type AppointmentBody = {
   clientEmail?: string;
   client_email?: string;
   notes?: string;
+  birthDate?: string;
+  birth_date?: string;
 };
 
 const RATE_LIMIT = 3
@@ -44,6 +46,7 @@ export async function POST(req: Request) {
   const clientPhone = body.clientPhone ?? body.client_phone ?? "";
   const clientEmail = body.clientEmail ?? body.client_email ?? "";
   const notes = body.notes?.trim() || null;
+  const birthDate = body.birthDate ?? body.birth_date ?? null;
 
   if (!appointmentInput || !serviceId || !clientName.trim() || !clientPhone.trim() || (!studioIdInput && !slugInput)) {
     return bad("Campos obrigatórios: studioId ou slug, serviceId, appointmentDate, clientName");
@@ -174,6 +177,7 @@ export async function POST(req: Request) {
       .from("clients")
       .update({
         name: clientName.trim(),
+        ...(birthDate ? { birth_date: birthDate } : {}),
         phone,
         email: clientEmail.trim() || null,
         is_active: true,
@@ -185,6 +189,7 @@ export async function POST(req: Request) {
       .insert({
         studio_id: studio.id,
         name: clientName.trim(),
+        ...(birthDate ? { birth_date: birthDate } : {}),
         phone: phone || null,
         email: clientEmail.trim() || null,
         source: "public",
