@@ -94,6 +94,11 @@ export default function AdminStudioDetailPage() {
   const studioId = params?.studioId as string;
 
   const [data, setData] = useState<any>(null);
+  const [toast, setToast] = useState<{msg:string;ok:boolean}|null>(null);
+  function showToast(msg: string, ok = true) {
+    setToast({msg, ok});
+    setTimeout(() => setToast(null), 3000);
+  }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<Tab>("overview");
@@ -415,7 +420,7 @@ export default function AdminStudioDetailPage() {
                   const sb2 = (await import("@/lib/supabase/client")).createClient();
                   await sb2.from("studios").update({ plan }).eq("id", studio.id);
                   setStudio((s: any) => ({ ...s, plan }));
-                  alert("Plano atualizado!");
+                  showToast("Plano atualizado!");
                 }} style={{ padding: "0 14px", height: 36, borderRadius: 8, border: "none", background: "#7c3aed", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                   Salvar
                 </button>
@@ -438,7 +443,7 @@ export default function AdminStudioDetailPage() {
                   const sb2 = (await import("@/lib/supabase/client")).createClient();
                   await sb2.from("studios").update({ subscription_status: status }).eq("id", studio.id);
                   setStudio((s: any) => ({ ...s, subscriptionStatus: status }));
-                  alert("Status atualizado!");
+                  showToast("Status atualizado!");
                 }} style={{ padding: "0 14px", height: 36, borderRadius: 8, border: "none", background: "#7c3aed", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                   Salvar
                 </button>
@@ -454,7 +459,7 @@ export default function AdminStudioDetailPage() {
                   const days = Number((document.getElementById("trial-days") as HTMLInputElement).value);
                   const res = await fetch("/api/admin/actions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update_trial", studioId: studio.id, days }) });
                   const d = await res.json();
-                  alert(d.ok ? `Trial estendido por ${days} dias!` : d.error);
+                  showToast(d.ok ? `Trial estendido por ${days} dias!` : d.error, d.ok);
                 }} style={{ padding: "0 14px", height: 36, borderRadius: 8, border: "none", background: "#f59e0b", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                   Estender
                 </button>
@@ -465,11 +470,11 @@ export default function AdminStudioDetailPage() {
               <p style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>Reset de senha</p>
               <p style={{ fontSize: 11, color: "#94a3b8", marginBottom: 10 }}>Envia email de redefinição para o owner deste salão.</p>
               <button onClick={async () => {
-                if (!ownerEmail) return alert("Owner sem email cadastrado.");
+                if (!ownerEmail) return showToast("Owner sem email cadastrado.", false);
                 if (!confirm(`Enviar reset de senha para ${ownerEmail}?`)) return;
                 const res = await fetch("/api/admin/actions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "reset_password", email: ownerEmail }) });
                 const d = await res.json();
-                alert(d.ok ? "Email de reset enviado!" : d.error);
+                showToast(d.ok ? "Email de reset enviado!" : d.error, d.ok);
               }} style={{ padding: "0 14px", height: 36, borderRadius: 8, border: "1px solid rgba(239,68,68,0.25)", background: "rgba(239,68,68,0.06)", color: "#ef4444", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", width: "100%" }}>
                 Enviar reset de senha
               </button>

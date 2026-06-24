@@ -64,6 +64,7 @@ function StatusLine({ ok, label, description }: any) {
       </div>
       <AdminStatusBadge tone={ok ? "success" : "warning"}>{ok ? "OK" : "Ajustar"}</AdminStatusBadge>
     </div>
+    </>
   );
 }
 
@@ -112,6 +113,8 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
   const [savingGroup, setSavingGroup] = useState<string | null>(null);
   const [savedGroup, setSavedGroup] = useState<string | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
+  const [toast, setToast] = useState<{msg:string;ok:boolean}|null>(null);
+  function showToast(msg: string, ok = true) { setToast({msg,ok}); setTimeout(()=>setToast(null),3000); }
   const [settingsError, setSettingsError] = useState("");
 
   // Load platform settings
@@ -146,6 +149,7 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
     setPlatformSettings({ ...editingSettings });
     setSavedGroup(groupLabel);
     setTimeout(() => setSavedGroup(null), 2500);
+    showToast(`${groupLabel} salvo!`);
   }
 
   // Plans
@@ -167,6 +171,7 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
     setEditingPlan(null);
     setSavedPlan(plan);
     setTimeout(() => setSavedPlan(null), 2500);
+    showToast("Plano salvo!");
   }
 
   // Metrics
@@ -182,6 +187,14 @@ export function ConfigClient({ plans, studios, settings, counts, envStatus }: an
   const envOk = [envStatus.supabaseUrl, envStatus.supabaseAnon, envStatus.serviceRole, envStatus.stripeSecret, envStatus.stripePublic, envStatus.whatsapp].filter(Boolean).length;
 
   return (
+    <>
+    {toast && (
+      <div style={{position:"fixed",bottom:24,right:24,zIndex:200,padding:"12px 18px",borderRadius:10,
+        background:toast.ok?"#10b981":"#ef4444",color:"#fff",fontSize:13,fontWeight:600,
+        boxShadow:"0 4px 20px rgba(0,0,0,0.15)"}}>
+        {toast.msg}
+      </div>
+    )}
     <div style={{ display: "flex", flexDirection: "column", gap: 22, maxWidth: 1180 }}>
       <AdminPageHeader
         eyebrow="Sistema"
