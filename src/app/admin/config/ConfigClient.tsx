@@ -64,7 +64,6 @@ function StatusLine({ ok, label, description }: any) {
       </div>
       <AdminStatusBadge tone={ok ? "success" : "warning"}>{ok ? "OK" : "Ajustar"}</AdminStatusBadge>
     </div>
-    </>
   );
 }
 
