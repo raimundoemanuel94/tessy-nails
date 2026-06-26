@@ -6,16 +6,18 @@ import { Bell, Cake, MessageCircle, RotateCcw, Send, Sparkles, ExternalLink, Use
 const C = { card: "#ffffff", border: "#e2e8f0", sep: "#f0f0f8", text: "#0f172a", sub: "#64748b", muted: "#94a3b8" };
 
 const TEMPLATES: Record<string, (c: string, s: string, h: string, link: string) => string> = {
-  lembrete:   (c, s, h) => `Oi, ${c}! 💅 Passando para lembrar do seu horário amanhã às ${h} no ${s}. Qualquer dúvida, é só chamar!`,
-  reativacao: (c, s, _, link) => `Oi, ${c}! Já está na hora de cuidar das unhas? 😍 O ${s} tem horários disponíveis pra você. Agende pelo link: ${link}`,
-  aniversario:(c, s) => `Feliz aniversário, ${c}! 🎂🎉 O ${s} manda muitas felicidades. Venha comemorar com a gente — temos um carinho especial pra você!`,
-  campanha:   (c, s, _, link) => `Oi, ${c}! 💅 Novos horários disponíveis no ${s}. Garanta o seu: ${link}`,
+  lembrete:   (c, s, h) => `Oi, ${c}! Passando pra lembrar do seu horario amanha as ${h} no ${s}. Qualquer duvida, e so chamar!`,
+  reativacao: (c, s, _, link) => `Oi, ${c}! Sumiu das unhas? haha O ${s} tem horarios disponiveis pra voce. Agende pelo link: ${link}`,
+  aniversario:(c, s) => `Feliz aniversario, ${c}! O ${s} manda um abraco enorme. Venha comemorar com a gente, temos um presente especial pra voce!`,
+  campanha:   (c, s, _, link) => `Oi, ${c}! Novos horarios disponiveis no ${s}. Garanta o seu: ${link}`,
 };
 
 function waLink(phone: string, msg: string) {
   const num = phone.replace(/\D/g, "");
   const prefix = num.startsWith("55") ? num : `55${num}`;
-  return `https://wa.me/${prefix}?text=${encodeURIComponent(msg)}`;
+  // Remove emojis para evitar encoding quebrado no WhatsApp
+  const cleanMsg = msg.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "").trim();
+  return `https://wa.me/${prefix}?text=${encodeURIComponent(cleanMsg)}`;
 }
 
 function ClientRow({ client, studio, template, booking_url }: any) {
@@ -202,8 +204,9 @@ export default function AdminMensagensPage() {
     return { ...c, studio_name: studio?.name };
   }), [filtered, studioById]);
 
-  const primaryStudio = studios.find(s => s.slug === "tessy-nails") ?? studios.find(s => s.is_active) ?? studios[0];
-  const bookingUrl = primaryStudio ? `https://tessy-nails.vercel.app/agendar/${primaryStudio.slug}` : "";
+  const primaryStudio = studios.find((s: any) => s.slug === "tessy-nails") ?? studios.find((s: any) => s.is_active !== false) ?? studios[0];
+  const appUrl = typeof window !== "undefined" ? window.location.origin : "https://tessy-nails.vercel.app";
+  const bookingUrl = primaryStudio ? `${appUrl}/agendar/${primaryStudio.slug}` : "";
 
   const totalWithPhone = clients.filter(c => c.phone).length;
 

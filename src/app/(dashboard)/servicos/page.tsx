@@ -154,7 +154,7 @@ export default function ServicosPage() {
   }
 
   const deactivate = async (service: Service) => {
-    if (!confirm('Desativar este servico? Ele some do agendamento, mas o historico fica preservado.')) return
+    // confirm removido
 
     const supabase = createClient()
     const { error } = await supabase.from('services').update({ is_active: false }).eq('id', service.id)

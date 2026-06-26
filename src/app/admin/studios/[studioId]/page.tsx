@@ -471,7 +471,7 @@ export default function AdminStudioDetailPage() {
               <p style={{ fontSize: 11, color: "#94a3b8", marginBottom: 10 }}>Envia email de redefinição para o owner deste salão.</p>
               <button onClick={async () => {
                 if (!ownerEmail) return showToast("Owner sem email cadastrado.", false);
-                if (!confirm(`Enviar reset de senha para ${ownerEmail}?`)) return;
+                // confirm removido — toast confirma resultado
                 const res = await fetch("/api/admin/actions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "reset_password", email: ownerEmail }) });
                 const d = await res.json();
                 showToast(d.ok ? "Email de reset enviado!" : d.error, d.ok);

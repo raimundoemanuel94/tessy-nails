@@ -215,7 +215,8 @@ export default function VitrinePage() {
   async function shareImage() {
     if (!imageUrl) return
     const blob = await (await fetch(imageUrl)).blob()
-    const file = new File([blob], 'tessy-nails-vitrine.png', { type: 'image/png' })
+    const slug = studio?.slug ?? 'nailit';
+    const file = new File([blob], `${slug}-vitrine.png`, { type: 'image/png' })
     if (navigator.share && navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({ files: [file], text: bookingUrl })
@@ -224,7 +225,7 @@ export default function VitrinePage() {
     }
     const a = document.createElement('a')
     a.href = imageUrl
-    a.download = 'tessy-nails-vitrine.png'
+    a.download = `${studio?.slug ?? 'nailit'}-vitrine.png`
     a.click()
   }
 
@@ -321,7 +322,7 @@ export default function VitrinePage() {
           <img src={imageUrl} alt="Vitrine" style={{ width: '100%', borderRadius: 12, display: 'block' }} />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <button onClick={shareImage} style={buttonStyle(C.green, true)}><Share2 size={15} /> Compartilhar</button>
-            <a href={imageUrl} download="tessy-nails-vitrine.png" style={{ ...buttonStyle(C.purple, false), textDecoration: 'none' }}><Download size={15} /> Baixar</a>
+            <a href={imageUrl} download={`${studio?.slug ?? "nailit"}-vitrine.png`} style={{ ...buttonStyle(C.purple, false), textDecoration: 'none' }}><Download size={15} /> Baixar</a>
           </div>
           <button onClick={copyText} style={buttonStyle(C.muted, false)}><Copy size={15} /> {copied ? 'Copiado' : 'Copiar texto'}</button>
         </section>

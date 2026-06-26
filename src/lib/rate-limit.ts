@@ -1,3 +1,7 @@
+// Rate limit em memória — funciona por instância serverless
+// Limitação conhecida: zera em cold starts do Vercel
+// Para produção com alto volume, migrar para Upstash Redis ou Vercel KV
+
 type RateEntry = {
   count: number
   firstAt: number
@@ -17,6 +21,7 @@ export function requestIp(request: Request) {
 export function checkRateLimit(key: string, limit: number, windowMs: number) {
   const now = Date.now()
 
+  // Cleanup periodico
   if (now - lastCleanup > windowMs) {
     for (const [bucketKey, entry] of buckets) {
       if (now - entry.firstAt > windowMs) buckets.delete(bucketKey)
@@ -33,6 +38,13 @@ export function checkRateLimit(key: string, limit: number, windowMs: number) {
   if (entry.count >= limit) return false
   entry.count += 1
   return true
+}
+
+// Limite mais permissivo para Wi-Fi compartilhado em salões físicos
+// IPs de rede local podem ter vários clientes legítimos
+export function checkRateLimitSalon(ip: string, windowMs: number = 10 * 60 * 1000) {
+  // 10 requests por 10 minutos por IP (era 3 — muito restritivo para salão com Wi-Fi público)
+  return checkRateLimit(`salon:${ip}`, 10, windowMs)
 }
 
 export function rateLimitResponse() {

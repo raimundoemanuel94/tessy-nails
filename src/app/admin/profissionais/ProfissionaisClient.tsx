@@ -135,7 +135,7 @@ export function ProfissionaisClient({ initialProfiles, studios: initialStudios }
   }
 
   async function handleUnlink(profile: any) {
-    if (!confirm(`Desvincular ${profile.name} do salão?`)) return;
+    // sem confirm nativo
     setSaving(true);
     const studio = studios.find((s: any) => s.owner_id === profile.id);
     if (studio) await sb.from("studios").update({ owner_id: null }).eq("id", studio.id);
