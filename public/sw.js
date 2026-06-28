@@ -3,13 +3,13 @@ const CACHE_NAME = 'nailit-v1';
 const STATIC_CACHE = 'nailit-static-v1';
 
 // Assets estáticos que devem ser cacheados
+// Só assets verdadeiramente estáticos — rotas autenticadas retornam 302 e não podem ser pré-cacheadas
 const PRECACHE_URLS = [
-  '/',
-  '/dashboard',
-  '/agenda',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
+  '/icons/icon-192-maskable.png',
+  '/icons/icon-512-maskable.png',
 ];
 
 // Instala e pré-cacheia assets essenciais
@@ -17,9 +17,11 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
       return cache.addAll(PRECACHE_URLS).catch(() => {
-        // Silencia erros de pré-cache (ex: rotas autenticadas)
+        // Silencia erros de pré-cache individuais
       });
-    }).then(() => self.skipWaiting())
+    })
+    // Não chama skipWaiting() aqui — espera o usuário confirmar o update
+    // para evitar inconsistências entre SW novo e assets antigos em cache
   );
 });
 
@@ -36,6 +38,13 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Recebe mensagem do cliente para forçar update
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // Estratégia de fetch
 self.addEventListener('fetch', (event) => {
   const { request } = event;
@@ -43,7 +52,7 @@ self.addEventListener('fetch', (event) => {
 
   // Ignora requisições non-GET, extensões do browser e cross-origin
   if (request.method !== 'GET') return;
-  if (!url.origin.includes(self.location.origin) && !url.hostname.includes('supabase')) return;
+  if (url.origin !== self.location.origin && !url.hostname.includes('supabase')) return;
 
   // API routes e Supabase → sempre network, sem cache
   if (

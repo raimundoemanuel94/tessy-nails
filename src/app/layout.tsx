@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { PwaInstallPrompt } from "@/components/layout/PwaInstallPrompt";
+import { PwaUpdatePrompt } from "@/components/layout/PwaUpdatePrompt";
+import { PwaIosPrompt } from "@/components/layout/PwaIosPrompt";
 
 export const metadata: Metadata = {
   title: "Nailit — ERP para Manicures",
@@ -39,6 +41,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <Toaster theme="system" position="top-right" richColors />
         <PwaInstallPrompt />
+        <PwaUpdatePrompt />
+        <PwaIosPrompt />
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
