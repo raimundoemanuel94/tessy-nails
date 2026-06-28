@@ -93,6 +93,23 @@ export default function RelatoriosPage() {
   const topServices = Object.entries(serviceCount).sort((a, b) => b[1] - a[1]).slice(0, 5)
   const maxTop = topServices[0]?.[1] || 1
 
+  // Receita por dia da semana (concluídos)
+  const WEEK_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+  const revenueByDay = WEEK_LABELS.map((label, idx) => ({
+    label,
+    value: completed.filter(a => new Date(a.appointment_date).getDay() === idx).reduce((s, a) => s + a.price, 0),
+  }))
+  const maxDay = Math.max(...revenueByDay.map(d => d.value), 1)
+
+  // Receita últimas 8 semanas
+  const weeklyRevenue = Array.from({ length: 8 }, (_, i) => {
+    const end = new Date(); end.setDate(end.getDate() - i * 7); end.setHours(23,59,59,999)
+    const start = new Date(end); start.setDate(start.getDate() - 6); start.setHours(0,0,0,0)
+    const rev = completed.filter(a => { const d = new Date(a.appointment_date); return d >= start && d <= end }).reduce((s, a) => s + a.price, 0)
+    return { label: `S${8 - i}`, value: rev }
+  }).reverse()
+  const maxWeek = Math.max(...weeklyRevenue.map(w => w.value), 1)
+
   if (loading) return <div className="studio-loading"><div /></div>
 
   return (
@@ -169,6 +186,56 @@ export default function RelatoriosPage() {
               </div>
             )
           })}
+        </article>
+      </section>
+
+      <section className="studio-report-panels">
+        <article className="studio-report-panel">
+          <header>
+            <strong>Receita por dia da semana</strong>
+            <span>concluídos</span>
+          </header>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 100, padding: '16px 16px 0' }}>
+            {revenueByDay.map(({ label, value }) => (
+              <div key={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <div
+                  title={`R$ ${value.toFixed(2)}`}
+                  style={{
+                    width: '100%',
+                    height: Math.max(4, Math.round((value / maxDay) * 72)),
+                    borderRadius: '6px 6px 2px 2px',
+                    background: value > 0 ? `linear-gradient(180deg, ${C.purple}, #7c3aed)` : 'rgba(255,255,255,0.06)',
+                    transition: 'height .3s ease',
+                  }}
+                />
+                <span style={{ color: C.muted, fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>{label}</span>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="studio-report-panel">
+          <header>
+            <strong>Evolução semanal</strong>
+            <span>últimas 8 semanas</span>
+          </header>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 100, padding: '16px 16px 0' }}>
+            {weeklyRevenue.map(({ label, value }) => (
+              <div key={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <div
+                  title={`R$ ${value.toFixed(2)}`}
+                  style={{
+                    width: '100%',
+                    height: Math.max(4, Math.round((value / maxWeek) * 72)),
+                    borderRadius: '6px 6px 2px 2px',
+                    background: value > 0 ? `linear-gradient(180deg, ${C.green}, #16a34a)` : 'rgba(255,255,255,0.06)',
+                    transition: 'height .3s ease',
+                  }}
+                />
+                <span style={{ color: C.muted, fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>{label}</span>
+              </div>
+            ))}
+          </div>
         </article>
       </section>
     </div>

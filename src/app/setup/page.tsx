@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Scissors } from "lucide-react";
@@ -17,7 +17,7 @@ const SERVICES_DEFAULT = [
   { name: "Nail art",           price: 15,  duration_minutes: 30  },
 ];
 
-export default function SetupPage() {
+function SetupPageContent() {
   const router = useRouter();
   const [step, setStep] = useState<1|2>(1);
   const [loading, setLoading] = useState(false);
@@ -32,6 +32,47 @@ export default function SetupPage() {
   );
 
   const supabase = createClient();
+  const searchParams = useSearchParams();
+  const isExpired = searchParams.get("expired") === "1";
+
+  // Tela de trial expirado
+  if (!checking && isExpired) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "var(--bg)" }}>
+        <div className="w-full max-w-md text-center">
+          <div className="flex flex-col items-center mb-6">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)" }}>
+              <Scissors size={28} color="#f87171" />
+            </div>
+            <h1 className="text-xl font-black" style={{ color: "var(--text)" }}>Período de teste encerrado</h1>
+            <p className="text-sm mt-2" style={{ color: "var(--muted)", lineHeight: 1.6 }}>
+              Seu acesso de teste expirou. Para continuar usando o Nailit, entre em contato com a equipe e ative seu plano.
+            </p>
+          </div>
+          <div className="card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <a
+              href="https://wa.me/5566999990000?text=Ol%C3%A1%2C+quero+ativar+meu+plano+no+Nailit"
+              target="_blank"
+              rel="noreferrer"
+              className="btn-primary w-full"
+              style={{ textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+            >
+              Falar com a equipe no WhatsApp
+            </a>
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                router.push("/login");
+              }}
+              className="btn-ghost w-full"
+            >
+              Sair da conta
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Se já tem studio, vai direto pro dashboard
   useEffect(() => {
@@ -175,5 +216,13 @@ export default function SetupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SetupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}><Loader2 size={28} className="animate-spin" style={{ color: "var(--brand)" }} /></div>}>
+      <SetupPageContent />
+    </Suspense>
   );
 }

@@ -384,48 +384,35 @@ export default function AgendaPage() {
                   const status = ST[appointment.status] || { label: appointment.status, color: C.muted }
                   return (
                     <div key={appointment.id} style={{
-                      display: 'grid',
-                      gridTemplateColumns: '74px minmax(0, 1fr) auto',
-                      gap: 14,
+                      display: 'flex',
+                      flexDirection: 'column',
                       padding: '14px 18px',
                       borderTop: index === 0 ? 'none' : `1px solid ${C.border}`,
                       background: appointment.status === 'confirmed' ? `${C.green}07` : 'transparent',
+                      gap: 10,
                     }}>
-                      <div style={{ textAlign: 'center', borderRadius: 14, background: `${status.color}12`, border: `1px solid ${status.color}30`, padding: '9px 6px' }}>
-                        <strong style={{ color: status.color, fontSize: 17 }}>{time(appointment.appointment_date)}</strong>
-                        <span style={{ display: 'block', color: C.muted, fontSize: 9, marginTop: 4 }}>{shortDate(appointment.appointment_date)}</span>
-                      </div>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                          <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 850 }}>{appointment.client_name || 'Cliente sem nome'}</h3>
-                          <Badge status={appointment.status} />
+                      <div style={{ display: 'grid', gridTemplateColumns: '74px minmax(0, 1fr)', gap: 14 }}>
+                        <div style={{ textAlign: 'center', borderRadius: 14, background: `${status.color}12`, border: `1px solid ${status.color}30`, padding: '9px 6px' }}>
+                          <strong style={{ color: status.color, fontSize: 17 }}>{time(appointment.appointment_date)}</strong>
+                          <span style={{ display: 'block', color: C.muted, fontSize: 9, marginTop: 4 }}>{shortDate(appointment.appointment_date)}</span>
                         </div>
-                        <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 12 }}>
-                          {appointment.service_name} - {appointment.duration_minutes || 0}min - {money(appointment.price)}
-                        </p>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                            <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 850 }}>{appointment.client_name || 'Cliente sem nome'}</h3>
+                            <Badge status={appointment.status} />
+                          </div>
+                          <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 12 }}>
+                            {appointment.service_name} - {appointment.duration_minutes || 0}min - {money(appointment.price)}
+                          </p>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
-                        {appointment.status === 'pending' && (
-                          <>
-                            <button onClick={() => void confirmWithWhatsapp(appointment.id)} style={actionStyle(C.green)}>
-                              <Check size={13} /> Confirmar + Zap
-                            </button>
-                            <button onClick={() => void recusarWithWhatsapp(appointment.id)} style={actionStyle(C.red)}>
-                              <XCircle size={13} /> Recusar
-                            </button>
-                          </>
-                        )}
-                        {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
-                          <button onClick={() => changeStatus(appointment.id, 'completed')} style={actionStyle(C.purple)}>
-                            <CheckCircle2 size={13} /> Concluir
-                          </button>
-                        )}
-                        {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
-                          <button onClick={() => changeStatus(appointment.id, 'no_show')} style={actionStyle(C.red)}>
-                            <XCircle size={13} /> Faltou
-                          </button>
-                        )}
-                      </div>
+                      <ActionRow
+                        appointment={appointment}
+                        onConfirm={() => void confirmWithWhatsapp(appointment.id)}
+                        onRecusar={() => void recusarWithWhatsapp(appointment.id)}
+                        onComplete={() => changeStatus(appointment.id, 'completed')}
+                        onNoShow={() => changeStatus(appointment.id, 'no_show')}
+                      />
                     </div>
                   )
                 })}
@@ -647,56 +634,43 @@ export default function AgendaPage() {
             const status = ST[appointment.status] || { label: appointment.status, color: C.muted }
             return (
               <div key={appointment.id} style={{
-                display: 'grid',
-                gridTemplateColumns: '74px 4px minmax(0, 1fr) auto',
-                gap: 14,
+                display: 'flex',
+                flexDirection: 'column',
                 padding: '16px 18px',
                 borderBottom: index < selectedApts.length - 1 ? `1px solid ${C.border}` : 'none',
                 background: appointment.status === 'confirmed' ? `${C.green}07` : 'transparent',
+                gap: 10,
               }}>
-                <div style={{ textAlign: 'center' }}>
-                  <strong style={{ color: status.color, fontSize: 18 }}>{time(appointment.appointment_date)}</strong>
-                  <span style={{ display: 'block', color: C.muted, fontSize: 10, marginTop: 4 }}>{appointment.duration_minutes}min</span>
-                </div>
-                <div style={{ width: 4, borderRadius: 999, background: status.color, opacity: 0.7 }} />
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 850 }}>
-                      {appointment.client_name || 'Cliente sem nome'}
-                    </h3>
-                    <Badge status={appointment.status} />
+                <div style={{ display: 'grid', gridTemplateColumns: '74px 4px minmax(0, 1fr)', gap: 14 }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <strong style={{ color: status.color, fontSize: 18 }}>{time(appointment.appointment_date)}</strong>
+                    <span style={{ display: 'block', color: C.muted, fontSize: 10, marginTop: 4 }}>{appointment.duration_minutes}min</span>
                   </div>
-                  <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 12 }}>
-                    {appointment.service_name} - {money(appointment.price)}
-                  </p>
-                  {appointment.notes && (
-                    <p style={{ margin: '8px 0 0', color: C.amber, fontSize: 11, lineHeight: 1.45 }}>
-                      {appointment.notes}
+                  <div style={{ width: 4, borderRadius: 999, background: status.color, opacity: 0.7 }} />
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <h3 style={{ margin: 0, color: C.text, fontSize: 15, fontWeight: 850 }}>
+                        {appointment.client_name || 'Cliente sem nome'}
+                      </h3>
+                      <Badge status={appointment.status} />
+                    </div>
+                    <p style={{ margin: '5px 0 0', color: C.muted, fontSize: 12 }}>
+                      {appointment.service_name} - {money(appointment.price)}
                     </p>
-                  )}
+                    {appointment.notes && (
+                      <p style={{ margin: '8px 0 0', color: C.amber, fontSize: 11, lineHeight: 1.45 }}>
+                        {appointment.notes}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
-                  {appointment.status === 'pending' && (
-                    <>
-                      <button onClick={() => void confirmWithWhatsapp(appointment.id)} style={actionStyle(C.green)}>
-                        <Check size={13} /> Confirmar + Zap
-                      </button>
-                      <button onClick={() => void recusarWithWhatsapp(appointment.id)} style={actionStyle(C.red)}>
-                        <XCircle size={13} /> Recusar
-                      </button>
-                    </>
-                  )}
-                  {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
-                    <button onClick={() => changeStatus(appointment.id, 'completed')} style={actionStyle(C.purple)}>
-                      <CheckCircle2 size={13} /> Concluir
-                    </button>
-                  )}
-                  {(appointment.status === 'confirmed' || appointment.status === 'pending') && (
-                    <button onClick={() => changeStatus(appointment.id, 'no_show')} style={actionStyle(C.red)}>
-                      <XCircle size={13} /> Faltou
-                    </button>
-                  )}
-                </div>
+                <ActionRow
+                  appointment={appointment}
+                  onConfirm={() => void confirmWithWhatsapp(appointment.id)}
+                  onRecusar={() => void recusarWithWhatsapp(appointment.id)}
+                  onComplete={() => changeStatus(appointment.id, 'completed')}
+                  onNoShow={() => changeStatus(appointment.id, 'no_show')}
+                />
               </div>
             )
           })
@@ -1179,4 +1153,28 @@ function actionStyle(color: string): CSSProperties {
     fontWeight: 850,
     fontFamily: 'inherit',
   }
+}
+
+function ActionRow({ appointment, onConfirm, onRecusar, onComplete, onNoShow }: {
+  appointment: Appointment
+  onConfirm: () => void
+  onRecusar: () => void
+  onComplete: () => void
+  onNoShow: () => void
+}) {
+  const isPending = appointment.status === 'pending'
+  const isActive = appointment.status === 'confirmed' || appointment.status === 'pending'
+  if (!isPending && !isActive) return null
+  return (
+    <div className="apt-action-row">
+      {isPending && (
+        <>
+          <button onClick={onConfirm} style={actionStyle(C.green)}><Check size={13} /> Confirmar + Zap</button>
+          <button onClick={onRecusar} style={actionStyle(C.red)}><XCircle size={13} /> Recusar</button>
+        </>
+      )}
+      {isActive && <button onClick={onComplete} style={actionStyle(C.purple)}><CheckCircle2 size={13} /> Concluir</button>}
+      {isActive && <button onClick={onNoShow} style={actionStyle(C.red)}><XCircle size={13} /> Faltou</button>}
+    </div>
+  )
 }

@@ -78,10 +78,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ slots: [], reason: "blocked", date: dateStr })
     }
 
-    // Public booking only opens dates manually released by the studio.
-    // Weekly working hours are just defaults for the salon to copy from.
+    // Resolve effective config: date override first, then weekday default
+    const WEEKDAY_KEYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'] as const
     const dateOverride = (workingHours as Record<string, { is_open: boolean; open: string; close: string }>)[dateStr]
-    const effectiveConfig = dateOverride
+    const weekdayKey = WEEKDAY_KEYS[new Date(dateStr + 'T12:00:00').getDay()]
+    const weekdayConfig = (workingHours as Record<string, { is_open: boolean; open: string; close: string }>)[weekdayKey]
+    const effectiveConfig = dateOverride ?? weekdayConfig
 
     if (!effectiveConfig?.is_open) {
       return NextResponse.json({ slots: [], reason: "not_released", date: dateStr });

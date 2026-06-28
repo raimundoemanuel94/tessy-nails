@@ -135,7 +135,9 @@ export async function POST(req: Request) {
 
   // Public booking only accepts dates manually released by the studio.
   const wh = (settings?.working_hours as Record<string, { is_open: boolean; open: string; close: string }>) ?? {}
-  const dayConf = wh[localDate]
+  const WEEKDAY_KEYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'] as const
+  const weekdayKey = WEEKDAY_KEYS[when.getUTCDay()]
+  const dayConf = wh[localDate] ?? wh[weekdayKey]
   if (!dayConf?.is_open) return bad("Esse dia ainda não foi liberado para agendamento.", 400)
 
   // Validate: slot is valid (must align with slot grid)

@@ -11,6 +11,7 @@ import {
   ChevronRight,
   LayoutDashboard,
   LogOut,
+  Menu,
   Moon,
   Pencil,
   Scissors,
@@ -44,6 +45,7 @@ export function Sidebar({ profile }: { profile: any }) {
   const isSuperadmin = profile?.role === "superadmin";
   const studio = profile?.studios;
   const [theme, setTheme] = useState<"dark" | "rose">("dark");
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("salon-theme");
@@ -76,8 +78,9 @@ export function Sidebar({ profile }: { profile: any }) {
   }
 
   const bottomItems = isSuperadmin
-    ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 4)]
-    : [NAV[0], NAV[1], NAV[2], NAV[3], NAV[7]];
+    ? [{ href: "/admin", icon: Shield, label: "Admin" }, ...NAV.slice(0, 3)]
+    : [NAV[0], NAV[1], NAV[2], NAV[3]];
+  const moreItems = isSuperadmin ? NAV.slice(3) : [NAV[4], NAV[5], NAV[6], NAV[7]];
   const displayName = profile?.name ?? profile?.full_name ?? profile?.email?.split("@")[0] ?? "Usuário";
   const shortEmail = profile?.email ? (profile.email.length > 25 ? `${profile.email.slice(0, 22)}...` : profile.email) : "";
   const studioName = studio?.name ?? (isSuperadmin ? "Nailit Admin" : "Meu Studio");
@@ -185,7 +188,39 @@ export function Sidebar({ profile }: { profile: any }) {
             </Link>
           );
         })}
+        <button type="button" className={moreOpen ? "is-active" : ""} onClick={() => setMoreOpen(v => !v)} aria-label="Mais opções">
+          <Menu size={20} />
+          <span>Mais</span>
+        </button>
       </nav>
+
+      {moreOpen && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 30, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+          onClick={() => setMoreOpen(false)}
+        >
+          <div
+            style={{ position: "absolute", bottom: 74, left: 0, right: 0, background: "#0f0d1c", borderTop: "1px solid rgba(255,255,255,0.09)", borderRadius: "20px 20px 0 0", padding: "16px 12px 12px", display: "flex", flexDirection: "column", gap: 4 }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ width: 36, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.15)", margin: "0 auto 12px" }} />
+            {moreItems.map(({ href, icon: Icon, label }) => {
+              const active = isActive(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMoreOpen(false)}
+                  style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 16px", borderRadius: 12, textDecoration: "none", background: active ? "rgba(167,139,250,0.10)" : "transparent", color: active ? "#a78bfa" : "#8d86a8" }}
+                >
+                  <Icon size={20} />
+                  <span style={{ fontSize: 14, fontWeight: 700 }}>{label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </>
   );
 }

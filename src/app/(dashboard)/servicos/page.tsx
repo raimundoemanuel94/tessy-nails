@@ -50,6 +50,7 @@ export default function ServicosPage() {
   const [form, setForm] = useState({ name: '', price: '', duration_minutes: '60', category: '', description: '' })
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  const [undoTarget, setUndoTarget] = useState<{ id: string; name: string; timer: ReturnType<typeof setTimeout> } | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -153,17 +154,34 @@ export default function ServicosPage() {
     setServices((current) => current.map((item) => item.id === service.id ? { ...item, is_active: !item.is_active } : item))
   }
 
-  const deactivate = async (service: Service) => {
-    // confirm removido
-
-    const supabase = createClient()
-    const { error } = await supabase.from('services').update({ is_active: false }).eq('id', service.id)
-    if (error) {
-      setMessage({ type: 'err', text: 'Erro ao desativar servico.' })
-      return
-    }
+  const deactivate = (service: Service) => {
+    // Otimisticamente desativa na UI
     setServices((current) => current.map((item) => item.id === service.id ? { ...item, is_active: false } : item))
-    setMessage({ type: 'ok', text: 'Servico desativado.' })
+    setMessage({ type: 'ok', text: `"${service.name}" desativado.` })
+
+    // Cancela undo anterior se existir
+    if (undoTarget) clearTimeout(undoTarget.timer)
+
+    const timer = setTimeout(async () => {
+      // Confirma no banco após 5s
+      const supabase = createClient()
+      const { error } = await supabase.from('services').update({ is_active: false }).eq('id', service.id)
+      if (error) {
+        setServices((current) => current.map((item) => item.id === service.id ? { ...item, is_active: true } : item))
+        setMessage({ type: 'err', text: 'Erro ao desativar servico.' })
+      }
+      setUndoTarget(null)
+    }, 5000)
+
+    setUndoTarget({ id: service.id, name: service.name, timer })
+  }
+
+  const undoDeactivate = () => {
+    if (!undoTarget) return
+    clearTimeout(undoTarget.timer)
+    setServices((current) => current.map((item) => item.id === undoTarget.id ? { ...item, is_active: true } : item))
+    setMessage(null)
+    setUndoTarget(null)
   }
 
   if (loading) {
@@ -196,8 +214,17 @@ export default function ServicosPage() {
           padding: '10px 14px',
           fontSize: 13,
           fontWeight: 800,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
         }}>
-          {message.text}
+          <span>{message.text}</span>
+          {message.type === 'ok' && undoTarget && (
+            <button onClick={undoDeactivate} style={{ background: 'none', border: `1px solid ${C.green}66`, color: C.green, borderRadius: 8, padding: '3px 10px', fontSize: 12, fontWeight: 900, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+              Desfazer
+            </button>
+          )}
         </div>
       )}
 
