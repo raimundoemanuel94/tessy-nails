@@ -204,9 +204,9 @@ export default function AdminMensagensPage() {
     return { ...c, studio_name: studio?.name };
   }), [filtered, studioById]);
 
-  const primaryStudio = studios.find((s: any) => s.slug === "tessy-nails") ?? studios.find((s: any) => s.is_active !== false) ?? studios[0];
-  const appUrl = typeof window !== "undefined" ? window.location.origin : "https://tessy-nails.vercel.app";
-  const bookingUrl = primaryStudio ? `${appUrl}/agendar/${primaryStudio.slug}` : "";
+  const primaryStudio = studios.find((s: any) => s.is_active !== false) ?? studios[0];
+  const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const bookingUrl = primaryStudio && appUrl ? `${appUrl}/agendar/${primaryStudio.slug}` : "";
 
   const totalWithPhone = clients.filter(c => c.phone).length;
 

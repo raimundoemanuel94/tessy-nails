@@ -88,7 +88,6 @@ function formatDateTime(value: string) {
 }
 
 function getMapsUrl(studio: Studio) {
-  if (studio.slug === 'tessy-nails') return 'https://maps.app.goo.gl/kg9QsK72y4eAaNPL8'
   if (!studio.address) return ''
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(studio.address)}`
 }

@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     if (!email) return NextResponse.json({ error: "Email obrigatório" }, { status: 400 });
     const sb = await createClient();
     const { error } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://tessy-nails.vercel.app"}/login`,
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/login`,
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     await logAction(actor, "reset_password", "profiles", email, { email });
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await admin.auth.admin.generateLink({
       type: "magiclink",
       email: ownerEmail,
-      options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://tessy-nails.vercel.app"}/dashboard` },
+      options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/dashboard` },
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     await logAction(actor, "impersonate", "studios", studioId ?? ownerEmail, { ownerEmail });

@@ -32,7 +32,7 @@ export default function VitrinePage() {
     d.setHours(12, 0, 0, 0)
     return d
   })
-  const [studioName, setStudioName] = useState('Tessy Nails')
+  const [studioName, setStudioName] = useState('')
   const [studioSlug, setStudioSlug] = useState('')
   const [slots, setSlots] = useState<Slot[]>([])
   const [slotReason, setSlotReason] = useState('')
@@ -200,7 +200,7 @@ export default function VitrinePage() {
     ctx.fillStyle = text
     ctx.font = '900 38px system-ui, sans-serif'
     ctx.textAlign = 'left'
-    ctx.fillText(studioName || 'Tessy Nails', 82, 1190)
+    ctx.fillText(studioName, 82, 1190)
     ctx.fillStyle = muted
     ctx.font = '500 25px system-ui, sans-serif'
     ctx.fillText('Atualizado agora', 82, 1230)
