@@ -1,9 +1,10 @@
-// Nailit Service Worker — cache-first para assets, network-first para API
-const CACHE_NAME = 'nailit-v1';
-const STATIC_CACHE = 'nailit-static-v1';
+// Nailit Service Worker v2
+// Bump CACHE_VERSION a cada deploy relevante para forçar limpeza de cache
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `nailit-pages-${CACHE_VERSION}`;
+const STATIC_CACHE = `nailit-static-${CACHE_VERSION}`;
+const ALL_CACHES = [CACHE_NAME, STATIC_CACHE];
 
-// Assets estáticos que devem ser cacheados
-// Só assets verdadeiramente estáticos — rotas autenticadas retornam 302 e não podem ser pré-cacheadas
 const PRECACHE_URLS = [
   '/manifest.json',
   '/icons/icon-192.png',
@@ -12,68 +13,96 @@ const PRECACHE_URLS = [
   '/icons/icon-512-maskable.png',
 ];
 
-// Instala e pré-cacheia assets essenciais
+// Instala e pré-cacheia assets estáticos
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => {
-      return cache.addAll(PRECACHE_URLS).catch(() => {
-        // Silencia erros de pré-cache individuais
-      });
-    })
-    // Não chama skipWaiting() aqui — espera o usuário confirmar o update
-    // para evitar inconsistências entre SW novo e assets antigos em cache
+    caches.open(STATIC_CACHE)
+      .then((cache) => cache.addAll(PRECACHE_URLS).catch(() => {}))
+      .then(() => {
+        // Se não há SW anterior (primeira instalação), ativa imediatamente
+        // Se há SW anterior, aguarda mensagem SKIP_WAITING do usuário
+        return self.clients.matchAll().then((clients) => {
+          if (clients.length === 0) self.skipWaiting();
+        });
+      })
   );
 });
 
-// Ativa e limpa caches antigos
+// Ativa, limpa caches de versões anteriores e assume controle
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME && key !== STATIC_CACHE)
-          .map((key) => caches.delete(key))
+    caches.keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => !ALL_CACHES.includes(key))
+            .map((key) => caches.delete(key))
+        )
       )
-    ).then(() => self.clients.claim())
+      .then(() => self.clients.claim())
   );
 });
 
-// Recebe mensagem do cliente para forçar update
+// Usuário confirmou o update
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
 
-// Estratégia de fetch
+// ── Estratégias de fetch ──────────────────────────────────────
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Ignora requisições non-GET, extensões do browser e cross-origin
+  // Só GET e mesmo origin (+ Supabase)
   if (request.method !== 'GET') return;
   if (url.origin !== self.location.origin && !url.hostname.includes('supabase')) return;
 
-  // API routes e Supabase → sempre network, sem cache
+  // API, Supabase, auth → network-only
   if (
     url.pathname.startsWith('/api/') ||
     url.hostname.includes('supabase.co') ||
     url.hostname.includes('supabase.com') ||
     url.pathname.startsWith('/auth/')
   ) {
-    event.respondWith(fetch(request).catch(() => new Response('Offline', { status: 503 })));
+    event.respondWith(
+      fetch(request).catch(() =>
+        new Response(JSON.stringify({ error: 'offline' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      )
+    );
     return;
   }
 
-  // Assets estáticos (_next/static) → cache-first
+  // Rotas de auth e admin → network-only com fallback HTML
+  if (
+    url.pathname.startsWith('/login') ||
+    url.pathname.startsWith('/setup') ||
+    url.pathname.startsWith('/admin')
+  ) {
+    event.respondWith(
+      fetch(request).catch(() =>
+        new Response(
+          '<html><head><meta name="viewport" content="width=device-width"></head><body style="font-family:sans-serif;background:#080812;color:#f0f0ff;display:grid;place-items:center;min-height:100vh;margin:0"><div style="text-align:center;padding:24px"><p style="font-size:32px;margin-bottom:12px">💅</p><h2 style="margin:0 0 8px">Sem conexão</h2><p style="color:#8d86a8;font-size:14px;margin:0">Verifique sua internet e tente novamente</p></div></body></html>',
+          { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+        )
+      )
+    );
+    return;
+  }
+
+  // Assets do Next.js (_next/static) → cache-first imutável
   if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;
         return fetch(request).then((response) => {
           if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
+            caches.open(STATIC_CACHE).then((c) => c.put(request, response.clone()));
           }
           return response;
         });
@@ -82,7 +111,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Ícones e imagens → cache-first com fallback
+  // Ícones e imagens → cache-first
   if (
     url.pathname.startsWith('/icons/') ||
     url.pathname.startsWith('/images/') ||
@@ -93,8 +122,7 @@ self.addEventListener('fetch', (event) => {
         if (cached) return cached;
         return fetch(request).then((response) => {
           if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
+            caches.open(STATIC_CACHE).then((c) => c.put(request, response.clone()));
           }
           return response;
         }).catch(() => cached || new Response('', { status: 404 }));
@@ -103,7 +131,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Páginas do app → stale-while-revalidate
+  // Páginas do app → network-first com fallback cache
+  // (não stale-while-revalidate para que o HTML novo seja sempre buscado)
   if (
     url.pathname.startsWith('/dashboard') ||
     url.pathname.startsWith('/agenda') ||
@@ -115,49 +144,37 @@ self.addEventListener('fetch', (event) => {
     url.pathname.startsWith('/vitrine')
   ) {
     event.respondWith(
-      caches.open(CACHE_NAME).then((cache) => {
-        return cache.match(request).then((cached) => {
-          const fetchPromise = fetch(request).then((response) => {
-            if (response && response.status === 200) {
-              cache.put(request, response.clone());
-              trimCache(CACHE_NAME, 30);
-            }
-            return response;
-          }).catch(() => cached);
-          // Retorna cache imediatamente se disponível, atualiza em background
-          return cached || fetchPromise;
-        });
-      })
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            caches.open(CACHE_NAME).then((c) => {
+              c.put(request, response.clone());
+              trimCache(c, 30);
+            });
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then((r) => r || offlinePage()))
     );
     return;
   }
 
-  // Rotas de auth e admin — só network, sem cache
-  if (
-    url.pathname.startsWith('/login') ||
-    url.pathname.startsWith('/setup') ||
-    url.pathname.startsWith('/admin') ||
-    url.pathname.startsWith('/auth/')
-  ) {
-    event.respondWith(
-      fetch(request).catch(() =>
-        new Response('<html><body style="font-family:sans-serif;background:#080812;color:#f0f0ff;display:grid;place-items:center;min-height:100vh;margin:0"><div style="text-align:center"><p style="font-size:24px">💅</p><h2>Sem conexão</h2><p style="color:#8d86a8;font-size:14px">Verifique sua internet e tente novamente</p></div></body></html>', { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
-      )
-    );
-    return;
-  }
-
-  // Default: network com fallback para cache
+  // Default: network com fallback cache
   event.respondWith(
-    fetch(request).catch(() => caches.match(request).then(r => r || new Response('', { status: 503 })))
+    fetch(request).catch(() => caches.match(request).then((r) => r || new Response('', { status: 503 })))
   );
 });
 
-// Limpar entradas antigas do cache de páginas (máx 30 entradas)
-async function trimCache(cacheName, maxEntries) {
-  const cache = await caches.open(cacheName);
+function offlinePage() {
+  return new Response(
+    '<html><head><meta name="viewport" content="width=device-width"></head><body style="font-family:sans-serif;background:#080812;color:#f0f0ff;display:grid;place-items:center;min-height:100vh;margin:0"><div style="text-align:center;padding:24px"><p style="font-size:32px;margin-bottom:12px">💅</p><h2 style="margin:0 0 8px">Você está offline</h2><p style="color:#8d86a8;font-size:14px;margin:0 0 20px">Reconecte para ver os dados mais recentes</p><button onclick="location.reload()" style="padding:10px 24px;border-radius:12px;border:none;background:#7C5CBF;color:#fff;font-size:14px;font-weight:700;cursor:pointer">Tentar novamente</button></div></body></html>',
+    { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+  );
+}
+
+async function trimCache(cache, maxEntries) {
   const keys = await cache.keys();
   if (keys.length > maxEntries) {
-    await Promise.all(keys.slice(0, keys.length - maxEntries).map(k => cache.delete(k)));
+    await Promise.all(keys.slice(0, keys.length - maxEntries).map((k) => cache.delete(k)));
   }
 }

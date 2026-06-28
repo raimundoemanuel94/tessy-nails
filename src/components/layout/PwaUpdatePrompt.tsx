@@ -9,16 +9,20 @@ export function PwaUpdatePrompt() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
 
-    navigator.serviceWorker.ready.then((reg) => {
-      // Já tem um SW em espera quando a página carrega
-      if (reg.waiting) {
-        setWaiting(reg.waiting)
+    let reg: ServiceRegistration | null = null
+
+    navigator.serviceWorker.ready.then((r) => {
+      reg = r
+
+      // Já tem SW em espera ao carregar a página (update foi instalado em background)
+      if (r.waiting) {
+        setWaiting(r.waiting)
         setVisible(true)
       }
 
       // SW novo instala enquanto a página está aberta
-      reg.addEventListener('updatefound', () => {
-        const newSW = reg.installing
+      r.addEventListener('updatefound', () => {
+        const newSW = r.installing
         if (!newSW) return
         newSW.addEventListener('statechange', () => {
           if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
@@ -27,9 +31,14 @@ export function PwaUpdatePrompt() {
           }
         })
       })
+
+      // Polling a cada 60s para checar atualização (importante para apps que ficam
+      // abertas por horas sem recarregar — comum em celular de salão)
+      const poll = setInterval(() => r.update().catch(() => {}), 60_000)
+      return () => clearInterval(poll)
     })
 
-    // Recarrega quando o SW novo assume o controle
+    // Recarrega quando o SW novo assume controle (após SKIP_WAITING)
     let refreshing = false
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (!refreshing) {
@@ -72,7 +81,7 @@ export function PwaUpdatePrompt() {
       <div style={{ fontSize: 18, flexShrink: 0 }}>🔄</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ margin: 0, color: '#f0f0ff', fontSize: 13, fontWeight: 700 }}>Nova versão disponível</p>
-        <p style={{ margin: '2px 0 0', color: '#8d86a8', fontSize: 11 }}>Recarregue para atualizar o app</p>
+        <p style={{ margin: '2px 0 0', color: '#8d86a8', fontSize: 11 }}>Toque em Atualizar para aplicar</p>
       </div>
       <button
         onClick={update}
@@ -90,3 +99,6 @@ export function PwaUpdatePrompt() {
     </div>
   )
 }
+
+// Workaround de tipo para ServiceWorkerRegistration
+type ServiceRegistration = ServiceWorkerRegistration
