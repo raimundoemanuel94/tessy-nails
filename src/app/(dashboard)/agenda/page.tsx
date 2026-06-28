@@ -34,6 +34,10 @@ const time = (iso: string) => new Date(iso).toLocaleTimeString('pt-BR', { hour: 
 const longDate = (value: string) => new Date(`${value}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 const shortDate = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' })
 
+function vibrate(pattern: number | number[]) {
+  try { navigator.vibrate?.(pattern) } catch {}
+}
+
 function Badge({ status }: { status: string }) {
   const item = ST[status] || { label: status, color: C.muted }
   return (
@@ -161,6 +165,8 @@ export default function AgendaPage() {
   const statusCount = (status: string) => status === 'todos' ? apts.length : apts.filter(item => item.status === status).length
 
   const changeStatus = async (id: string, status: string) => {
+    if (status === 'completed') vibrate([10, 20, 60])
+    else if (status === 'no_show') vibrate([30, 20, 30])
     const sb = createClient()
     const { error } = await sb.from('appointments').update({ status }).eq('id', id)
     if (!error) setApts(prev => prev.map(item => item.id === id ? { ...item, status } : item))
@@ -168,6 +174,7 @@ export default function AgendaPage() {
   }
 
   const confirmWithWhatsapp = async (id: string) => {
+    vibrate([10, 30, 10])
     const apt = apts.find(item => item.id === id)
     if (!apt) return
     await changeStatus(id, 'confirmed')

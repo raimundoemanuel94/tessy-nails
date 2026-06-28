@@ -7,7 +7,10 @@
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone"],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
   "background_color": "#080812",
   "theme_color": "#7C5CBF",
   "orientation": "portrait-primary",
@@ -42,14 +45,42 @@
       "name": "Agenda",
       "url": "/agenda",
       "description": "Ver agenda do dia",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Clientes",
       "url": "/clientes",
       "description": "Ver lista de clientes",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
-  "categories": ["business", "productivity"]
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "screenshots": [
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Painel do salão"
+    }
+  ],
+  "launch_handler": {
+    "client_mode": [
+      "navigate-existing",
+      "auto"
+    ]
+  }
 }

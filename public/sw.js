@@ -120,6 +120,7 @@ self.addEventListener('fetch', (event) => {
           const fetchPromise = fetch(request).then((response) => {
             if (response && response.status === 200) {
               cache.put(request, response.clone());
+              trimCache(CACHE_NAME, 30);
             }
             return response;
           }).catch(() => cached);
@@ -131,8 +132,32 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Rotas de auth e admin — só network, sem cache
+  if (
+    url.pathname.startsWith('/login') ||
+    url.pathname.startsWith('/setup') ||
+    url.pathname.startsWith('/admin') ||
+    url.pathname.startsWith('/auth/')
+  ) {
+    event.respondWith(
+      fetch(request).catch(() =>
+        new Response('<html><body style="font-family:sans-serif;background:#080812;color:#f0f0ff;display:grid;place-items:center;min-height:100vh;margin:0"><div style="text-align:center"><p style="font-size:24px">💅</p><h2>Sem conexão</h2><p style="color:#8d86a8;font-size:14px">Verifique sua internet e tente novamente</p></div></body></html>', { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+      )
+    );
+    return;
+  }
+
   // Default: network com fallback para cache
   event.respondWith(
-    fetch(request).catch(() => caches.match(request))
+    fetch(request).catch(() => caches.match(request).then(r => r || new Response('', { status: 503 })))
   );
 });
+
+// Limpar entradas antigas do cache de páginas (máx 30 entradas)
+async function trimCache(cacheName, maxEntries) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length > maxEntries) {
+    await Promise.all(keys.slice(0, keys.length - maxEntries).map(k => cache.delete(k)));
+  }
+}
