@@ -237,7 +237,7 @@ export function Sidebar({ profile }: { profile: any }) {
             </div>
 
             {/* Ações de perfil */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, padding: "4px 4px 12px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, padding: "4px 4px 12px" }}>
               <button
                 type="button"
                 onClick={() => { toggleTheme(); }}
@@ -246,14 +246,7 @@ export function Sidebar({ profile }: { profile: any }) {
                 {isRose ? <Moon size={18} /> : <Sun size={18} />}
                 <span style={{ fontSize: 10, fontWeight: 700 }}>{isRose ? "Noite" : "Dia"}</span>
               </button>
-              <Link
-                href="/configuracoes"
-                onClick={() => setMoreOpen(false)}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, padding: "12px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: "#8d86a8", textDecoration: "none" }}
-              >
-                <Settings size={18} />
-                <span style={{ fontSize: 10, fontWeight: 700 }}>Config</span>
-              </Link>
+
               <button
                 type="button"
                 onClick={() => { setMoreOpen(false); void signOut(); }}
