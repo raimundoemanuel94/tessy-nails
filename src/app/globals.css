@@ -2743,7 +2743,10 @@ nextjs-portal {
 @media (max-width: 768px) {
   .dash-main {
     margin-left: 0;
-    padding: 18px 14px 86px;
+    padding-top: calc(72px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+    padding-left: max(14px, env(safe-area-inset-left, 14px));
+    padding-right: max(14px, env(safe-area-inset-right, 14px));
   }
   .manicure-sidebar {
     display: none !important;

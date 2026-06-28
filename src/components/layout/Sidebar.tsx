@@ -200,10 +200,13 @@ export function Sidebar({ profile }: { profile: any }) {
           onClick={() => setMoreOpen(false)}
         >
           <div
-            style={{ position: "absolute", bottom: 74, left: 0, right: 0, background: "#0f0d1c", borderTop: "1px solid rgba(255,255,255,0.09)", borderRadius: "20px 20px 0 0", padding: "16px 12px 12px", display: "flex", flexDirection: "column", gap: 4 }}
+            style={{ position: "absolute", bottom: "calc(66px + env(safe-area-inset-bottom,0px))", left: 0, right: 0, background: "#0f0d1c", borderTop: "1px solid rgba(255,255,255,0.09)", borderRadius: "20px 20px 0 0", padding: "16px 12px 8px", display: "flex", flexDirection: "column", gap: 2 }}
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ width: 36, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.15)", margin: "0 auto 12px" }} />
+            {/* Handle */}
+            <div style={{ width: 36, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.15)", margin: "0 auto 14px" }} />
+
+            {/* Nav items */}
             {moreItems.map(({ href, icon: Icon, label }) => {
               const active = isActive(href);
               return (
@@ -211,13 +214,55 @@ export function Sidebar({ profile }: { profile: any }) {
                   key={href}
                   href={href}
                   onClick={() => setMoreOpen(false)}
-                  style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 16px", borderRadius: 12, textDecoration: "none", background: active ? "rgba(167,139,250,0.10)" : "transparent", color: active ? "#a78bfa" : "#8d86a8" }}
+                  style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", borderRadius: 12, textDecoration: "none", background: active ? "rgba(167,139,250,0.10)" : "transparent", color: active ? "#a78bfa" : "#8d86a8" }}
                 >
-                  <Icon size={20} />
+                  <Icon size={19} />
                   <span style={{ fontSize: 14, fontWeight: 700 }}>{label}</span>
                 </Link>
               );
             })}
+
+            {/* Divisor */}
+            <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "10px 4px" }} />
+
+            {/* Card de perfil */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", borderRadius: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#7c5cbf,#f472b6)", display: "grid", placeItems: "center", flexShrink: 0, color: "#fff", fontSize: 14, fontWeight: 800 }}>
+                {initial}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: 0, color: "#f0f0ff", fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</p>
+                <p style={{ margin: "2px 0 0", color: "#8d86a8", fontSize: 11, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{studioName}</p>
+              </div>
+            </div>
+
+            {/* Ações de perfil */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, padding: "4px 4px 12px" }}>
+              <button
+                type="button"
+                onClick={() => { toggleTheme(); }}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, padding: "12px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: "#8d86a8", cursor: "pointer", fontFamily: "inherit" }}
+              >
+                {isRose ? <Moon size={18} /> : <Sun size={18} />}
+                <span style={{ fontSize: 10, fontWeight: 700 }}>{isRose ? "Noite" : "Dia"}</span>
+              </button>
+              <Link
+                href="/configuracoes"
+                onClick={() => setMoreOpen(false)}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, padding: "12px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: "#8d86a8", textDecoration: "none" }}
+              >
+                <Settings size={18} />
+                <span style={{ fontSize: 10, fontWeight: 700 }}>Config</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => { setMoreOpen(false); void signOut(); }}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, padding: "12px 8px", borderRadius: 12, border: "1px solid rgba(248,113,113,0.18)", background: "rgba(248,113,113,0.06)", color: "#f87171", cursor: "pointer", fontFamily: "inherit" }}
+              >
+                <LogOut size={18} />
+                <span style={{ fontSize: 10, fontWeight: 700 }}>Sair</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
