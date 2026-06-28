@@ -200,7 +200,7 @@ export function Sidebar({ profile }: { profile: any }) {
           onClick={() => setMoreOpen(false)}
         >
           <div
-            style={{ position: "absolute", bottom: "calc(66px + env(safe-area-inset-bottom,0px))", left: 0, right: 0, background: "#0f0d1c", borderTop: "1px solid rgba(255,255,255,0.09)", borderRadius: "20px 20px 0 0", padding: "16px 12px 8px", display: "flex", flexDirection: "column", gap: 2 }}
+            style={{ position: "absolute", bottom: "calc(58px + env(safe-area-inset-bottom,0px))", left: 0, right: 0, background: "#0f0d1c", borderTop: "1px solid rgba(255,255,255,0.09)", borderRadius: "20px 20px 0 0", padding: "16px 12px 8px", display: "flex", flexDirection: "column", gap: 2, maxHeight: "calc(100vh - 160px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))", overflowY: "auto" }}
             onClick={e => e.stopPropagation()}
           >
             {/* Handle */}

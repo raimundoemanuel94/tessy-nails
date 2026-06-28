@@ -34,7 +34,7 @@ export function OfflineBanner() {
   return (
     <div style={{
       position: 'fixed',
-      top: 'calc(12px + env(safe-area-inset-top, 0px))',
+      top: 'calc(56px + env(safe-area-inset-top, 0px) + 8px)',
       left: '50%',
       transform: 'translateX(-50%)',
       zIndex: 500,

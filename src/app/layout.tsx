@@ -58,7 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
-        <Toaster theme="system" position="top-right" richColors />
+        <Toaster theme="system" position="bottom-center" richColors toastOptions={{ style: { marginBottom: 'calc(74px + env(safe-area-inset-bottom, 0px))' } }} />
         <OfflineBanner />
         <PwaInstallPrompt />
         <PwaUpdatePrompt />

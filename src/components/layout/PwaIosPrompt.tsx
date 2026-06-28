@@ -63,8 +63,8 @@ export function PwaIosPrompt() {
       {/* Passo a passo */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {[
-          { icon: '⬆️', text: 'Toque no botão Compartilhar (quadrado com seta)' },
-          { icon: '➕', text: 'Role até "Adicionar à Tela de Início"' },
+          { icon: '⬆️', text: 'Toque em Compartilhar na barra do Safari (ícone de caixa com seta)' },
+          { icon: '➕', text: 'Toque em "Adicionar à Tela de Início"' },
           { icon: '✅', text: 'Toque em "Adicionar" no canto superior direito' },
         ].map(({ icon, text }) => (
           <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
